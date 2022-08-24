@@ -24,7 +24,8 @@ roboplot(
   plot_type = "scatter",
   plot_mode = "dodge",
   height = getOption("roboplot.height"),
-  facet_split
+  facet_split,
+  pie_rotation = F
 )
 }
 \arguments{
@@ -61,6 +62,8 @@ roboplot(
 \item{height}{Height of the plot.}
 
 \item{facet_split}{The column from tibble d to use for facet split (Unquoted string).}
+
+\item{pie_rotation}{Will pie charts be rotated to center the 0° point on middle of the first item of the color variable as factor (Logical).}
 }
 \value{
 plotly object

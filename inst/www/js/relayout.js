@@ -38,8 +38,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	let title_breaks = (el.layout.title.text.match(new RegExp("<br>", "g")) || []).length;
 	let title_y = 1 + ((margin_top+el.layout.title.font.size*title_breaks*2) / elplot)
 //	console.log(title_y)
-	let annotations_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize * 0.3) / elplot);
-	let images_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize * 0.3 - (elimages / 10)) / elplot);
+	let annotations_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2) / elplot);
+	let images_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2 - (elimages / 10)) / elplot);
 	let legend_font_size = (ellegend > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
 	if(showfinal == true) {console.log('legend ht: ' + ellegend +
 	' slider ht: ' + elslider +
@@ -88,7 +88,7 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, alt_title, pie_chart)
 	    //Plotly.relayout(gd, {'xaxis.rangeslider.visible': true})
 	  }}
 	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox();
-	  let titlespace = $(gd).find('svg.main-svg')[0].getAttribute("width") * 0.7
+	  let titlespace = $(gd).find('svg.main-svg')[0].getAttribute("width") * 0.85
 	   if (titlespace < gdtitle.width) {
 	      //console.log("title too tight!")
 	      Plotly.relayout(gd, {'title.text': alt_title[1]})

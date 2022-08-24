@@ -119,7 +119,7 @@ roboplot_alter_color <- function(color,modifier) {
 
 #' @importFrom dplyr case_when filter mutate pull rowwise slice_head slice_tail ungroup
 #' @importFrom purrr map
-roboplot_text_color_picker <- function(picked_colors, fontsize = 12, fontweight = 500, draw_kunta = F) {
+roboplot_text_color_picker <- function(picked_colors, fontsize = 12, fontweight = 500, draw_kunta = F, grey_shades = roboplot_grey_shades()) {
 
   map(picked_colors, function(picked_color) {
     #font_color <- ifelse(rev == F, "#FFFFFF", "#000000")
@@ -128,14 +128,20 @@ roboplot_text_color_picker <- function(picked_colors, fontsize = 12, fontweight 
       #fontsize < 11 ~ 7,
       fontsize >= 18 || (fontsize >= 14 && fontweight >= 700) ~ 3,
       TRUE ~ 4.5)
-    gs <- roboplot_grey_shades() |>
-      rowwise() |>
+    gs <- grey_shades |>
       mutate(
-        max_l = (max(clr_lmn,.data$luminance) + 0.05),
-        min_l = (min(clr_lmn,.data$luminance) + 0.05),
+        max_l = unlist(map(.data$luminance, ~ max(clr_lmn,.x) + 0.05)),
+        min_l = unlist(map(.data$luminance, ~ min(clr_lmn,.x) + 0.05)),
         ratio = .data$max_l/.data$min_l) |>
-      filter(.data$ratio >= ratio_lim) |>
-      ungroup()
+      filter(.data$ratio >= ratio_lim)
+    # grey_shades |>
+    #   rowwise() |>
+    #   mutate(
+    #     max_l = (max(clr_lmn,.data$luminance) + 0.05),
+    #     min_l = (min(clr_lmn,.data$luminance) + 0.05),
+    #     ratio = .data$max_l/.data$min_l) |>
+    #   filter(.data$ratio >= ratio_lim) |>
+    #   ungroup()
     if(nrow(gs) == 0) {ifelse(draw_kunta == F, "#000000", "#FFFFFF")} else {
       {if(draw_kunta == F) {slice_head(gs, n = 1)} else {slice_tail(gs, prop = 0.85) |> slice_head()}} |>
         pull(.data$color)

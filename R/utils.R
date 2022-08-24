@@ -29,15 +29,29 @@ roboplot_set_options <- function(roboplot_options, notify = T, shinyapp = F) {
 
   check_colors <- function() {
     color_options <- roboplot_options[str_subset(names(roboplot_options), "roboplot.colors")]
+    list_options <- color_options[str_subset(names(color_options), "ticks|grid|border")]
+    if(length(list_options) > 0) {
+      for(op in list_options) {
+        if(!all(c("x","y") == names(op)) | !is.list(op)) { stop("Any color roboplot options for border, grid and ticks must be a named list with names x and y!", call. = F) }
+        }
+    }
     if(length(color_options) > 0) {
-      if(any(roboplot_are_colors(color_options)) == F) { stop ("Any color roboplot_options must be hexadecimal values or among strings provided by grDevices::colors!", call. = F) }
+      if(any(roboplot_are_colors(unlist(color_options))) == F) { stop ("Any color roboplot_options must be hexadecimal values or among strings provided by grDevices::colors!", call. = F) }
+    }
+  }
+
+  check_dashtypes <- function() {
+    dashtype_options <- roboplot_options[str_subset(names(roboplot_options), "roboplot.dashtypes")]
+    if(length(dashtype_options) > 0) {
+      valid_dashtypes <- c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot")
+      if(!all(dashtype_options %in% valid_dashtypes) | !all(valid_dashtypes %in% dashtype_options)) { stop (str_c("Dashtype roboplot options must contain all of ",combine_words(valid_dashtypes)," in any order!"), call. = F) }
     }
   }
 
   check_modebar_buttons <- function() {
-    button_options <- roboplot_options[str_detect(names(roboplot_options),"roboplot.modebar.buttons")]
+    button_options <<- roboplot_options[str_detect(names(roboplot_options),"roboplot.modebar.buttons")]
     valid_buttons <- c("closest","compare","img_w","img_n","img_s","data_dl","robonomist")
-    if(any(button_options %in% valid_buttons)) {
+    if(!any(unlist(button_options) %in% valid_buttons)) {
       stop(str_c("Roboplot modebar button options must be one or more of ",combine_words(valid_buttons),"!"), call. = F)
     }
   }
