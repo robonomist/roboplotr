@@ -28,4 +28,5 @@ Imports:
     tidyr,
     chromote,
     stats,
-    googleCloudStorageR
+    googleCloudStorageR,
+    data.table

@@ -25,7 +25,8 @@ roboplot(
   plot_mode = "dodge",
   height = getOption("roboplot.height"),
   facet_split,
-  pie_rotation = F
+  pie_rotation = F,
+  legend_maxwidth = NULL
 )
 }
 \arguments{
@@ -64,6 +65,8 @@ roboplot(
 \item{facet_split}{The column from tibble d to use for facet split (Unquoted string).}
 
 \item{pie_rotation}{Will pie charts be rotated to center the 0° point on middle of the first item of the color variable as factor (Logical).}
+
+\item{legend_maxwidth}{Legend items (or y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).}
 }
 \value{
 plotly object

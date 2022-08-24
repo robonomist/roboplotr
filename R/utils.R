@@ -49,7 +49,7 @@ roboplot_set_options <- function(roboplot_options, notify = T, shinyapp = F) {
   }
 
   check_modebar_buttons <- function() {
-    button_options <<- roboplot_options[str_detect(names(roboplot_options),"roboplot.modebar.buttons")]
+    button_options <- roboplot_options[str_detect(names(roboplot_options),"roboplot.modebar.buttons")]
     valid_buttons <- c("closest","compare","img_w","img_n","img_s","data_dl","robonomist")
     if(!any(unlist(button_options) %in% valid_buttons)) {
       stop(str_c("Roboplot modebar button options must be one or more of ",combine_words(valid_buttons),"!"), call. = F)

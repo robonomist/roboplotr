@@ -471,8 +471,10 @@ roboplot_attach_dependencies <- function(p, title, subtitle) {
     onRender(jsCode = str_c("
                         function (gd, params, data){
                         let legendFontsize = 0;
-                        console.log(JSON.stringify(gd.data))
-                        if ('legend' in gd.layout) { legendFontsize = gd.layout.legend.font.size };
+                        console.log('OKAY HERE');
+                        if ('legend.font' in gd.layout) {
+                        console.log(gd.layout.legend)
+                        legendFontsize = gd.layout.legend.font.size };
                         let alt_title = data.splitTitle;
                         setVerticalLayout({'width': true}, gd, legendFontsize, alt_title, pie_plot = data.piePlot);
                         gd.on('plotly_relayout',function(eventdata, lf = legendFontsize) {
@@ -527,7 +529,7 @@ roboplot_hovertemplate <- function(specs, type = "default") {
     if(type == "default") {
       paste0("%{text}<br>%{y:,.",specs_template$rounding,"f} ",specs_template$unit,"<br>%{x|",specs_template$dateformat,"}",ifelse(specs_template$extra == "", "", paste0("<br>",str_c(specs_template$extra, collapse = " "))),"<extra></extra>")
     } else if(type == "horizontal") {
-      paste0("%{text}<br>%{customdata}<br>%{x}<extra></extra>")
+      paste0("%{text}<br>%{x:,.",specs_template$rounding,"f} ",specs_template$unit,"<br><extra></extra>")
     } else if(type == "pie") {
       paste0("%{text}<br>%{value:,.",specs_template$rounding,"f} ",specs_template$unit,"<extra></extra>")
     }
@@ -723,6 +725,7 @@ roboplot_get_linetype <- function(linetype, d) {
 #' @param height Height of the plot.
 #' @param facet_split The column from tibble d to use for facet split (Unquoted string).
 #' @param pie_rotation Will pie charts be rotated to center the 0° point on middle of the first item of the color variable as factor (Logical).
+#' @param legend_maxwidth Legend items (or y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).
 #' @return plotly object
 #' @examples
 #' \dontrun{
@@ -769,7 +772,8 @@ roboplot <- function(d,
                      plot_mode = "dodge",
                      height = getOption("roboplot.height"),
                      facet_split,
-                     pie_rotation = F
+                     pie_rotation = F,
+                     legend_maxwidth = NULL
 ){
 
 
@@ -861,7 +865,7 @@ roboplot <- function(d,
   if(!missing(facet_split)) {
     p <- roboplot_get_facet_plot(d, facet_split, height, color, linetype, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, axis_limits)
   } else {
-    p <- roboplot_get_plot(d, xaxis, yaxis, height, color, linetype, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation)
+    p <- roboplot_get_plot(d, xaxis, yaxis, height, color, linetype, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth)
   }
 
   p$data <- roboplot_transform_data_for_download(d, color, linetype, facet_split, plot_mode)
@@ -974,16 +978,13 @@ get_bar_widths <- function(df, width_col) {
 
 }
 
-#' @importFrom dplyr distinct first group_split mutate pull slice_min summarize
-#' @importFrom forcats fct_relabel
+#' @importFrom dplyr arrange distinct first group_split mutate pull slice_min summarize
+#' @importFrom data.table :=
 #' @importFrom plotly plot_ly add_trace layout subplot
+#' @importFrom rlang sym
 #' @importFrom stats as.formula
 #' @importFrom stringr str_replace_all str_trunc
-roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation) {
-
-  if(plot_mode == "horizontal") {
-    d <- get_bar_widths(d, yaxis)
-  }
+roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth) {
 
   plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color))
 
@@ -993,7 +994,17 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
               roboplot.plot.text = if (!is.null(linetype)) {str_c(!!color, ", ",tolower(!!linetype)) |> str_remove(", alkuper\uE4inen")} else {!!color},
               roboplot.legend.rank = ((max(as.numeric(!!color))-as.numeric(!!color)) * 100) + ((max(as.numeric(.data$roboplot.dash))-as.numeric(.data$roboplot.dash))*10))
 
-  split_d <- group_split(d, if("pie" %in% plot_type) { NULL } else { !!color }, .data$roboplot.plot.type, !!linetype) %>% rev()
+  if(plot_mode == "horizontal") {
+    d <- get_bar_widths(d, yaxis)
+    if(!is.null(legend_maxwidth)) {
+      d <- mutate(d, roboplot.full.label = as.character(!!sym(yaxis)))
+      d <- arrange(d, !!sym(yaxis)) |>
+        mutate((!!sym(yaxis)) := str_trunc(as.character((!!sym(yaxis))), legend_maxwidth) |> fct_inorder())
+    }
+  }
+
+  split_d <- group_split(d, if("pie" %in% plot_type) { NULL } else { !!color }, .data$roboplot.plot.type, !!linetype)
+  if("scatter" %in% plot_type) { split_d <- rev(split_d)}
 
   for (g in split_d) {
     tracetype <- unique(g$roboplot.plot.type)
@@ -1016,7 +1027,6 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
       -(group_by(g, !!color) |> summarize(value = sum(.data$value), .groups = "drop") |> mutate(value = .data$value / sum(.data$value)) |> slice_min(!!color) |> pull(.data$value) * 360 / 2)
     } else { 0 }
 
-    # print(distinct(g, !!color, !!linetype, roboplot.legend.rank))
     plotting_params <- list(color = color, #!pie
                             customdata = color,
                             data=g,
@@ -1037,7 +1047,7 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
                             rotation = rotation, #pie
                             showlegend = T,
                             sort = F, #pie
-                            text = ~roboplot.plot.text,
+                            text = if(plot_mode == "horizontal" & !is.null(legend_maxwidth)) { ~ roboplot.full.label } else { ~ roboplot.plot.text },
                             textinfo = "percent", #pie
                             textposition = ifelse(tracetype == "bar", "none", "inside"), #pie and bar
                             texttemplate = if(tracetype == "pie") { NULL } else { NA },
@@ -1067,7 +1077,7 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
     p  <- layout(p, barmode = plot_mode)
   }
 
-  p |> layout(legend = list(traceorder = ifelse(length(split_d) == 1, "normal", "reversed")))
+  p |> layout(legend = list(traceorder = ifelse(any(plot_type == "scatter"), "reversed","normal")))
 
 }
 
