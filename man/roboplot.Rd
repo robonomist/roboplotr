@@ -69,7 +69,7 @@ roboplot(
 
 \item{pie_rotation}{Will pie charts be rotated to center the 0° point on middle of the first item of the color variable as factor (Logical).}
 
-\item{legend_maxwidth}{Legend items (or y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).}
+\item{legend_maxwidth}{Controls if legend items (and y-axis values for horizontal barplots  longer than this will be collapsed with an ellipsis (Double).}
 }
 \value{
 plotly object

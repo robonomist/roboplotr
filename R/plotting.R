@@ -482,21 +482,21 @@ roboplot_attach_dependencies <- function(p, title, subtitle) {
 }
 
 
+roboplot_hovertemplate_freq <- function(f) {
+  if (is.null(f)) { "%Y-%m-%d" } else {
+    switch(f,
+           "Annual" = "%Y",
+           "Quarterly" = "%YQ%q",
+           "Monthly" = "%Y-%m-%d",
+           "Weekly" = "%YW%V",
+           "Daily" = "%d.%m.%Y",
+           "%Y-%m-%d"
+    )
+  }
+}
+
 #' @importFrom stringr str_subset
 roboplot_hovertemplate <- function(specs, type = "default") {
-
-  hovertemplate_freq <- function(f) {
-    if (is.null(f)) { "%Y-%m-%d" } else {
-      switch(f,
-             "Annual" = "%Y",
-             "Quarterly" = "%YQ%q",
-             "Monthly" = "%Y-%m-%d",
-             "Weekly" = "%YW%V",
-             "Daily" = "%d.%m.%Y",
-             "%Y-%m-%d"
-      )
-    }
-  }
 
   if (is.null(specs)) {
     NA
@@ -505,19 +505,19 @@ roboplot_hovertemplate <- function(specs, type = "default") {
   } else if (!any(c("rounding","unit","","extra", "dateformat") %in% names(specs))) {
     stop("Hovertext must be either a list with any of \"rounding\", \"unit\", \"extra\" or \"dateformat\", or NULL", call. = F)
   } else {
-    specs_template <- list(rounding = 1, unit = "", extra = "", dateformat = hovertemplate_freq("Monthly"))
+    specs_template <- list(rounding = 1, unit = "", extra = "", dateformat = roboplot_hovertemplate_freq("Monthly"))
     for (spec.name in (names(specs) |> str_subset("^(rounding|unit|extra|dateformat)$"))) {
       if(spec.name == "rounding") {
         if ((specs$rounding)%%1!=0) { stop("Hovertext rounding must be an integer.", call. = F) }
       } else if(spec.name == "dateformat") {
         if (is.null(specs$dateformat)) {
-          specs$dateformat <- hovertemplate_freq(specs$dateformat)
+          specs$dateformat <- roboplot_hovertemplate_freq(specs$dateformat)
         } else if (!is.character(specs$dateformat)) {
           stop("Hovertext dateformat must be one of \"Annual\", \"Quarterly\", \"Monthly\", \"Weekly\" or \"Daily\", or NULL.", call. = F)
         } else if (!(specs$dateformat %in% c("Annual", "Quarterly","Monthly","Weekly","Daily"))) {
           stop("Hovertext dateformat must be one of \"Annual\", \"Quarterly\", \"Monthly\", \"Weekly\" or \"Daily\", or NULL.", call. = F)
         } else {
-          specs$dateformat <- hovertemplate_freq(specs$dateformat)
+          specs$dateformat <- roboplot_hovertemplate_freq(specs$dateformat)
         }
       } else if (!is.character(specs[[spec.name]])) {
         stop(str_c("Hovertext ",spec.name," must be a string.", call. = F))
@@ -694,8 +694,8 @@ roboplot_get_linetype <- function(linetype, d) {
   if(!is.null(linetype)) {
     if(!is.factor(d[[as_name(linetype)]])) {
       d[[as_name(linetype)]] <- fct_inorder(d[[as_name(linetype)]])
-      d <- d |> mutate(roboplot.dash = dashtypes[!!linetype])
     }
+    d <- d |> mutate(roboplot.dash = dashtypes[!!linetype])
   } else { d <- d|> mutate(roboplot.dash = "solid") }
   d <- mutate(d, roboplot.dash = fct_relevel(.data$roboplot.dash, dashtypes[dashtypes %in% .data]) |> fct_rev())
   d
@@ -724,7 +724,7 @@ roboplot_get_linetype <- function(linetype, d) {
 #' @param height Height of the plot.
 #' @param facet_split The column from tibble d to use for facet split (Unquoted string).
 #' @param pie_rotation Will pie charts be rotated to center the 0° point on middle of the first item of the color variable as factor (Logical).
-#' @param legend_maxwidth Legend items (or y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).
+#' @param legend_maxwidth Controls if legend items (and y-axis values for horizontal barplots  longer than this will be collapsed with an ellipsis (Double).
 #' @return plotly object
 #' @examples
 #' \dontrun{
@@ -1031,6 +1031,7 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
                             customdata = color,
                             data=g,
                             direction = "clockwise", #pie
+                            xhoverformat = roboplot_hovertemplate_freq(hovertext$dateformat),
                             hoverlabel = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, bgcolor = ~ roboplot.bg.color, color = ~ roboplot.tx.color), #pie
                             hovertemplate = hovertemplate,
                             insidetextfont = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, color = ~ roboplot.in.tx.color), #pie
@@ -1040,7 +1041,7 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
                             line = ~ list(width = roboplot.linewidth, dash = roboplot.dash), #scatter
                             marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1)), #pie
                             mode = "lines", #scatter
-                            name = ~ roboplot.plot.text, #!pie
+                            name = ~  if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
                             offset = ~roboplot.bar.offset, #horizontal bar
                             offsetgroup = color, #bar ## onko ok?? mieti
                             orientation = ifelse(plot_mode == "horizontal" & plot_type == "bar","h","v"),
@@ -1059,9 +1060,9 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
                             )
     shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type")
     plotting_params <- if(tracetype == "scatter") {
-      plotting_params[c(shared_params,"x","y","line","mode","name","color")]
+      plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
     } else if (tracetype == "bar" & plot_mode == "horizontal") {
-      plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","name","color", "textposition")]
+      plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition")]
     } else if (tracetype == "bar") {
       plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition")]
     } else if (tracetype == "pie") {

@@ -42,11 +42,12 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	let images_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2 - (elimages / 10)) / elplot);
 	let legend_font_size = (ellegend > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
 
-	console.log($(el).find('g.yaxislayer-above')[0].getBBox().height)
-	console.log(($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )
-
   let yaxis_font_size = legend_fontsize
-	if( $(el).find('g.yaxislayer-above')[0].getBBox().height <= ( ($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )) {
+
+  let yaxis_layer = $(el).find('g.yaxislayer-above')
+
+  if(yaxis_layer.length > 0)
+	if( yaxis_layer[0].getBBox().height <= ( ($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )) {
 	  yaxis_font_size = el.layout.yaxis.tickfont.size - 2
 	} else {
 	  yaxis_font_size = legend_fontsize
