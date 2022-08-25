@@ -156,17 +156,41 @@ roboplot_string2filename <- function(string) {
 #' @importFrom tidyr unite
 #' @importFrom dplyr across everything mutate rename select
 #' @importFrom stringr str_replace
-roboplot_transform_data_for_download <- function(d, color, linetype, facet_split, plot_mode) {
+roboplot_transform_data_for_download <- function(d, color, linetype, facet_split, plot_mode, plot_yaxis) {
   d <- d |> rename(csv.data.tiedot = !! sym(quo_name(color)))
   if(!missing(facet_split)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!facet_split, sep = ", ")}
   if(!is.null(linetype)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!linetype, sep = ", ")}
-  if(plot_mode == "horizontal" & quo_name(color) != quo_name(names(plot_mode))) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, sym(quo_name(names(plot_mode))))}
+  if(plot_mode == "horizontal" & quo_name(color) != quo_name(plot_yaxis)) {
+    d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, .data[[plot_yaxis]], sep = ", ")
+    }
   d |>
     select(.data$csv.data.tiedot, .data$time, .data$value) |>
     mutate(
       across(everything(), ~ as.character(.x)),
       value = str_replace(.data$value, "\\.",",")
     )
+}
+
+#' @importFrom dplyr arrange group_by mutate pull summarize
+#' @importFrom forcats fct_inorder
+#' @importFrom stringr str_c str_length str_split
+roboplot_str_split_rows <- function(str, rows = 2, .forJSON = F) {
+  breaker <- if(.forJSON) { "\\<b>" } else { "<br>" }
+  str <- str |> str_split(" ") |> unlist()
+  if(length(str) == 1) {
+    str
+  } else {
+    tibble("sana" = str) |>
+      mutate(sana = fct_inorder(.data$sana)) |>
+      arrange(desc(sana)) |>
+      mutate(bins = cut(cumsum(str_length(.data$sana)), breaks = rows, include.lowest = F, ordered_result = F, labels = F)) |>
+      group_by(.data$bins) |>
+      arrange(sana) |>
+      summarize(sana = str_c(.data$sana, collapse = " ")) |>
+      pull(.data$sana) |>
+      rev() |>
+      str_c(collapse = breaker)
+  }
 }
 
 #' Uploads the html elements and dependencies to cloud storage. DO NOT USE! WORK IN PROGRESS

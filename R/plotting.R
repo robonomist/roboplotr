@@ -45,9 +45,9 @@ roboplot_set_modebar <- function(p, title, subtitle) {
 
   js_string <- function(wd, ht, suffix, layout, ttl = dl_title) {
     t1 <- title
-    t2 <- str_replace(str_wrap(p$title, round((p$title |> str_length())/2))|> str_replace_all(c("\n" = " ")),"\n","\\<br>") |> str_replace_all(c("<" = "\\<"))
+    t2 <- roboplot_str_split_rows(title, 2, T)
     split_title <- list(
-      str_c("\\<span>",getOption("roboplot.font.title")$bold(t1),"<span style='font-size: 75%'><br>",p$subtitle,"\\</span>\\</span>"),
+      str_c("\\<span>",getOption("roboplot.font.title")$bold(t1),"\\<span style='font-size: 75%'>\\<br>",p$subtitle,"\\</span>\\</span>"),
       str_c("\\<span>",getOption("roboplot.font.title")$bold(t2),"\\<span style='font-size: 75%'>\\<br>",p$subtitle,"\\</span>\\</span>"))
     str_c('
           function(gd) {
@@ -176,7 +176,6 @@ roboplot_set_ticks <- function(p, ticktypes) {
            showline = background_color != border_color[[axis]])
     } else if (ticktype == "character") {
       font <- getOption("roboplot.font.main")
-      font$size <- font$size - 4
       list(tickfont = font,
            ticksuffix = " ",
            tickmode = "linear",
@@ -434,7 +433,7 @@ gd.on('plotly_afterplot', function() {
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
 roboplot_attach_dependencies <- function(p, title, subtitle) {
   t1 <- title
-  t2 <- str_replace(str_wrap(title, round((title |> str_length())/2)),"\n","<br>")
+  t2 <- roboplot_str_split_rows(title, 2)
   split_title <- list(
     str_c("<span>",getOption("roboplot.font.title")$bold(t1),"<span style=\"font-size: 75%\"><br>",subtitle,"</span></span>"),
     str_c("<span>",getOption("roboplot.font.title")$bold(t2),"<span style=\"font-size: 75%\"><br>",subtitle,"</span></span>"))
@@ -471,16 +470,15 @@ roboplot_attach_dependencies <- function(p, title, subtitle) {
     onRender(jsCode = str_c("
                         function (gd, params, data){
                         let legendFontsize = 0;
-                        console.log('OKAY HERE');
-                        if ('legend.font' in gd.layout) {
-                        console.log(gd.layout.legend)
-                        legendFontsize = gd.layout.legend.font.size };
                         let alt_title = data.splitTitle;
-                        setVerticalLayout({'width': true}, gd, legendFontsize, alt_title, pie_plot = data.piePlot);
-                        gd.on('plotly_relayout',function(eventdata, lf = legendFontsize) {
-                        plotlyRelayoutEventFunction(eventdata, gd, lf, alt_title, data.rangesliderSums, pie_plot = data.piePlot);
+                        setVerticalLayout({'width': true}, gd, data.legendFontsize, alt_title, pie_plot = data.piePlot);
+                        gd.on('plotly_relayout',function(eventdata) {
+                        plotlyRelayoutEventFunction(eventdata, gd, data.legendFontsize, alt_title, data.rangesliderSums, pie_plot = data.piePlot);
                         });
-                        }"), data = list(splitTitle = split_title, rangesliderSums = rangeslider_sums, piePlot = pie_plot))
+                        }"), data = list(splitTitle = split_title,
+                                         rangesliderSums = rangeslider_sums,
+                                         legendFontsize = getOption("roboplot.font.main")$size,
+                                         piePlot = pie_plot))
 }
 
 
@@ -720,6 +718,7 @@ roboplot_get_linetype <- function(linetype, d) {
 #' @param highlight Either NULL, a double that limits, or a function that returns a logical determining if a given trace is included in legend and assigned a color.
 #' @param plot_type Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs (Character vector).
 #' @param plot_mode Determines the barmode for a barplot. Disregarded for scatterplots. (Character).
+#' @param plot_yaxis Determines the yaxis for a horizontal barplot. Disregarded otherwise. (Unquoted string).
 #' @param trace_color Trace color for all traces. Either a character string or a character vector of name-value pairs interpretable as colors (Character vector).
 #' @param line_width Line width for line plots. Either a double or a double vector of name-value pairs (Double vector).
 #' @param height Height of the plot.
@@ -748,7 +747,7 @@ roboplot_get_linetype <- function(linetype, d) {
 #' @importFrom plotly plot_ly add_trace
 #' @importFrom plyr compact
 #' @importFrom purrr map2
-#' @importFrom rlang enquo as_name
+#' @importFrom rlang as_name as_string enquo quo_name
 #' @importFrom stats median runif setNames
 #' @importFrom stringr str_c str_length str_pad str_replace
 
@@ -770,6 +769,7 @@ roboplot <- function(d,
                      axis_limits = list(x = c(NA,NA), y = c(NA,NA)),
                      plot_type = "scatter",
                      plot_mode = "dodge",
+                     plot_yaxis,
                      height = getOption("roboplot.height"),
                      facet_split,
                      pie_rotation = F,
@@ -808,9 +808,10 @@ roboplot <- function(d,
   linetype <- if (missing(linetype)) { NULL } else { enquo(linetype) }
 
   if(plot_mode == "horizontal") {
-    if(is.null(names(plot_mode))) { stop("Horizontal plot mode needs the name of the y-axis categorial variable as the name of plot mode (ie. \"(c('tavara' = 'horizontal'\")", call. = F) }
+    if(missing(plot_yaxis)) { stop("When plot mode is horizontal, provide the unquoted variable name used for y-axis as plot_yaxis!", call. = F) }
     xaxis <- "value"
-    yaxis <- names(plot_mode)
+    plot_yaxis <- enquo(plot_yaxis)
+    yaxis <- quo_name(plot_yaxis)
     ticktypes <- list(x="double", y = "character")
   } else {
     xaxis <- "time"
@@ -868,7 +869,7 @@ roboplot <- function(d,
     p <- roboplot_get_plot(d, xaxis, yaxis, height, color, linetype, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth)
   }
 
-  p$data <- roboplot_transform_data_for_download(d, color, linetype, facet_split, plot_mode)
+  p$data <- roboplot_transform_data_for_download(d, color, linetype, facet_split, plot_mode, plot_yaxis)
 
   if(!isRunning()) { p$elementId <- str_c("widget_",roboplot_string2filename(title)) }
   p$title <- title
@@ -979,9 +980,8 @@ get_bar_widths <- function(df, width_col) {
 }
 
 #' @importFrom dplyr arrange distinct first group_split mutate pull slice_min summarize
-#' @importFrom data.table :=
 #' @importFrom plotly plot_ly add_trace layout subplot
-#' @importFrom rlang sym
+#' @importFrom rlang := sym
 #' @importFrom stats as.formula
 #' @importFrom stringr str_replace_all str_trunc
 roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth) {
@@ -996,8 +996,8 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
 
   if(plot_mode == "horizontal") {
     d <- get_bar_widths(d, yaxis)
+    d <- mutate(d, roboplot.horizontal.label = as.character(!!sym(yaxis)))
     if(!is.null(legend_maxwidth)) {
-      d <- mutate(d, roboplot.full.label = as.character(!!sym(yaxis)))
       d <- arrange(d, !!sym(yaxis)) |>
         mutate((!!sym(yaxis)) := str_trunc(as.character((!!sym(yaxis))), legend_maxwidth) |> fct_inorder())
     }
@@ -1047,7 +1047,7 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
                             rotation = rotation, #pie
                             showlegend = T,
                             sort = F, #pie
-                            text = if(plot_mode == "horizontal" & !is.null(legend_maxwidth)) { ~ roboplot.full.label } else { ~ roboplot.plot.text },
+                            text = if(plot_mode == "horizontal") { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
                             textinfo = "percent", #pie
                             textposition = ifelse(tracetype == "bar", "none", "inside"), #pie and bar
                             texttemplate = if(tracetype == "pie") { NULL } else { NA },

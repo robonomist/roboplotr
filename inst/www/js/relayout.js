@@ -41,6 +41,17 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	let annotations_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2) / elplot);
 	let images_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2 - (elimages / 10)) / elplot);
 	let legend_font_size = (ellegend > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
+
+	console.log($(el).find('g.yaxislayer-above')[0].getBBox().height)
+	console.log(($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )
+
+  let yaxis_font_size = legend_fontsize
+	if( $(el).find('g.yaxislayer-above')[0].getBBox().height <= ( ($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )) {
+	  yaxis_font_size = el.layout.yaxis.tickfont.size - 2
+	} else {
+	  yaxis_font_size = legend_fontsize
+	}
+
 	if(showfinal == true) {console.log('legend ht: ' + ellegend +
 	' slider ht: ' + elslider +
 	' plot area ht: ' + elplot +
@@ -61,7 +72,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 		'annotations[1].y': annotations_y,
 		'annotations[2].y': annotations_y,
 		'annotations[3].y': annotations_y,
-		'legend.font.size': legend_font_size
+		'legend.font.size': legend_font_size,
+		'yaxis.tickfont.size': yaxis_font_size
 	};
 //	const inclusivePick = (obj, keys) => Object.fromEntries(
 //  keys.map(key => [key, obj[key]]));
@@ -97,10 +109,10 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, alt_title, pie_chart)
 	   };
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','images[0].sizey'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t','margin.b','legend.y','images[0].y'], pie_chart = pie_chart));
-		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey'], pie_chart = pie_chart));
+		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd,
 		  getVerticalLayout(gd, legend_fontsize, false,
-		  keys = ['images[0].y', 'annotations[0].y', 'annotations[1].y', 'annotations[2].y', 'annotations[3].y', 'legend.y', 'legend.yanchor', 'title.y'],
+		  keys = ['images[0].y', 'annotations[0].y', 'annotations[1].y', 'annotations[2].y', 'annotations[3].y', 'legend.y', 'legend.yanchor', 'title.y', 'yaxis.tickfont.size'],
 		  pie_chart = pie_chart));
 //		console.log("FINAL CHECK")
 //		getVerticalLayout(gd, legend_fontsize, false, [""], pie_chart = pie_chart, showfinal = true);

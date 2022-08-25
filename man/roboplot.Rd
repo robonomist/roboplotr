@@ -23,6 +23,7 @@ roboplot(
   axis_limits = list(x = c(NA, NA), y = c(NA, NA)),
   plot_type = "scatter",
   plot_mode = "dodge",
+  plot_yaxis,
   height = getOption("roboplot.height"),
   facet_split,
   pie_rotation = F,
@@ -59,6 +60,8 @@ roboplot(
 \item{plot_type}{Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs (Character vector).}
 
 \item{plot_mode}{Determines the barmode for a barplot. Disregarded for scatterplots. (Character).}
+
+\item{plot_yaxis}{Determines the yaxis for a horizontal barplot. Disregarded otherwise. (Unquoted string).}
 
 \item{height}{Height of the plot.}
 
