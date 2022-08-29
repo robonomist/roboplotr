@@ -691,13 +691,15 @@ roboplot_set_highlight <- function(highlight, df) {
 #' @importFrom forcats fct_inorder fct_relevel fct_rev
 roboplot_get_linetype <- function(linetype, d) {
   dashtypes <- getOption("roboplot.dashtypes")
+  patterntypes <- getOption("roboplot.patterntypes")
+  bothtypes <- c(dashtypes, patterntypes)
   if(!is.null(linetype)) {
     if(!is.factor(d[[as_name(linetype)]])) {
       d[[as_name(linetype)]] <- fct_inorder(d[[as_name(linetype)]])
     }
-    d <- d |> mutate(roboplot.dash = dashtypes[!!linetype])
-  } else { d <- d|> mutate(roboplot.dash = "solid") }
-  d <- mutate(d, roboplot.dash = fct_relevel(.data$roboplot.dash, dashtypes[dashtypes %in% .data]) |> fct_rev())
+    d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",dashtypes[!!linetype],patterntypes[!!linetype]))
+  } else { d <- mutate(d, roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter", "solid", "")) }
+  d <- mutate(d, roboplot.dash = fct_relevel(.data$roboplot.dash, bothtypes[bothtypes %in% .data]) |> fct_rev())
   d
 }
 
@@ -707,7 +709,7 @@ roboplot_get_linetype <- function(linetype, d) {
 #'
 #' @param d Data for plotting (Tibble).
 #' @param color Mandatory. Tibble column from tibble d to use for color (Unquoted string).
-#' @param linetype Optional. Tibble column from tibble d to use for linetype (Unquoted string).
+#' @param linetype Optional. Tibble column from tibble d to use for linetype or bar pattern (Unquoted string).
 #' @param title,subtitle,caption labeling for plot
 #' @param legend_orientation,legend_position Legend positioning.
 #' @param margin Plot margins if calculated margins do not work (List).
@@ -1006,7 +1008,7 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
   split_d <- group_split(d, if("pie" %in% plot_type) { NULL } else { !!color }, .data$roboplot.plot.type, !!linetype)
   if("scatter" %in% plot_type) { split_d <- rev(split_d)}
 
-  for (g in split_d) {
+  trace_params <- map(split_d, function(g) {
     tracetype <- unique(g$roboplot.plot.type)
     hovertemplate <- roboplot_hovertemplate(hovertext, case_when(tracetype == "pie" ~ tracetype, plot_mode == "horizontal" ~ plot_mode, TRUE ~ "default"))
     marker_line_color <- first(getOption("roboplot.colors.grid"))
@@ -1039,12 +1041,13 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
                             legendgroup = color,
                             legendrank = legend_rank,
                             line = ~ list(width = roboplot.linewidth, dash = roboplot.dash), #scatter
-                            marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1)), #pie
+                            marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.dash)), #pie
                             mode = "lines", #scatter
                             name = ~  if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
                             offset = ~roboplot.bar.offset, #horizontal bar
                             offsetgroup = color, #bar ## onko ok?? mieti
                             orientation = ifelse(plot_mode == "horizontal" & plot_type == "bar","h","v"),
+                            pattern = "x",
                             rotation = rotation, #pie
                             showlegend = T,
                             sort = F, #pie
@@ -1064,11 +1067,14 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
     } else if (tracetype == "bar" & plot_mode == "horizontal") {
       plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition")]
     } else if (tracetype == "bar") {
-      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition")]
+      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker")]
     } else if (tracetype == "pie") {
       plotting_params[c(shared_params,"labels","textposition","textinfo","insidetextfont","direction","rotation","sort","hoverlabel","marker", "values")]
     }
-    p <- p |> roboplot_add_trace(!!!plotting_params)
+  })
+
+  for(par in trace_params) {
+    p <- p %>% roboplot_add_trace(!!!par)
   }
 
   if(!plot_mode %in% c("dodge","stack","horizontal")) {
