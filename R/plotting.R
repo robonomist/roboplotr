@@ -697,9 +697,13 @@ roboplot_get_linetype <- function(linetype, d) {
     if(!is.factor(d[[as_name(linetype)]])) {
       d[[as_name(linetype)]] <- fct_inorder(d[[as_name(linetype)]])
     }
-    d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",dashtypes[!!linetype],patterntypes[!!linetype]))
-  } else { d <- mutate(d, roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter", "solid", "")) }
-  d <- mutate(d, roboplot.dash = fct_relevel(.data$roboplot.dash, bothtypes[bothtypes %in% .data]) |> fct_rev())
+    d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",dashtypes[!!linetype],dashtypes[1]),
+                     roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",patterntypes[!!linetype],patterntypes[1])
+                     )
+  } else { d <- mutate(d, roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter", dashtypes[1], patterntypes[1])) }
+  d <- mutate(d,
+              roboplot.dash = fct_relevel(.data$roboplot.dash, dashtypes[dashtypes %in% .data$roboplot.dash]),
+              roboplot.pattern = fct_relevel(.data$roboplot.pattern, patterntypes[patterntypes %in% .data$roboplot.pattern]))
   d
 }
 
@@ -1005,7 +1009,8 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
     }
   }
 
-  split_d <- group_split(d, if("pie" %in% plot_type) { NULL } else { !!color }, .data$roboplot.plot.type, !!linetype)
+  split_d <- group_split(d, if("pie" %in% plot_type) { NULL } else { !!color }, .data$roboplot.plot.type, .data$roboplot.dash)
+  split_d <<- split_d
   if("scatter" %in% plot_type) { split_d <- rev(split_d)}
 
   trace_params <- map(split_d, function(g) {
@@ -1041,11 +1046,11 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
                             legendgroup = color,
                             legendrank = legend_rank,
                             line = ~ list(width = roboplot.linewidth, dash = roboplot.dash), #scatter
-                            marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.dash)), #pie
+                            marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.pattern)), #pie
                             mode = "lines", #scatter
                             name = ~  if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
                             offset = ~roboplot.bar.offset, #horizontal bar
-                            offsetgroup = color, #bar ## onko ok?? mieti
+                            offsetgroup = ~str_c(roboplot.pattern, roboplot.trace.color), #bar ## onko ok?? mieti
                             orientation = ifelse(plot_mode == "horizontal" & plot_type == "bar","h","v"),
                             pattern = "x",
                             rotation = rotation, #pie
