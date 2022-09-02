@@ -130,11 +130,13 @@ roboplot_set_options <- function(roboplot_options, notify = T, shinyapp = F) {
     setOption("roboplot.modebar.buttons", c(getOption("roboplot.modebar.buttons"),"robonomist"))
   }
 
-  if(shinyapp ) {
+  if(shinyapp) {
     roboplot_make_widget_deps(tempdir())
     addResourcePath("js", system.file("www","js", package = "roboplotr"))
     addResourcePath("fonts", file.path(tempdir(),"fonts"))
     addResourcePath("css", file.path(tempdir(),"css"))
+
+    message('Remember to add tags$head(tags$script(type = "text/javascript", src = "js/relayout.js")) to your app ui!')
   }
 
 }
@@ -160,9 +162,9 @@ roboplot_transform_data_for_download <- function(d, color, linetype, facet_split
   d <- d |> rename(csv.data.tiedot = !! sym(quo_name(color)))
   if(!missing(facet_split)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!facet_split, sep = ", ")}
   if(!is.null(linetype)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!linetype, sep = ", ")}
-  if(plot_mode == "horizontal") {
+  if(str_detect(plot_mode,"horizontal")) {
     if (quo_name(color) != quo_name(plot_yaxis)) {
-      d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, .data[[plot_yaxis]], sep = ", ")
+      d <- unite(d, "csv.data.tiedot", .data[[plot_yaxis]], .data$csv.data.tiedot, sep = ", ")
     }
     }
   d |>

@@ -5,7 +5,6 @@
     roboplot.colors.border = list(x = "black", y = "black"),
     roboplot.colors.traces =  c("#c1272d","#f15a24","#f7931e","#dcc48a","#118f9a","#951d46"),
     roboplot.colors.grid = list(x = "#E8E8E8", y = "#E8E8E8"),
-    roboplot.colors.font = "#696969",
     roboplot.colors.ticks = list(x = "#E8E8E8", y = "#E8E8E8"),
     roboplot.dashtypes = c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"),
     roboplot.patterntypes = c("","/","\\","x","-","|","+","."),

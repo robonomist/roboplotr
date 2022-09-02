@@ -22,7 +22,7 @@ roboplot(
   hovertext,
   axis_limits = list(x = c(NA, NA), y = c(NA, NA)),
   plot_type = "scatter",
-  plot_mode = "dodge",
+  plot_mode = "line+dodge",
   plot_yaxis,
   height = getOption("roboplot.height"),
   facet_split,
@@ -49,7 +49,7 @@ roboplot(
 
 \item{rangeslider}{Determines rangeslider inclusion (Logical).}
 
-\item{linetype}{Optional. Tibble column from tibble d to use for linetype (Unquoted string).}
+\item{linetype}{Optional. Tibble column from tibble d to use for linetype or bar pattern (Unquoted string).}
 
 \item{line_width}{Line width for line plots. Either a double or a double vector of name-value pairs (Double vector).}
 

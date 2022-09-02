@@ -48,9 +48,9 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 
   if(yaxis_layer.length > 0)
 	if( yaxis_layer[0].getBBox().height <= ( ($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )) {
-	  yaxis_font_size = el.layout.yaxis.tickfont.size - 2
+	  yaxis_font_size = Math.floor(el.layout.yaxis.tickfont.size * 0.8)
 	} else {
-	  yaxis_font_size = legend_fontsize
+	  yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size/0.8), legend_fontsize)
 	}
 
 	if(showfinal == true) {console.log('legend ht: ' + ellegend +
@@ -108,8 +108,8 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, alt_title, pie_chart)
 	   } else if (titlespace > gdtitle.width * 1.8) {
 	     Plotly.relayout(gd, {'title.text': alt_title[0]})
 	   };
-		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','images[0].sizey'], pie_chart = pie_chart));
-		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t','margin.b','legend.y','images[0].y'], pie_chart = pie_chart));
+		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','images[0].sizey','yaxis.tickfont.size'], pie_chart = pie_chart));
+		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t','margin.b','legend.y','images[0].y','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd,
 		  getVerticalLayout(gd, legend_fontsize, false,
