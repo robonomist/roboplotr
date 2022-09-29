@@ -148,24 +148,43 @@ roboplot_set_modebar <- function(p, title, subtitle) {
 }
 
 #' @importFrom plotly layout
+#' @importFrom rlang %||%
 roboplot_set_ticks <- function(p, ticktypes) {
   background_color <- getOption("roboplot.colors.background")
   border_color <- getOption("roboplot.colors.border")
   tick_color <- getOption("roboplot.colors.ticks")
+  dateformats <- c("Annual" = "%Y",
+    "Quarterly" = "%YQ%q",
+    "Monthly" = "%m/%Y",
+    "Weekly" = "%YW%V",
+    "Daily" = "%d.%m.%Y")
+  tickformat <- ticktypes$dateformat %||% "Monthly"
+  tickformat <- which(names(dateformats) == tickformat) %||% "Monthly"
+  tickformat <- dateformats[c(max(tickformat-1,1), tickformat, min(tickformat+1,5))]
+  dtick <- if (length(unique(p$data$time)) < 6) {
+    format <- ticktypes$dateformat %||% "None"
+    switch(format,
+           "Annual" = "M12","Quarterly" = "M3","Monthly" = "M1",NULL)
+  } else { NULL }
   set_ticks <- function(ticktype, axis) {
     if (ticktype == "date") {
-      list(tickfont = getOption("roboplot.font.main"),
+      dlist <- list(tickfont = getOption("roboplot.font.main"),
            mirror = TRUE,
            ticks = 'outside',
            type = "date",
            tickformatstops = list(
-             list(dtickrange = list(NULL, 604800000),value = "%d.%m.%Y"),
+             list(dtickrange = list(NULL, 604800000),value = tickformat[3]#"%d.%m.%Y"
+                  ),
              # end is year in milliseconds
-             list(dtickrange = list(604800000, 3.15e10),value = "%m/%Y"),
-             list(dtickrange = list(3.15e10, NULL),value = "%Y")
+             list(dtickrange = list(604800000, 3.15e10),value = tickformat[2]#"%m/%Y"
+                    ),
+             list(dtickrange = list(3.15e10, NULL),value = tickformat[1]#"%Y"
+                  )
            ),
+           # tickformat = roboplot_hovertemplate_freq(ticktypes$dateformat),
            tickcolor = tick_color[[axis]],
            showline = background_color != border_color[[axis]])
+      if(!is.null(dtick)) { append(dlist, list(dtick = dtick)) } else { dlist }
     } else if (ticktype == "double") {
       list(tickfont = getOption("roboplot.font.main"),
            tickformat = ",.3~f",
@@ -482,15 +501,15 @@ roboplot_attach_dependencies <- function(p, title, subtitle) {
 }
 
 
-roboplot_hovertemplate_freq <- function(f) {
-  if (is.null(f)) { "%Y-%m-%d" } else {
+roboplot_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
+  if (is.null(f)) { default } else {
     switch(f,
            "Annual" = "%Y",
            "Quarterly" = "%YQ%q",
            "Monthly" = "%Y-%m-%d",
            "Weekly" = "%YW%V",
            "Daily" = "%d.%m.%Y",
-           "%Y-%m-%d"
+           default
     )
   }
 }
@@ -819,11 +838,11 @@ roboplot <- function(d,
     xaxis <- "value"
     plot_yaxis <- enquo(plot_yaxis)
     yaxis <- quo_name(plot_yaxis)
-    ticktypes <- list(x="double", y = "character")
+    ticktypes <- list(x="double", y = "character", dateformat = hovertext$dateformat)
   } else {
     xaxis <- "time"
     yaxis <- "value"
-    ticktypes <- list(x="date",y = "double")
+    ticktypes <- list(x="date",y = "double", dateformat = hovertext$dateformat)
   }
 
   if(!is.factor(d[[as_name(color)]])) {
