@@ -27,13 +27,14 @@ roboplot(
   height = getOption("roboplot.height"),
   facet_split,
   pie_rotation = F,
-  legend_maxwidth = NULL
+  legend_maxwidth = NULL,
+  xaxis_ceiling = c("default", "days", "months", "weeks", "quarters", "years", "guess")
 )
 }
 \arguments{
 \item{d}{Data for plotting (Tibble).}
 
-\item{color}{Mandatory. Tibble column from tibble d to use for color (Unquoted string).}
+\item{color}{Mandatory. Tibble column from tibble d to ¸use for color (Unquoted string).}
 
 \item{title, subtitle, caption}{labeling for plot}
 
@@ -70,6 +71,8 @@ roboplot(
 \item{pie_rotation}{Will pie charts be rotated to center the 0° point on middle of the first item of the color variable as factor (Logical).}
 
 \item{legend_maxwidth}{Controls if legend items (and y-axis values for horizontal barplots  longer than this will be collapsed with an ellipsis (Double).}
+
+\item{xaxis_ceiling}{How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given. One of \"default\", \"days\", \"months\", \"weeks\", \"quarters\", \"years\", or \"guess\") (Character).}
 }
 \value{
 plotly object

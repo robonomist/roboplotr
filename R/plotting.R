@@ -154,10 +154,10 @@ roboplot_set_ticks <- function(p, ticktypes) {
   border_color <- getOption("roboplot.colors.border")
   tick_color <- getOption("roboplot.colors.ticks")
   dateformats <- c("Annual" = "%Y",
-    "Quarterly" = "%YQ%q",
-    "Monthly" = "%m/%Y",
-    "Weekly" = "%YW%V",
-    "Daily" = "%d.%m.%Y")
+                   "Quarterly" = "%YQ%q",
+                   "Monthly" = "%m/%Y",
+                   "Weekly" = "%YW%V",
+                   "Daily" = "%d.%m.%Y")
   tickformat <- ticktypes$dateformat %||% "Monthly"
   tickformat <- which(names(dateformats) == tickformat) %||% "Monthly"
   tickformat <- dateformats[c(max(tickformat-1,1), tickformat, min(tickformat+1,5))]
@@ -169,21 +169,21 @@ roboplot_set_ticks <- function(p, ticktypes) {
   set_ticks <- function(ticktype, axis) {
     if (ticktype == "date") {
       dlist <- list(tickfont = getOption("roboplot.font.main"),
-           mirror = TRUE,
-           ticks = 'outside',
-           type = "date",
-           tickformatstops = list(
-             list(dtickrange = list(NULL, 604800000),value = tickformat[3]#"%d.%m.%Y"
-                  ),
-             # end is year in milliseconds
-             list(dtickrange = list(604800000, 3.15e10),value = tickformat[2]#"%m/%Y"
+                    mirror = TRUE,
+                    ticks = 'outside',
+                    type = "date",
+                    tickformatstops = list(
+                      list(dtickrange = list(NULL, 604800000),value = tickformat[3]#"%d.%m.%Y"
+                      ),
+                      # end is year in milliseconds
+                      list(dtickrange = list(604800000, 3.15e10),value = tickformat[2]#"%m/%Y"
+                      ),
+                      list(dtickrange = list(3.15e10, NULL),value = tickformat[1]#"%Y"
+                      )
                     ),
-             list(dtickrange = list(3.15e10, NULL),value = tickformat[1]#"%Y"
-                  )
-           ),
-           # tickformat = roboplot_hovertemplate_freq(ticktypes$dateformat),
-           tickcolor = tick_color[[axis]],
-           showline = background_color != border_color[[axis]])
+                    # tickformat = roboplot_hovertemplate_freq(ticktypes$dateformat),
+                    tickcolor = tick_color[[axis]],
+                    showline = background_color != border_color[[axis]])
       if(!is.null(dtick)) { append(dlist, list(dtick = dtick)) } else { dlist }
     } else if (ticktype == "double") {
       list(tickfont = getOption("roboplot.font.main"),
@@ -673,21 +673,87 @@ roboplot_automate_png <- function(p, artefacts, dl_path = getwd()) {
 
 }
 
-roboplot_get_frequency <- function(d) {
-  freq_msg <- "No frequency attribute detected for hovertext time format, resorting to default %Y/%m/%d.\nIf needed, add frequency to data attributes, or provide one with \"dateformat\" in hovertext."
+#' @importFrom dplyr case_when
+#' @importFrom lubridate month quarter wday week yday
+roboplot_guess_xaxis_ceiling <- function(d, hovertext) {
+  attr_freq <- roboplot_get_frequency(d,msg = F)
+  hovertext_freq <- hovertext$dateformat
+
+  freq <- if(any(!is.null(attr_freq), !is.null(hovertext_freq))) {
+    c(attr_freq, hovertext_freq) |> first()
+  } else { NULL }
+
+  if(!is.null(freq)) {
+    freq <- switch(freq, "Annual" = "years",
+                   "Quarterly" = "quarters",
+                   "Monthly" = "months",
+                   "Weekly" = "weeks",
+                   "Daily" = "days",
+                   NULL)
+    maxd <- max(d$time)
+    yd <- yday(maxd)
+    yq <- quarter(maxd)
+    ym <- month(maxd)
+    yw <- week(maxd)
+    wd <- wday(maxd,week_start = 1)
+    freq <- case_when(
+      freq == "years" ~ "quarters",
+      freq == "quarters" & yq == 4 ~ "years",
+      freq == "months" & ym >= 10 ~ "years",
+      freq == "weeks" & yw >= 40 ~"quarters",
+      freq == "weeks" & yw >= 26 ~ "months",
+      freq == "days" & yd >= 240 ~ "years",
+      freq == "days" & yd >= 120 ~ "months",
+      freq == "days" ~ "weeks",
+      TRUE ~ freq)
+  }
+
+  if(is.null(freq)) { message("Failed to guess the 'xaxis_ceiling', ne frequency information available.") } else {
+    message("Roboplotr guesses the xaxis_ceiling is rounded by \"",freq,"\".")
+  }
+  freq
+}
+
+#' @importFrom dplyr case_when
+#' @importFrom padr get_interval
+#' @importFrom stringr str_c
+roboplot_get_frequency <- function(d, msg = T) {
+
+  dateformats <- c("Annual" = "%Y",
+                   "Quarterly" = "%YQ%q",
+                   "Monthly" = "%m/%Y",
+                   "Weekly" = "%YW%V",
+                   "Daily" = "%d.%m.%Y")
+
+  get_padr_frequency <- function(ts) {
+    ts <- get_interval(ts)
+    ts <- case_when(str_detect(ts, "^day") ~ "Daily",
+                    str_detect(ts, "^week") ~ "Weekly",
+                    str_detect(ts, "^month") ~ "Monthly",
+                    str_detect(ts, "^quarter") ~ "Quarterly",
+                    str_detect(ts, "^year") ~ "Annual",
+                    TRUE ~ as.character(NA))
+    if(!is.na(ts)) { ts } else { NULL }
+
+  }
   d_attrs <- attributes(d)
+  wrn <- F
   tf <- if(is.null(d_attrs$frequency)) {
-    message(freq_msg)
-    NULL
+    wrn <- T
+    get_padr_frequency(d$time)
   } else if (is.list(d_attrs$frequency)) {
     if(is.null(d_attrs$frequency$en)) {
-      message(freq_msg)
-      NULL
+      wrn <- T
+      get_padr_frequency(d$time)
     } else{
       as.character(d_attrs$frequency$en)
     }
   } else {
     as.character(d_attrs$frequency)
+  }
+  if(wrn == T & msg == T) {
+    wrn <- if(is.null(tf)) { "Resorting to default %Y/%m/%d" } else { str_c(" Guessing \"",names(dateformats[tf]),"\" for ",dateformats[[tf]]) }
+    message(str_c("No frequency attribute for tibble 'd' for hoverlabel, and none has been provided in the argument 'hovertext'.", wrn,"."))
   }
   tf
 }
@@ -727,12 +793,26 @@ roboplot_get_linetype <- function(linetype, d) {
   d
 }
 
+#' @importFrom rlang is_scalar_character
+roboplot_check_valid_var <- function(var) {
+  valid <- !tryCatch(is_scalar_character({{var}}),
+                     error = function(e) {
+                       if (grepl("not found", e, fixed = TRUE)) {
+                         return(FALSE)
+                       } else {
+                         stop(e)
+                       }
+                     })
+
+  if(valid == F) { stop(str_c("The argument '",substitute(var),"' must be unquoted."), call. = F) }
+}
+
 #' Creates a plotly object with the desired visual specifications.
 #'
 #' Outputs a plotly object.
 #'
 #' @param d Data for plotting (Tibble).
-#' @param color Mandatory. Tibble column from tibble d to use for color (Unquoted string).
+#' @param color Mandatory. Tibble column from tibble d to ¸use for color (Unquoted string).
 #' @param linetype Optional. Tibble column from tibble d to use for linetype or bar pattern (Unquoted string).
 #' @param title,subtitle,caption labeling for plot
 #' @param legend_orientation,legend_position Legend positioning.
@@ -751,6 +831,7 @@ roboplot_get_linetype <- function(linetype, d) {
 #' @param facet_split The column from tibble d to use for facet split (Unquoted string).
 #' @param pie_rotation Will pie charts be rotated to center the 0° point on middle of the first item of the color variable as factor (Logical).
 #' @param legend_maxwidth Controls if legend items (and y-axis values for horizontal barplots  longer than this will be collapsed with an ellipsis (Double).
+#' @param xaxis_ceiling How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given. One of \"default\", \"days\", \"months\", \"weeks\", \"quarters\", \"years\", or \"guess\") (Character).
 #' @return plotly object
 #' @examples
 #' \dontrun{
@@ -770,12 +851,13 @@ roboplot_get_linetype <- function(linetype, d) {
 #' @export
 #' @importFrom dplyr distinct group_split coalesce
 #' @importFrom forcats fct_inorder
+#' @importFrom lubridate as_date ceiling_date is.Date
 #' @importFrom plotly plot_ly add_trace
 #' @importFrom plyr compact
 #' @importFrom purrr map2
-#' @importFrom rlang as_name as_string enquo quo_name
+#' @importFrom rlang as_name enquo quo_get_env quo_name
 #' @importFrom stats median runif setNames
-#' @importFrom stringr str_c str_length str_pad str_replace
+#' @importFrom stringr str_c str_detect str_length str_pad str_replace
 
 roboplot <- function(d,
                      color,
@@ -799,12 +881,57 @@ roboplot <- function(d,
                      height = getOption("roboplot.height"),
                      facet_split,
                      pie_rotation = F,
-                     legend_maxwidth = NULL
+                     legend_maxwidth = NULL,
+                     xaxis_ceiling = c("default","days","months","weeks","quarters","years","guess")
 ){
 
+  if(missing(d)){
+    stop("Tibble 'd' is needed!", call. = F)
+  }
 
-  if(missing(d) || missing(color)){
-    stop("Data and unquoted color variable are needed!\nFor example: roboplot(a_tibble, color=tiedot)", call. = F)
+  if(missing(color)){
+    message("Without an unquoted arg 'color' the data is has a dummy column \".variable \"added.")
+    d <- mutate(d, .variable = "")
+  }
+
+  if(!all(c("time","value") %in% names(d)) || !is.data.frame(d)) {
+    stop("The data 'd' must be a tibble with columns named \"time\" and \"value\".", call. = F)
+  } else if (!all(is.Date(d$time), is.numeric(d$value))) {
+    stop("The data 'd' column \"time\" must be \"date\" and the column \"value\" must be numeric.", call. = F)
+  }
+
+  if(missing(color)) {
+    color <- quo(!! sym(".variable"))
+  } else {
+    roboplot_check_valid_var(color)
+    color <- enquo(color)
+  }
+  if (!as_name(color) %in% names(d)) {
+    stop("The argument 'color' must be a variable name in the tibble 'd'.", call. = F)
+  }
+
+  if (missing(linetype)) {
+    linetype <- NULL
+  } else {
+    roboplot_check_valid_var(linetype)
+    linetype <- enquo(linetype)
+    if (!as_name(linetype) %in% names(d)) {
+      stop("The argument 'linetype' must be a variable name in the tibble 'd'.", call. = F)
+    }
+  }
+
+
+  xaxis_ceiling = match.arg(xaxis_ceiling, c("default","days","months","weeks","quarters","years","guess"))
+
+  if(xaxis_ceiling != "default" & all(is.na(axis_limits$x)) & !"bar" %in% plot_type & !str_detect(plot_mode, "horizontal")) {
+    if(xaxis_ceiling == "guess") {
+      xaxis_ceiling <- roboplot_guess_xaxis_ceiling(d, if(!missing(hovertext)) { hovertext } else {NULL} )
+    }
+    if(!is.null(xaxis_ceiling)) {
+      axis_limits$x <- c(min(d$time), as_date(ceiling_date(max(d$time), xaxis_ceiling)))
+    }
+  } else if (!any(is.na(axis_limits$x)) || "bar" %in% plot_type || str_detect(plot_mode, "horizontal")) {
+    message("'xaxis_ceiling' is ignored when \"bar\" is in 'plot_type', \"horizontal\" is in 'plot_mode', or 'axis_limits' are provided.")
   }
 
   if(missing(hovertext)) {
@@ -817,6 +944,7 @@ roboplot <- function(d,
 
   if(!missing(facet_split)) {
     stop("Facet split currently unavailable!", call. = F)
+    roboplot_check_valid_var(facet_split)
     facet_split <- enquo(facet_split)
     if(rangeslider == T | zeroline == T | any(!is.na(axis_limits$y))) message("Rangeslider, zeroline and y-axis range are not currently enabled for faceted plots.")
     rangeslider <- F
@@ -829,13 +957,11 @@ roboplot <- function(d,
     axis_limits$y <- c(ymin, ymax)
   }
 
-  color <- enquo(color)
-
-  linetype <- if (missing(linetype)) { NULL } else { enquo(linetype) }
 
   if(str_detect(plot_mode, "horizontal")) {
-    if(missing(plot_yaxis)) { stop("When plot mode is horizontal, provide the unquoted variable name used for y-axis as plot_yaxis!", call. = F) }
+    if(missing(plot_yaxis)) { stop("When plot mode is horizontal, provide the unquoted variable name used for y-axis as the argument 'plot_yaxis'!", call. = F) }
     xaxis <- "value"
+    roboplot_check_valid_var(plot_yaxis)
     plot_yaxis <- enquo(plot_yaxis)
     yaxis <- quo_name(plot_yaxis)
     ticktypes <- list(x="double", y = "character", dateformat = hovertext$dateformat)
@@ -1023,95 +1149,95 @@ roboplot_get_plot <- function(d, xaxis, yaxis, height, color, linetype, plot_typ
     p  <- layout(p, barmode = p_mode)
   }
 
-d <- mutate(d,
-            roboplot.plot.text = if (!is.null(linetype)) {str_c(!!color, ", ",tolower(!!linetype)) |> str_remove(", alkuper\uE4inen")} else {!!color},
-            roboplot.legend.rank = ((max(as.numeric(!!color))-as.numeric(!!color)) * 100) + ((max(as.numeric(.data$roboplot.dash))-as.numeric(.data$roboplot.dash))*10))
+  d <- mutate(d,
+              roboplot.plot.text = if (!is.null(linetype)) {str_c(!!color, ", ",tolower(!!linetype)) |> str_remove(", alkuper\uE4inen")} else {!!color},
+              roboplot.legend.rank = ((max(as.numeric(!!color))-as.numeric(!!color)) * 100) + ((max(as.numeric(.data$roboplot.dash))-as.numeric(.data$roboplot.dash))*10))
 
-if(str_detect(plot_mode,"horizontal")) {
-  d <- get_bar_widths(d, yaxis)
-  d <- mutate(d, roboplot.horizontal.label = as.character(!!sym(yaxis)))
-  if(!is.null(legend_maxwidth)) {
-    d <- arrange(d, !!sym(yaxis)) |>
-      mutate((!!sym(yaxis)) := str_trunc(as.character((!!sym(yaxis))), legend_maxwidth) |> fct_inorder())
-  }
-}
-
-split_d <- group_split(d, if("pie" %in% plot_type) { NULL } else { !!color }, .data$roboplot.plot.type, .data$roboplot.dash)
-split_d <<- split_d
-if("scatter" %in% plot_type) { split_d <- rev(split_d)}
-
-trace_params <- map(split_d, function(g) {
-  tracetype <- unique(g$roboplot.plot.type)
-  hovertemplate <- roboplot_hovertemplate(hovertext, case_when(tracetype == "pie" ~ tracetype, str_detect(plot_mode,"horizontal") ~ "horizontal", TRUE ~ "default"))
-  marker_line_color <- NULL
-  legend_rank <- mean(g$roboplot.legend.rank)
-  if(tracetype == "pie") {
-    tx_colors <- roboplot_text_color_picker(roboplot_alter_color(plot_colors,"darker"))
-    in_tx_colors <- roboplot_text_color_picker(plot_colors)
-    g <- mutate(g, roboplot.bg.color = roboplot_alter_color(.data$roboplot.trace.color,"darker"),
-                roboplot.tx.color = tx_colors[!!color],
-                roboplot.in.tx.color = in_tx_colors[!!color])
-    background_color <- getOption("roboplot.colors.background")
-    grid_color <- getOption("roboplot.colors.grid")
-    marker_line_color <- first(grid_color[grid_color != background_color])
-    marker_line_color <- replace(marker_line_color, length(marker_line_color) == 0, roboplot_alter_color(background_color,"darker"))
+  if(str_detect(plot_mode,"horizontal")) {
+    d <- get_bar_widths(d, yaxis)
+    d <- mutate(d, roboplot.horizontal.label = as.character(!!sym(yaxis)))
+    if(!is.null(legend_maxwidth)) {
+      d <- arrange(d, !!sym(yaxis)) |>
+        mutate((!!sym(yaxis)) := str_trunc(as.character((!!sym(yaxis))), legend_maxwidth) |> fct_inorder())
+    }
   }
 
-  rotation <- if(pie_rotation) {
-    -(group_by(g, !!color) |> summarize(value = sum(.data$value), .groups = "drop") |> mutate(value = .data$value / sum(.data$value)) |> slice_min(!!color) |> pull(.data$value) * 360 / 2)
-  } else { 0 }
+  split_d <- group_split(d, if("pie" %in% plot_type) { NULL } else { !!color }, .data$roboplot.plot.type, .data$roboplot.dash)
+  split_d <<- split_d
+  if("scatter" %in% plot_type) { split_d <- rev(split_d)}
 
-  plotting_params <- list(color = color, #!pie
-                          customdata = color,
-                          data=g,
-                          direction = "clockwise", #pie
-                          xhoverformat = roboplot_hovertemplate_freq(hovertext$dateformat),
-                          hoverlabel = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, bgcolor = ~ roboplot.bg.color, color = ~ roboplot.tx.color), #pie
-                          hovertemplate = hovertemplate,
-                          insidetextfont = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, color = ~ roboplot.in.tx.color), #pie
-                          labels = color, #pie
-                          legendgroup = color,
-                          legendrank = legend_rank,
-                          line = ~ list(width = roboplot.linewidth, dash = roboplot.dash), #scatter line
-                          marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.pattern)), #pie
-                          mode = case_when(str_detect(plot_mode, "line") ~ "lines", TRUE ~ "markers") , #scatter
-                          name = ~  if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
-                          offset = ~roboplot.bar.offset, #horizontal bar
-                          offsetgroup = ~str_c(roboplot.pattern, roboplot.trace.color), #bar ## onko ok?? mieti
-                          orientation = ifelse(str_detect(plot_mode,"horizontal") & plot_type == "bar","h","v"),
-                          pattern = "x",
-                          rotation = rotation, #pie
-                          showlegend = T,
-                          sort = F, #pie
-                          text = if(str_detect(plot_mode,"horizontal")) { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
-                          textinfo = "percent", #pie
-                          textposition = ifelse(tracetype == "bar", "none", "inside"), #pie and bar
-                          texttemplate = if(tracetype == "pie") { NULL } else { NA },
-                          type = ~ tracetype,
-                          values = as.formula(str_c("~",yaxis)), # pie
-                          width = ~roboplot.bar.width, #horizontal bar
-                          x = as.formula(str_c("~",xaxis)), #!pie
-                          y = as.formula(str_c("~",yaxis)) #!pie
-  )
-  shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type")
-  plotting_params <- if(tracetype == "scatter" & str_detect(plot_mode,"line")) {
-    plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
-  } else if(tracetype == "scatter" & str_detect(plot_mode,"scatter")) {
-    plotting_params[c(shared_params,"x","y","mode","name","color", "xhoverformat")]
-  } else if (tracetype == "bar" & str_detect(plot_mode,"horizontal")) {
-    plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition")]
-  } else if (tracetype == "bar") {
-    plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker")]
-  } else if (tracetype == "pie") {
-    plotting_params[c(shared_params,"labels","textposition","textinfo","insidetextfont","direction","rotation","sort","hoverlabel","marker", "values")]
+  trace_params <- map(split_d, function(g) {
+    tracetype <- unique(g$roboplot.plot.type)
+    hovertemplate <- roboplot_hovertemplate(hovertext, case_when(tracetype == "pie" ~ tracetype, str_detect(plot_mode,"horizontal") ~ "horizontal", TRUE ~ "default"))
+    marker_line_color <- NULL
+    legend_rank <- mean(g$roboplot.legend.rank)
+    if(tracetype == "pie") {
+      tx_colors <- roboplot_text_color_picker(roboplot_alter_color(plot_colors,"darker"))
+      in_tx_colors <- roboplot_text_color_picker(plot_colors)
+      g <- mutate(g, roboplot.bg.color = roboplot_alter_color(.data$roboplot.trace.color,"darker"),
+                  roboplot.tx.color = tx_colors[!!color],
+                  roboplot.in.tx.color = in_tx_colors[!!color])
+      background_color <- getOption("roboplot.colors.background")
+      grid_color <- getOption("roboplot.colors.grid")
+      marker_line_color <- first(grid_color[grid_color != background_color])
+      marker_line_color <- replace(marker_line_color, length(marker_line_color) == 0, roboplot_alter_color(background_color,"darker"))
+    }
+
+    rotation <- if(pie_rotation) {
+      -(group_by(g, !!color) |> summarize(value = sum(.data$value), .groups = "drop") |> mutate(value = .data$value / sum(.data$value)) |> slice_min(!!color) |> pull(.data$value) * 360 / 2)
+    } else { 0 }
+
+    plotting_params <- list(color = color, #!pie
+                            customdata = color,
+                            data=g,
+                            direction = "clockwise", #pie
+                            xhoverformat = roboplot_hovertemplate_freq(hovertext$dateformat),
+                            hoverlabel = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, bgcolor = ~ roboplot.bg.color, color = ~ roboplot.tx.color), #pie
+                            hovertemplate = hovertemplate,
+                            insidetextfont = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, color = ~ roboplot.in.tx.color), #pie
+                            labels = color, #pie
+                            legendgroup = color,
+                            legendrank = legend_rank,
+                            line = ~ list(width = roboplot.linewidth, dash = roboplot.dash), #scatter line
+                            marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.pattern)), #pie
+                            mode = case_when(str_detect(plot_mode, "line") ~ "lines", TRUE ~ "markers") , #scatter
+                            name = ~  if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
+                            offset = ~roboplot.bar.offset, #horizontal bar
+                            offsetgroup = ~str_c(roboplot.pattern, roboplot.trace.color), #bar ## onko ok?? mieti
+                            orientation = ifelse(str_detect(plot_mode,"horizontal") & plot_type == "bar","h","v"),
+                            pattern = "x",
+                            rotation = rotation, #pie
+                            showlegend = T,
+                            sort = F, #pie
+                            text = if(str_detect(plot_mode,"horizontal")) { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
+                            textinfo = "percent", #pie
+                            textposition = ifelse(tracetype == "bar", "none", "inside"), #pie and bar
+                            texttemplate = if(tracetype == "pie") { NULL } else { NA },
+                            type = ~ tracetype,
+                            values = as.formula(str_c("~",yaxis)), # pie
+                            width = ~roboplot.bar.width, #horizontal bar
+                            x = as.formula(str_c("~",xaxis)), #!pie
+                            y = as.formula(str_c("~",yaxis)) #!pie
+    )
+    shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type")
+    plotting_params <- if(tracetype == "scatter" & str_detect(plot_mode,"line")) {
+      plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
+    } else if(tracetype == "scatter" & str_detect(plot_mode,"scatter")) {
+      plotting_params[c(shared_params,"x","y","mode","name","color", "xhoverformat")]
+    } else if (tracetype == "bar" & str_detect(plot_mode,"horizontal")) {
+      plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition")]
+    } else if (tracetype == "bar") {
+      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker")]
+    } else if (tracetype == "pie") {
+      plotting_params[c(shared_params,"labels","textposition","textinfo","insidetextfont","direction","rotation","sort","hoverlabel","marker", "values")]
+    }
+  })
+
+  for(par in trace_params) {
+    p <- p |> roboplot_add_trace(!!!par)
   }
-})
 
-for(par in trace_params) {
-  p <- p |> roboplot_add_trace(!!!par)
-}
-
-p |> layout(legend = list(traceorder = ifelse(any(plot_type == "scatter"), "reversed","normal")))
+  p |> layout(legend = list(traceorder = ifelse(any(plot_type == "scatter"), "reversed","normal")))
 
 }
 

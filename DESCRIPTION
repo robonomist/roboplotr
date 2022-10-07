@@ -18,6 +18,7 @@ Imports:
     htmlwidgets, 
     knitr,
     lubridate,
+    padr,
     plotly,
     plyr,
     purrr,
