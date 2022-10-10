@@ -752,8 +752,8 @@ roboplot_get_frequency <- function(d, msg = T) {
     as.character(d_attrs$frequency)
   }
   if(wrn == T & msg == T) {
-    wrn <- if(is.null(tf)) { "Resorting to default %Y/%m/%d" } else { str_c(" Guessing \"",names(dateformats[tf]),"\" for ",dateformats[[tf]]) }
-    message(str_c("No frequency attribute for tibble 'd' for hoverlabel, and none has been provided in the argument 'hovertext'.", wrn,"."))
+    wrn <- if(is.null(tf)) { "Resorting to default %Y/%m/%d" } else { str_c(" Guessing \"",names(dateformats[tf]),"\" for date format",dateformats[[tf]]) }
+    message(str_c("No frequency attribute was detected for hoverlabel from data 'd', and none has been provided as \"dateformat\" in the argument 'hovertext'.", wrn,"."))
   }
   tf
 }
@@ -890,8 +890,8 @@ roboplot <- function(d,
   }
 
   if(missing(color)){
-    message("Without an unquoted arg 'color' the data is has a dummy column \".variable \"added.")
-    d <- mutate(d, .variable = "")
+    message("Without an unquoted arg 'color' the variable \".topic\" is added to data 'd', using the argument 'subtitle' trunctated to 30 characters as variable value.")
+    d <- mutate(d, .topic = str_trunc(subtitle,30))
   }
 
   if(!all(c("time","value") %in% names(d)) || !is.data.frame(d)) {
@@ -901,7 +901,7 @@ roboplot <- function(d,
   }
 
   if(missing(color)) {
-    color <- quo(!! sym(".variable"))
+    color <- quo(!! sym(".topic"))
   } else {
     roboplot_check_valid_var(color)
     color <- enquo(color)
