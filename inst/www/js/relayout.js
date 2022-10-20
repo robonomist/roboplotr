@@ -36,9 +36,11 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  legend_y = -((margin_bottom - elcaption + (elslider+margin_bottom_disp)) / elplot);
 	}
 	let title_breaks = (el.layout.title.text.match(new RegExp("<br>", "g")) || []).length;
-	let title_y = 1 + ((margin_top+el.layout.title.font.size*title_breaks*2) / elplot)
+//	let title_y = 1 + ((margin_top+el.layout.title.font.size*title_breaks*2) / elplot)
+//	let title_y = 1 + ((el.layout.title.font.size*title_breaks) / elplot)
+//  let title_y = 0.925
 //	console.log(title_y)
-	let annotations_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2) / elplot);
+	let annotations_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2) / elplot)*1.05;
 	let images_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2 - (elimages / 10)) / elplot);
 	let legend_font_size = (ellegend > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
 
@@ -62,7 +64,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	' caption position: ' + annotations_y,
 	)}
 	let thearray = {
-	  'title.y': title_y,
+//	  'title.y': title_y,
 		'legend.y': legend_y,
 		'legend.yanchor': "bottom",
 		'images[0].y': images_y,
@@ -92,7 +94,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 
 }
 
-function setVerticalLayout(eventdata, gd, legend_fontsize, alt_title, pie_chart) {
+function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart) {
+
 	if ('width' in eventdata) {
 	  if ('rangeslider' in gd.layout.xaxis) {
 	  if (gd.layout.xaxis.rangeslider.visible == false) {
@@ -101,13 +104,13 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, alt_title, pie_chart)
 	    //Plotly.relayout(gd, {'xaxis.rangeslider.visible': true})
 	  }}
 	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox();
-	  let titlespace = $(gd).find('svg.main-svg')[0].getAttribute("width") * 0.85
-	   if (titlespace < gdtitle.width) {
-	      //console.log("title too tight!")
-	      Plotly.relayout(gd, {'title.text': alt_title[1]})
-	   } else if (titlespace > gdtitle.width * 1.8) {
-	     Plotly.relayout(gd, {'title.text': alt_title[0]})
-	   };
+	  let titlespace = $(gd).find('svg.main-svg')[0].getAttribute("width") * 0.95
+	  let title_text = "<span>" +
+	  (plot_title[2] ? "<b>" : "" ) +
+	  stringDivider(plot_title[0], Math.floor(titlespace/10), "<br>") +
+	  (plot_title[2] ? "</b>" : "" ) +
+	  "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
+	  Plotly.relayout(gd, {'title.text': title_text})
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','images[0].sizey','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t','margin.b','legend.y','images[0].y','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'yaxis.tickfont.size'], pie_chart = pie_chart));
@@ -119,6 +122,21 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, alt_title, pie_chart)
 //		getVerticalLayout(gd, legend_fontsize, false, [""], pie_chart = pie_chart, showfinal = true);
 //    console.log(gd.layout.shapes)
 	}
+}
+
+function stringDivider(str, width, spaceReplacer) {
+    if (str.length>width) {
+        var p=width
+        for (;p>0 && str[p]!=' ';p--) {
+          console.log(p)
+        }
+        if (p>0) {
+            var left = str.substring(0, p);
+            var right = str.substring(p+1);
+            return left + spaceReplacer + stringDivider(right, width, spaceReplacer);
+        }
+    }
+    return str;
 }
 
 function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
@@ -207,8 +225,8 @@ yInside = yInside.concat(yStackInside.map(o => o.val));
 	}
 }
 
-function plotlyRelayoutEventFunction(eventdata, gd, legend_fontsize, alt_title, rangeslider_sums, pie_chart) {
+function plotlyRelayoutEventFunction(eventdata, gd, legend_fontsize, plot_title, rangeslider_sums, pie_chart) {
 	timerId = 0;
-	setVerticalLayout(eventdata, gd, legend_fontsize, alt_title, pie_chart);
+	setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart);
 	yrangeRelayout(eventdata, gd, timerId, rangeslider_sums);
 };

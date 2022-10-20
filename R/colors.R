@@ -67,6 +67,11 @@ roboplot_set_colors <- function(trace_color, unique_groups, highlight, d, color)
     un_groups <- unique_groups |> subset(unique_groups %in% un_groups) |> droplevels()
     if(length(un_groups) == 0) { stop(str_c("No trace in \"",as_name(color),"\" fulfill the highlight requirements."), call. = F) }
     color_vector <- roboplot_get_colors(length(un_groups)) |> setNames(un_groups)
+    greyed_out <- subset(unique_groups, !unique_groups %in% un_groups)
+    if(length(greyed_out) > 0) {
+      greyed_out <- rep(first(unique(unlist(getOption("roboplot.colors.grid")))), length(greyed_out)) %>% setNames(greyed_out)
+      color_vector <- c(color_vector, greyed_out)
+    }
     d[[as_name(color)]] <- fct_relevel(d[[as_name(color)]], levels(un_groups))
   } else {
     color_vector <- roboplot_get_colors(length(unique_groups)) |> setNames(unique_groups)
@@ -118,7 +123,7 @@ roboplot_alter_color <- function(color,modifier) {
 }
 
 #' @importFrom dplyr case_when filter mutate pull rowwise slice_head slice_tail ungroup
-#' @importFrom purrr map
+#' @importFrom purrr map_dbl
 roboplot_text_color_picker <- function(picked_colors, fontsize = 12, fontweight = 500, draw_kunta = F, grey_shades = roboplot_grey_shades()) {
 
   map(picked_colors, function(picked_color) {
@@ -130,18 +135,10 @@ roboplot_text_color_picker <- function(picked_colors, fontsize = 12, fontweight 
       TRUE ~ 4.5)
     gs <- grey_shades |>
       mutate(
-        max_l = unlist(map(.data$luminance, ~ max(clr_lmn,.x) + 0.05)),
-        min_l = unlist(map(.data$luminance, ~ min(clr_lmn,.x) + 0.05)),
+        max_l = map_dbl(.data$luminance, ~ max(clr_lmn,.x) + 0.05),
+        min_l = map_dbl(.data$luminance, ~ min(clr_lmn,.x) + 0.05),
         ratio = .data$max_l/.data$min_l) |>
       filter(.data$ratio >= ratio_lim)
-    # grey_shades |>
-    #   rowwise() |>
-    #   mutate(
-    #     max_l = (max(clr_lmn,.data$luminance) + 0.05),
-    #     min_l = (min(clr_lmn,.data$luminance) + 0.05),
-    #     ratio = .data$max_l/.data$min_l) |>
-    #   filter(.data$ratio >= ratio_lim) |>
-    #   ungroup()
     if(nrow(gs) == 0) {ifelse(draw_kunta == F, "#000000", "#FFFFFF")} else {
       {if(draw_kunta == F) {slice_head(gs, n = 1)} else {slice_tail(gs, prop = 0.85) |> slice_head()}} |>
         pull(.data$color)
