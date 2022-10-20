@@ -133,7 +133,7 @@ roboplot_set_options <- function(roboplot_options, notify = T, shinyapp = F) {
   }
 
   if(shinyapp) {
-    roboplot_make_widget_deps(tempdir())
+    roboplotr:::roboplot_make_widget_deps(tempdir())
     addResourcePath("js", system.file("www","js", package = "roboplotr"))
     addResourcePath("fonts", file.path(tempdir(),"fonts"))
     addResourcePath("css", file.path(tempdir(),"css"))
