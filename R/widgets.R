@@ -23,10 +23,10 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
   if (missing(title)) {
     title <- (p$x$layoutAttrs |> unlist())[grep("title.text", names((p$x$layoutAttrs |> unlist())))] |>
       str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_") |>
-      roboplot_string2filename()
-    message(str_c("Using \"",title,"\" for htmlwidget filename.."))
+      roboplotr_string2filename()
+    roboplotr_message(str_c("Using \"",title,"\" for htmlwidget filename.."))
   } else {
-    title <- roboplot_string2filename(title)
+    title <- roboplotr_string2filename(title)
   }
 
   filepath <- if(missing(filepath)) {
@@ -38,7 +38,7 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
 
   if (is.null(getOption(str_c("roboplot.widget.deps.",filepath)))) {
     # print(str_c("widget deps in path ",filepath, " missing "))
-    roboplot_make_widget_deps(filepath = file.path(filepath,"plot_dependencies"))
+    roboplotr_widget_deps(filepath = file.path(filepath,"plot_dependencies"))
     setOption(str_c("roboplot.widget.deps.",filepath), T)
   }# else {
   #print(getOption(str_c("roboplot.widget.deps.",filepath)))
@@ -54,7 +54,7 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
 
 
   if(!missing(png_artefacts)) {
-    detached_p |> roboplot_automate_png(png_artefacts, filepath)
+    detached_p |> roboplotr_automate_png(png_artefacts, filepath)
   }
 
   if(render == T) {
@@ -73,10 +73,9 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
 #' @importFrom htmlwidgets onRender
 #' @importFrom knitr combine_words
 #' @importFrom lubridate now as_datetime seconds
-#' @importFrom plyr compact
 #' @importFrom purrr map
 #' @importFrom stringr str_replace_all str_c
-roboplot_automate_png <- function(p, artefacts, dl_path = getwd()) {
+roboplotr_automate_png <- function(p, artefacts, dl_path = getwd()) {
 
   if(!any(artefacts %in% c("html","s","small","w","wide","n","narrow"))) {
     stop("\"png_artefacts\" must consist of one or more of s(mall), n(arrow) or w(ide), corresponding to desired .png size(s).", call. = F)
@@ -110,10 +109,10 @@ roboplot_automate_png <- function(p, artefacts, dl_path = getwd()) {
 
   recent_files <- list.files(dl_path) |> map(~ {
     if (file.info(.x)$ctime |> as_datetime(tz = "UTC") >= now(tz = "UTC") - seconds(5)) { .x }
-  }) |> compact()
+  }) |> roboplotr_compact()
   recent_length <- length(recent_files)
   if(recent_length > 0) {
-    message(str_c("\nThe file",ifelse(recent_length > 1, "s",""),"\n", combine_words(recent_files,sep = ",\n", and = ", and\n"),"\n",
+    roboplotr_message(str_c("\nThe file",ifelse(recent_length > 1, "s",""),"\n", combine_words(recent_files,sep = ",\n", and = ", and\n"),"\n",
                   ifelse(recent_length > 1, "are","is")," in ",dl_path,"."))
   }
 
@@ -124,7 +123,7 @@ roboplot_automate_png <- function(p, artefacts, dl_path = getwd()) {
 #' @importFrom stringr str_c
 #' @importFrom stats setNames
 #'
-roboplot_make_widget_deps <- function(filepath = NULL) {
+roboplotr_widget_deps <- function(filepath = NULL) {
 
   js_file <- system.file("www/js","relayout.js", package = "roboplotr")
 
@@ -138,14 +137,14 @@ roboplot_make_widget_deps <- function(filepath = NULL) {
 
   font_strings <- NULL
 
-  set_font_strings <- function(this_opt, filepath, el_name) {
+  set_font_strings <- function(this_opt, filepath) {
     if(!is.null(filepath)) {
       invisible(file.copy(this_opt$path, file.path(filepath,"fonts",str_extract(this_opt$path,"[^/]*$"))))
-      font_string <- list(file.path("..","fonts",str_extract(this_opt$path,"[^/]*$"))) |> setNames(el_name)
+      font_string <- list(file.path("..","fonts",str_extract(this_opt$path,"[^/]*$"))) |> setNames(this_opt$family)
       font_string
     } else {
       base_font <- base64Encode(readBin(this_opt$path, "raw", file.info(this_opt$path)[1, "size"]), "txt")
-      font_string <- list(str_c('data:vnd.ms-opentype;base64', base_font, sep=',')) |> setNames(el_name)
+      font_string <- list(str_c('data:vnd.ms-opentype;base64', base_font, sep=',')) |> setNames(this_opt$family)
       font_string
     }}
 
@@ -156,7 +155,7 @@ roboplot_make_widget_deps <- function(filepath = NULL) {
     this_opt <- getOption(opt_name)
 
     if(!is.null(this_opt$path)) {
-      font_strings <- append(font_strings, set_font_strings(this_opt, filepath, opt))
+      font_strings <- append(font_strings, set_font_strings(this_opt, filepath))
     }
 
   }
@@ -166,11 +165,11 @@ roboplot_make_widget_deps <- function(filepath = NULL) {
                                c("fill", "fill-opacity"),
                                c(str_c("rgb(",rangeslider_mask,") !important"),"0.7 !important"))
 
-  font_strings <- map2(font_strings, names(font_strings), ~ list('@font-face', c('font-family', 'src'), c(str_c('roboplot-',.y), str_c("url('",.x,"')")))) |>
+  font_strings <- map2(font_strings, names(font_strings), ~ list('@font-face', c('font-family', 'src'), c(.y, str_c("url('",.x,"')")))) |>
     unname()
 
   css_list <- map(c(font_strings,list(rangeslider_mask_css)), ~.x)
-  css_string <- roboplot_make_css(css_list,
+  css_string <- roboplotr_get_css(css_list,
                                   file = if(!is.null(filepath)) { file.path(filepath,"css/style.css") } else NULL)
 
   if(is.null(filepath)) {
@@ -186,13 +185,12 @@ roboplot_make_widget_deps <- function(filepath = NULL) {
 #' @param files_path The folder where the artefacts to be uploaded are located.
 #' @param upload_path The gcs folder where the artefacts will be uploaded to.
 #' @param overwrite If named files exist in the cloud storage, will they be overwritten.
-#' @export
 #' @importFrom knitr current_input
 #' @importFrom stringr str_remove str_replace_all str_c str_detect
 #' @importFrom dplyr case_when
 #' @importFrom googleCloudStorageR gcs_metadata_object gcs_upload gcs_get_global_bucket gcs_auth gcs_global_bucket gcs_list_objects
 #' @importFrom purrr walk
-roboplot_upload_widgets <- function(files_path, upload_path, overwrite = FALSE) {
+roboplotr_upload_widgets <- function(files_path, upload_path, overwrite = FALSE) {
 
   if (length(Sys.glob(file.path(getwd() |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))) != 0){
     aut_file <- Sys.glob(file.path(getwd() |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))
@@ -217,7 +215,7 @@ roboplot_upload_widgets <- function(files_path, upload_path, overwrite = FALSE) 
     }
   } else {
     upl_files <-  list.files(path = files_path, recursive = T, full.names = T) |> str_subset("\\.(css|js|map|scss|html|txt)$") |> str_c(collapse = ", ")
-    message(str_c("Give the path to the files you wish to upload. Careful! This will upload all of ",upl_files,"!\nType \"upload\" to continue:"))
+    roboplotr_warning(str_c("Give the path to the files you wish to upload. Careful! This will upload all of ",upl_files,"!\nType \"upload\" to continue:"))
     ans <- readline(" ")
     if (ans != "upload") { stop("Canceled", call. = F) }
   }
@@ -227,7 +225,7 @@ roboplot_upload_widgets <- function(files_path, upload_path, overwrite = FALSE) 
   }
 
   artefact_files <- list.files(files_path, recursive = T) |> str_subset("\\.(css|js|map|scss|html|txt)$")
-  if(overwrite == FALSE) { message("Overwrite is set to false, set overwrite = T in roboplot_upload_widgets if you want to overwrite existing uploads.") }
+  if(overwrite == FALSE) { message("Overwrite is set to false, set overwrite = T in roboplotr_upload_widgets if you want to overwrite existing uploads.") }
   walk(artefact_files, function(artefact_file) {
     upload_file <- if(is_knitting) {
       prefix <- cur_input |> str_remove("\\.Rmd$") |> str_replace_all("/","_") |> str_c("_artefacts")
@@ -239,12 +237,12 @@ roboplot_upload_widgets <- function(files_path, upload_path, overwrite = FALSE) 
     # print(artefact_file)
     # print(upload_file)
     if(obj.existence == TRUE & overwrite == FALSE) {
-      message(str_c("The file ",upload_file, " already exists!"))
+      roboplotr_warning(str_c("The file ",upload_file, " already exists!"))
     } else {
       if(obj.existence == TRUE) {
-        message(str_c("Overwriting previous upload of ",upload_file))
+        roboplotr_alert(str_c("Overwriting previous upload of ",upload_file))
       } else {
-        message(str_c("Uploading ",upload_file))
+        roboplotr_message(str_c("Uploading ",upload_file))
       }
       upload_type <- case_when(str_detect(upload_file, "css$") ~ "text/css",
                                str_detect(upload_file, "js$") ~ "text/javascript",

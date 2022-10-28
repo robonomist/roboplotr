@@ -12,7 +12,6 @@ roboplot(
   caption = NULL,
   legend_orientation = NULL,
   legend_position = NULL,
-  margin = NA,
   trace_color = NULL,
   highlight = NULL,
   zeroline = F,
@@ -28,7 +27,7 @@ roboplot(
   facet_split = NULL,
   pie_rotation = F,
   legend_maxwidth = NULL,
-  xaxis_ceiling = c("default", "days", "months", "weeks", "quarters", "years", "guess"),
+  xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
   secondary_yaxis = NULL
 )
 }
@@ -41,13 +40,14 @@ roboplot(
 
 \item{caption}{Function or character. Use roboplot_set_caption().}
 
-\item{legend_orientation, legend_position}{Characters. Currently only "bottom" or NA for no legend.}
+\item{legend_position, legend_orientation}{Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.}
 
 \item{trace_color}{Character vector, named if length > 1. Trace color for all trace. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
 
 \item{highlight}{Double or list. Determines if a given trace is included in legend and assigned a color.
 If double, traces with max(value) < highlight will be give trace color matching the grid color, and removed from the legend.
-If function, it must return a logical and include named items "value" and ".fun", where .fun checks if given value will get a color or legend item.}
+If function, it must return a logical and include named items "value" and ".fun", where .fun checks if given value will get a color or legend item.
+Will not currently work with multiple patterns.}
 
 \item{zeroline}{Logical or double. Determines zeroline inclusion, TRUE for zeroline, or double for exact placement.}
 
@@ -57,7 +57,7 @@ If function, it must return a logical and include named items "value" and ".fun"
 
 \item{line_width}{Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.}
 
-\item{hovertext}{Function. Use roboplot_get_hovertemplate_specs().}
+\item{hovertext}{Function. Use roboplot_set_hovertext().}
 
 \item{axis_limits}{List. Determines the limits of the axes (list(x = c(NA,NA), y = c(NA,NA)))".}
 
@@ -90,49 +90,99 @@ Included relayout.js ensures proper scaling or elements when used in shiny apps,
 \examples{
 # Basic usage is for plotting lines
 d <- energiantuonti |>
-   dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
+  dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
 d1 <- d |> dplyr::filter(Suunta == "Tuonti")
-p <- d1 |> roboplot(Alue,"Energian tuonti","Milj. €","Euroopan keskuspankki")
+p <- d1 |> roboplot(Alue,
+                    title = "Energian tuonti",
+                    subtitle = "Milj. €",
+                    caption = "Euroopan keskuspankki")
+
+# Legend can be completely omitted and
+# caption specified with the helper function
+# roboplot_set_caption.
+p <- d1 |>
+  dplyr::filter(Alue == "Yhdistynyt kuningaskunta") |>
+  roboplot(Alue,"Energian tuonti","Milj. €",
+           caption = roboplot_set_caption(text = "Euroopan keskuspankki",
+                                          updated = TRUE,
+                                          .data = d1
+           ))
 
 # Pattern can be used for lines and ordering your variables to factors
-# will affect the order in which the traces are added and presented.
+# will affect the order in which the traces are added.
+# You can also let roboplotr guess how much space is given to yaxis end
+# in line plots, or give a string such as "weeks" or "days" to it.
+# Message about missing frequency data can be silenced by setting the
+# information as an attribute of the used data.
 d2 <- d |> dplyr::mutate(Alue = forcats::fct_reorder(Alue, value))
+attr(d2, "frequency") <- "Quarterly"
 p <- d2 |>
-   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
-   pattern = Suunta)
+  roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
+           pattern = Suunta, xaxis_ceiling = "guess")
 
-# Bar charts use pattern too
+# Bar plots use a pattern too
 p <- d2 |>
-   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
-   pattern = Suunta,
-   plot_type = "bar")
+  roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
+           pattern = Suunta,
+           plot_type = "bar")
 
-# With single 'time' observation x-axis tickmarks lose tick labels
+# With single 'time' observation x-axis tickmarks lose tick labels and
+# hovertemplate loses the time information. There are several places where
+# this information fits nicely.
 d3 <- d2 |> dplyr::filter(time == max(time))
 p <- d3 |>
-   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
-   pattern = Suunta,
-   plot_type = "bar")
+  roboplot(Alue,
+           glue::glue("Energian tuonti ja vienti vuonna {lubridate::year(max(d3$time))}"),
+           glue::glue("Milj. € ({lubridate::year(max(d3$time))})"),
+           pattern = Suunta,
+           plot_type = "bar",
+           caption = roboplot_set_caption(text = "Euroopan keskuspankki",
+                                          updated = TRUE,
+                                          .data = d1,
+                                          line.end = "!",
+                                          prepend = glue::glue(
+                                          "Tieto vuodelta {lubridate::year(max(d3$time))}"),
+                                          append = glue::glue(
+                                          "Toistan, vuonna {lubridate::year(max(d3$time))}")
+           ))
 
-# Bar chart can be horizontal
+# Bar plot can be horizontal
 # but then is better off with only a single 'time' observation
 p <- d3 |>
-   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
-   pattern = Suunta,
-   plot_type = "bar",
-   plot_mode = "horizontal",
-   plot_yaxis = "Alue")
+  roboplot(Suunta,
+           glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+           "Milj. €","Euroopan keskuspankki",
+           plot_type = "bar",
+           plot_mode = "horizontal",
+           plot_yaxis = Alue)
 
-# Pie charts are possible too, but pattern is currently ignored by plotly.
+# Pie plots are possible too, but pattern is currently ignored by plotly.
 p <- d3 |>
-   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
-   pattern = Suunta,
-   plot_type = "pie")
+  roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+           pattern = Suunta,
+           plot_type = "pie")
 
-# Pie chart can be rotated to center the first factor level of 'color'.
+# Pie plot can be centered to the first factor level of argument 'color'.
 p <- d3 |>
-   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
-   pattern = Suunta,
-   plot_type = "pie",
-   pie_rotation = T)
+  roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+           plot_type = "pie",
+           pie_rotation = TRUE)
+
+# You can give a highlight value if you don't have a pattern. Any trace with a
+# "value" equal or higher than the given value will get colors as normal. Others
+# get assigned a bacground grid color and no legend entry. Useful mostly with
+# very large amounts of traces.
+d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, "Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+           plot_type = "scatter",
+           highlight = 160)
+
+# This works best with line plots, but can be included in other plots, too -
+# with varying results, these are work in progress. Highlight can also be a list
+# with "value" and ".fun" used to determine which traces are highlighted. The
+# default usage is essentially list(value = highlight, .fun = sum).
+d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, "Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+           plot_type = "bar",
+           highlight = list(value = 22, .fun = mean))
 }

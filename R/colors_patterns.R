@@ -7,11 +7,10 @@
 #' @param accessibility_params Placeholder for accessibility features.
 #' @return plotly object
 #' @return Vector of colors.
-#' @export
 #' @importFrom grDevices colorRampPalette
 #' @importFrom plotly plot_ly
 
-roboplot_get_colors <- function(n_unique, robocolors = getOption("roboplot.colors.traces"), accessibility_params) {
+roboplotr_get_colors <- function(n_unique, robocolors = getOption("roboplot.colors.traces"), accessibility_params) {
   if(n_unique <= 4) {
     cols <- robocolors[1:n_unique]
   } else {
@@ -22,15 +21,14 @@ roboplot_get_colors <- function(n_unique, robocolors = getOption("roboplot.color
 
 #' @importFrom dplyr filter pull summarize
 #' @importFrom forcats fct_relevel
-#' @importFrom plyr compact
 #' @importFrom purrr map2
 #' @importFrom rlang as_name
 #' @importFrom stats setNames
 
-roboplot_set_colors <- function(trace_color, unique_groups, highlight, d, color) {
+roboplotr_set_colors <- function(trace_color, unique_groups, highlight, d, color) {
   if(!is.null(trace_color)) {
 
-    if(!all(roboplot_are_colors(trace_color))) {
+    if(!all(roboplotr_are_colors(trace_color))) {
       stop("Trace colors must be 6-character hexadecimal colors or among strings provided by grDevices::colors!", call. = F)
     } else if (length(trace_color) == 1 & is.null(names(trace_color))){
       color_vector <- rep(trace_color, length(unique_groups)) |> setNames(unique_groups)
@@ -43,14 +41,14 @@ roboplot_set_colors <- function(trace_color, unique_groups, highlight, d, color)
         detected_traces <- map2(unname(trace_color), names(trace_color), function(tc,nm) {
           miss <- missing_groups |> subset(str_detect(missing_groups, str_c(nm, collapse = "|")))
           rep(tc, length(miss)) |> setNames(miss)
-        }) |> compact() |> unlist()
+        }) |> roboplotr_compact() |> unlist()
         trace_color <- c(trace_color, detected_traces)
       }
       color_vector <- c(trace_color[ug[ug %in% names(trace_color)]],
                         ug[!ug %in% names(trace_color)] |> length() |> rep(x = trace_color[".other"]) |>
                           setNames(ug[!ug %in% names(trace_color)]))
     }
-    if(!is.null(highlight)) {message("Highlight is ignored when providing trace colors.")}
+    if(!is.null(highlight)) { roboplotr_alert("The argument 'highlight' is ignored when providing trace colors.")}
 
   } else if(!is.null(highlight)) {
     if (is.double(highlight)) {
@@ -66,15 +64,15 @@ roboplot_set_colors <- function(trace_color, unique_groups, highlight, d, color)
     }
     un_groups <- unique_groups |> subset(unique_groups %in% un_groups) |> droplevels()
     if(length(un_groups) == 0) { stop(str_c("No trace in \"",as_name(color),"\" fulfill the highlight requirements."), call. = F) }
-    color_vector <- roboplot_get_colors(length(un_groups)) |> setNames(un_groups)
+    color_vector <- roboplotr_get_colors(length(un_groups)) |> setNames(un_groups)
     greyed_out <- subset(unique_groups, !unique_groups %in% un_groups)
     if(length(greyed_out) > 0) {
-      greyed_out <- rep(first(unique(unlist(getOption("roboplot.colors.grid")))), length(greyed_out)) %>% setNames(greyed_out)
+      greyed_out <- rep(first(unique(unlist(getOption("roboplot.colors.grid")))), length(greyed_out)) |> setNames(greyed_out)
       color_vector <- c(color_vector, greyed_out)
     }
     d[[as_name(color)]] <- fct_relevel(d[[as_name(color)]], levels(un_groups))
   } else {
-    color_vector <- roboplot_get_colors(length(unique_groups)) |> setNames(unique_groups)
+    color_vector <- roboplotr_get_colors(length(unique_groups)) |> setNames(unique_groups)
   }
 
   color_vector
@@ -84,14 +82,14 @@ roboplot_set_colors <- function(trace_color, unique_groups, highlight, d, color)
 #' @importFrom grDevices colors
 #' @importFrom stringr str_detect
 #' @importFrom tidyr replace_na
-roboplot_are_colors <- function(x) {
+roboplotr_are_colors <- function(x) {
   (str_detect(toupper(x), "#[0-9A-F]{6}") | x %in% colors()) |> replace_na(F)
 }
 
 
 #' @importFrom dplyr case_when
 #' @importFrom farver add_to_channel convert_colour decode_colour
-roboplot_alter_color <- function(color,modifier) {
+roboplotr_alter_color <- function(color,modifier) {
   b <- (color |> decode_colour() |> convert_colour("rgb","hsb"))[1,"b"] |> unname()
   s <- (color |> decode_colour() |> convert_colour("rgb","hsb"))[1,"s"] |> unname()
   m <- case_when(
@@ -111,7 +109,7 @@ roboplot_alter_color <- function(color,modifier) {
     TRUE ~ 0
   )
   if (modifier == "desaturated_dark") {
-    add_to_channel(color,"s", -0.1, space = "hsb") |> roboplot_alter_color("less_dark")
+    add_to_channel(color,"s", -0.1, space = "hsb") |> roboplotr_alter_color("less_dark")
   } else if (modifier == "desaturated") {
     add_to_channel(color,"s", -0.2, space = "hsb")
   } else if (modifier == "saturated") {
@@ -124,11 +122,11 @@ roboplot_alter_color <- function(color,modifier) {
 
 #' @importFrom dplyr case_when filter mutate pull rowwise slice_head slice_tail ungroup
 #' @importFrom purrr map_dbl
-roboplot_text_color_picker <- function(picked_colors, fontsize = 12, fontweight = 500, draw_kunta = F, grey_shades = roboplot_grey_shades()) {
+roboplotr_text_color_picker <- function(picked_colors, fontsize = 12, fontweight = 500, draw_kunta = F, grey_shades = roboplotr_grey_shades()) {
 
   map(picked_colors, function(picked_color) {
     #font_color <- ifelse(rev == F, "#FFFFFF", "#000000")
-    clr_lmn <- roboplot_get_luminance(picked_color)
+    clr_lmn <- roboplotr_get_luminance(picked_color)
     ratio_lim <- case_when(
       #fontsize < 11 ~ 7,
       fontsize >= 18 || (fontsize >= 14 && fontweight >= 700) ~ 3,
@@ -147,7 +145,7 @@ roboplot_text_color_picker <- function(picked_colors, fontsize = 12, fontweight 
 }
 
 #' @importFrom farver decode_colour
-roboplot_get_luminance <- function(color) {
+roboplotr_get_luminance <- function(color) {
   color <- decode_colour(color, "rgb", "rgb")
   RsRGB <-color[,"r"]/255
   GsRGB <-color[,"g"]/255
@@ -160,7 +158,7 @@ roboplot_get_luminance <- function(color) {
 }
 
 #' @importFrom farver add_to_channel
-roboplot_darken_white <- function(darken, white_hue = "#FFFFFF") {
+roboplotr_darken_white <- function(darken, white_hue = "#FFFFFF") {
   add_to_channel(white_hue, "r", -darken, space = "rgb") |>
     add_to_channel("g", -darken, space = "rgb") |>
     add_to_channel("b", -darken, space = "rgb")
@@ -168,8 +166,43 @@ roboplot_darken_white <- function(darken, white_hue = "#FFFFFF") {
 
 #' @importFrom dplyr tibble
 #' @importFrom purrr map reduce
-roboplot_grey_shades <- function() {
-  grey_shades <- reduce(map(c(seq(0,255,5)), function(x) {roboplot_darken_white(x)} ),c)
+roboplotr_grey_shades <- function() {
+  grey_shades <- reduce(map(c(seq(0,255,5)), function(x) {roboplotr_darken_white(x)} ),c)
   tibble("color" = grey_shades,
-         "luminance" = roboplot_get_luminance(grey_shades))
+         "luminance" = roboplotr_get_luminance(grey_shades))
+}
+
+#' @importFrom forcats fct_inorder fct_relevel fct_rev
+roboplotr_get_pattern <- function(d, pattern) {
+  dashtypes <- getOption("roboplot.dashtypes")
+  patterntypes <- getOption("roboplot.patterntypes")
+  bothtypes <- c(dashtypes, patterntypes)
+  if(!is.null(pattern)) {
+    if(!is.factor(d[[as_name(pattern)]])) {
+      d[[as_name(pattern)]] <- fct_inorder(d[[as_name(pattern)]])
+    }
+    d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",dashtypes[!!pattern],dashtypes[1]),
+                     roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",patterntypes[!!pattern],patterntypes[1])
+    )
+  } else { d <- mutate(d, roboplot.dash = dashtypes[1], roboplot.pattern = patterntypes[1]) }
+  d <- mutate(d,
+              roboplot.dash = fct_relevel(.data$roboplot.dash, dashtypes[dashtypes %in% .data$roboplot.dash]),
+              roboplot.pattern = fct_relevel(.data$roboplot.pattern, patterntypes[patterntypes %in% .data$roboplot.pattern]))
+  d
+}
+
+#' @importFrom dplyr add_count group_by last mutate row_number ungroup
+#' @importFrom rlang .data sym
+
+roboplotr_get_bar_widths <- function(df, width_col) {
+  get_offset <- function(the_count) {
+    seq(-0.45, length.out = the_count, by = 1/the_count)
+  }
+  df |>
+    add_count((!!sym(width_col)) , name = "roboplot.bar.width") |>
+    group_by((!!sym(width_col)) ) |>
+    mutate(roboplot.bar.offset = get_offset(max(.data$roboplot.bar.width)),
+           roboplot.bar.width = ifelse(row_number() == last(row_number()), 1/.data$roboplot.bar.width*0.9, 1/.data$roboplot.bar.width)) |>
+    ungroup()
+
 }

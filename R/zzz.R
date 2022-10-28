@@ -1,7 +1,7 @@
 .onLoad <- function(...) {
   op <- options()
   op.roboplot.options <- list(
-    roboplot.caption = list(prefix = "Lähde", lineend = ".", updated = NULL),
+    roboplot.caption = list(prefix = "L\uE4hde", lineend = ".", updated = NULL),
     roboplot.colors.background = "white",
     roboplot.colors.border = list(x = "black", y = "black"),
     roboplot.colors.traces =  c("#c1272d","#f15a24","#f7931e","#dcc48a","#118f9a","#951d46"),
@@ -17,7 +17,8 @@
     roboplot.logo = system.file("images", "robonomist.png", package = "roboplotr"),
     roboplot.png.font.size.lg = list(title = 31, main = 24, caption = 19),
     roboplot.png.font.size.sm = list(title = 23, main = 18, caption = 14),
-    roboplot.modebar.buttons = c("closest","compare","img_w","data_dl")
+    roboplot.modebar.buttons = c("closest","compare","img_w","data_dl"),
+    roboplot.yaxis.ceiling = "default"
   )
   toset <- !(names(op.roboplot.options) %in% names(op))
   if(any(toset)) options(op.roboplot.options[toset])

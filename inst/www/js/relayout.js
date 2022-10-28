@@ -10,7 +10,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  }
 	let elxticks = $(el).find('g.xaxislayer-above')
 	if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  0 };
-	let margin_top = eltitle.height+el.layout.title.font.size*2;
+	let margin_top = eltitle.height+30; // title height + modebar + 5 px
 	let elcaption = $(el).find('g.annotation')[0].getBBox().height;
 	let ellegend = elxticks;
 	if ($(el).find('g.legend')[0] != undefined) { ellegend =  $(el).find('g.legend')[0].getBBox().height };
@@ -22,7 +22,11 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	let elimages = $(el).find('g.layer-above > g.imagelayer')[0].getBBox().height;
 	let legend_y = -((margin_bottom - elcaption + (elslider+margin_bottom_disp)) / elplot);
 	if (legend_y < -3) {
-	  Plotly.relayout(el, {'xaxis.rangeslider.visible': false})
+	  	if ('rangeslider' in el.layout.xaxis) {
+	      if(el.layout.xaxis.rangeslider.visible == true) {
+	      	  Plotly.relayout(el, {'xaxis.rangeslider.visible': false})
+	  }
+	  }
 	  elslider = 0;
 	  let elxticks = $(el).find('g.xaxislayer-above')
 	  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = 0 };
@@ -35,11 +39,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  elimages = $(el).find('g.layer-above > g.imagelayer')[0].getBBox().height;
 	  legend_y = -((margin_bottom - elcaption + (elslider+margin_bottom_disp)) / elplot);
 	}
-	let title_breaks = (el.layout.title.text.match(new RegExp("<br>", "g")) || []).length;
-//	let title_y = 1 + ((margin_top+el.layout.title.font.size*title_breaks*2) / elplot)
-//	let title_y = 1 + ((el.layout.title.font.size*title_breaks) / elplot)
-//  let title_y = 0.925
-//	console.log(title_y)
+  let title_y = (elcontainer - 40) / elcontainer
 	let annotations_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2) / elplot)*1.05;
 	let images_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2 - (elimages / 10)) / elplot);
 	let legend_font_size = (ellegend > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
@@ -64,17 +64,13 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	' caption position: ' + annotations_y,
 	)}
 	let thearray = {
-//	  'title.y': title_y,
+	  'title.y': title_y,
 		'legend.y': legend_y,
-		'legend.yanchor': "bottom",
 		'images[0].y': images_y,
 		'images[0].sizey': images_sizey,
 		'margin.t': margin_top,
 		'margin.b': margin_bottom,
 		'annotations[0].y': annotations_y,
-		'annotations[1].y': annotations_y,
-		'annotations[2].y': annotations_y,
-		'annotations[3].y': annotations_y,
 		'legend.font.size': legend_font_size,
 		'yaxis.tickfont.size': yaxis_font_size
 	};
@@ -101,10 +97,11 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	  if (gd.layout.xaxis.rangeslider.visible == false) {
 	    gd.layout.xaxis.rangeslider.visible = true;
 	    Plotly.react(gd,gd.data, gd.layout)
-	    //Plotly.relayout(gd, {'xaxis.rangeslider.visible': true})
 	  }}
 	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox();
-	  let titlespace = $(gd).find('svg.main-svg')[0].getAttribute("width") * 0.95
+	  let titlespace = pie_chart ? $(gd).find('.pielayer > .trace > .slice > .surface') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
+	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
+	  console.log(titlespace)
 	  let title_text = "<span>" +
 	  (plot_title[2] ? "<b>" : "" ) +
 	  stringDivider(plot_title[0], Math.floor(titlespace/10), "<br>") +
@@ -116,7 +113,8 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd,
 		  getVerticalLayout(gd, legend_fontsize, false,
-		  keys = ['images[0].y', 'annotations[0].y', 'annotations[1].y', 'annotations[2].y', 'annotations[3].y', 'legend.y', 'legend.yanchor', 'title.y', 'yaxis.tickfont.size'],
+		  keys = ['images[0].y', 'annotations[0].y', 'legend.y',
+		  'title.y', 'yaxis.tickfont.size'],
 		  pie_chart = pie_chart));
 //		console.log("FINAL CHECK")
 //		getVerticalLayout(gd, legend_fontsize, false, [""], pie_chart = pie_chart, showfinal = true);
@@ -126,14 +124,17 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 
 function stringDivider(str, width, spaceReplacer) {
     if (str.length>width) {
-        var p=width
+        let p=width
         for (;p>0 && str[p]!=' ';p--) {
-          console.log(p)
         }
+        console.log("p: " + p)
         if (p>0) {
-            var left = str.substring(0, p);
-            var right = str.substring(p+1);
+            let left = str.substring(0, p);
+            let right = str.substring(p+1);
             return left + spaceReplacer + stringDivider(right, width, spaceReplacer);
+        } else {
+          let sp = /( ){1,}/ig;
+          return str.replace(sp,spaceReplacer)
         }
     }
     return str;

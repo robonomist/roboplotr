@@ -6,6 +6,7 @@
 \usage{
 roboplot_set_caption(
   text = NULL,
+  prefix = getOption("roboplot.caption")$prefix,
   updated = getOption("roboplot.caption")$updated,
   .data = NULL,
   line.end = getOption("roboplot.caption")$lineend,
@@ -16,7 +17,11 @@ roboplot_set_caption(
 \arguments{
 \item{text}{Character. The text for plot caption, probably data source name for argument 'd'.}
 
-\item{updated}{Date or logical. If Date, will be inserted as the last update time in the caption. If TRUE, will try to get this information from argument 'd'. Default from roboplot.options.}
+\item{prefix}{Character. Prefix inserted before the argument 'text', automatically separated by ": ".}
+
+\item{updated}{Date or logical. If Date, will be inserted as the last update time in the caption. If TRUE, will try to get this information from argument '.data'.}
+
+\item{.data}{Data frame. The data frame the caption attempts to read the time of the last update from.}
 
 \item{line.end}{Character. Character inserted to end of line. Default from roboplot.options.}
 

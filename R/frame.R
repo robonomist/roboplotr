@@ -1,5 +1,5 @@
 #' @importFrom plotly layout
-roboplot_set_grid <- function(p, grid_color = getOption("roboplot.colors.grid"), border_color = getOption("roboplot.colors.border")) {
+roboplotr_set_grid <- function(p, grid_color = getOption("roboplot.colors.grid"), border_color = getOption("roboplot.colors.border")) {
   p |> layout(
     xaxis = list(showgrid = TRUE, gridcolor = grid_color$x, linecolor = border_color$x, size = 1.5),
     yaxis = list(showgrid = TRUE, gridcolor = grid_color$y, linecolor = border_color$y, size = 1.5)
@@ -7,13 +7,13 @@ roboplot_set_grid <- function(p, grid_color = getOption("roboplot.colors.grid"),
 }
 
 #' @importFrom plotly layout
-roboplot_set_background <- function(p, color = getOption("roboplot.colors.background")) {
+roboplotr_set_background <- function(p, color = getOption("roboplot.colors.background")) {
   p |> layout(paper_bgcolor = color, plot_bgcolor = color)
 }
 
 #' @importFrom plotly layout
 #' @importFrom stringr str_remove
-roboplot_set_margin <-function(p, margin) {
+roboplotr_set_margin <-function(p, margin) {
   
   if (!is.list(margin)) {
     stop("Insert plot margins as list (default is list(t,r,b,l,pad))\nNote that top and bottom margins will be currently ignored but programmatically set instead.", call. = F)

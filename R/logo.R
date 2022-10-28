@@ -1,6 +1,6 @@
 #' @importFrom plotly layout
 #' @importFrom RCurl base64Encode
-roboplot_add_logo <- function(p){
+roboplotr_logo <- function(p){
   
   image_file <- getOption("roboplot.logo")
   txt <- base64Encode(readBin(image_file, "raw", file.info(image_file)[1, "size"]), "txt")

@@ -1,7 +1,7 @@
 #' @importFrom plotly layout
 #' @importFrom dplyr case_when
 #' @importFrom plotly rangeslider
-roboplot_add_rangeslider <- function(p, enable = F, slider_range = NULL, height = 0.1) {
+roboplotr_rangeslider <- function(p, enable = F, slider_range = NULL, height = 0.1) {
   if(enable == T) {
     height <- case_when(height > 0.5 ~ 0.5, height < 0.1 ~ 0.1, TRUE ~ height)
     p |> rangeslider(slider_range[1], slider_range[2], thickness = height)
@@ -9,7 +9,7 @@ roboplot_add_rangeslider <- function(p, enable = F, slider_range = NULL, height 
 }
 
 #' @importFrom plotly layout
-roboplot_add_zeroline <- function(p, z) {
+roboplotr_zeroline <- function(p, z) {
   if(!is.logical(z$zeroline) & !is.double(z$zeroline)) {
     stop("Zeroline must be TRUE, FALSE or of type double.", call. = F)
   } else if (z$zeroline == F & !is.numeric(z$zeroline)) {

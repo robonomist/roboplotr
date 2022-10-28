@@ -4,14 +4,59 @@
 \alias{roboplot_set_options}
 \title{Override the default options for colors, fonts etc. for any plot created with roboplot()}
 \usage{
-roboplot_set_options(roboplot_options, notify = T, shinyapp = F)
+roboplot_set_options(
+  border_colors = NULL,
+  background_color = NULL,
+  caption_defaults = NULL,
+  dashtypes = NULL,
+  font_main = NULL,
+  font_title = NULL,
+  font_caption = NULL,
+  grid_colors = NULL,
+  height = NULL,
+  linewidth = NULL,
+  logo_file = NULL,
+  modebar = NULL,
+  png_large_fontsize = NULL,
+  png_small_fontsize = NULL,
+  patterns = NULL,
+  tick_colors = NULL,
+  trace_colors = NULL,
+  yaxis_ceiling = NULL,
+  verbose = T,
+  shinyapp = F
+)
 }
 \arguments{
-\item{roboplot_options}{List. The roboplot options to be set.}
+\item{border_colors, grid_colors, tick_colors}{List. Plot frame element colors. Values need to be hexadecimal colors or among strings provided by grDevices::colors, named "x" and "y".}
 
-\item{notify}{Logical. Controls the message for set options.}
+\item{background_color}{Character. Plot background color. Must be a hexadecimal color or among strings provided by grDevices::colors.}
+
+\item{caption_defaults}{List. Used to parse caption. Values must be named "prefix", "lineend" and "updated". "prefix" is character, and added to caption text with ": ". "lineend" is character added to caption line ends. "updated" is logical that determines whether caption tries to guess latest update date from plot data.}
+
+\item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
+
+\item{font_main, font_title, font_caption}{Functions. Use roboplot_set_font().}
+
+\item{height}{Numeric. Height of roboplotr plots in pixels.}
+
+\item{linewidth}{Numeric. The default roboplotr line trace width.}
+
+\item{logo_file}{Character. The filepath to the logo used in every plot.}
+
+\item{modebar}{Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.}
+
+\item{png_large_fontsize, png_small_fontsize}{Lists. Values must be numeric and named "main", "title", and "caption". Determines the fontsizes of images downloaded as .png files from the plot modebar.}
+
+\item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "," "/", "\\", "x", "-", "|", "+" and "." in any order.}
+
+\item{trace_colors}{Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or among strings provided by grDevices::colors. You should provide enough colors for most use cases, while roboplotr adds colors as needed.}
+
+\item{verbose}{Logical. Will roboplot_set_options display message for changed options.}
 
 \item{shinyapp}{Logical. Makes fonts, css and javascript available for shiny apps.}
+
+\item{yaxis_ceiling.}{Character. Default rounding for yaxis limit. One of "default","days","months","weeks","quarters","years" or "guess".}
 }
 \description{
 Override the default options for colors, fonts etc. for any plot created with roboplot()
