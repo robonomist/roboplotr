@@ -12,16 +12,16 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  0 };
 	let margin_top = eltitle.height+30; // title height + modebar + 5 px
 	let elcaption = $(el).find('g.annotation')[0].getBBox().height;
-	let ellegend = elxticks;
-	if ($(el).find('g.legend')[0] != undefined) { ellegend =  $(el).find('g.legend')[0].getBBox().height };
-	let margin_bottom = ellegend + elcaption + elxticks;
-	let margin_bottom_disp = elslider * 1//elslider > 0 ? margin_bottom * 0.1 : 0;
+	if ($(el).find('g.legend')[0] != undefined) { ellegend =  $(el).find('g.legend')[0].getBBox().height } else { ellegend = 0};
+	let margin_bottom = ellegend + (elcaption + elxticks);
 	let elplot = pie_chart ? $(el).find('.pielayer > .trace > .slice > .surface') : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
 	if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
-	let images_sizey = elcontainer / 20 / elplot;
-	let elimages = $(el).find('g.layer-above > g.imagelayer')[0].getBBox().height;
-	let legend_y = -((margin_bottom - elcaption + (elslider+margin_bottom_disp)) / elplot);
-	if (legend_y < -3) {
+	let images_sizey = (elcontainer * 0.05) / elplot;
+	el.layout.images[0].sizey = images_sizey
+	let legend_y = -((elxticks + 5 + (elslider*2)) / elplot)//((margin_bottom - elcaption + (elslider*2)) / elplot);
+	if (legend_y < -2 || (ellegend > (elplot * 2))) {
+	  el.layout.showlegend = false
+	  Plotly.relayout(el, {"showlegend" : false})
 	  	if ('rangeslider' in el.layout.xaxis) {
 	      if(el.layout.xaxis.rangeslider.visible == true) {
 	      	  Plotly.relayout(el, {'xaxis.rangeslider.visible': false})
@@ -30,18 +30,18 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  elslider = 0;
 	  let elxticks = $(el).find('g.xaxislayer-above')
 	  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = 0 };
-  	ellegend = $(el).find('g.legend')[0].getBBox().height;
+  	if ($(el).find('g.legend')[0] != undefined) { ellegend =  $(el).find('g.legend')[0].getBBox().height } else { ellegend = 0};
 	  margin_bottom = ellegend + elcaption + elxticks;
-	  margin_bottom_disp = 0//elslider > 0 ? margin_bottom * 0.1 : 0;
 	  let elplot = pie_chart ? $(el).find('.pielayer > .trace > .slice > .surface') : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
 	  if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
-	  images_sizey = elcontainer / 20 / elplot;
-	  elimages = $(el).find('g.layer-above > g.imagelayer')[0].getBBox().height;
-	  legend_y = -((margin_bottom - elcaption + (elslider+margin_bottom_disp)) / elplot);
+	  images_sizey = (elcontainer * 0.05) / elplot;
+	  legend_y = -((margin_bottom - elcaption) / elplot);
 	}
+	let elimages = $(el).find('g.layer-above > g.imagelayer')[0].getBBox().height;
   let title_y = (elcontainer - 40) / elcontainer
-	let annotations_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2) / elplot)*1.05;
-	let images_y = -((margin_bottom + (elslider+margin_bottom_disp) - legend_fontsize / 2 - (elimages / 10)) / elplot);
+	let annotations_y = -((ellegend + (elslider*2) + elcaption + elxticks) / elplot);
+	let images_y = -((ellegend + (elslider*2) + elxticks + elcaption/1.5) / elplot);
+	console.log(images_y)
 	let legend_font_size = (ellegend > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
 
   let yaxis_font_size = legend_fontsize
@@ -98,19 +98,19 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	    gd.layout.xaxis.rangeslider.visible = true;
 	    Plotly.react(gd,gd.data, gd.layout)
 	  }}
+	  gd.layout.showlegend = true; //show legend if hidden in previous vertical relayouts
 	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox();
 	  let titlespace = pie_chart ? $(gd).find('.pielayer > .trace > .slice > .surface') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
 	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
-	  console.log(titlespace)
 	  let title_text = "<span>" +
 	  (plot_title[2] ? "<b>" : "" ) +
 	  stringDivider(plot_title[0], Math.floor(titlespace/10), "<br>") +
 	  (plot_title[2] ? "</b>" : "" ) +
 	  "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
 	  Plotly.relayout(gd, {'title.text': title_text})
-		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','images[0].sizey','yaxis.tickfont.size'], pie_chart = pie_chart));
-		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t','margin.b','legend.y','images[0].y','yaxis.tickfont.size'], pie_chart = pie_chart));
-		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'yaxis.tickfont.size'], pie_chart = pie_chart));
+		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','yaxis.tickfont.size'], pie_chart = pie_chart));
+		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t','margin.b','legend.y','yaxis.tickfont.size'], pie_chart = pie_chart));
+		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'images[0].y','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd,
 		  getVerticalLayout(gd, legend_fontsize, false,
 		  keys = ['images[0].y', 'annotations[0].y', 'legend.y',
@@ -127,7 +127,6 @@ function stringDivider(str, width, spaceReplacer) {
         let p=width
         for (;p>0 && str[p]!=' ';p--) {
         }
-        console.log("p: " + p)
         if (p>0) {
             let left = str.substring(0, p);
             let right = str.substring(p+1);

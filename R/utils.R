@@ -11,7 +11,7 @@
 #' @param modebar Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "," "/", "\\", "x", "-", "|", "+" and "." in any order.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or among strings provided by grDevices::colors. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
-#' @param yaxis_ceiling. Character. Default rounding for yaxis limit. One of "default","days","months","weeks","quarters","years" or "guess".
+#' @param yaxis_ceiling Character. Default rounding for yaxis limit. One of "default","days","months","weeks","quarters","years" or "guess".
 #' @param png_large_fontsize,png_small_fontsize Lists. Values must be numeric and named "main", "title", and "caption". Determines the fontsizes of images downloaded as .png files from the plot modebar.
 #' @param verbose Logical. Will roboplot_set_options display message for changed options.
 #' @param shinyapp Logical. Makes fonts, css and javascript available for shiny apps.
@@ -202,7 +202,7 @@ roboplotr_string2filename <- function(string) {
 }
 
 
-#' @importFrom dplyr across everything mutate rename select
+#' @importFrom dplyr across everything matches mutate rename select
 #' @importFrom rlang sym quo_name
 #' @importFrom stringr str_replace str_replace_all
 #' @importFrom tidyr unite

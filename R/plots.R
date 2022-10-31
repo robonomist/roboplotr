@@ -306,7 +306,7 @@ roboplot <- function(d,
       if (pull(d,{{secondary_yaxis}}) |> unique() |> length() > 2) {
         stop("No more than two unique observations can be in the variable provided for 'secondary_yaxis'.", call. = F)
       }
-      d <- d |> mutate({{secondary_yaxis}} := fct_reorder({{secondary_yaxis}}, value, .desc = T))
+      d <- d |> mutate({{secondary_yaxis}} := fct_reorder({{secondary_yaxis}}, .data$value, .desc = T))
       if(unique(pull(d, !!secondary_yaxis)) |> length() > 1) {
         zeroline <- F
         rmargin <- (max(str_length(filter(d, as.numeric(!!secondary_yaxis) == max(as.numeric({{secondary_yaxis}})))$value), na.rm = T) * getOption("roboplot.font.main")$size / 1.5) |> max(30)
@@ -373,7 +373,7 @@ roboplot <- function(d,
   }
 
   if(!is.factor(d[[as_name(color)]])) {
-    d <- mutate(d, {{color}} := fct_reorder({{color}}, value, .desc = T))
+    d <- mutate(d, {{color}} := fct_reorder({{color}}, .data$value, .desc = T))
   }
 
   d <- d|> group_by(!!color) |> filter(!all(is.na(.data$value))) |> ungroup() |> droplevels()
@@ -551,7 +551,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
   if(str_detect(plot_mode,"horizontal")) {
     d <- roboplotr_get_bar_widths(d, yaxis)
     if(length(unique(d$roboplot.plot.text)) > 1) {
-      d <- mutate(d, roboplot.horizontal.label = str_c(as.character(!!sym(yaxis)),", ",as.character(roboplot.plot.text)))
+      d <- mutate(d, roboplot.horizontal.label = str_c(as.character(!!sym(yaxis)),", ",as.character(.data$roboplot.plot.text)))
     } else {
       d <- mutate(d, roboplot.horizontal.label = as.character(!!sym(yaxis)))
     }
@@ -610,7 +610,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
                             direction = "clockwise", #pie
                             xhoverformat = roboplotr_hovertemplate_freq(hovertext$dateformat),
                             hoverlabel = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, bgcolor = ~ roboplot.bg.color, color = ~ roboplot.tx.color), #pie
-                            hovertemplate = if(length(unique(g$time))==1 & plot_mode != "horizontal") { ~ str_c(roboplot.plot.text,"\n",format(round(value,hovertext$rounding), scientific = F, big.mark = " ", decimal.mark = ","),hovertext$unit,"<extra></extra>") } else { hovertemplate },
+                            hovertemplate = if(length(unique(g$time))==1 & plot_mode != "horizontal") { ~ str_c(.data$roboplot.plot.text,"\n",format(round(.data$value,hovertext$rounding), scientific = F, big.mark = " ", decimal.mark = ","),hovertext$unit,"<extra></extra>") } else { hovertemplate },
                             insidetextfont = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, color = ~ roboplot.in.tx.color), #pie
                             labels = color, #pie
                             legendgroup = color,

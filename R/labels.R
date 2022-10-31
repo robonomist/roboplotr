@@ -23,7 +23,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
                     x = x.pos, y = y.pos,
                     orientation = "h",
                     xanchor = "left",
-                    yanchor = "bottom",
+                    yanchor = "top",
                     traceorder = legend_order
                     ))
   }
