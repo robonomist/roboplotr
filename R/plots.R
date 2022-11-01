@@ -5,7 +5,7 @@
 roboplotr_config <- function(p,
                             title, subtitle = "", caption,
                             legend_position, legend_orientation, legend_order,
-                            height, width = 800,
+                            height,
                             margin = NA,
                             zeroline = F,
                             axis_range = list(x = c(NA,NA), y = c(NA,NA)),
@@ -650,7 +650,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
   } else { 0 }
 
   if(length(split_d) > height / 50) {
-    roboplotr_alert(str_c("This many legend items might make the legend too large to render for some widths, maybe use 'height' of ",length(split_d) * 50,"."))
+    roboplotr_alert(str_c("This many legend items might make the legend too large to render for some widths, you might want to use 'height' of ",length(split_d) * 50,"."))
   }
 
   trace_params <- map(split_d, function(g) {
