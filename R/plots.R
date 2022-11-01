@@ -414,10 +414,12 @@ roboplot <- function(d,
 
   d <- d |> roboplotr_get_pattern(pattern) |> mutate(roboplot.trace.color = color_vector[!!color])
 
+  if(is.null(legend_position) & length(unique_groups) < 2) { legend_position <- NA }
+
   if(!is.null(facet_split)) {
     p <- roboplotr_get_facet_plot(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, axis_limits)
   } else {
-    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth, secondary_yaxis)
+    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth, secondary_yaxis, legend_position)
   }
 
   p$data <- roboplotr_transform_data_for_download(d, color, pattern, facet_split, plot_mode, plot_yaxis)
@@ -431,7 +433,6 @@ roboplot <- function(d,
   maxtime <- max(d$time)
 
   # if only one group for color, remove legend as default
-  if(is.null(legend_position) & length(unique_groups) < 2) { legend_position <- NA }
   legend_order <- ifelse("scatter" %in% plot_type | "pie" %in% plot_type, "reversed", "normal")
 
   p <- p |>
@@ -527,9 +528,11 @@ roboplotr_get_facet_plot <- function(d, facet_split, height, color, pattern, plo
 #' @importFrom rlang := sym
 #' @importFrom stats as.formula
 #' @importFrom stringr str_replace_all str_trunc
-roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth, secondary_yaxis) {
+roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth, secondary_yaxis, legend_position) {
 
   plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color))
+
+  trace_showlegend <- if(is.null(legend_position)) { T } else if (is.na(legend_position)) { F } else { T }
 
   p <- plot_ly(d, height = height, colors = plot_colors)
 
@@ -573,6 +576,9 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
     -(group_by(d, !!color) |> summarize(value = sum(.data$value), .groups = "drop") |> mutate(value = .data$value / sum(.data$value)) |> slice_min(!!color) |> pull(.data$value) * 360 / 2)
   } else { 0 }
 
+  if(length(split_d) > height / 50) {
+    roboplotr_alert(str_c("This many legend items might make the legend too large to render for some widths, maybe use 'height' of ",length(split_d) * 50,"."))
+  }
 
   trace_params <- map(split_d, function(g) {
 
@@ -595,7 +601,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
       marker_line_color <- replace(marker_line_color, length(marker_line_color) == 0, roboplotr_alter_color(background_color,"darker"))
     }
 
-    show.legend <- if(is.null(highlight)) { T } else { roboplotr_highlight_legend(highlight, g) }
+    show.legend <- if(is.null(highlight)) { trace_showlegend } else { roboplotr_highlight_legend(highlight, g) }
 
     # ei syystä tai toisesta toimi plotlyssä tällä hetkellä kunnolla legendgrouptitle, perehdy
     # if(!is.null(secondary_yaxis)) {

@@ -9,7 +9,19 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
   if(is.null(legend_position)) { legend_position <- "bottom" }
 
   if (is.na(legend_position)) {
-    p |> layout(showlegend = F)
+    x.pos <- ifelse(legend_position == "right", 100, 0)
+    y.pos <- ifelse(legend_position == "right", 1, 0) #-0.05
+    # orientation <- "h"#case_when(orientation == "auto" ~ ifelse(legend_position == "right", "v","h"), TRUE ~ str_extract(orientation, "^(v|h)"))
+    p |> layout(
+      showlegend = T,
+      legend = list(font = getOption("roboplot.font.main"),
+                    bgcolor = getOption("roboplot.colors.background") |> decode_colour() |> encode_colour(alpha = 0.7),
+                    x = x.pos, y = y.pos,
+                    orientation = "h",
+                    xanchor = "left",
+                    yanchor = "top",
+                    traceorder = legend_order
+      ))
   } else if (!legend_position %in% c("bottom")) {
     stop("legend_position must be \"bottom\", or NA for no legend!", call. = F)
   } else {
