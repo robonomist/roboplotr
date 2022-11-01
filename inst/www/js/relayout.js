@@ -14,7 +14,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	let elcaption = $(el).find('g.annotation')[0].getBBox().height;
 	if ($(el).find('g.legend')[0] != undefined) { ellegend =  $(el).find('g.legend')[0].getBBox().height } else { ellegend = 0};
 	let margin_bottom = ellegend + (elcaption + elxticks);
-	let elplot = pie_chart ? $(el).find('.pielayer > .trace > .slice > .surface') : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
+	let elplot = pie_chart ? $(el).find('.pielayer > .trace') : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
 	if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	let images_sizey = (elcontainer * 0.05) / elplot;
 	el.layout.images[0].sizey = images_sizey
@@ -32,7 +32,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = 0 };
   	if ($(el).find('g.legend')[0] != undefined) { ellegend =  $(el).find('g.legend')[0].getBBox().height } else { ellegend = 0};
 	  margin_bottom = ellegend + elcaption + elxticks;
-	  let elplot = pie_chart ? $(el).find('.pielayer > .trace > .slice > .surface') : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
+	  let elplot = pie_chart ? $(el).find('.pielayer > .trace') : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
 	  if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	  images_sizey = (elcontainer * 0.05) / elplot;
 	  legend_y = -((margin_bottom - elcaption) / elplot);
@@ -100,7 +100,7 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	  }}
 	  gd.layout.showlegend = true; //show legend if hidden in previous vertical relayouts
 	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox();
-	  let titlespace = pie_chart ? $(gd).find('.pielayer > .trace > .slice > .surface') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
+	  let titlespace = pie_chart ? $(gd).find('.pielayer > .trace') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
 	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
 	  let title_text = "<span>" +
 	  (plot_title[2] ? "<b>" : "" ) +

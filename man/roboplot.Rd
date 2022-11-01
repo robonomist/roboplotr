@@ -25,7 +25,6 @@ roboplot(
   plot_yaxis,
   height = getOption("roboplot.height"),
   facet_split = NULL,
-  pie_rotation = F,
   legend_maxwidth = NULL,
   xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
   secondary_yaxis = NULL
@@ -63,15 +62,14 @@ Will not currently work with multiple patterns.}
 
 \item{plot_type}{Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
 
-\item{plot_mode}{Character. Determines the barmode for a barplot. Disregarded for scatterplots.}
+\item{plot_mode}{Character. Determines the barmode for bars and scatters. Can be "scatter" or "line" or lines, "dodge", "horizontal" or "stack" for bars, and "rotated" for pies.
+plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of the first item of the color variable as factor.}
 
 \item{plot_yaxis}{Expression. Variable from argument 'd' to use as y-axis for a horizontal barplot. Disregarded for other plots.}
 
 \item{height}{Double. Height of the plot.}
 
 \item{facet_split}{Currently unused. Variable from argument 'd' to use for facet splits.}
-
-\item{pie_rotation}{Logical. Controls if 0°-mark of a pie is centered on middle of the first item of the color variable as factor.}
 
 \item{legend_maxwidth}{Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).}
 
@@ -88,7 +86,6 @@ Wrapper for plotly::plot_ly for shorthand declaration of many layout and trace a
 Included relayout.js ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
 }
 \examples{
-# Basic usage is for plotting lines
 d <- energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
 d1 <- d |> dplyr::filter(Suunta == "Tuonti")
@@ -97,8 +94,11 @@ p <- d1 |> roboplot(Alue,
                     subtitle = "Milj. €",
                     caption = "Euroopan keskuspankki")
 
-# Legend can be completely omitted and
-# caption specified with the helper function
+p
+
+# Legend will automatically be omitted if only a single observation exists for
+# 'color' is unless legend_position is given (currently only "bottom" works).
+# Caption may be further specified with the helper function
 # roboplot_set_caption.
 p <- d1 |>
   dplyr::filter(Alue == "Yhdistynyt kuningaskunta") |>
@@ -106,7 +106,18 @@ p <- d1 |>
            caption = roboplot_set_caption(text = "Euroopan keskuspankki",
                                           updated = TRUE,
                                           .data = d1
-           ))
+           )
+  )
+p
+
+# Legend can also be omitted by giving a legend_position of NA. Height can
+# also be specified.
+p <- d1 |>
+  roboplot(Alue,"Energian tuonti","Milj. €",
+           caption = "Euroopan keskuspankki",
+           legend_position = NA,
+           height = 600)
+p
 
 # Pattern can be used for lines and ordering your variables to factors
 # will affect the order in which the traces are added.
@@ -119,12 +130,27 @@ attr(d2, "frequency") <- "Quarterly"
 p <- d2 |>
   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
            pattern = Suunta, xaxis_ceiling = "guess")
+p
 
 # Bar plots use a pattern too
 p <- d2 |>
   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
            pattern = Suunta,
            plot_type = "bar")
+p
+
+# Scatter plots and bar plot may be combined, and colors determined by
+# trace by giving named character vectors as the appropriate arguments.
+# Barmode or scatter type is controlled by plot_mode, where you can
+# provide a character string combining the desired modes with "+". Plot mode
+# cannot currently be controlled per trace.
+p <- d1 |>
+  roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
+           trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
+           plot_mode = "scatter+stack",
+           plot_type = c("Norja" = "bar","Kanada" = "scatter",".other" = "bar"))
+p
+
 
 # With single 'time' observation x-axis tickmarks lose tick labels and
 # hovertemplate loses the time information. There are several places where
@@ -141,48 +167,80 @@ p <- d3 |>
                                           .data = d1,
                                           line.end = "!",
                                           prepend = glue::glue(
-                                          "Tieto vuodelta {lubridate::year(max(d3$time))}"),
+                                            "Tieto vuodelta {lubridate::year(max(d3$time))}"),
                                           append = glue::glue(
-                                          "Toistan, vuonna {lubridate::year(max(d3$time))}")
+                                            "Toistan, vuonna {lubridate::year(max(d3$time))}")
            ))
+p
 
-# Bar plot can be horizontal
-# but then is better off with only a single 'time' observation
+# Bar plot can be horizontal but then is better off with only a single 'time'
+# observation. Long legend items and axis labels can be cut off with
+# legend_maxwidth, while still showing the proper labels on hover.
 p <- d3 |>
+  dplyr::mutate(Suunta = paste0(Suunta, " määrämaittain")) |>
   roboplot(Suunta,
            glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
            "Milj. €","Euroopan keskuspankki",
            plot_type = "bar",
+           legend_maxwidth = 12,
            plot_mode = "horizontal",
            plot_yaxis = Alue)
+p
 
-# Pie plots are possible too, but pattern is currently ignored by plotly.
+# Pie plots are possible too, but pattern is currently ignored by plotly library.
 p <- d3 |>
   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
            pattern = Suunta,
            plot_type = "pie")
+p
 
-# Pie plot can be centered to the first factor level of argument 'color'.
+# Pie plot can be centered to the first factor level of argument 'color' with
+# with plot_mode "rotated".
 p <- d3 |>
-  roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+  roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €",
+           "Euroopan keskuspankki",
            plot_type = "pie",
-           pie_rotation = TRUE)
+           plot_mode = "rotated")
+p
 
 # You can give a highlight value if you don't have a pattern. Any trace with a
 # "value" equal or higher than the given value will get colors as normal. Others
 # get assigned a bacground grid color and no legend entry. Useful mostly with
 # very large amounts of traces.
-d2 |> dplyr::filter(Suunta == "Tuonti") |>
-  roboplot(Alue, "Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
            plot_type = "scatter",
            highlight = 160)
+p
 
 # This works best with line plots, but can be included in other plots, too -
 # with varying results, these are work in progress. Highlight can also be a list
 # with "value" and ".fun" used to determine which traces are highlighted. The
 # default usage is essentially list(value = highlight, .fun = sum).
-d2 |> dplyr::filter(Suunta == "Tuonti") |>
-  roboplot(Alue, "Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
            plot_type = "bar",
            highlight = list(value = 22, .fun = mean))
+p
+
+# Rangeslider can be added as TRUE or FALSE, or as character in date format of
+# \%Y-\%m-\%d, which will control where the rangeslider is initially set. Zeroline
+# can be controlled in a similar way.
+p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
+           rangeslider = "2014-01-01",
+           zeroline = 128)
+p
+
+# Secondary yaxis can be added to line plots when the corresponding variable
+# only has two unique observations that is a subset of the variable 'color'.
+# There is currently no way of differentiating between the axes in legend.
+# Zeroline will not behave as expected.
+p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
+  roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
+           plot_type = c("Norja" = "bar", ".other" = "scatter"),
+           secondary_yaxis = sec_axis,
+           zeroline = 80)
+p
 }

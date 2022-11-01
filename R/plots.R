@@ -105,10 +105,10 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 
 
 
-#' Responsive plotly charts for embedding in shiny applications or websites
+#' Responsive plotly charts for embedding in shiny applications or as iframes in websites
 #'
 #' Wrapper for plotly::plot_ly for shorthand declaration of many layout and trace arguments.
-#' Included relayout.js ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
+#' Ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
 #'
 #' @param d Data frame. Data to be plotted.
 #' @param color Expression. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
@@ -125,20 +125,19 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' If function, it must return a logical and include named items "value" and ".fun", where .fun checks if given value will get a color or legend item.
 #' Will not currently work with multiple patterns.
 #' @param plot_type Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param plot_mode Character. Determines the barmode for a barplot. Disregarded for scatterplots.
+#' @param plot_mode Character. Determines the barmode for bars and scatters. Can be "scatter" or "line" or lines, "dodge", "horizontal" or "stack" for bars, and "rotated" for pies.
+#' plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of the first item of the color variable as factor.
 #' @param plot_yaxis Expression. Variable from argument 'd' to use as y-axis for a horizontal barplot. Disregarded for other plots.
 #' @param trace_color Character vector, named if length > 1. Trace color for all trace. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
 #' @param line_width Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.
 #' @param height Double. Height of the plot.
 #' @param facet_split Currently unused. Variable from argument 'd' to use for facet splits.
-#' @param pie_rotation Logical. Controls if 0°-mark of a pie is centered on middle of the first item of the color variable as factor.
 #' @param legend_maxwidth Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).
 #' @param xaxis_ceiling Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.
 #' @param secondary_yaxis Expression. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 #' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on png generation.
 #' @return A list object of classes "plotly" and "html"
 #' @examples
-#' # Basic usage is for plotting lines
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
 #' d1 <- d |> dplyr::filter(Suunta == "Tuonti")
@@ -147,8 +146,11 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'                     subtitle = "Milj. €",
 #'                     caption = "Euroopan keskuspankki")
 #'
-#' # Legend can be completely omitted and
-#' # caption specified with the helper function
+#' p
+#'
+#' # Legend will automatically be omitted if only a single observation exists for
+#' # 'color' is unless legend_position is given (currently only "bottom" works).
+#' # Caption may be further specified with the helper function
 #' # roboplot_set_caption.
 #' p <- d1 |>
 #'   dplyr::filter(Alue == "Yhdistynyt kuningaskunta") |>
@@ -156,7 +158,18 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'            caption = roboplot_set_caption(text = "Euroopan keskuspankki",
 #'                                           updated = TRUE,
 #'                                           .data = d1
-#'            ))
+#'            )
+#'   )
+#' p
+#'
+#' # Legend can also be omitted by giving a legend_position of NA. Height can
+#' # also be specified.
+#' p <- d1 |>
+#'   roboplot(Alue,"Energian tuonti","Milj. €",
+#'            caption = "Euroopan keskuspankki",
+#'            legend_position = NA,
+#'            height = 600)
+#' p
 #'
 #' # Pattern can be used for lines and ordering your variables to factors
 #' # will affect the order in which the traces are added.
@@ -169,12 +182,27 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' p <- d2 |>
 #'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
 #'            pattern = Suunta, xaxis_ceiling = "guess")
+#' p
 #'
 #' # Bar plots use a pattern too
 #' p <- d2 |>
 #'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
 #'            pattern = Suunta,
 #'            plot_type = "bar")
+#' p
+#'
+#' # Scatter plots and bar plot may be combined, and colors determined by
+#' # trace by giving named character vectors as the appropriate arguments.
+#' # Barmode or scatter type is controlled by plot_mode, where you can
+#' # provide a character string combining the desired modes with "+". Plot mode
+#' # cannot currently be controlled per trace.
+#' p <- d1 |>
+#'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
+#'            trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
+#'            plot_mode = "scatter+stack",
+#'            plot_type = c("Norja" = "bar","Kanada" = "scatter",".other" = "bar"))
+#' p
+#'
 #'
 #' # With single 'time' observation x-axis tickmarks lose tick labels and
 #' # hovertemplate loses the time information. There are several places where
@@ -191,50 +219,82 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'                                           .data = d1,
 #'                                           line.end = "!",
 #'                                           prepend = glue::glue(
-#'                                           "Tieto vuodelta {lubridate::year(max(d3$time))}"),
+#'                                             "Tieto vuodelta {lubridate::year(max(d3$time))}"),
 #'                                           append = glue::glue(
-#'                                           "Toistan, vuonna {lubridate::year(max(d3$time))}")
+#'                                             "Toistan, vuonna {lubridate::year(max(d3$time))}")
 #'            ))
+#' p
 #'
-#' # Bar plot can be horizontal
-#' # but then is better off with only a single 'time' observation
+#' # Bar plot can be horizontal but then is better off with only a single 'time'
+#' # observation. Long legend items and axis labels can be cut off with
+#' # legend_maxwidth, while still showing the proper labels on hover.
 #' p <- d3 |>
+#'   dplyr::mutate(Suunta = paste0(Suunta, " määrämaittain")) |>
 #'   roboplot(Suunta,
 #'            glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
 #'            "Milj. €","Euroopan keskuspankki",
 #'            plot_type = "bar",
+#'            legend_maxwidth = 12,
 #'            plot_mode = "horizontal",
 #'            plot_yaxis = Alue)
+#' p
 #'
-#' # Pie plots are possible too, but pattern is currently ignored by plotly.
+#' # Pie plots are possible too, but pattern is currently ignored by plotly library.
 #' p <- d3 |>
 #'   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
 #'            pattern = Suunta,
 #'            plot_type = "pie")
+#' p
 #'
-#' # Pie plot can be centered to the first factor level of argument 'color'.
+#' # Pie plot can be centered to the first factor level of argument 'color' with
+#' # with plot_mode "rotated".
 #' p <- d3 |>
-#'   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €",
+#'            "Euroopan keskuspankki",
 #'            plot_type = "pie",
-#'            pie_rotation = TRUE)
+#'            plot_mode = "rotated")
+#' p
 #'
 #' # You can give a highlight value if you don't have a pattern. Any trace with a
 #' # "value" equal or higher than the given value will get colors as normal. Others
 #' # get assigned a bacground grid color and no legend entry. Useful mostly with
 #' # very large amounts of traces.
-#' d2 |> dplyr::filter(Suunta == "Tuonti") |>
-#'   roboplot(Alue, "Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+#' p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
 #'            plot_type = "scatter",
 #'            highlight = 160)
+#' p
 #'
 #' # This works best with line plots, but can be included in other plots, too -
 #' # with varying results, these are work in progress. Highlight can also be a list
 #' # with "value" and ".fun" used to determine which traces are highlighted. The
 #' # default usage is essentially list(value = highlight, .fun = sum).
-#' d2 |> dplyr::filter(Suunta == "Tuonti") |>
-#'   roboplot(Alue, "Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+#' p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
 #'            plot_type = "bar",
 #'            highlight = list(value = 22, .fun = mean))
+#' p
+#'
+#' # Rangeslider can be added as TRUE or FALSE, or as character in date format of
+#' # %Y-%m-%d, which will control where the rangeslider is initially set. Zeroline
+#' # can be controlled in a similar way.
+#' p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
+#'            rangeslider = "2014-01-01",
+#'            zeroline = 128)
+#' p
+#'
+#' # Secondary yaxis can be added to line plots when the corresponding variable
+#' # only has two unique observations that is a subset of the variable 'color'.
+#' # There is currently no way of differentiating between the axes in legend.
+#' # Zeroline will not behave as expected.
+#' p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
+#'   dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
+#'   roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
+#'            plot_type = c("Norja" = "bar", ".other" = "scatter"),
+#'            secondary_yaxis = sec_axis,
+#'            zeroline = 80)
+#' p
 #' @export
 #' @importFrom dplyr coalesce distinct group_split pull
 #' @importFrom forcats fct_reorder
@@ -243,7 +303,6 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' @importFrom rlang as_name enquo quo quo_get_env quo_name
 #' @importFrom stats median runif setNames
 #' @importFrom stringr str_c str_detect str_length str_pad str_replace
-
 roboplot <- function(d,
                      color = NULL,
                      title = NULL,
@@ -264,7 +323,6 @@ roboplot <- function(d,
                      plot_yaxis,
                      height = getOption("roboplot.height"),
                      facet_split = NULL,
-                     pie_rotation = F,
                      legend_maxwidth = NULL,
                      xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
                      secondary_yaxis = NULL
@@ -381,14 +439,30 @@ roboplot <- function(d,
   unique_groups <- d[[as_name(color)]] |> unique() |> sort()
 
   if(!all(plot_type %in% c("scatter","bar","pie"))) {
-    stop("Plot type must be \"scatter\" or \"bar\", or a vector of name_value pairs!", call. = F)
+    stop("Plot type must be \"scatter\" or \"bar\", or a named character vector!", call. = F)
   } else if (length(plot_type) == 1 & is.null(names(plot_type))){
     d <- d |> mutate(roboplot.plot.type = plot_type)
-  } else if (!all(unique_groups %in% names(plot_type))) {
-    stop(str_c("All variables in column \"",as_name(color),"\" must have a corresponding plot type!"), call. = F)
+  # } else if (!all(unique_groups %in% names(plot_type))) {
+  #   stop(str_c("All variables in column \"",as_name(color),"\" must have a corresponding plot type!"), call. = F)
+  # } else {
+  #   d <- mutate(d, roboplot.plot.type = str_replace_all(!!color, plot_type))
+  # }
+  } else if (!all(unique_groups %in% names(plot_type)) & !(".other" %in% names(plot_type)) ) {
+    stop(str_c("All variables in column \"",as_name(color),"\" must have a corresponding 'plot_type', or key \".other\" must be included!"), call. = F)
   } else {
-    d <- mutate(d, roboplot.plot.type = str_replace_all(!!color, plot_type))
+    missing_groups <- unique_groups |> subset(!unique_groups %in% names(plot_type))
+    if(length(missing_groups) > 0) {
+      detected_widths <- map2(unname(plot_type), names(plot_type), function(pt,nm) {
+        miss <- missing_groups |> subset(str_detect(missing_groups, str_c(nm, collapse = "|")))
+        rep(pt, length(miss)) |> setNames(miss)
+      }) |> roboplotr_compact() |> unlist()
+      plot_type <- c(plot_type, detected_widths)
+    }
+    d <- mutate(d, roboplot.plot.type = plot_type[as.character(!!color)] |> coalesce(plot_type[".other"]))
   }
+
+
+
 
   if(!all(typeof(line_width) == "double")) {
     stop("Line width must be a double, or a named double vector!", call. = F)
@@ -406,9 +480,8 @@ roboplot <- function(d,
       line_width <- c(line_width, detected_widths)
     }
     d <- mutate(d, roboplot.linewidth = line_width[as.character(!!color)] |> coalesce(line_width[".other"]))
-
-
   }
+
   color_vector <- roboplotr_set_colors(trace_color, unique_groups, highlight, d, color)
 
 
@@ -419,7 +492,7 @@ roboplot <- function(d,
   if(!is.null(facet_split)) {
     p <- roboplotr_get_facet_plot(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, axis_limits)
   } else {
-    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth, secondary_yaxis, legend_position)
+    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position)
   }
 
   p$data <- roboplotr_transform_data_for_download(d, color, pattern, facet_split, plot_mode, plot_yaxis)
@@ -433,7 +506,7 @@ roboplot <- function(d,
   maxtime <- max(d$time)
 
   # if only one group for color, remove legend as default
-  legend_order <- ifelse("scatter" %in% plot_type | "pie" %in% plot_type, "reversed", "normal")
+  legend_order <- ifelse("scatter" %in% plot_type, "reversed", "normal")
 
   p <- p |>
     ## annotations are multiplied in html if fonts are given there, therefore the annotation font is given as a global font
@@ -528,7 +601,7 @@ roboplotr_get_facet_plot <- function(d, facet_split, height, color, pattern, plo
 #' @importFrom rlang := sym
 #' @importFrom stats as.formula
 #' @importFrom stringr str_replace_all str_trunc
-roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, pie_rotation, legend_maxwidth, secondary_yaxis, legend_position) {
+roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position) {
 
   plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color))
 
@@ -572,7 +645,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
 
   if("scatter" %in% plot_type) { split_d <- rev(split_d)}
 
-  rotation <- if(pie_rotation) {
+  rotation <- if(str_detect(plot_mode, "rotated")) {
     -(group_by(d, !!color) |> summarize(value = sum(.data$value), .groups = "drop") |> mutate(value = .data$value / sum(.data$value)) |> slice_min(!!color) |> pull(.data$value) * 360 / 2)
   } else { 0 }
 
