@@ -1,33 +1,84 @@
-#' Writes an html element for embedding, and optionally png files.
+#' Write html and png files from [roboplot()] plots
 #'
 #' @param p A plotly object.
-#' @param title The filename of the html element (without file format). The function will clean the name up, or try to extract it from param p if missing.
-#' @param filepath The path of the saved file.
-#' @param render Logical. Is the plot rendered to viewer after saving the widget (default true). Returns the plot object nonetheless.
-#' @param self_contained Logical. Will the html artefact have self-contained dependencies, increasing size. Default false.
-#' @param png_artefacts Optional character vector of s(mall), n(arrow), and/or w(ide) corresponding to the expected .png sizes.
+#' @param title Character. The filename of the html or png artefacts created
+#' (without file format). Will be formatted with underscores, and the title
+#' of argument 'p' will be used if no title is provided.
+#' @param filepath Character. The filepath to the created artefacts.
+#' @param render Logical. Controls if the plot saved will be displayed in
+#' viewer. Plot will be returned silently in either case.
+#' @param self_contained Logical. Controls if the plot dependencies will be
+#' saved in an adjacent directory "plot_dependencies" or contained within the
+#' file, increasing size.
+#' @param artefacts Character vector. Controls what artefacts are save. One or
+#' more of "html", "png_wide", "png_small" or "png_narrow".
 #' @examples
-#' \dontrun{
-#' p |> roboplot_create_widget()
+#' # Save roboplotr::roboplot() plots as files. Control location with
+#' # 'filepath'. Default 'filepath' will be the current working directory. If a
+#' # 'title' is not provided, roboplotr::roboplot_create_widget() parses it from
+#' # the plot title.
+#'
+#' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+#'
+#' p <- d |>
+#'   roboplot(Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus") |>
+#'   roboplot_create_widget(filepath = tempdir())
+#'
+#' file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
+#'
+#' # You can provide the filename as string and
+#' # roboplotr::roboplot_create_widget() will parse the filename from that. The
+#' # plot will always be silently returned, but 'render' controls whether it
+#' # will be displayed in viewer on widget creation. Normally
+#' # roboplotr::roboplot() html widgets will have dependencies contained in an
+#' # external folder "plot_dependencies", but elements can be bundled within the
+#' # widgets with 'self_contained' (if you want to forward the file, perhaps).
+#'
+#' p <- d |>
+#'   roboplot(Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus") |>
+#'   roboplot_create_widget(
+#'     title = "Energian tuonti - Kanada",
+#'     filepath = tempdir(),
+#'     render = FALSE,
+#'     self_contained = FALSE
+#'   )
+#'
+#' file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
+#'
+#' p
+#'
+#' # If you want to create png files, use a character vector in 'artefacts' to
+#' # control this. Exclude "html" if you want to create png files only. Png size
+#' # must be provided in the strings, possible options are "png_wide",
+#' # "png_narrow", and "png_small", but download button for the selected size
+#' # must exist in the plot modebar, controlled with
+#' # roboplotr::roboplot_set_options() ("wide" exists as default").
+#'
+#' if(interactive()) {
+#'   p |> roboplot_create_widget(filepath = tempdir(), artefacts = "png_wide")
+#'
+#'   file.exists(paste0(tempdir(),"/kanadan_energiantuonti_levea.png"))
 #' }
-#' @return The plotly object p.
+#' @return The list 'p' of classes "plotly" and "html"
 #' @export
 #' @importFrom dplyr first
 #' @importFrom htmltools htmlDependency
 #' @importFrom htmlwidgets saveWidget
-#' @importFrom R.utils setOption
 #' @importFrom stringr str_extract_all str_replace_all str_c str_squish
 
-roboplot_create_widget <- function(p, title, filepath, render = T, self_contained = F, png_artefacts) {
+roboplot_create_widget <- function(p, title, filepath, render = T, self_contained = F, artefacts = "html") {
+
+  roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F, allow_na = F)
+  roboplotr_valid_strings(artefacts, c("html","png_wide","png_small","png_narrow"), .fun = any)
 
   if (missing(title)) {
     title <- (p$x$layoutAttrs |> unlist())[grep("title.text", names((p$x$layoutAttrs |> unlist())))] |>
-      str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_") |>
-      roboplotr_string2filename()
-    roboplotr_message(str_c("Using \"",title,"\" for htmlwidget filename.."))
-  } else {
-    title <- roboplotr_string2filename(title)
+      str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_")
+    roboplotr_message(str_c("Using \"",roboplotr_string2filename(title),"\" for htmlwidget filename.."))
   }
+
+  widget_title <- title
+  title <- roboplotr_string2filename(title)
 
   filepath <- if(missing(filepath)) {
     if(isTRUE(getOption('knitr.in.progress'))) {
@@ -36,25 +87,22 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
       getwd() }
   } else  { filepath }
 
-  if (is.null(getOption(str_c("roboplot.widget.deps.",filepath)))) {
-    # print(str_c("widget deps in path ",filepath, " missing "))
+  if("html" %in% artefacts) {
     roboplotr_widget_deps(filepath = file.path(filepath,"plot_dependencies"))
-    setOption(str_c("roboplot.widget.deps.",filepath), T)
-  }# else {
-  #print(getOption(str_c("roboplot.widget.deps.",filepath)))
-  #}
-
-  css_dep <- htmlDependency("style", "0.1", src = c(href= "plot_dependencies/css"),  stylesheet = "style.css")
-  js_dep <- htmlDependency("js", "0.1", src = c(href= "plot_dependencies/js"),  script = "relayout.js")
-  p$dependencies <- c(p$dependencies, list(css_dep, js_dep))
+    css_dep <- htmlDependency("style", "0.1", src = c(href= "plot_dependencies/css"),  stylesheet = "style.css")
+    js_dep <- htmlDependency("js", "0.1", src = c(href= "plot_dependencies/js"),  script = "relayout.js")
+    p$dependencies <- c(p$dependencies, list(css_dep, js_dep))
+    }
   detached_p <- p
   detached_p$append <- NULL
-  detached_p |>
-    saveWidget(file.path(filepath,str_c(title,".html")), selfcontained = self_contained, libdir = "plot_dependencies")
 
+  if(any(artefacts != "html")) {
+    detached_p |> roboplotr_automate_png(artefacts, filepath)
+  }
 
-  if(!missing(png_artefacts)) {
-    detached_p |> roboplotr_automate_png(png_artefacts, filepath)
+  if("html" %in% artefacts) {
+    detached_p |>
+      saveWidget(file.path(filepath,str_c(title,".html")), selfcontained = self_contained, libdir = if(self_contained) { NULL} else { "plot_dependencies" }, title = widget_title)
   }
 
   if(render == T) {
@@ -63,42 +111,43 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
 }
 
 
-#' Uses a headless browser to render the png files.
-#'
-#' @param p A plotly object.
-#' @param artefacts A character vector of s(mall), n(arrow), and/or w(ide) corresponding to the expected .png sizes.
-#' @param dl_path The path where the .png files will be downloaded to. Default is current working directory.
-#' @return The plotly object p.
 #' @importFrom chromote ChromoteSession
 #' @importFrom htmlwidgets onRender
 #' @importFrom knitr combine_words
 #' @importFrom lubridate now as_datetime seconds
-#' @importFrom purrr map
-#' @importFrom stringr str_replace_all str_c
+#' @importFrom purrr map map_chr
+#' @importFrom stringr str_c str_replace_all str_subset
+
 roboplotr_automate_png <- function(p, artefacts, dl_path = getwd()) {
 
-  if(!any(artefacts %in% c("html","s","small","w","wide","n","narrow"))) {
-    stop("\"png_artefacts\" must consist of one or more of s(mall), n(arrow) or w(ide), corresponding to desired .png size(s).", call. = F)
-  }
-  artefacts <- as.list(str_replace_all(artefacts, c("^s(|mall)$" = "pieni", "^w(|ide)$" = "leve\u00e4", "^n(|arrow)$" = "kapea")))
+  artefacts <- str_subset(artefacts, "png")
+  mb_btns <- p$x$config$modeBarButtons |> unlist(recursive = F) |> map_chr(~ unlist(.x["name"])) |>
+    str_replace_all(c("Lataa kuva \\(leve\u00e4\\)" = "png_wide", "Lataa kuva \\(kapea\\)" = "png_narrow","Lataa kuva \\(pieni\\)" = "png_small")) |>
+    str_subset("png")
 
+  extra_artefacts <- subset(artefacts, !artefacts %in% mb_btns)
+
+  if(length(extra_artefacts) > 0) {
+    roboplotr_alert(roboplotr_combine_words(extra_artefacts), if(length(extra_artefacts) == 1) { " is " } else { " are " }, "not available through the modebar!")
+  }
+
+
+  artefacts <- as.list(artefacts)
   p |> onRender(jsCode = str_c("function(gd,params,data) {
-            if(data.includes('leve\u00e4')) {
+            if(data.includes('png_wide')) {
               dlBtn = $(gd).find('[data-title=\"Lataa kuva (leve\u00e4)\"]')[0];
               dlBtn.click();
             };
-            if(data.includes('kapea')) {
+            if(data.includes('png_narrow')) {
               dlBtn = $(gd).find('[data-title=\"Lataa kuva (kapea)\"]')[0];
               dlBtn.click();
             };
-            if(data.includes('pieni')) {
-              console.log('pieni')
+            if(data.includes('png_small')) {
               dlBtn = $(gd).find('[data-title=\"Lataa kuva (pieni)\"]')[0];
               dlBtn.click();
             };
     }"),  data = artefacts) |>
     roboplot_create_widget(title = "pngdl", filepath = tempdir(), self_contained = T, render = F)
-
   b <- ChromoteSession$new()
   b$Browser$setDownloadBehavior(behavior = "allow", downloadPath = dl_path)
   b$Page$navigate(str_c("file://",file.path(tempdir(),"pngdl.html")))
@@ -107,7 +156,7 @@ roboplotr_automate_png <- function(p, artefacts, dl_path = getwd()) {
 
   invisible(file.remove(file.path(tempdir(),"pngdl.html")))
 
-  recent_files <- list.files(dl_path) |> map(~ {
+  recent_files <- list.files(dl_path, full.names = T) |> str_subset("(png)$") |> map(~ {
     if (file.info(.x)$ctime |> as_datetime(tz = "UTC") >= now(tz = "UTC") - seconds(5)) { .x }
   }) |> roboplotr_compact()
   recent_length <- length(recent_files)
@@ -180,11 +229,11 @@ roboplotr_widget_deps <- function(filepath = NULL) {
 
 }
 
-#' Uploads the html elements and dependencies to cloud storage. DO NOT USE! WORK IN PROGRESS
-#'
-#' @param files_path The folder where the artefacts to be uploaded are located.
-#' @param upload_path The gcs folder where the artefacts will be uploaded to.
-#' @param overwrite If named files exist in the cloud storage, will they be overwritten.
+# Uploads the html elements and dependencies to cloud storage. DO NOT USE! WORK IN PROGRESS
+#
+# @param files_path The folder where the artefacts to be uploaded are located.
+# @param upload_path The gcs folder where the artefacts will be uploaded to.
+# @param overwrite If named files exist in the cloud storage, will they be overwritten.
 #' @importFrom knitr current_input
 #' @importFrom stringr str_remove str_replace_all str_c str_detect
 #' @importFrom dplyr case_when

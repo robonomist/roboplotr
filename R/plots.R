@@ -50,12 +50,13 @@ roboplotr_config <- function(p,
 }
 
 
+#' @importFrom dplyr add_row
 #' @importFrom htmltools htmlDependency tagList tags
 #' @importFrom htmlwidgets appendContent onRender
 #' @importFrom R.utils setOption
 #' @importFrom RCurl base64Encode
 #' @importFrom shiny addResourcePath isRunning
-#' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
+#' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_pad str_wrap
 roboplotr_dependencies <- function(p, title, subtitle) {
 
   plot_title <- list(title,subtitle,getOption("roboplot.font.title")$bold)
@@ -75,24 +76,42 @@ roboplotr_dependencies <- function(p, title, subtitle) {
       )
     )
   }
-  # else if (is.null(getOption("roboplot.widgets.deps.shiny"))) {
-  #     roboplotr_widget_deps(tempdir())
-  #     addResourcePath("js", system.file("www","js", package = "roboplotr"))
-  #     addResourcePath("fonts", file.path(tempdir(),"fonts"))
-  #     addResourcePath("css", file.path(tempdir(),"css"))
-  #     setOption("roboplot.widgets.deps.shiny", T)
-  # }
-
 
   rangeslider_sums <- F
   if(str_detect(p$plot_mode,"stack") && any(p$trace_types == "bar")) { rangeslider_sums = T }
   pie_plot <- if(any(p$trace_types == "pie")) { T } else { F }
 
+  # accessibility code, R above, js below..
+  # ariaid <- str_pad(round(runif(1)*1000000),6,"left","0")
+  # desc_string <- (function() {
+  #   row.data <- p$data |> pmap(function(...) {
+  #     as.character(list(...)) |> replace_na("NA") |> str_replace_all(c(";"=",","'"="\u2019")) |> str_c(collapse = ";")
+  #   }) |> unlist() |> str_c(collapse = "\\n")
+  #   col.names <- names(p$data) |> str_replace("csv\\.data\\.tiedot","tiedot") |> str_c(collapse = ";")
+  #   str_c("<desc id = '",ariaid,"d'>A plotly plot displaying the following data\\:\\n",col.names,"\\n",row.data,"</desc>")
+  # })()
+  #
+  # ttl_string <- str_c("<title id = '",ariaid,"t'>",title,", ",subtitle,"</title>")
+
+  # let mainsvg = $(gd).find('svg.main-svg')[0]
+  # let desc_string = data.dataString;
+  # let title_string = data.titleString;
+  # let arialabel_string = data.ariaID + 't ' + data.ariaID + 'd'
+  # mainsvg.prepend(document.importNode(new DOMParser().parseFromString(desc_string, 'text/html').body.childNodes[0], true));
+  # mainsvg.prepend(document.importNode(new DOMParser().parseFromString(title_string, 'text/html').head.childNodes[0], true));
+  # mainsvg.setAttribute('aria-labelledby', arialabel_string);
+  # mainsvg.setAttribute('role', 'img');
+
+  # annotations are removed here due to plotly bug replicating annotations when font is provided as list of length > 1
   p |>
     onRender(jsCode = str_c("
                         function (gd, params, data){
-                        let legendFontsize = 0;
                         let plot_title = data.plotTitle;
+                        for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
+        if(gd.layout.annotations[i].text == gd.layout.annotations[0].text && i > 0 ) {
+          Plotly.relayout(gd, 'annotations[' + i + ']', 'remove');
+        }
+}
                         setVerticalLayout({'width': true}, gd, data.legendFontsize, plot_title, pie_plot = data.piePlot);
                         gd.on('plotly_relayout',function(eventdata) {
                         plotlyRelayoutEventFunction(eventdata, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot);
@@ -100,26 +119,30 @@ roboplotr_dependencies <- function(p, title, subtitle) {
                         }"), data = list(plotTitle = plot_title,
                                          rangesliderSums = rangeslider_sums,
                                          legendFontsize = getOption("roboplot.font.main")$size,
-                                         piePlot = pie_plot))
+                                         piePlot = pie_plot#,
+                                         # dataString = desc_string,
+                                         # titleString = ttl_string,
+                                         # ariaID = ariaid
+                        ))
 }
 
 
 
-#' Responsive plotly charts for embedding in shiny applications or as iframes in websites
+#' Get properly size scaling plotly plots
 #'
-#' Wrapper for plotly::plot_ly for shorthand declaration of many layout and trace arguments.
+#' Wrapper for [plotly::plot_ly] for shorthand declaration of many layout and trace arguments.
 #' Ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
 #'
 #' @param d Data frame. Data to be plotted.
 #' @param color Expression. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
 #' @param pattern Expression. Variable from argument 'd' to use for linetype or bar pattern. Not supported for bar charts.
 #' @param title,subtitle Characters. Labels for plot elements.
-#' @param caption Function or character. Use roboplot_set_caption().
+#' @param caption Function or character. Use [roboplot_set_caption()].
 #' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.
 #' @param zeroline Logical or double. Determines zeroline inclusion, TRUE for zeroline, or double for exact placement.
 #' @param rangeslider Logical or character in %Y-%m-%d format. Determines rangeslider inclusion. TRUE includes the rangeslider, a character string includes the rangeslider with the given date as a start date.
 #' @param axis_limits List. Determines the limits of the axes (list(x = c(NA,NA), y = c(NA,NA)))".
-#' @param hovertext Function. Use roboplot_set_hovertext().
+#' @param hovertext Function. Use [roboplot_set_hovertext()].
 #' @param highlight Double or list. Determines if a given trace is included in legend and assigned a color.
 #' If double, traces with max(value) < highlight will be give trace color matching the grid color, and removed from the legend.
 #' If function, it must return a logical and include named items "value" and ".fun", where .fun checks if given value will get a color or legend item.
@@ -136,7 +159,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' @param xaxis_ceiling Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.
 #' @param secondary_yaxis Expression. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 #' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on png generation.
-#' @return A list object of classes "plotly" and "html"
+#' @return A list of classes "plotly" and "html"
 #' @examples
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
@@ -144,18 +167,18 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' p <- d1 |> roboplot(Alue,
 #'                     title = "Energian tuonti",
 #'                     subtitle = "Milj. €",
-#'                     caption = "Euroopan keskuspankki")
+#'                     caption = "Tilastokeskus")
 #'
 #' p
 #'
-#' # Legend will automatically be omitted if only a single observation exists for
-#' # 'color' is unless legend_position is given (currently only "bottom" works).
-#' # Caption may be further specified with the helper function
+#' # Legend will automatically be omitted if only a single observation exists
+#' # for 'color' is unless legend_position is given (currently only "bottom"
+#' # works). Caption may be further specified with the helper function
 #' # roboplot_set_caption.
 #' p <- d1 |>
 #'   dplyr::filter(Alue == "Yhdistynyt kuningaskunta") |>
-#'   roboplot(Alue,"Energian tuonti","Milj. €",
-#'            caption = roboplot_set_caption(text = "Euroopan keskuspankki",
+#'   roboplot(Alue,"Energian tuonti Yhdistyneestä kuningaskunnasta","Milj. €",
+#'            caption = roboplot_set_caption(text = "Tilastokeskus",
 #'                                           updated = TRUE,
 #'                                           .data = d1
 #'            )
@@ -166,7 +189,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' # also be specified.
 #' p <- d1 |>
 #'   roboplot(Alue,"Energian tuonti","Milj. €",
-#'            caption = "Euroopan keskuspankki",
+#'            caption = "Tilastokeskus",
 #'            legend_position = NA,
 #'            height = 600)
 #' p
@@ -180,13 +203,13 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' d2 <- d |> dplyr::mutate(Alue = forcats::fct_reorder(Alue, value))
 #' attr(d2, "frequency") <- "Quarterly"
 #' p <- d2 |>
-#'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Tilastokeskus",
 #'            pattern = Suunta, xaxis_ceiling = "guess")
 #' p
 #'
 #' # Bar plots use a pattern too
 #' p <- d2 |>
-#'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Tilastokeskus",
 #'            pattern = Suunta,
 #'            plot_type = "bar")
 #' p
@@ -197,7 +220,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' # provide a character string combining the desired modes with "+". Plot mode
 #' # cannot currently be controlled per trace.
 #' p <- d1 |>
-#'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue,"Energian tuonti ja vienti","Milj. €","Tilastokeskus",
 #'            trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
 #'            plot_mode = "scatter+stack",
 #'            plot_type = c("Norja" = "bar","Kanada" = "scatter",".other" = "bar"))
@@ -214,7 +237,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'            glue::glue("Milj. € ({lubridate::year(max(d3$time))})"),
 #'            pattern = Suunta,
 #'            plot_type = "bar",
-#'            caption = roboplot_set_caption(text = "Euroopan keskuspankki",
+#'            caption = roboplot_set_caption(text = "Tilastokeskus",
 #'                                           updated = TRUE,
 #'                                           .data = d1,
 #'                                           line.end = "!",
@@ -232,7 +255,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'   dplyr::mutate(Suunta = paste0(Suunta, " määrämaittain")) |>
 #'   roboplot(Suunta,
 #'            glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
-#'            "Milj. €","Euroopan keskuspankki",
+#'            "Milj. €","Tilastokeskus",
 #'            plot_type = "bar",
 #'            legend_maxwidth = 12,
 #'            plot_mode = "horizontal",
@@ -241,7 +264,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'
 #' # Pie plots are possible too, but pattern is currently ignored by plotly library.
 #' p <- d3 |>
-#'   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €","Tilastokeskus",
 #'            pattern = Suunta,
 #'            plot_type = "pie")
 #' p
@@ -250,7 +273,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' # with plot_mode "rotated".
 #' p <- d3 |>
 #'   roboplot(Alue,"Energian tuonti ja vienti yhteensä","Milj. €",
-#'            "Euroopan keskuspankki",
+#'            "Tilastokeskus",
 #'            plot_type = "pie",
 #'            plot_mode = "rotated")
 #' p
@@ -260,7 +283,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' # get assigned a bacground grid color and no legend entry. Useful mostly with
 #' # very large amounts of traces.
 #' p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
-#'   roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue, "Energian tuonti","Milj. €","Tilastokeskus",
 #'            plot_type = "scatter",
 #'            highlight = 160)
 #' p
@@ -270,16 +293,16 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' # with "value" and ".fun" used to determine which traces are highlighted. The
 #' # default usage is essentially list(value = highlight, .fun = sum).
 #' p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
-#'   roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue, "Energian tuonti","Milj. €","Tilastokeskus",
 #'            plot_type = "bar",
 #'            highlight = list(value = 22, .fun = mean))
 #' p
 #'
 #' # Rangeslider can be added as TRUE or FALSE, or as character in date format of
-#' # %Y-%m-%d, which will control where the rangeslider is initially set. Zeroline
-#' # can be controlled in a similar way.
+#' # %Y-%m-%d, in which case the given date will control where the rangeslider is
+#' # initially set. Zeroline can be controlled in a similar way.
 #' p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
-#'   roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue, "Energian tuonti","Milj. €","Tilastokeskus",
 #'            rangeslider = "2014-01-01",
 #'            zeroline = 128)
 #' p
@@ -287,10 +310,10 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' # Secondary yaxis can be added to line plots when the corresponding variable
 #' # only has two unique observations that is a subset of the variable 'color'.
 #' # There is currently no way of differentiating between the axes in legend.
-#' # Zeroline will not behave as expected.
+#' # Zeroline will not behave as expected, but will instead refer to right yaxis.
 #' p <- d2 |> dplyr::filter(Suunta == "Tuonti") |>
 #'   dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
-#'   roboplot(Alue, "Energian tuonti","Milj. €","Euroopan keskuspankki",
+#'   roboplot(Alue, "Energian tuonti","Milj. €","Tilastokeskus",
 #'            plot_type = c("Norja" = "bar", ".other" = "scatter"),
 #'            secondary_yaxis = sec_axis,
 #'            zeroline = 80)
@@ -497,7 +520,7 @@ roboplot <- function(d,
 
   p$data <- roboplotr_transform_data_for_download(d, color, pattern, facet_split, plot_mode, plot_yaxis)
 
-  if(!isRunning()) { p$elementId <- str_c("widget_",roboplotr_string2filename(title)) }
+  if(!isRunning()) { p$elementId <- str_c("widget_",roboplotr_string2filename(title),"_",str_pad(round(runif(1)*1000000),6,"left","0")) }
   p$title <- title
   p$subtitle <- subtitle
   p$trace_types <- distinct(d, !!color, .data$roboplot.plot.type) |> pull(2,1)
@@ -509,8 +532,6 @@ roboplot <- function(d,
   legend_order <- ifelse("scatter" %in% plot_type, "reversed", "normal")
 
   p <- p |>
-    ## annotations are multiplied in html if fonts are given there, therefore the annotation font is given as a global font
-    layout(font = list(getOption("roboplot.font.caption"))) |>
     roboplotr_config(title = title, subtitle = subtitle, caption = caption,
                     legend_position = legend_position, legend_orientation = legend_orientation, legend_order = legend_order,
                     margin = margin,

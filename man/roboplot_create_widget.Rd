@@ -2,7 +2,7 @@
 % Please edit documentation in R/widgets.R
 \name{roboplot_create_widget}
 \alias{roboplot_create_widget}
-\title{Writes an html element for embedding, and optionally png files.}
+\title{Write html and png files from \code{\link[=roboplot]{roboplot()}} plots}
 \usage{
 roboplot_create_widget(
   p,
@@ -10,30 +10,79 @@ roboplot_create_widget(
   filepath,
   render = T,
   self_contained = F,
-  png_artefacts
+  artefacts = "html"
 )
 }
 \arguments{
 \item{p}{A plotly object.}
 
-\item{title}{The filename of the html element (without file format). The function will clean the name up, or try to extract it from param p if missing.}
+\item{title}{Character. The filename of the html or png artefacts created
+(without file format). Will be formatted with underscores, and the title
+of argument 'p' will be used if no title is provided.}
 
-\item{filepath}{The path of the saved file.}
+\item{filepath}{Character. The filepath to the created artefacts.}
 
-\item{render}{Logical. Is the plot rendered to viewer after saving the widget (default true). Returns the plot object nonetheless.}
+\item{render}{Logical. Controls if the plot saved will be displayed in
+viewer. Plot will be returned silently in either case.}
 
-\item{self_contained}{Logical. Will the html artefact have self-contained dependencies, increasing size. Default false.}
+\item{self_contained}{Logical. Controls if the plot dependencies will be
+saved in an adjacent directory "plot_dependencies" or contained within the
+file, increasing size.}
 
-\item{png_artefacts}{Optional character vector of s(mall), n(arrow), and/or w(ide) corresponding to the expected .png sizes.}
+\item{artefacts}{Character vector. Controls what artefacts are save. One or
+more of "html", "png_wide", "png_small" or "png_narrow".}
 }
 \value{
-The plotly object p.
+The list 'p' of classes "plotly" and "html"
 }
 \description{
-Writes an html element for embedding, and optionally png files.
+Write html and png files from \code{\link[=roboplot]{roboplot()}} plots
 }
 \examples{
-\dontrun{
-p |> roboplot_create_widget()
+# Save roboplotr::roboplot() plots as files. Control location with
+# 'filepath'. Default 'filepath' will be the current working directory. If a
+# 'title' is not provided, roboplotr::roboplot_create_widget() parses it from
+# the plot title.
+
+d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+
+p <- d |>
+  roboplot(Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus") |>
+  roboplot_create_widget(filepath = tempdir())
+
+file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
+
+# You can provide the filename as string and
+# roboplotr::roboplot_create_widget() will parse the filename from that. The
+# plot will always be silently returned, but 'render' controls whether it
+# will be displayed in viewer on widget creation. Normally
+# roboplotr::roboplot() html widgets will have dependencies contained in an
+# external folder "plot_dependencies", but elements can be bundled within the
+# widgets with 'self_contained' (if you want to forward the file, perhaps).
+
+p <- d |>
+  roboplot(Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus") |>
+  roboplot_create_widget(
+    title = "Energian tuonti - Kanada",
+    filepath = tempdir(),
+    render = FALSE,
+    self_contained = FALSE
+  )
+
+file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
+
+p
+
+# If you want to create png files, use a character vector in 'artefacts' to
+# control this. Exclude "html" if you want to create png files only. Png size
+# must be provided in the strings, possible options are "png_wide",
+# "png_narrow", and "png_small", but download button for the selected size
+# must exist in the plot modebar, controlled with
+# roboplotr::roboplot_set_options() ("wide" exists as default").
+
+if(interactive()) {
+  p |> roboplot_create_widget(filepath = tempdir(), artefacts = "png_wide")
+
+  file.exists(paste0(tempdir(),"/kanadan_energiantuonti_levea.png"))
 }
 }

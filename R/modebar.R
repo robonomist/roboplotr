@@ -1,9 +1,9 @@
-#' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
+#' @importFrom fontawesome fa
 #' @importFrom htmlwidgets JS
 #' @importFrom plotly config
 #' @importFrom purrr pmap
+#' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
 #' @importFrom tidyr drop_na
-#' @importFrom fontawesome fa
 roboplotr_modebar <- function(p, title, subtitle) {
 
   if(is.null(title)) {
@@ -16,12 +16,12 @@ roboplotr_modebar <- function(p, title, subtitle) {
   js_string <- function(wd, ht, suffix, layout, ttl = dl_title) {
     plot_title <- list(title,subtitle,getOption("roboplot.font.title")$bold)
     str_c('
-          function(gd) {
+          function(gd, params) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
           delete gd.layout.xaxis.rangeslider;
           delete gd.layout.height
           Plotly.relayout(gd, {height: ',ht,', width: ',wd,',
-          "font": ',layout$caption,',
+          "annotations[0].font.size": ',layout$caption,',
           "xaxis.tickfont.size": ',layout$main,',
           "yaxis.tickfont.size": ',layout$main,',
           "title.font.size": ',layout$title,'})
@@ -40,11 +40,11 @@ roboplotr_modebar <- function(p, title, subtitle) {
   }
 
   dl_string <- (function() {
-    row.data <- p$data |> drop_na() |> pmap(function(...) {
-      as.character(list(...)) |> str_replace_all(c(";"=",","'"="\u2019")) |> str_c(collapse = ";")
+    row.data <- p$data |> pmap(function(...) {
+      as.character(list(...)) |> replace_na("NA") |> str_replace_all(c(";"=",","'"="\u2019")) |> str_c(collapse = ";")
     }) |> unlist() |> str_c(collapse = "\\n")
     col.names <- names(p$data) |> str_replace("csv\\.data\\.tiedot","tiedot") |> str_c(collapse = ";")
-    str_c(col.names,"\\n",row.data)
+    str_c(str_c(title,", ",subtitle),str_c(rep(";",length(names(p$data))-2),collapse = ""),"\\n",col.names,"\\n",row.data)
   })()
 
 

@@ -2,24 +2,58 @@
 % Please edit documentation in R/hovertemplate.R
 \name{roboplot_set_hovertext}
 \alias{roboplot_set_hovertext}
-\title{Creates a list used to construct roboplot hovertemplate}
+\title{Get a list used for \code{\link[=roboplot]{roboplot()}} hovertemplate text formatting}
 \usage{
-roboplot_set_hovertext(frequency = NULL, rounding = 1, unit = "", extra = "")
+roboplot_set_hovertext(frequency = NULL, rounding = 1, unit = "", extra = NULL)
 }
 \arguments{
 \item{frequency}{Character. Determines how hovertemplate dates are formatted.
-One of "Annual", "Quarterly", "Monthly", "Weekly", "Daily" or NULL. Default NULL.
-With NULL roboplot will try to determine the format based on arg 'd' or roboplot.}
+One of "Annual", "Quarterly", "Monthly", "Weekly", "Daily" or NULL. Default
+NULL. With NULL roboplot will try to determine the format based on argument
+'d' of \code{\link[=roboplot]{roboplot()}}.}
 
-\item{rounding}{Double. Determines the number of small digits of hovertemplate values. Default 1.}
+\item{rounding}{Double. Determines the number of small digits of \code{\link[=roboplot]{roboplot()}}
+hovertemplate values. Defaults to 1.}
 
-\item{unit}{Character. Unit displayed for hovertemplate values.}
+\item{unit}{Character. Unit displayed for \code{\link[=roboplot]{roboplot()}} hovertemplate values.}
 
-\item{extra}{Character vector. Extra text displayed on hovertemplate.}
+\item{extra}{Character vector. Extra text displayed under \code{\link[=roboplot]{roboplot()}}
+hovertemplate.}
 }
 \value{
 A list
 }
 \description{
-Creates a list used to construct roboplot hovertemplate
+Get a list used for \code{\link[=roboplot]{roboplot()}} hovertemplate text formatting
+}
+\examples{
+# Use to give hovertemplate specifications for roboplotr::roboplot() plots,
+# assumed normally to be called within roboplotr::roboplot().
+
+# Without specifying hovertext, roboplotr::roboplot() will construct it based
+# on data from argument 'd' of roboplotr::roboplot(), guessing frequency and using
+# the argument subtitle' as the unit of value. Control displayed time with
+# 'frequency', and unit rounding and labeling with 'rounding' and 'unit'.
+
+d <- energiantuonti |>
+  dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"),
+                Suunta == "Tuonti")
+
+p <- d |> roboplot(
+  Alue, "Energian tuonti", "Miljoonaa euroa", "Tilastokeskus",
+  hovertext = roboplot_set_hovertext(
+    frequency = "Monthly", rounding = 2, unit = "Milj. €"
+    )
+)
+
+p
+
+# Parameter 'extra' will be added to last line(s) of the hovertemplate, which
+# can be plain text or reference to the plotly object, with d3 syntax.
+
+p <- d |> roboplot(
+  Alue, "Energian tuonti", "Milj. €", "Tilastokeskus",
+  hovertext = roboplot_set_hovertext("Annual", extra = "(\%{x:|Q})")
+)
+p
 }

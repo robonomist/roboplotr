@@ -1,4 +1,4 @@
-.onLoad <- function(...) {
+.onLoad <- function(..., override = F) {
   op <- options()
   op.roboplot.options <- list(
     roboplot.caption = list(prefix = "L\uE4hde", lineend = ".", updated = NULL),
@@ -18,10 +18,16 @@
     roboplot.png.font.size.lg = list(title = 31, main = 24, caption = 19),
     roboplot.png.font.size.sm = list(title = 23, main = 18, caption = 14),
     roboplot.modebar.buttons = c("closest","compare","img_w","data_dl"),
-    roboplot.yaxis.ceiling = "default"
+    roboplot.yaxis.ceiling = "default",
+    roboplot.verbose = "All"
   )
-  toset <- !(names(op.roboplot.options) %in% names(op))
-  if(any(toset)) options(op.roboplot.options[toset])
+
+  if(override) {
+    options(op.roboplot.options)
+  } else {
+    toset <- !(names(op.roboplot.options) %in% names(op))
+    if(any(toset)) options(op.roboplot.options[toset])
+  }
 
   invisible()
 }

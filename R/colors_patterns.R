@@ -1,20 +1,20 @@
-#' Gives a vector of colors of the desired length.
-#'
-#' Outputs a vector of colors.
-#'
-#' @param n_unique How many colors are needed.
-#' @param robocolors Optional. A vector or colors.
-#' @param accessibility_params Placeholder for accessibility features.
-#' @return plotly object
-#' @return Vector of colors.
 #' @importFrom grDevices colorRampPalette
 #' @importFrom plotly plot_ly
+#' @importFrom purrr map
 
 roboplotr_get_colors <- function(n_unique, robocolors = getOption("roboplot.colors.traces"), accessibility_params) {
-  if(n_unique <= 4) {
+  if(n_unique <= length(robocolors)) {
     cols <- robocolors[1:n_unique]
+  } else if (n_unique <= length(robocolors)*1.5) {
+    cols <- colorRampPalette(robocolors, interpolate = "linear")(n_unique)
   } else {
-    cols <- colorRampPalette(robocolors, interpolate = "spline")(n_unique)
+    cols <- colorRampPalette(robocolors, interpolate = "linear")(n_unique)
+    cols <- split(cols, cut(seq_along(cols), ceiling(length(cols)/length(robocolors)), right = F, labels = F))
+    theseq <- cols |> map(~ length(.x)) |> unlist() |> max()
+    cols <- seq(theseq) |> map(function(x) {
+      (map(cols, ~ .x[x]) |> roboplotr_compact())
+    }) |> unlist()
+    cols <-  cols |> subset(!is.na(cols)) |> unname()
   }
   cols# |> alter_color_for_accessibility() ## t"\u00e4"h"\u00e4"n tulee saavutettavuuskoodi
 }
@@ -28,9 +28,8 @@ roboplotr_get_colors <- function(n_unique, robocolors = getOption("roboplot.colo
 roboplotr_set_colors <- function(trace_color, unique_groups, highlight, d, color) {
   if(!is.null(trace_color)) {
 
-    if(!all(roboplotr_are_colors(trace_color))) {
-      stop("Trace colors must be 6-character hexadecimal colors or among strings provided by grDevices::colors!", call. = F)
-    } else if (length(trace_color) == 1 & is.null(names(trace_color))){
+    roboplotr_valid_colors(trace_color)
+    if (length(trace_color) == 1 & is.null(names(trace_color))){
       color_vector <- rep(trace_color, length(unique_groups)) |> setNames(unique_groups)
     } else if (!all(unique_groups %in% names(trace_color)) & !(".other" %in% names(trace_color)) ) {
       stop(str_c("Either trace color must be a single color string, or all variables in column \"",as_name(color),"\" must have a corresponding trace color, or key \".other\" must be included, or trace_color must be NULL!"), call. = F)
@@ -79,11 +78,11 @@ roboplotr_set_colors <- function(trace_color, unique_groups, highlight, d, color
 }
 
 
-#' @importFrom grDevices colors
+#' @importFrom htmltools parseCssColors
 #' @importFrom stringr str_detect
 #' @importFrom tidyr replace_na
 roboplotr_are_colors <- function(x) {
-  (str_detect(toupper(x), "#[0-9A-F]{6}") | x %in% colors()) |> replace_na(F)
+  !any(is.na(parseCssColors(x, mustWork = F)))
 }
 
 

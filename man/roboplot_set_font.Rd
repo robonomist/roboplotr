@@ -2,13 +2,13 @@
 % Please edit documentation in R/labels.R
 \name{roboplot_set_font}
 \alias{roboplot_set_font}
-\title{Creates a list used to construct plot fonts}
+\title{Get a list used as font specifications in \code{\link[=roboplot]{roboplot()}}}
 \usage{
 roboplot_set_font(
   path = "sans-serif",
   size = 12,
   color = "black",
-  bold = T,
+  bold_title = T,
   type = NULL
 )
 }
@@ -17,9 +17,9 @@ roboplot_set_font(
 
 \item{size}{Double. Determines font size for the font.}
 
-\item{color}{Character. Must be a hexadecimal color or among strings provided by grDevices::colors.}
+\item{color}{Character. Must be a hexadecimal color or a valid css color.}
 
-\item{bold}{Logical. Only used for title font. Determines if the title is bolded.}
+\item{bold_title}{Logical. Only used for title font. Determines if the title is bolded.}
 
 \item{type}{Character. One of "main", "title" or "caption".}
 }
@@ -27,5 +27,37 @@ roboplot_set_font(
 A list
 }
 \description{
-Creates a list used to construct plot fonts
+Get a list used as font specifications in \code{\link[=roboplot]{roboplot()}}
+}
+\examples{
+# Used to set fonts used by roboplotr::roboplot(). Only supposed to be called
+# inside roboplotr::roboplot_set_options(). 'path' can be a file path or
+# string "serif" or "sans-serif", if no specific font path will be provided.
+# This will change fonts according to the list output of
+# roboplotr::roboplot_set_font(). You can designate font color, size, and
+# path, and (for title font only) whether it is bolded. You must also provide
+# one of "title", "main" or "caption" as 'type' if an actual filepath is
+# provided for 'path'.
+
+roboplot_set_options(
+  font_title = roboplot_set_font(size = 17, path = "serif", bold = TRUE),
+  font_main =  roboplot_set_font(
+    size = 11,
+    path = system.file("www","fonts","bladerunner.TTF", package = "roboplotr"),
+    color = "darkred",
+    type = "main"),
+  font_caption = roboplot_set_font(color = "#6B6B69"),
+)
+
+d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+p <- d |> roboplot(Alue,
+                   title = "Energian tuonti Kanadasta",
+                   subtitle = "Miljoonaa euroa",
+                   caption = "Tilastokeskus"
+)
+
+p
+
+# revert to defaults:
+roboplot_set_options(reset = TRUE)
 }

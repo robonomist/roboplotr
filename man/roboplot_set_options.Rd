@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{roboplot_set_options}
 \alias{roboplot_set_options}
-\title{Override the default options for colors, fonts etc. for any plot created with roboplot()}
+\title{Override the default options for colors, fonts etc. for any plot created with \code{\link[=roboplot]{roboplot()}}}
 \usage{
 roboplot_set_options(
   border_colors = NULL,
@@ -22,21 +22,22 @@ roboplot_set_options(
   patterns = NULL,
   tick_colors = NULL,
   trace_colors = NULL,
-  yaxis_ceiling = NULL,
-  verbose = T,
-  shinyapp = F
+  xaxis_ceiling = NULL,
+  verbose = NULL,
+  shinyapp = F,
+  reset = F
 )
 }
 \arguments{
-\item{border_colors, grid_colors, tick_colors}{List. Plot frame element colors. Values need to be hexadecimal colors or among strings provided by grDevices::colors, named "x" and "y".}
+\item{border_colors, grid_colors, tick_colors}{List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
 
-\item{background_color}{Character. Plot background color. Must be a hexadecimal color or among strings provided by grDevices::colors.}
+\item{background_color}{Character. Plot background color. Must be a hexadecimal color or a valid css color.}
 
 \item{caption_defaults}{List. Used to parse caption. Values must be named "prefix", "lineend" and "updated". "prefix" is character, and added to caption text with ": ". "lineend" is character added to caption line ends. "updated" is logical that determines whether caption tries to guess latest update date from plot data.}
 
 \item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
 
-\item{font_main, font_title, font_caption}{Functions. Use roboplot_set_font().}
+\item{font_main, font_title, font_caption}{Functions. Use \code{\link[=roboplot_set_font]{roboplot_set_font()}}.}
 
 \item{height}{Numeric. Height of roboplotr plots in pixels.}
 
@@ -48,16 +49,151 @@ roboplot_set_options(
 
 \item{png_large_fontsize, png_small_fontsize}{Lists. Values must be numeric and named "main", "title", and "caption". Determines the fontsizes of images downloaded as .png files from the plot modebar.}
 
-\item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "," "/", "\\", "x", "-", "|", "+" and "." in any order.}
+\item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
-\item{trace_colors}{Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or among strings provided by grDevices::colors. You should provide enough colors for most use cases, while roboplotr adds colors as needed.}
+\item{trace_colors}{Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.}
 
-\item{yaxis_ceiling}{Character. Default rounding for yaxis limit. One of "default","days","months","weeks","quarters","years" or "guess".}
+\item{xaxis_ceiling}{Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".}
 
-\item{verbose}{Logical. Will roboplot_set_options display message for changed options.}
+\item{verbose}{Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".}
 
 \item{shinyapp}{Logical. Makes fonts, css and javascript available for shiny apps.}
+
+\item{reset}{Logical. Ignores other options, resets options to defaults.}
 }
 \description{
-Override the default options for colors, fonts etc. for any plot created with roboplot()
+Override the default options for colors, fonts etc. for any plot created with \code{\link[=roboplot]{roboplot()}}
+}
+\examples{
+# Control global options for roboplotr::roboplot(). Some of these you can set
+# also in roboplotr::roboplot(), some are available only globally.
+
+
+# Basic plot frame colors for ticks, grid and border must be defined by axis
+# with lists of color hex codes or valid css colors. Same with plot backround.
+# Height can be controlled by-plot or globally.
+#
+# When used inside shiny apps, run roboplotr::set_roboplot_options() in app
+# ui with shinyapp' = TRUE
+
+d <- energiantuonti |> dplyr::filter(Alue \%in\% c("Kanada","Norja"),
+                                     Suunta == "Tuonti")
+
+roboplot_set_options(
+  border_colors = list(x = "#eed5d2", y = "#8b7d7b"),
+  grid_colors = list(x = "#9aff9a", y = "cornsilk"),
+  tick_colors = list(x = "darkgray", y = "dimgrey"),
+  background_color = "ghostwhite",
+  height = 700,
+  shinyapp = FALSE
+)
+
+p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+
+p
+
+# When testing different options, you can use 'reset' to reset default values.
+
+roboplot_set_options(reset = TRUE)
+
+p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+
+p
+
+# You can set the displayed lower right logo by 'logo_file'. Logo file needs
+# the filepath to the logo used. The logo will be automatically scaled for
+# roboplotr::roboplot() usage. If the logo is not Robonomist logo, one will
+# be automatically added to modebar (or you can add it manually as
+# "robonomist").  Use 'verbose' to control if roboplotr writes all messages,
+# alerts and warnings only, or warnings only.
+
+# Of modebar options, "closest" and "compare" control on hover comparison
+# points, and "zoomin" and "zoomout" are simple zoom buttons. You will
+# probably want "home" along with the previous options for resetting the
+# zoom. For downloading the plot data in .csv file format use "data_dl". Png
+# image sizes are differentiated with "img_w"(ide), "img_n"(arrow) or
+#"img_s"(mall).
+
+roboplot_set_options(logo_file =
+                       system.file("images", "Rlogo.png", package = "roboplotr"),
+                     modebar = c("home","closest","compare","zoomin","zoomout",
+                                 "img_w","img_n","img_s","data_dl"),
+                     verbose = "All")
+
+p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+
+p
+
+# Fonts are set with 'font_main', 'font_title' and 'font_caption', and are
+# set using roboplotr::roboplot_set_fonts(), with examples under that
+# documentation. When creating png files with
+# roboplotr::roboplot_create_widgets(), you can specify the font sizes or
+# large (wide or narrow) and small png files here separately, but no other
+# font specifications are possible.
+
+if(interactive()) {
+  roboplot_set_options(
+    png_large_fontsize = list(title = 12, main = 48, caption = 12),
+    png_small_fontsize = list(title = 12, main = 40, caption = 16),
+  )
+
+  p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+  p |> roboplot_create_widget(filepath = tempdir(),
+                              artefacts = c("png_small","png_wide"),
+                              render = FALSE
+  )
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti_pieni.png"))
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti_levea.png"))
+}
+
+roboplot_set_options(reset = TRUE)
+
+# Captions are partly controlled by 'caption defaults', while you must
+# provide the basic text by-plot in roboplotr::roboplot().
+# roboplotr::roboplot_set_caption() is used on by-plot basis for more
+# control, but you can provide global settings for some features. Provide a
+# named list with all of "prefix", "lineend" and "updated", and captions will
+# be changed accordingly. Use 'updated' = TRUE for roboplotr::roboplot() to
+# try and extract the latest update from the data used.
+
+roboplot_set_options(
+  caption_defaults = list(prefix = "Lähteenä", lineend = "", updated = TRUE)
+)
+
+p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+
+p
+
+# Trace appearance is controlled globally by 'dashtypes', 'linewidth',
+# 'patterns' and 'trace_colors'. Trace color you can determine by plot, the
+# other options are available only globally. Linewidth simply controls the
+# line width, but the other options are used specifically in the given order
+# for roboplotr::roboplot() variables as factors. With only a few trace
+# colors given roboplotr::roboplot() might struggle with a lot of traces, so
+# it alerts the user for this. When provided, 'yaxis_ceiling' will leave
+# either a predefined gap between x-axis end and the plot edge, or try to
+# guess an appropriate gap. This can also be controlled by-plot and will not
+# work with bar plots.
+
+roboplot_set_options(
+  dashtypes = c("longdash", "dashdot", "longdashdot", "solid", "dash", "dot"),
+  linewidth = 4,
+  patterns = c("x","-","|","+",".","","/","\\\\"),
+  trace_colors = c("#027f93", "#153a42", "#f78b04"),
+  xaxis_ceiling = "guess"
+)
+
+d <- energiantuonti |> dplyr::filter(Alue \%in\% c("Kanada","Norja"))
+
+p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus", pattern = Suunta)
+
+p
+
+p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
+                   plot_type = "bar",
+                   pattern = Suunta)
+
+p
+
+roboplot_set_options(reset = TRUE)
 }

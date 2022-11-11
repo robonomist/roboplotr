@@ -1,0 +1,27 @@
+---
+title: "Introduction to roboplotr"
+output: rmarkdown::html_vignette
+description: >
+  Start here for an overview of roboplotr. This will cover the basic idea
+  why the package exists, and shows you basic usage or the core function,
+  roboplot.
+vignette: >
+  %\VignetteIndexEntry{roboplotr}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(roboplotr)
+```
+
+## Basics
+
+To-do

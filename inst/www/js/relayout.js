@@ -12,14 +12,19 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  0 };
 	let margin_top = eltitle.height+30; // title height + modebar + 5 px
 	let elcaption = $(el).find('g.annotation')[0].getBBox().height;
-	if ($(el).find('g.legend')[0] != undefined) { ellegend =  $(el).find('g.legend')[0].getBBox().height } else { ellegend = 0};
-	let margin_bottom = ellegend + (elcaption*2+ elxticks);
-	let elplot = pie_chart ? $(el).find('.pielayer > .trace') : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
+	let ellegend = {width: 0, height: 0}
+	if ($(el).find('g.legend')[0] != undefined) {
+	  ellegend.height =  $(el).find('g.legend')[0].getBBox().height
+	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
+	};
+	let margin_bottom = ellegend.height + (elcaption*2+ elxticks);
+	// pie charts do not give correct height by measuring the plot, investigate
+	let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
 	if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	let images_sizey = (elcontainer * 0.05) / elplot;
 	el.layout.images[0].sizey = images_sizey
 	let legend_y = -((elxticks + 5 + (elslider*2)) / elplot)//((margin_bottom - elcaption + (elslider*2)) / elplot);
-	if (legend_y < -2 || (ellegend > (elplot * 2))) {
+	if (legend_y < -2 || (ellegend.height > (elplot * 2))) {
 	  el.layout.showlegend = false
 	  Plotly.relayout(el, {"showlegend" : false})
 	  	if ('rangeslider' in el.layout.xaxis) {
@@ -30,19 +35,22 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  elslider = 0;
 	  let elxticks = $(el).find('g.xaxislayer-above')
 	  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = 0 };
-  	if ($(el).find('g.legend')[0] != undefined) { ellegend =  $(el).find('g.legend')[0].getBBox().height } else { ellegend = 0};
-	  margin_bottom = ellegend + elcaption + elxticks;
-	  let elplot = pie_chart ? $(el).find('.pielayer > .trace') : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
+  	if ($(el).find('g.legend')[0] != undefined) {
+	  ellegend.height =  $(el).find('g.legend')[0].getBBox().height
+	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
+	};
+	  margin_bottom = ellegend.height + elcaption + elxticks;
+	  let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
 	  if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	  images_sizey = (elcontainer * 0.05) / elplot;
 	  legend_y = -((margin_bottom - elcaption) / elplot);
 	}
 	let elimages = $(el).find('g.layer-above > g.imagelayer')[0].getBBox().height;
   let title_y = (elcontainer - 40) / elcontainer
-	let annotations_y = -((ellegend + (elslider*2) + elcaption*1.5 + elxticks) / elplot);
-	let images_y = -((ellegend + (elslider*2) + elxticks + elcaption*1.25) / elplot);
-	console.log(images_y)
-	let legend_font_size = (ellegend > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
+	let annotations_y = -((ellegend.height + (elslider*2) + elcaption*1.5 + elxticks) / elplot);
+	let images_y = -((ellegend.height + (elslider*2) + elxticks + elcaption*1.25) / elplot);
+	let legend_font_size = (ellegend.height > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
+	legend_font_size = (ellegend.width > $(el).find("svg.main-svg")[0].width.animVal.value) ? legend_font_size - 2 : legend_font_size;
 
   let yaxis_font_size = legend_fontsize
 
@@ -55,7 +63,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size/0.8), legend_fontsize)
 	}
 
-	if(showfinal == true) {console.log('legend ht: ' + ellegend +
+	if(showfinal == true) {console.log('legend ht: ' + ellegend.height +
 	' slider ht: ' + elslider +
 	' plot area ht: ' + elplot +
 	' bottom margin: ' + margin_bottom +
@@ -100,7 +108,7 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	  }}
 	  gd.layout.showlegend = true; //show legend if hidden in previous vertical relayouts
 	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox();
-	  let titlespace = pie_chart ? $(gd).find('.pielayer > .trace') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
+	  let titlespace = pie_chart ? $(gd).find('.pielayer') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
 	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
 	  let title_text = "<span>" +
 	  (plot_title[2] ? "<b>" : "" ) +

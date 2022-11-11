@@ -2,7 +2,7 @@
 % Please edit documentation in R/labels.R
 \name{roboplot_set_caption}
 \alias{roboplot_set_caption}
-\title{Outputs a string used for roboplot captions.}
+\title{Get a string for \code{\link[=roboplot]{roboplot()}} captions.}
 \usage{
 roboplot_set_caption(
   text = NULL,
@@ -31,5 +31,61 @@ roboplot_set_caption(
 A string.
 }
 \description{
-Outputs a string used for roboplot captions.
+Get a string for \code{\link[=roboplot]{roboplot()}} captions.
+}
+\examples{
+# Used to define how captions are constructed inside roboplotr::roboplot()
+# captions. 'Text' is the caption text, and if only this is needed, you can
+# use simply write the string. roboplotr::roboplot() will provide the
+# prefix and end-of-line character from global options that can be altered
+# with roboplotr::roboplot_set_options().
+
+d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+p <- d |> roboplot(Alue,
+                   title = "Energian tuonti Kanadasta",
+                   subtitle = "Miljoonaa euroa",
+                   caption = "Tilastokeskus"
+)
+
+p
+
+# If needed, the individual elements can be entered as function parameters
+# or simply provide everything as strings, overriding the defaults with
+# roboplotr::roboplot_set_options().
+
+p <- d |>
+  roboplot(Alue,
+           title = "Energy import",
+           subtitle = "Million euros",
+           caption = roboplot_set_caption(
+             prepend = "From Canada",
+             append = paste0("(Customs Finland, International trade ",
+                            "statistics;\nRadiation and Nuclear Safety ",
+                            "Authority; Gasum LLC)"),
+             text = "Statistics Finland",
+             prefix = "Source",
+             line.end = ""
+           )
+  )
+
+p
+
+# If 'updated' is set to TRUE, need to provide the .data where
+# roboplotr::roboplot_set_caption() will look for the update info, and if
+# found, it appears under the caption text.
+p <- d |> roboplot(Alue,
+                   title = "Energian tuonti Kanadasta",
+                   subtitle = "Miljoonaa euroa",
+                   caption = roboplot_set_caption(
+                     text = "Tilastokeskus",
+                     updated = TRUE,
+                     .data = d
+                   )
+)
+
+p
+
+# If you need make manual changes repeatedly, you are probably better off
+# using roboplotr::roboplot_set_options() to change the defaults to something
+# more sensible.
 }
