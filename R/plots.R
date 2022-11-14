@@ -133,7 +133,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' Wrapper for [plotly::plot_ly] for shorthand declaration of many layout and trace arguments.
 #' Ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
 #'
-#' @param d Data frame. Data to be plotted.
+#' @param d Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric).
 #' @param color Expression. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
 #' @param pattern Expression. Variable from argument 'd' to use for linetype or bar pattern. Not supported for bar charts.
 #' @param title,subtitle Characters. Labels for plot elements.
@@ -354,17 +354,18 @@ roboplot <- function(d,
   margin <- NA # mieti mitä tällä tehdään, poistuuko kokonaan? Todenäköisesti
 
   if(missing(d)){
-    stop("Argument 'd' must a tibble with columns named \"time\" and \"value\"!", call. = F)
+    stop("Argument 'd' must a data frame with columns named \"time\" and \"value\"!", call. = F)
   }
 
   roboplotr_check_param(d, "data.frame", NULL, allow_null = F)
 
   d_names <- names(d)
 
+
   if(!all(c("time","value") %in% d_names)) {
     stop("'d' must be a tibble with columns named \"time\" and \"value\".", call. = F)
-  } else if (!all(is.Date(unique(d$time)), is.numeric(unique(d$value)))) {
-    stop("Argument 'd' column \"time\" must be \"date\" and the column \"value\" must be numeric.", call. = F)
+  } else if (!all(class(d$time) %in% c("POSIXct","POSIXt","Date"), class(d$value) == "numeric")) {
+    stop("Argument 'd' column \"time\" must be a \"Date\" or \"POSIXct\", and the column \"value\" must be numeric.", call. = F)
   }
 
   if(missing(color)) {

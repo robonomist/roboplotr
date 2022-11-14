@@ -31,7 +31,7 @@ roboplot(
 )
 }
 \arguments{
-\item{d}{Data frame. Data to be plotted.}
+\item{d}{Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric).}
 
 \item{color}{Expression. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.}
 
