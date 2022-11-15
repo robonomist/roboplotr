@@ -30,7 +30,8 @@ saved in an adjacent directory "plot_dependencies" or contained within the
 file, increasing size.}
 
 \item{artefacts}{Character vector. Controls what artefacts are save. One or
-more of "html", "png_wide", "png_small" or "png_narrow".}
+more of "html", "png_wide", "png_small" or "png_narrow". A matching button
+must be present in the modebar.}
 }
 \value{
 The list 'p' of classes "plotly" and "html"

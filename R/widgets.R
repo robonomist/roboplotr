@@ -11,7 +11,8 @@
 #' saved in an adjacent directory "plot_dependencies" or contained within the
 #' file, increasing size.
 #' @param artefacts Character vector. Controls what artefacts are save. One or
-#' more of "html", "png_wide", "png_small" or "png_narrow".
+#' more of "html", "png_wide", "png_small" or "png_narrow". A matching button
+#' must be present in the modebar.
 #' @examples
 #' # Save roboplotr::roboplot() plots as files. Control location with
 #' # 'filepath'. Default 'filepath' will be the current working directory. If a

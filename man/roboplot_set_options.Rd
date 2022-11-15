@@ -73,11 +73,8 @@ Override the default options for colors, fonts etc. for any plot created with \c
 # with lists of color hex codes or valid css colors. Same with plot backround.
 # Height can be controlled by-plot or globally.
 #
-# When used inside shiny apps, run roboplotr::set_roboplot_options() in app
-# ui with shinyapp' = TRUE
-
-d <- energiantuonti |> dplyr::filter(Alue \%in\% c("Kanada","Norja"),
-                                     Suunta == "Tuonti")
+d <- energiantuonti |>
+  dplyr::filter(Alue \%in\% c("Kanada","Norja"), Suunta == "Tuonti")
 
 roboplot_set_options(
   border_colors = list(x = "#eed5d2", y = "#8b7d7b"),
@@ -85,7 +82,6 @@ roboplot_set_options(
   tick_colors = list(x = "darkgray", y = "dimgrey"),
   background_color = "ghostwhite",
   height = 700,
-  shinyapp = FALSE
 )
 
 p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
@@ -196,4 +192,48 @@ p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
 p
 
 roboplot_set_options(reset = TRUE)
+
+
+# When used inside shiny apps (assumed to use bs4Dash::dashboardPage()), run
+# roboplotr::set_roboplot_options() in app ui header with 'shinyapp' = TRUE.
+
+if(interactive()) {
+
+ui <- bs4Dash::dashboardPage(
+  bs4Dash::dashboardHeader(title = "Basic dashboard",
+                           roboplot_set_options(shinyapp = TRUE)
+  ),
+  bs4Dash::dashboardSidebar(),
+  bs4Dash::dashboardBody(
+    # Boxes need to be put in a row (or column)
+    shiny::fluidRow(
+      bs4Dash::box(plotly::plotlyOutput("plot1", height = 550)),
+      bs4Dash::box(plotly::plotlyOutput("plot2", height = 500))
+    )
+  )
+)
+
+server <- function(input, output) {
+
+output$plot1 <- plotly::renderPlotly({
+  roboplot(
+    dplyr::filter(energiantuonti, Suunta == "Tuonti", Alue == "Kanada"),
+    Alue, "Energian tuonti Kanadasta",
+    "Milj. €",
+    "Tilastokeskus")
+})
+output$plot2 <- plotly::renderPlotly({
+  roboplot(
+    dplyr::filter(energiantuonti, Suunta == "Vienti", Alue == "Kanada"),
+    Alue, "Energian vienti Kanadaan",
+    "Milj. €",
+    "Tilastokeskus",
+    height = 500)
+})
+}
+
+shiny::shinyApp(ui, server)
+
+}
+
 }
