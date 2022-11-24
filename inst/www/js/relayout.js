@@ -29,7 +29,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  Plotly.relayout(el, {"showlegend" : false})
 	  	if ('rangeslider' in el.layout.xaxis) {
 	      if(el.layout.xaxis.rangeslider.visible == true) {
-	      	  Plotly.relayout(el, {'xaxis.rangeslider.visible': false})
+	      	  Plotly.relayout(el, {'xaxis.rangeslider.visible': false })
 	  }
 	  }
 	  elslider = 0;

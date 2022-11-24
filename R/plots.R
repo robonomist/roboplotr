@@ -348,7 +348,8 @@ roboplot <- function(d,
                      facet_split = NULL,
                      legend_maxwidth = NULL,
                      xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
-                     secondary_yaxis = NULL
+                     secondary_yaxis = NULL,
+                     width = NULL
 ){
 
   margin <- NA # mieti mitä tällä tehdään, poistuuko kokonaan? Todenäköisesti
@@ -523,7 +524,7 @@ roboplot <- function(d,
   if(!is.null(facet_split)) {
     p <- roboplotr_get_facet_plot(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, axis_limits)
   } else {
-    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes)
+    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width)
   }
 
   p$data <- roboplotr_transform_data_for_download(d, color, pattern, facet_split, plot_mode, plot_axes$y)
@@ -631,13 +632,13 @@ roboplotr_get_facet_plot <- function(d, facet_split, height, color, pattern, plo
 #' @importFrom rlang := sym
 #' @importFrom stats as.formula
 #' @importFrom stringr str_replace_all str_trunc
-roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes) {
+roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width) {
 
   plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color))
 
   trace_showlegend <- if(is.null(legend_position)) { T } else if (is.na(legend_position)) { F } else { T }
 
-  p <- plot_ly(d, height = height, colors = plot_colors)
+  p <- plot_ly(d, height = height, width = width, colors = plot_colors)
 
   if("scatter" %in% plot_type & !str_detect(plot_mode, "line|scatter") | "bar" %in% plot_type & !str_detect(plot_mode, "dodge|stack|horizontal") ) {
     stop("Plot mode must be \"dodge\", \"line\", \"scatter\", \"stack\" or \"horizontal\", or a combination of two separated by \"+\" for different plot types !", call. = F)
