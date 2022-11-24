@@ -1,7 +1,7 @@
 .onLoad <- function(..., override = F) {
   op <- options()
   op.roboplot.options <- list(
-    roboplot.caption = list(prefix = "L\uE4hde", lineend = ".", updated = NULL),
+    roboplot.caption = list(prefix = "L\uE4hde: ", lineend = ".", updated = NULL),
     roboplot.colors.background = "white",
     roboplot.colors.border = list(x = "black", y = "black"),
     roboplot.colors.traces =  c("#c1272d","#f15a24","#f7931e","#dcc48a","#118f9a","#951d46"),

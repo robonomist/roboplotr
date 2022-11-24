@@ -1,5 +1,36 @@
+#' Define axis and axis tick formats for [roboplot()] plots.
+#'
+#' @param x,y Character. The name of the column from parameter 'd' of [roboplot()] used for the axis. Defaults to "time" and "value".
+#' @param xticktype,yticktype Character. Determines axis formatting within [roboplot()]. One of "character", "date" or "numeric". Defaults to "date" and "numeric".
+#' @return A list.
+#' @examples
+#' # Used to define how axis ticks are formatted inside roboplotr::roboplot()
+#' # if the default "time" with tick formatting as "date" for x-axis and /
+#' # or"value" with tick formatting as "numeric" for y-axis are not suitable.
+#'
+#' @export
+#' @importFrom dplyr case_when
+roboplot_set_axes <- function(x = "time", y = "value", xticktype = "date", yticktype = "numeric") {
+  roboplotr_check_param(x, "character",allow_null = F, allow_na = F)
+  roboplotr_check_param(y, "character",allow_null = F, allow_na = F)
+  roboplotr_check_param(xticktype, "character",allow_null = F, allow_na = F)
+  roboplotr_check_param(yticktype, "character",allow_null = F, allow_na = F)
+  axis_types <- c("character","date","numeric")
+  roboplotr_valid_strings(xticktype,axis_types,any)
+  roboplotr_valid_strings(yticktype,axis_types,any)
+
+  setclass <- function(type) {
+    case_when(type == "date" ~ list(c("POSIXct","POSIXt","Date")),
+              type == "character" ~ list(c("factor","character")),
+              TRUE ~ list(type)
+    ) |> unlist()}
+
+  list(x = x, y = y, xticktype = xticktype, yticktype = yticktype, xclass = setclass(xticktype), yclass = setclass(yticktype))
+}
+
+
 #' @importFrom plotly layout config
-roboplotr_set_axes <- function(p, range = list(x = c(NA,NA), y = c(NA,NA))) {
+roboplotr_set_axis_ranges <- function(p, range = list(x = c(NA,NA), y = c(NA,NA))) {
   fixed_range <- if (any(c("zoom","zoomin2d","pan") %in% getOption("roboplot.modebar.buttons"))) { F } else { T }
   if(!"x" %in% names(range)) { range$x <- c(NA,NA) }
   if(!"y" %in% names(range)) { range$y <- c(NA,NA) }
@@ -19,6 +50,7 @@ roboplotr_get_tick_layout <- function(ticktype,
                                      axis,
                                      tickformat,
                                      dtick,
+                                     reverse,
                                      background_color = getOption("roboplot.colors.background"),
                                      border_color = getOption("roboplot.colors.border"),
                                      tick_color = getOption("roboplot.colors.ticks")) {
@@ -51,7 +83,7 @@ roboplotr_get_tick_layout <- function(ticktype,
                   tickcolor = tick_color[[axis]],
                   showline = background_color != border_color[[axis]])
     if(!is.null(dtick)) { append(dlist, list(dtick = dtick)) } else { dlist }
-  } else if (ticktype == "double") {
+  } else if (ticktype == "numeric") {
     list(tickfont = getOption("roboplot.font.main"),
          tickformat = ",.3~f",
          ticksuffix = " ",
@@ -63,8 +95,9 @@ roboplotr_get_tick_layout <- function(ticktype,
     font <- getOption("roboplot.font.main")
     list(tickfont = font,
          ticksuffix = " ",
-         autorange = "reversed",
-         tickmode = "linear",
+         autorange = ifelse(reverse, "reversed", TRUE),
+         categoryorder = "trace",#ifelse(reverse, "trace", "trace"),
+         tickmode = ifelse(axis == "y","linear","auto"),
          tickangle = "auto",
          mirror = TRUE,
          type = "category",
@@ -80,18 +113,20 @@ roboplotr_set_ticks <- function(p, ticktypes) {
   dateformats <- c("Annual" = "%Y",
                    "Quarterly" = "%YQ%q",
                    "Monthly" = "%m/%Y",
-                   "Weekly" = "%YW%V",
+                   # "Weekly" = "%YW%V",
+                   "Weekly" = "%m/%Y",
                    "Daily" = "%d.%m.%Y")
   tickformat <- ticktypes$dateformat %||%  "%Y"
   tickformat <- which(dateformats == tickformat) %||% 1
   tickformat <- dateformats[c(max(tickformat-2,1),max(tickformat-1,1), tickformat, min(tickformat+1,5))]
   dtick <- if (length(unique(p$data$time)) < 6) {
-    switch(ticktypes$dateformat %||%  "%Y","%Y" = "M12","%YQ%q" = "M3","%m/%Y" = "M1", "%YW%V" = 604800000, "%d.%m.%Y" = 86400000, "M12")
+    switch(ticktypes$dateformat %||%  "%Y","%Y" = "M12","%YQ%q" = "M3","%m/%Y" = "M1",#"%YW%V" = 604800000,
+           "%d.%m.%Y" = 86400000, "M12")
   } else { NULL }
 
   p <- p |>
-    layout(xaxis= roboplotr_get_tick_layout(ticktypes$x, "x", tickformat, dtick),
-           yaxis= roboplotr_get_tick_layout(ticktypes$y, "y", tickformat, dtick))
+    layout(xaxis= roboplotr_get_tick_layout(ticktypes$x, "x", tickformat, dtick, ticktypes$reverse),
+           yaxis= roboplotr_get_tick_layout(ticktypes$y, "y", tickformat, dtick, ticktypes$reverse))
 
   #placeholder, relayout.js pitää kirjoittaa tätä varten vähän uusiksi jotta legend, lähde ja logo asettuvat oikein jos tickit oikeasti poistaa
   if(length(unique(p$data$time))==1 & ticktypes$x == "date") {

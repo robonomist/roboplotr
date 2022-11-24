@@ -12,9 +12,9 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  0 };
 	let margin_top = eltitle.height+30; // title height + modebar + 5 px
 	let elcaption = $(el).find('g.annotation')[0].getBBox().height;
-	let ellegend = {width: 0, height: 0}
+	let ellegend = {width: 0, height: Math.ceil(elxticks/2)}
 	if ($(el).find('g.legend')[0] != undefined) {
-	  ellegend.height =  $(el).find('g.legend')[0].getBBox().height
+	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height * 1.33)
 	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
 	};
 	let margin_bottom = ellegend.height + (elcaption*2+ elxticks);
@@ -36,7 +36,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  let elxticks = $(el).find('g.xaxislayer-above')
 	  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = 0 };
   	if ($(el).find('g.legend')[0] != undefined) {
-	  ellegend.height =  $(el).find('g.legend')[0].getBBox().height
+	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height * 1.33)
 	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
 	};
 	  margin_bottom = ellegend.height + elcaption + elxticks;

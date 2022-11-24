@@ -2,6 +2,7 @@
 
 export(roboplot)
 export(roboplot_create_widget)
+export(roboplot_set_axes)
 export(roboplot_set_caption)
 export(roboplot_set_font)
 export(roboplot_set_hovertext)

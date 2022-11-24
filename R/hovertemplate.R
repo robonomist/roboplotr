@@ -79,7 +79,8 @@ roboplot_set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", ex
   list(dateformat = frequency, rounding = rounding, unit = unit, extra = extra)
 }
 
-roboplotr_hovertemplate <- function(params, lab = "text", val = "y", time = "x") {
+roboplotr_hovertemplate <- function(params, lab = "text", val = "y", time = "x", ticktypes) {
+  # print(ticktypes)
   if(is.null(time)) { time <- "" } else { time <- str_c("%{",time,"|",params$dateformat,"}") }
   str_c("%{",lab,"}<br>%{",val,":,.",params$rounding,"f}",params$unit,"<br>",time,params$extra,"<extra></extra>")
 

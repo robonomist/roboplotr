@@ -22,7 +22,7 @@ roboplot(
   axis_limits = list(x = c(NA, NA), y = c(NA, NA)),
   plot_type = "scatter",
   plot_mode = "line+dodge",
-  plot_yaxis,
+  plot_axes = roboplot_set_axes(),
   height = getOption("roboplot.height"),
   facet_split = NULL,
   legend_maxwidth = NULL,
@@ -65,7 +65,7 @@ Will not currently work with multiple patterns.}
 \item{plot_mode}{Character. Determines the barmode for bars and scatters. Can be "scatter" or "line" or lines, "dodge", "horizontal" or "stack" for bars, and "rotated" for pies.
 plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of the first item of the color variable as factor.}
 
-\item{plot_yaxis}{Expression. Variable from argument 'd' to use as y-axis for a horizontal barplot. Disregarded for other plots.}
+\item{plot_axes}{Function. Function. Use \code{\link[=roboplot_set_axes]{roboplot_set_axes()}}.}
 
 \item{height}{Double. Height of the plot.}
 
@@ -184,7 +184,7 @@ p <- d3 |>
            plot_type = "bar",
            legend_maxwidth = 12,
            plot_mode = "horizontal",
-           plot_yaxis = Alue)
+           plot_axes = roboplot_set_axes(y = "Alue", yticktype = "character", x = "value", xticktypes = "numeric"))
 p
 
 # Pie plots are possible too, but pattern is currently ignored by plotly library.

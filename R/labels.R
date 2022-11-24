@@ -187,7 +187,7 @@ roboplot_set_caption <- function(text = NULL, prefix = getOption("roboplot.capti
     updated <- str_c("\nP\uE4ivitetty: ",updated,line.end)
   }
   if (is.character(prefix)) {
-    text <- str_c(prefix,": ",text)
+    text <- str_c(prefix,text)
   }
 
   if (is.character(append)) {

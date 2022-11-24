@@ -384,9 +384,9 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, facet_split
     }
     }
   d |>
-    select(.data$csv.data.tiedot, .data$time, .data$value) |>
+    select(matches(c("csv.data.tiedot","time","value"))) |>
     mutate(
-      across(!matches(c("value","time")), ~ as.character(.x) |> str_replace_all("[^[:alnum:]]", " ")),
+      across(!matches(c("value","time")), ~ as.character(.x) |> str_replace_all("[^[:alnum:]]", "_")),
       time = str_c(.data$time),
       value = str_replace(.data$value, "\\.",",")
     )
