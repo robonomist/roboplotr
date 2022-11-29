@@ -12,7 +12,7 @@
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
-#' @param png_large_fontsize,png_small_fontsize Lists. Values must be numeric and named "main", "title", and "caption". Determines the fontsizes of images downloaded as .png files from the plot modebar.
+#' @param png_wide,png_narrow,png_small Functions. Use [roboplot_png_specs]. Controls the dimensions and fonts of png files downloaded through modebar buttons.
 #' @param verbose Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
 #' @param shinyapp Logical. Makes fonts, css and javascript available for shiny apps.
 #' @param reset Logical. Ignores other options, resets options to defaults.
@@ -73,6 +73,7 @@
 #'
 #' p
 #'
+#' # REWRITE INCOMING
 #' # Fonts are set with 'font_main', 'font_title' and 'font_caption', and are
 #' # set using roboplotr::roboplot_set_fonts(), with examples under that
 #' # documentation. When creating png files with
@@ -80,20 +81,20 @@
 #' # large (wide or narrow) and small png files here separately, but no other
 #' # font specifications are possible.
 #'
-#' if(interactive()) {
-#'   roboplot_set_options(
-#'     png_large_fontsize = list(title = 12, main = 48, caption = 12),
-#'     png_small_fontsize = list(title = 12, main = 40, caption = 16),
-#'   )
+#' #if(interactive()) {
+#'  # roboplot_set_options(
+#'    # png_large_fontsize = list(title = 12, main = 48, caption = 12),
+#'    # png_small_fontsize = list(title = 12, main = 40, caption = 16),
+#'  # )
 #'
-#'   p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-#'   p |> roboplot_create_widget(filepath = tempdir(),
-#'                               artefacts = c("png_small","png_wide"),
-#'                               render = FALSE
-#'   )
-#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_pieni.png"))
-#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_levea.png"))
-#' }
+#'   #p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+#'   #p |> roboplot_create_widget(filepath = tempdir(),
+#'  #                             artefacts = c("png_small","png_wide"),
+#'  #                             render = FALSE
+#'   #)
+#'   #utils::browseURL(paste0(tempdir(),"/energian_tuonti_pieni.png"))
+#'   #utils::browseURL(paste0(tempdir(),"/energian_tuonti_levea.png"))
+#' #}
 #'
 #' roboplot_set_options(reset = TRUE)
 #'
@@ -207,8 +208,9 @@ roboplot_set_options <- function(
     linewidth = NULL,
     logo_file = NULL,
     modebar = NULL,
-    png_large_fontsize = NULL,
-    png_small_fontsize = NULL,
+    png_wide = NULL,
+    png_narrow = NULL,
+    png_small = NULL,
     patterns = NULL,
     tick_colors = NULL,
     trace_colors = NULL,
@@ -238,18 +240,6 @@ roboplot_set_options <- function(
     widget_deps_names <- subset(opts_names, str_detect(opts_names, "^roboplot.widget.deps"))
     for(opt in widget_deps_names) {
       setOption(opt, NULL)
-    }
-
-    valid_png_fontsizes <- function(fontsize) {
-      if(!is.null(fontsize)) {
-        `png_[...]_fontsize$main` <- fontsize$main
-        `png_[...]_fontsize$title` <- fontsize$title
-        `png_[...]_fontsize$caption` <- fontsize$caption
-        roboplotr_check_param(`png_[...]_fontsize$main`, "numeric", allow_null = F)
-        roboplotr_check_param(`png_[...]_fontsize$title`, "numeric", allow_null = F)
-        roboplotr_check_param(`png_[...]_fontsize$caption`, "numeric", allow_null = F)
-
-      }
     }
 
     roboplotr_check_param(border_colors, "list", c("x","y"))
@@ -291,10 +281,9 @@ roboplot_set_options <- function(
     roboplotr_check_param(patterns, "character", NULL)
     roboplotr_valid_strings(patterns,c("","/","\\","x","-","|","+","."))
 
-    roboplotr_check_param(png_large_fontsize, "list", c("main","title","caption"))
-    valid_png_fontsizes(png_large_fontsize)
-    roboplotr_check_param(png_small_fontsize, "list", c("main","title","caption"))
-    valid_png_fontsizes(png_small_fontsize)
+    roboplotr_check_param(png_wide, "function", NULL, f.name = list(fun = first(substitute(png_wide)), check = "roboplot_png_specs"))
+    roboplotr_check_param(png_narrow, "function", NULL, f.name = list(fun = first(substitute(png_narrow)), check = "roboplot_png_specs"))
+    roboplotr_check_param(png_small, "function", NULL, f.name = list(fun = first(substitute(png_small)), check = "roboplot_png_specs"))
 
     roboplotr_check_param(tick_colors, "list", c("x","y"))
     roboplotr_valid_colors(tick_colors)
@@ -320,8 +309,11 @@ roboplot_set_options <- function(
     set_roboplot_option(linewidth)
     set_roboplot_option(logo_file, "logo")
     set_roboplot_option(modebar, "modebar.buttons")
-    set_roboplot_option(png_large_fontsize, "png.font.size.lg")
-    set_roboplot_option(png_small_fontsize, "png.font.size.sm")
+    set_roboplot_option(png_wide,"png.wide")
+    set_roboplot_option(png_narrow,"png.narrow")
+    set_roboplot_option(png_small,"png.small")
+    # set_roboplot_option(png_large_fontsize, "png.font.size.lg")
+    # set_roboplot_option(png_small_fontsize, "png.font.size.sm")
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(tick_colors, "colors.ticks")
     set_roboplot_option(trace_colors, "colors.traces")

@@ -13,20 +13,21 @@ roboplotr_modebar <- function(p, title, subtitle) {
       roboplotr_string2filename()
   }
 
-  js_string <- function(wd, ht, suffix, layout, ttl = dl_title) {
+  js_string <- function(layout, ttl = dl_title) {
     plot_title <- list(title,subtitle,getOption("roboplot.font.title")$bold)
     str_c('
           function(gd, params) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
           delete gd.layout.xaxis.rangeslider;
           delete gd.layout.height
-          Plotly.relayout(gd, {height: ',ht,', width: ',wd,',
+          delete gd.layout.width
+          Plotly.relayout(gd, {height: ',layout$y,', width: ',layout$x,',
           "annotations[0].font.size": ',layout$caption,',
           "xaxis.tickfont.size": ',layout$main,',
           "yaxis.tickfont.size": ',layout$main,',
           "title.font.size": ',layout$title,'})
           setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'","',plot_title[[3]],'"], pie_plot = ',if(all(p$trace_types == "pie")) { "true" } else { "false" },')
-          Plotly.downloadImage(gd, {format: "png", width: ',wd,', height: ',ht,', filename: "',ttl,'_',suffix,'"});
+          Plotly.downloadImage(gd, {format: "png", width: ',layout$x,', height: ',layout$y,', filename: "',ttl,layout$suffix,'"});
           Plotly.relayout(gd, oldlayout)
           delete oldlayout
           }
@@ -59,16 +60,16 @@ roboplotr_modebar <- function(p, title, subtitle) {
     "img_w" = list(
       name = "Lataa kuva (leve\u00e4)",
       icon = dl_icon("image"),
-      click = JS(js_string(1280,720,"levea",getOption("roboplot.png.font.size.lg")))
+      click = JS(js_string(getOption("roboplot.png.wide")))
     ),
     "img_n" = list(
       name = "Lataa kuva (kapea)",
       icon = dl_icon("file-image", 0.025, c(2.7,2)),
-      click = JS(js_string(810,720,"kapea",getOption("roboplot.png.font.size.lg")))),
+      click = JS(js_string(getOption("roboplot.png.narrow")))),
     "img_s" = list(
       name = "Lataa kuva (pieni)",
       icon = dl_icon("twitter-square"),
-      click = JS(js_string(889,500,"pieni",getOption("roboplot.png.font.size.sm")))),
+      click = JS(js_string(getOption("roboplot.png.small")))),
     "data_dl" = list(
       name = "Lataa tiedot",
       icon = dl_icon("file-csv"),
@@ -109,4 +110,28 @@ roboplotr_modebar <- function(p, title, subtitle) {
     displaylogo = FALSE,
     modeBarButtons = list(unname(btn_list))
   )
+}
+
+
+#' Get a list used for [roboplot()] relayouts for png files when the appropriate modebar button is pressed
+#'
+#' @param x,y Double. The dimensions for the png file in pixels the modebar button will produce.
+#' @param mainfont,titlefont,captionfont Double. The font sizes used in the png the modebar button will produce.
+#' @examples
+#'
+#' @returns A list
+#' @export
+roboplot_png_specs <- function(
+    x = 1280,
+    y = 720,
+    mainfont = getOption("roboplot.font.main")$size,
+    titlefont = getOption("roboplot.font.title")$size,
+    captionfont = getOption("roboplot.font.caption")$size, suffix = "_img") {
+  roboplotr_check_param(x, "numeric", allow_null = F)
+  roboplotr_check_param(y, "numeric", allow_null = F)
+  roboplotr_check_param(mainfont, "numeric", allow_null = F)
+  roboplotr_check_param(titlefont, "numeric", allow_null = F)
+  roboplotr_check_param(captionfont, "numeric", allow_null = F)
+  roboplotr_check_param(suffix, "character", allow_null = F)
+  list(x = x, y = y, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix)
 }

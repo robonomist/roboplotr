@@ -18,9 +18,9 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	} else {
 	  elxtitle = 0
 	}
-	let ellegend = {width: 0, height: Math.ceil(elxticks/2)}
+	let ellegend = {width: 0, height: 15}
 	if ($(el).find('g.legend')[0] != undefined) {
-	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 15)
+	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 5)
 	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
 	};
 	let margin_bottom = ellegend.height + (elcaption*2+ elxticks + elxtitle);
@@ -42,7 +42,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  let elxticks = $(el).find('g.xaxislayer-above')
 	  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = 0 };
   	if ($(el).find('g.legend')[0] != undefined) {
-	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 15)
+	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 5)
 	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
 	};
 	  margin_bottom = ellegend.height + elcaption + elxticks + elxtitle;
@@ -113,15 +113,25 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	    Plotly.react(gd,gd.data, gd.layout)
 	  }}
 	  gd.layout.showlegend = true; //show legend if hidden in previous vertical relayouts
-	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox();
-	  let titlespace = pie_chart ? $(gd).find('.pielayer') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
-	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
 	  let title_text = "<span>" +
 	  (plot_title[2] ? "<b>" : "" ) +
-	  stringDivider(plot_title[0], Math.floor(titlespace/10), "<br>") +
+	  plot_title[0] +
 	  (plot_title[2] ? "</b>" : "" ) +
 	  "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
 	  Plotly.relayout(gd, {'title.text': title_text})
+	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox().width;
+	  let titlespace = pie_chart ? $(gd).find('.pielayer') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
+	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
+	  if(titlespace <= gdtitle) {
+	   	  console.log("space: " +  titlespace + "; width: " + gdtitle + "; fontsize: " + gd.layout.title.font.size)
+	  console.log(titlespace/gd.layout.title.font.size)
+	  title_text = "<span>" +
+	  (plot_title[2] ? "<b>" : "" ) +
+	  stringDivider(plot_title[0], Math.floor(titlespace/(gd.layout.title.font.size-8)), "<br>") +
+	  (plot_title[2] ? "</b>" : "" ) +
+	  "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
+	  Plotly.relayout(gd, {'title.text': title_text})
+	  }
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t','margin.b','legend.y','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'images[0].y','yaxis.tickfont.size'], pie_chart = pie_chart));

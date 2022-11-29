@@ -15,8 +15,9 @@
     roboplot.height = 550,
     roboplot.linewidth = 2,
     roboplot.logo = system.file("images", "robonomist.png", package = "roboplotr"),
-    roboplot.png.font.size.lg = list(title = 31, main = 24, caption = 19),
-    roboplot.png.font.size.sm = list(title = 23, main = 18, caption = 14),
+    roboplot.png.wide = list(x = 1280, y = 720, title = 31, main = 24, caption = 19, suffix = "_levea"),
+    roboplot.png.narrow = list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea"),
+    roboplot.png.small = list(x = 889, y = 500, title = 23, main = 18, caption = 14, suffix = "_pieni"),
     roboplot.modebar.buttons = c("closest","compare","img_w","data_dl"),
     roboplot.yaxis.ceiling = "default",
     roboplot.verbose = "All"

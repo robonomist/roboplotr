@@ -138,7 +138,8 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' @param pattern Expression. Variable from argument 'd' to use for linetype or bar pattern. Not supported for bar charts.
 #' @param title,subtitle Characters. Labels for plot elements.
 #' @param caption Function or character. Use [roboplot_set_caption()].
-#' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.
+#' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.#' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.
+#' @param legend_title Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Write a character string if you want to provid your own legend title.
 #' @param zeroline Logical or double. Determines zeroline inclusion, TRUE for zeroline, or double for exact placement.
 #' @param rangeslider Logical or character in %Y-%m-%d format. Determines rangeslider inclusion. TRUE includes the rangeslider, a character string includes the rangeslider with the given date as a start date.
 #' @param axis_limits List. Determines the limits of the axes (list(x = c(NA,NA), y = c(NA,NA)))".
@@ -352,7 +353,8 @@ roboplot <- function(d,
                      legend_maxwidth = NULL,
                      xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
                      secondary_yaxis = NULL,
-                     width = NULL
+                     width = NULL,
+                     legend_title = F
 ){
 
   margin <- NA # mieti mitä tällä tehdään, poistuuko kokonaan? Todenäköisesti
@@ -528,7 +530,7 @@ roboplot <- function(d,
   if(!is.null(facet_split)) {
     p <- roboplotr_get_facet_plot(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, axis_limits)
   } else {
-    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width)
+    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width, legend_title)
   }
 
   p$data <- roboplotr_transform_data_for_download(d, color, pattern, facet_split, plot_mode, plot_axes$y)
@@ -636,7 +638,7 @@ roboplotr_get_facet_plot <- function(d, facet_split, height, color, pattern, plo
 #' @importFrom rlang := sym
 #' @importFrom stats as.formula
 #' @importFrom stringr str_replace_all str_trunc
-roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width) {
+roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width, legend_title) {
 
   plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color))
 
@@ -713,10 +715,13 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
 
     # ei syystä tai toisesta toimi plotlyssä tällä hetkellä kunnolla legendgrouptitle, perehdy
     # if(!is.null(secondary_yaxis)) {
-        # legendgrouptitle <- ifelse(unique(as.numeric(pull(g, {{secondary_yaxis}}))) == 2, "<b>Oikea akseli</b>", "Vasen akseli")
+    # legendgrouptitle <- ifelse(unique(as.numeric(pull(g, {{secondary_yaxis}}))) == 2, "<b>Oikea akseli</b>", "Vasen akseli")
     # } else {
     #       legendgrouptitle <- NULL
     #       }
+
+    roboplotr_check_param(legend_title, c("logical","character"), allow_null = F)
+    legendgrouptitle <- if (legend_title == F) { NULL } else if ( is.character(legend_title) ) { str_c("<b>",legend_title,"</b>") } else { str_c("<b>",as_name(color),"</b>") }
 
     plotting_params <- list(color = color, #!pie
                             customdata = ~ roboplot.plot.text,
@@ -745,13 +750,13 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
                             textposition = ifelse(tracetype == "bar", "none", "inside"), #pie and bar
                             texttemplate = if(tracetype == "pie") { NULL } else { NA },
                             type = ~ tracetype,
-                            # legendgrouptitle = list(text = legendgrouptitle, font = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size)),
+                            legendgrouptitle = list(text = legendgrouptitle, font = getOption("roboplot.font.main")),
                             values = as.formula(str_c("~",yaxis)), # pie
                             width = ~roboplot.bar.width, #horizontal bar
                             x = as.formula(str_c("~",xaxis)), #!pie
                             y = as.formula(str_c("~",ifelse(!is.null(legend_maxwidth) & yaxis != "value", "roboplot.trunc", yaxis))) #!pie
     )
-    shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type","hoverinfo") #"legendgrouptitle"
+    shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type","hoverinfo","legendgrouptitle")
     plotting_params <- if(tracetype == "scatter" & str_detect(plot_mode,"line")) {
       plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
     } else if(tracetype == "scatter" & str_detect(plot_mode,"scatter")) {
@@ -772,7 +777,6 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
         plotting_params$yaxis <- "y2"
       }
     }
-
 
     plotting_params
   })
