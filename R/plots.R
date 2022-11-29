@@ -153,7 +153,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' @param plot_axes Function. Function. Use [roboplot_set_axes()].
 #' @param trace_color Character vector, named if length > 1. Trace color for all trace. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
 #' @param line_width Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param height Double. Height of the plot.
+#' @param height,width Double. Height and width of the plot. Default width is NULL for responsive plots, give a value for static plot width.
 #' @param facet_split Currently unused. Variable from argument 'd' to use for facet splits.
 #' @param legend_maxwidth Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).
 #' @param xaxis_ceiling Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.
@@ -185,13 +185,16 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'   )
 #' p
 #'
-#' # Legend can also be omitted by giving a legend_position of NA. Height can
-#' # also be specified.
+#' # Legend can also be omitted by giving a legend_position of NA. Height and
+#' # width can also be specified, while for most uses width specification is
+#' # unnecessary, as roboplotr is designed for plots with responsive widths.
 #' p <- d1 |>
 #'   roboplot(Alue,"Energian tuonti","Milj. €",
 #'            caption = "Tilastokeskus",
 #'            legend_position = NA,
-#'            height = 600)
+#'            height = 600,
+#'            width = 400
+#' )
 #' p
 #'
 #' # Pattern can be used for lines and ordering your variables to factors
@@ -381,8 +384,8 @@ roboplot <- function(d,
   }
 
   if(as_name(color) == ".topic"){
-    roboplotr_alert("Without an unquoted arg 'color' the variable named \".topic\" is added to data 'd', using the argument 'subtitle' trunctated to 30 characters as value for the variable.")
-    d <- mutate(d, .topic = str_trunc(subtitle,30))
+    roboplotr_alert("Without an unquoted arg 'color' the variable named \".topic\" is added to data 'd', using the argument 'title' trunctated to 30 characters as value for the variable.")
+    d <- mutate(d, .topic = str_trunc(title,30))
   }
 
   pattern <- roboplotr_check_valid_var(enquo(pattern), d_names)
@@ -455,7 +458,8 @@ roboplot <- function(d,
 
   xaxis <- plot_axes$x
   yaxis <- plot_axes$y
-  ticktypes <- list(x= plot_axes$xticktype, y = plot_axes$yticktype, dateformat = hovertext$dateformat, reverse = str_detect(plot_type, "bar"))
+
+  ticktypes <- list(x= plot_axes$xticktype, y = plot_axes$yticktype, dateformat = hovertext$dateformat, reverse = str_detect(plot_type, "bar"), xtitle = plot_axes$xtitle, ytitle = plot_axes$ytitle)
   if((plot_axes$yticktype != "numeric" | plot_axes$xticktype != "date") & (zeroline != F | rangeslider != F)) {
     roboplotr_alert("Parameters 'zeroline' and 'rangeslider' are currently disabled when parameter 'plot_axis' xticktype is not date or yticktype is not numeric!")
     zeroline <- F
@@ -466,7 +470,7 @@ roboplot <- function(d,
     d <- mutate(d, {{color}} := fct_reorder({{color}}, .data$value, .desc = T))
   }
 
-  d <- d|> group_by(!!color) |> filter(!all(is.na(.data$value))) |> ungroup() |> droplevels()
+  d <- d |> group_by(!!color) |> filter(!all(is.na(.data$value))) |> ungroup() |> droplevels()
 
   unique_groups <- d[[as_name(color)]] |> unique() |> sort()
 

@@ -8,7 +8,9 @@ roboplot_set_axes(
   x = "time",
   y = "value",
   xticktype = "date",
-  yticktype = "numeric"
+  yticktype = "numeric",
+  xtitle = "",
+  ytitle = ""
 )
 }
 \arguments{

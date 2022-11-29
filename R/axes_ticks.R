@@ -10,7 +10,7 @@
 #'
 #' @export
 #' @importFrom dplyr case_when
-roboplot_set_axes <- function(x = "time", y = "value", xticktype = "date", yticktype = "numeric") {
+roboplot_set_axes <- function(x = "time", y = "value", xticktype = "date", yticktype = "numeric", xtitle = "", ytitle = "") {
   roboplotr_check_param(x, "character",allow_null = F, allow_na = F)
   roboplotr_check_param(y, "character",allow_null = F, allow_na = F)
   roboplotr_check_param(xticktype, "character",allow_null = F, allow_na = F)
@@ -25,7 +25,7 @@ roboplot_set_axes <- function(x = "time", y = "value", xticktype = "date", ytick
               TRUE ~ list(type)
     ) |> unlist()}
 
-  list(x = x, y = y, xticktype = xticktype, yticktype = yticktype, xclass = setclass(xticktype), yclass = setclass(yticktype))
+  list(x = x, y = y, xticktype = xticktype, yticktype = yticktype, xclass = setclass(xticktype), yclass = setclass(yticktype), xtitle = xtitle, ytitle = ytitle)
 }
 
 
@@ -51,14 +51,18 @@ roboplotr_get_tick_layout <- function(ticktype,
                                      tickformat,
                                      dtick,
                                      reverse,
+                                     title,
                                      background_color = getOption("roboplot.colors.background"),
                                      border_color = getOption("roboplot.colors.border"),
                                      tick_color = getOption("roboplot.colors.ticks")) {
+  font <- getOption("roboplot.font.main")
   if (ticktype == "date") {
-    dlist <- list(tickfont = getOption("roboplot.font.main"),
+    # print(ticktype)
+    dlist <- list(tickfont = font,
                   mirror = TRUE,
                   ticks = 'outside',
                   type = "date",
+                  title = list(text = title, font = font),
                   tickformatstops =
                   list(
                     list(
@@ -84,24 +88,25 @@ roboplotr_get_tick_layout <- function(ticktype,
                   showline = background_color != border_color[[axis]])
     if(!is.null(dtick)) { append(dlist, list(dtick = dtick)) } else { dlist }
   } else if (ticktype == "numeric") {
-    list(tickfont = getOption("roboplot.font.main"),
+    list(tickfont = font,
          tickformat = ",.3~f",
          ticksuffix = " ",
          mirror = TRUE,
          ticks = 'outside',
+         title = list(text = title, font = font),
          tickcolor = tick_color[[axis]],
          showline = background_color != border_color[[axis]])
   } else if (ticktype == "character") {
-    font <- getOption("roboplot.font.main")
     list(tickfont = font,
          ticksuffix = " ",
          autorange = ifelse(reverse, "reversed", TRUE),
-         categoryorder = "trace",#ifelse(reverse, "trace", "trace"),
+         # categoryorder = "trace",#ifelse(reverse, "trace", "trace"),
          tickmode = ifelse(axis == "y","linear","auto"),
          tickangle = "auto",
          mirror = TRUE,
          type = "category",
          ticks = 'outside',
+         title = list(text = title, font = font),
          tickcolor = tick_color[[axis]],
          showline = background_color != border_color[[axis]])
   }
@@ -125,8 +130,8 @@ roboplotr_set_ticks <- function(p, ticktypes) {
   } else { NULL }
 
   p <- p |>
-    layout(xaxis= roboplotr_get_tick_layout(ticktypes$x, "x", tickformat, dtick, ticktypes$reverse),
-           yaxis= roboplotr_get_tick_layout(ticktypes$y, "y", tickformat, dtick, ticktypes$reverse))
+    layout(xaxis= roboplotr_get_tick_layout(ticktypes$x, "x", tickformat, dtick, ticktypes$reverse, ticktypes$xtitle),
+           yaxis= roboplotr_get_tick_layout(ticktypes$y, "y", tickformat, dtick, ticktypes$reverse, ticktypes$ytitle))
 
   #placeholder, relayout.js pitää kirjoittaa tätä varten vähän uusiksi jotta legend, lähde ja logo asettuvat oikein jos tickit oikeasti poistaa
   if(length(unique(p$data$time))==1 & ticktypes$x == "date") {

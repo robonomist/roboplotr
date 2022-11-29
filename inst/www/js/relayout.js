@@ -12,18 +12,24 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  0 };
 	let margin_top = eltitle.height+30; // title height + modebar + 5 px
 	let elcaption = $(el).find('g.annotation')[0].getBBox().height;
+	let elxtitle = $(el).find('g.g-xtitle')
+	if(elxtitle.length > 0) {
+	  elxtitle = elxtitle[0].getBBox().height * 1.3;
+	} else {
+	  elxtitle = 0
+	}
 	let ellegend = {width: 0, height: Math.ceil(elxticks/2)}
 	if ($(el).find('g.legend')[0] != undefined) {
-	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height * 1.33)
+	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 15)
 	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
 	};
-	let margin_bottom = ellegend.height + (elcaption*2+ elxticks);
+	let margin_bottom = ellegend.height + (elcaption*2+ elxticks + elxtitle);
 	// pie charts do not give correct height by measuring the plot, investigate
 	let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
 	if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	let images_sizey = (elcontainer * 0.05) / elplot;
 	el.layout.images[0].sizey = images_sizey
-	let legend_y = -((elxticks + 5 + (elslider*2)) / elplot)//((margin_bottom - elcaption + (elslider*2)) / elplot);
+	let legend_y = -((elxticks + 5 + (elslider*2) + elxtitle) / elplot)//((margin_bottom - elcaption + (elslider*2)) / elplot);
 	if (legend_y < -2 || (ellegend.height > (elplot * 2))) {
 	  el.layout.showlegend = false
 	  Plotly.relayout(el, {"showlegend" : false})
@@ -36,10 +42,10 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  let elxticks = $(el).find('g.xaxislayer-above')
 	  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = 0 };
   	if ($(el).find('g.legend')[0] != undefined) {
-	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height * 1.33)
+	  ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 15)
 	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
 	};
-	  margin_bottom = ellegend.height + elcaption + elxticks;
+	  margin_bottom = ellegend.height + elcaption + elxticks + elxtitle;
 	  let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
 	  if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	  images_sizey = (elcontainer * 0.05) / elplot;
@@ -47,8 +53,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	}
 	let elimages = $(el).find('g.layer-above > g.imagelayer')[0].getBBox().height;
   let title_y = (elcontainer - 40) / elcontainer
-	let annotations_y = -((ellegend.height + (elslider*2) + elcaption*1.5 + elxticks) / elplot);
-	let images_y = -((ellegend.height + (elslider*2) + elxticks + elcaption*1.25) / elplot);
+	let annotations_y = -((ellegend.height + (elslider*2) + elcaption*1.5 + elxticks + elxtitle) / elplot);
+	let images_y = -((ellegend.height + (elslider*2) + elxticks + elcaption*1.25 + elxtitle) / elplot);
 	let legend_font_size = (ellegend.height > (elplot / 2)) ? legend_fontsize - 2 : legend_fontsize;
 	legend_font_size = (ellegend.width > $(el).find("svg.main-svg")[0].width.animVal.value) ? legend_font_size - 2 : legend_font_size;
 

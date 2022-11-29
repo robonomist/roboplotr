@@ -27,7 +27,8 @@ roboplot(
   facet_split = NULL,
   legend_maxwidth = NULL,
   xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
-  secondary_yaxis = NULL
+  secondary_yaxis = NULL,
+  width = NULL
 )
 }
 \arguments{
@@ -67,7 +68,7 @@ plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of t
 
 \item{plot_axes}{Function. Function. Use \code{\link[=roboplot_set_axes]{roboplot_set_axes()}}.}
 
-\item{height}{Double. Height of the plot.}
+\item{height, width}{Double. Height and width of the plot. Default width is NULL for responsive plots, give a value for static plot width.}
 
 \item{facet_split}{Currently unused. Variable from argument 'd' to use for facet splits.}
 
@@ -110,13 +111,16 @@ p <- d1 |>
   )
 p
 
-# Legend can also be omitted by giving a legend_position of NA. Height can
-# also be specified.
+# Legend can also be omitted by giving a legend_position of NA. Height and
+# width can also be specified, while for most uses width specification is
+# unnecessary, as roboplotr is designed for plots with responsive widths.
 p <- d1 |>
   roboplot(Alue,"Energian tuonti","Milj. €",
            caption = "Tilastokeskus",
            legend_position = NA,
-           height = 600)
+           height = 600,
+           width = 400
+)
 p
 
 # Pattern can be used for lines and ordering your variables to factors
