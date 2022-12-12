@@ -93,68 +93,65 @@ roboplotr_title <- function(p, title, subtitle) {
 
 #' Get a string for [roboplot()] captions.
 #'
-#' @param text Character. The text for plot caption, probably data source name for argument 'd'.
-#' @param prefix Character. Prefix inserted before the argument 'text', automatically separated by ": ".
-#' @param .data Data frame. The data frame the caption attempts to read the time of the last update from.
+#' @param text Character. The text for plot caption, probably data source name for argument 'd' of [roboplot()].
+#' @param prefix Character. Prefix inserted before the argument 'text'. The prefix will automatically separated from text by ": ".
+#' @param .data Data frame. The data frame the caption attempts to read the time of the last update from. Use the same data you are providing as argument 'd' of [roboplot()].
 #' @param updated Date or logical. If Date, will be inserted as the last update time in the caption. If TRUE, will try to get this information from argument '.data'.
 #' @param line.end Character. Character inserted to end of line. Default from roboplot.options.
 #' @param append,prepend Character vectors. Characters inserted after or before other caption text. Every item in vector will get a new line.
 #' @return A string.
 #' @examples
 #' # Used to define how captions are constructed inside roboplotr::roboplot()
-#' # captions. 'Text' is the caption text, and if only this is needed, you can
+#' # Use 'text' as the caption text, and if only this is needed, you can
 #' # use simply write the string. roboplotr::roboplot() will provide the
 #' # prefix and end-of-line character from global options that can be altered
 #' # with roboplotr::roboplot_set_options().
 #'
+#'
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
-#' p <- d |> roboplot(Alue,
-#'                    title = "Energian tuonti Kanadasta",
-#'                    subtitle = "Miljoonaa euroa",
-#'                    caption = "Tilastokeskus"
-#' )
 #'
-#' p
+#' d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €",
+#'                    caption = "Tilastokeskus")
 #'
-#' # If needed, the individual elements can be entered as function parameters
-#' # or simply provide everything as strings, overriding the defaults with
-#' # roboplotr::roboplot_set_options().
 #'
-#' p <- d |>
-#'   roboplot(Alue,
-#'            title = "Energy import",
-#'            subtitle = "Million euros",
+#' # Override the global options with function parameters.
+#'
+#' d |>
+#'   roboplot(Alue, "Energy import","Million euros",
 #'            caption = roboplot_set_caption(
-#'              prepend = "From Canada",
+#'              prepend = "(Canada)",
 #'              append = paste0("(Customs Finland, International trade ",
-#'                             "statistics;\nRadiation and Nuclear Safety ",
-#'                             "Authority; Gasum LLC)"),
+#'                              "statistics;\nRadiation and Nuclear Safety ",
+#'                              "Authority; Gasum LLC)"),
 #'              text = "Statistics Finland",
-#'              prefix = "Source",
-#'              line.end = ""
-#'            )
+#'              prefix = "Source: ",
+#'              line.end = "")
 #'   )
 #'
-#' p
 #'
-#' # If 'updated' is set to TRUE, need to provide the .data where
+#' # If 'updated' is set to TRUE, you need to provide the .data where
 #' # roboplotr::roboplot_set_caption() will look for the update info, and if
 #' # found, it appears under the caption text.
-#' p <- d |> roboplot(Alue,
-#'                    title = "Energian tuonti Kanadasta",
-#'                    subtitle = "Miljoonaa euroa",
-#'                    caption = roboplot_set_caption(
-#'                      text = "Tilastokeskus",
-#'                      updated = TRUE,
-#'                      .data = d
-#'                    )
+#' d |> roboplot(Alue,"Energian tuonti Kanadasta","Miljoonaa euroa",
+#'               caption = roboplot_set_caption(
+#'                 text = "Tilastokeskus",
+#'                 updated = TRUE,
+#'                 .data = d
+#'               )
 #' )
 #'
-#' p
+#' # If you need to make manual changes repeatedly, you are probably better off
+#' # using roboplotr::roboplot_set_options() (documented therein) to change the
+#' # defaults to something more sensible.
 #'
-#' # If you need make manual changes repeatedly, you are probably better off
-#' # using roboplotr::roboplot_set_options() to change the defaults to something
-#' # more sensible.
+#' roboplot_set_options(caption_defaults =
+#'                        list(prefix = "Source: ", lineend = "", updated = NULL))
+#'
+#' d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
+#'
+#' # Revert to defaults:
+#' roboplot_set_options(reset = TRUE)
+#'
 #' @importFrom lubridate as_date is.Date
 #' @importFrom stringr str_c
 #' @export
@@ -198,17 +195,6 @@ roboplot_set_caption <- function(text = NULL, prefix = getOption("roboplot.capti
   }
   str_c(prepend, text, updated, append)
 }
-
-#' @importFrom plotly layout
-#' @importFrom stats na.omit
-roboplotr_axis_labels <- function(p, label_x = NA, label_y = NA) {
-  p |>
-    layout(
-      xaxis = list(title = label_x),
-      yaxis = list(title = label_y)
-    )
-}
-
 
 roboplotr_highlight_legend <- function(highlight, df) {
 
@@ -254,21 +240,26 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'     path = system.file("www","fonts","bladerunner.TTF", package = "roboplotr"),
 #'     color = "darkred",
 #'     type = "main"),
-#'   font_caption = roboplot_set_font(color = "#6B6B69"),
+#'   font_caption = roboplot_set_font(color = "green")
 #' )
 #'
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
-#' p <- d |> roboplot(Alue,
-#'                    title = "Energian tuonti Kanadasta",
-#'                    subtitle = "Miljoonaa euroa",
-#'                    caption = "Tilastokeskus"
-#' )
 #'
-#' p
+#' d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
+#'
+#' # Note that plotly's own downloadImage does not support external fonts.
+#'
+#' if(interactive()) {
+#'
+#'   d |>
+#'   roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus") |>
+#'   roboplot_create_widget(filepath = tempdir(), artefacts = "img_w")
+#'
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta_levea.png"))
+#' }
 #'
 #' # revert to defaults:
 #' roboplot_set_options(reset = TRUE)
-
 #' @export
 roboplot_set_font <- function(path = "sans-serif", size = 12, color = "black", bold_title = T, type = NULL) {
 

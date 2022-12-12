@@ -46,17 +46,23 @@ roboplot_set_options(
     path = system.file("www","fonts","bladerunner.TTF", package = "roboplotr"),
     color = "darkred",
     type = "main"),
-  font_caption = roboplot_set_font(color = "#6B6B69"),
+  font_caption = roboplot_set_font(color = "green")
 )
 
 d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
-p <- d |> roboplot(Alue,
-                   title = "Energian tuonti Kanadasta",
-                   subtitle = "Miljoonaa euroa",
-                   caption = "Tilastokeskus"
-)
 
-p
+d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
+
+# Note that plotly's own downloadImage does not support external fonts.
+
+if(interactive()) {
+
+  d |>
+  roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus") |>
+  roboplot_create_widget(filepath = tempdir(), artefacts = "img_w")
+
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta_levea.png"))
+}
 
 # revert to defaults:
 roboplot_set_options(reset = TRUE)

@@ -27,7 +27,7 @@ roboplotr_modebar <- function(p, title, subtitle) {
           "yaxis.tickfont.size": ',layout$main,',
           "title.font.size": ',layout$title,'})
           setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'","',plot_title[[3]],'"], pie_plot = ',if(all(p$trace_types == "pie")) { "true" } else { "false" },')
-          Plotly.downloadImage(gd, {format: "png", width: ',layout$x,', height: ',layout$y,', filename: "',ttl,layout$suffix,'"});
+          Plotly.downloadImage(gd, {scale: "1", format: "',layout$type,'", width: ',layout$x,', height: ',layout$y,', filename: "',ttl,layout$suffix,'"});
           Plotly.relayout(gd, oldlayout)
           delete oldlayout
           }
@@ -60,16 +60,16 @@ roboplotr_modebar <- function(p, title, subtitle) {
     "img_w" = list(
       name = "Lataa kuva (leve\u00e4)",
       icon = dl_icon("image"),
-      click = JS(js_string(getOption("roboplot.png.wide")))
+      click = JS(js_string(getOption("roboplot.imgdl.wide")))
     ),
     "img_n" = list(
       name = "Lataa kuva (kapea)",
       icon = dl_icon("file-image", 0.025, c(2.7,2)),
-      click = JS(js_string(getOption("roboplot.png.narrow")))),
+      click = JS(js_string(getOption("roboplot.imgdl.narrow")))),
     "img_s" = list(
       name = "Lataa kuva (pieni)",
       icon = dl_icon("twitter-square"),
-      click = JS(js_string(getOption("roboplot.png.small")))),
+      click = JS(js_string(getOption("roboplot.imgdl.small")))),
     "data_dl" = list(
       name = "Lataa tiedot",
       icon = dl_icon("file-csv"),
@@ -113,25 +113,100 @@ roboplotr_modebar <- function(p, title, subtitle) {
 }
 
 
-#' Get a list used for [roboplot()] relayouts for png files when the appropriate modebar button is pressed
+#' Get a list used for [roboplot()] relayouts for downloaded image files when the appropriate modebar button is pressed
 #'
-#' @param x,y Double. The dimensions for the png file in pixels the modebar button will produce.
-#' @param mainfont,titlefont,captionfont Double. The font sizes used in the png the modebar button will produce.
+#' @param x,y Double. The dimensions for the image file in pixels the modebar button will produce.
+#' @param mainfont,titlefont,captionfont Double. The font sizes used in the image file the modebar button will produce.
+#' @param suffix Character. Suffix attached after the name of the downloaded image file.
+#' @param format Character. One of "png", "svg", "jpg", or "webp". Define the file format of the downloaded image file.
 #' @examples
+#' # Used inside roboplotr::roboplot_set_options() to control image download
+#' # specifications. Parameters 'x' and 'y' control the image dimensions. The
+#' # image uses the font specifications of the main plot, but you might need to
+#' # alter the font sizes with 'mainfont', 'titlefont' and 'captionfont'. You
+#' # can give a suffix for image download filenames (the filename is derived
+#' # from the plot title), and provide any one of "png","svg","jpeg", or "webp"
+#' # for the file format.
 #'
+#' roboplot_set_options(
+#'   imgdl_wide =
+#'     roboplot_set_imgdl_specs(
+#'       x = 1400,
+#'       y = 350,
+#'       mainfont = 16,
+#'       titlefont = 24,
+#'       captionfont = 14,
+#'       suffix = "",
+#'       format = "svg")
+#' )
+#'
+#' if(interactive()) {
+#'
+#'   p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+#'   p |> roboplot_create_widget(filepath = tempdir(),
+#'                               artefacts = c("img_w")
+#'   )
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti.svg"))
+#' }
+#'
+#' # The plotly image downloads are controlled by the modebar, so if you use
+#' # other than 'img_wide' you need to use roboplotr::roboplot_set_options to
+#' # control the modebar accordingly in addition to giving the downloaded image
+#' # specifications (roboplotr::roboplot() does have some defaults in place
+#' # for every size, so you can skip image specifications even if you do add
+#' # use other image download buttons in the modebar). With multiple image
+#' # download buttons the 'suffix' parameter is especially handy.
+#'
+#' roboplot_set_options(
+#'   imgdl_wide =
+#'     roboplot_set_imgdl_specs(
+#'       x = 1400,
+#'       y = 350,
+#'       mainfont = 16,
+#'       titlefont = 24,
+#'       captionfont = 14,
+#'       suffix = "_wide"),
+#'   imgdl_narrow =
+#'     roboplot_set_imgdl_specs(
+#'       x = 400,
+#'       y = 600,
+#'       mainfont = 16,
+#'       titlefont = 24,
+#'       captionfont = 14,
+#'       suffix = "_narrow"),
+#'   modebar = c("img_w","img_n","img_s")
+#' )
+#'
+#' if(interactive()) {
+#'
+#'   p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+#'   p |> roboplot_create_widget(filepath = tempdir(),
+#'                               artefacts = c("img_w","img_n","img_s")
+#'   )
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_narrow.png"))
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_pieni.png"))
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_wide.png"))
+#' }
+#'
+#' # Revert to defaults:
+#' roboplot_set_options(reset = TRUE)
 #' @returns A list
 #' @export
-roboplot_png_specs <- function(
+roboplot_set_imgdl_specs <- function(
     x = 1280,
     y = 720,
     mainfont = getOption("roboplot.font.main")$size,
     titlefont = getOption("roboplot.font.title")$size,
-    captionfont = getOption("roboplot.font.caption")$size, suffix = "_img") {
+    captionfont = getOption("roboplot.font.caption")$size,
+    suffix = "_img",
+    format = "png") {
   roboplotr_check_param(x, "numeric", allow_null = F)
   roboplotr_check_param(y, "numeric", allow_null = F)
   roboplotr_check_param(mainfont, "numeric", allow_null = F)
   roboplotr_check_param(titlefont, "numeric", allow_null = F)
   roboplotr_check_param(captionfont, "numeric", allow_null = F)
   roboplotr_check_param(suffix, "character", allow_null = F)
-  list(x = x, y = y, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix)
+  roboplotr_check_param(format, "character", allow_null = F)
+  roboplotr_valid_strings(format, c("png","svg","jpeg", "webp"), any)
+  list(x = x, y = y, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix, type = format)
 }

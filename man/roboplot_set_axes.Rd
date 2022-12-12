@@ -10,13 +10,31 @@ roboplot_set_axes(
   xticktype = "date",
   yticktype = "numeric",
   xtitle = "",
-  ytitle = ""
+  ytitle = "",
+  xformat = NULL,
+  yformat = NULL,
+  xlim = c(NA, NA),
+  ylim = c(NA, NA)
 )
 }
 \arguments{
-\item{x, y}{Character. The name of the column from parameter 'd' of \code{\link[=roboplot]{roboplot()}} used for the axis. Defaults to "time" and "value".}
+\item{x, y}{Character. The name of the column from parameter 'd' of
+\code{\link[=roboplot]{roboplot()}} used for the axis. Defaults to "time" and "value".}
 
-\item{xticktype, yticktype}{Character. Determines axis formatting within \code{\link[=roboplot]{roboplot()}}. One of "character", "date" or "numeric". Defaults to "date" and "numeric".}
+\item{xticktype, yticktype}{Characters. Determines axis formatting within
+\code{\link[=roboplot]{roboplot()}}. One of "character", "date" or "numeric". Defaults to "date" and
+"numeric".}
+
+\item{xtitle, ytitle}{Character. Used as the axis title.}
+
+\item{xformat, yformat}{Character. Formatting for axis tick text. Use
+\href{https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md}{d3 time format}
+for dates and \href{https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma}{d3 number format}
+for numbers. Ignored for charaters.}
+
+\item{xlim, ylim}{Vector of length 2. Used as the axis limits. These are not
+type-checked by \code{\link[=roboplot]{roboplot()}}, but should match the values used in the
+respecting plot axis.}
 }
 \value{
 A list.
@@ -25,8 +43,124 @@ A list.
 Define axis and axis tick formats for \code{\link[=roboplot]{roboplot()}} plots.
 }
 \examples{
-# Used to define how axis ticks are formatted inside roboplotr::roboplot()
-# if the default "time" with tick formatting as "date" for x-axis and /
-# or"value" with tick formatting as "numeric" for y-axis are not suitable.
+# The primary usage is for creating horizontal bar plots when combining the
+# roboplotr::roboplot plot_axes control with plot_mode "horizontal".
+d <- energiantuonti |>
+  dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
+attr(d, "frequency") <- "Quarterly"
+
+# Control the plot axes with roboplotr::roboplot_set_axes, setting the columns
+# from roboplotr::roboplot variable 'd' as the axis data sources with 'x' and
+# 'y', and ticktypes with 'xticktype' and 'yticktype'.
+d |> dplyr::filter(time == max(time)) |>
+  roboplot(Suunta,
+           glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+           "Milj. €","Tilastokeskus",
+           plot_type = "bar",
+           plot_mode = "horizontal",
+           plot_axes = roboplot_set_axes(
+             y = "Alue",
+             yticktype = "character",
+             x = "value",
+             xticktype = "numeric")
+  )
+
+# You can use 'xtitle' and 'ytitle' to provide labeling for axis titles,
+# and control the axis format with d3 time
+# (https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md)
+# and number
+# (https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma)
+# formatting. You can also control the axis limits by providing a 2-length
+# vector for 'xlim' and 'ylim'. These are not typed by roboplotr::roboplot(),
+# but must match the corresponding axis values.
+
+d |>
+  dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue,"Energian tuonti","Milj. €","Tilastokeskus",
+           plot_axes = roboplot_set_axes(
+             ytitle = "Arvo",
+             xformat = "Y\%y",
+             yformat = "+$05,",
+             ylim = c(-200,1500),
+             xlim = c("2015-01-01","2023-01-01"))
+  )
+
+# roboplotr::roboplot_set_axes also gives the user fine-grained control for
+# plots where there might not be data in a format that is directly transerable
+# to date or numeric format.
+
+d2 <- dplyr::tribble(
+  ~time, ~value,
+  "2021 Jan-Oct", 7.2,
+  "Jan-Nov", 6.0,
+  "Jan-Dec", 4.4,
+  "2022 Jan-Feb", 3.7,
+  "Jan-Mar", 0.7,
+  "Jan-Apr", -2.7,
+  "Jan-May", -4.0,
+  "Jan-Jun", -5.4,
+  "Jan-Jul", -6.4,
+  "Jan-Aug", -7.4,
+  "Jan-Sep", -8.0,
+  "Jan-Oct", -8.8
+)
+
+d2 |>
+  roboplotr::roboplot(title = "Growth Rate of Investment",
+                      caption = "National bureau of statistics, China",
+                      plot_axes = roboplot_set_axes(xticktype = "character"))
+
+# Or you might have numeric data on both axes. roboplotr::roboplot() will draw
+# any traces in the order they appear in the data, so it is up to the user to
+# order the traces properly.
+
+d3 <- dplyr::tibble(time =
+               seq.Date(from = lubridate::floor_date(
+                 lubridate::today(), "years"
+               )-lubridate::years(10),
+               to = lubridate::floor_date(lubridate::today(),"years"),
+               by = "year"),
+             obs1 = round(runif(11, min = 0, max = 120),1),
+             value = round(runif(11, min = -120, max = 120),1))
+
+d3 |> dplyr::arrange(obs1, value) |>
+  roboplotr::roboplot(title = "Random values",
+                      caption = "Robonomist",
+                      plot_axes = roboplot_set_axes(
+                        x = "obs1",
+                        xticktype = "numeric"))
+
+# You might just want to switch the axes for time and value
+d |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplotr::roboplot(Alue, "Energian tuonti","Milj. €", "Tilastokeskus",
+                      plot_axes = roboplot_set_axes(
+                        y = "time",
+                        yticktype = "date",
+                        x = "value",
+                        xticktype = "numeric"
+                      ))
+
+# Or you might want to draw character strings on some axis.
+d |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplotr::roboplot(Alue, "Energian tuonti","Milj. €", "Tilastokeskus",
+                      plot_axes = roboplot_set_axes(
+                        y = "Alue",
+                        yticktype = "character",
+                        x = "value",
+                        xticktype = "numeric"
+                      ))
+
+# Making a reasonable line plot like this is a challenge, though, and you are
+# better off with a horizontal bar plot.
+d |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplotr::roboplot(Alue, "Energian tuonti","Milj. €", "Tilastokeskus",
+                      plot_type = "bar",
+                      plot_mode = "horizontal",
+                      plot_axes = roboplot_set_axes(
+                        y = "Alue",
+                        yticktype = "character",
+                        x = "value",
+                        xticktype = "numeric"
+                      ))
 
 }

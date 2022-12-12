@@ -12,7 +12,7 @@
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
-#' @param png_wide,png_narrow,png_small Functions. Use [roboplot_png_specs]. Controls the dimensions and fonts of png files downloaded through modebar buttons.
+#' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [roboplot_set_imgdl_specs]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
 #' @param verbose Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
 #' @param shinyapp Logical. Makes fonts, css and javascript available for shiny apps.
 #' @param reset Logical. Ignores other options, resets options to defaults.
@@ -59,9 +59,9 @@
 #' # Of modebar options, "closest" and "compare" control on hover comparison
 #' # points, and "zoomin" and "zoomout" are simple zoom buttons. You will
 #' # probably want "home" along with the previous options for resetting the
-#' # zoom. For downloading the plot data in .csv file format use "data_dl". Png
-#' # image sizes are differentiated with "img_w"(ide), "img_n"(arrow) or
-#' #"img_s"(mall).
+#' # zoom. For downloading the plot data in .csv file format use "data_dl".
+#' # Image sizes for downloaded image files are differentiated with
+#' # "img_w"(ide), "img_n"(arrow) or "img_s"(mall).
 #'
 #' roboplot_set_options(logo_file =
 #'                        system.file("images", "Rlogo.png", package = "roboplotr"),
@@ -73,30 +73,15 @@
 #'
 #' p
 #'
-#' # REWRITE INCOMING
-#' # Fonts are set with 'font_main', 'font_title' and 'font_caption', and are
-#' # set using roboplotr::roboplot_set_fonts(), with examples under that
-#' # documentation. When creating png files with
-#' # roboplotr::roboplot_create_widgets(), you can specify the font sizes or
-#' # large (wide or narrow) and small png files here separately, but no other
-#' # font specifications are possible.
+#' # Images downloaded through plotly modebar require separate layout
+#' # specifications which roboplotr::roboplot automatically takes care of. Image
+#' # sizes and font sizes might require extra specifications. Set these globally
+#' # with 'img_wide', 'img_narrow', and / or 'img_small' using
+#' # roboplotr::roboplot_set_imgdl_specs(), documented in detail in that
+#' # function.
 #'
-#' #if(interactive()) {
-#'  # roboplot_set_options(
-#'    # png_large_fontsize = list(title = 12, main = 48, caption = 12),
-#'    # png_small_fontsize = list(title = 12, main = 40, caption = 16),
-#'  # )
+#' roboplot_set_options(imgdl_wide = roboplot_set_imgdl_specs(x = 1600))
 #'
-#'   #p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-#'   #p |> roboplot_create_widget(filepath = tempdir(),
-#'  #                             artefacts = c("png_small","png_wide"),
-#'  #                             render = FALSE
-#'   #)
-#'   #utils::browseURL(paste0(tempdir(),"/energian_tuonti_pieni.png"))
-#'   #utils::browseURL(paste0(tempdir(),"/energian_tuonti_levea.png"))
-#' #}
-#'
-#' roboplot_set_options(reset = TRUE)
 #'
 #' # Captions are partly controlled by 'caption defaults', while you must
 #' # provide the basic text by-plot in roboplotr::roboplot().
@@ -205,12 +190,12 @@ roboplot_set_options <- function(
     font_caption = NULL,
     grid_colors = NULL,
     height = NULL,
+    imgdl_wide = NULL,
+    imgdl_narrow = NULL,
+    imgdl_small = NULL,
     linewidth = NULL,
     logo_file = NULL,
     modebar = NULL,
-    png_wide = NULL,
-    png_narrow = NULL,
-    png_small = NULL,
     patterns = NULL,
     tick_colors = NULL,
     trace_colors = NULL,
@@ -221,10 +206,15 @@ roboplot_set_options <- function(
     ) {
 
   set_roboplot_option <- function(option, opt_name = NULL) {
-    if(is.null(opt_name)) { opt_name <- substitute(option) }
-    opt_name <- str_c("roboplot.",opt_name)
-    if(!is.null(option)) { setOption(opt_name, option) }
-    if(!is.null(option)) { roboplotr_message(str_c("Roboplot option ",opt_name," set.")) }
+    if(!is.null(option)) {
+      if(is.null(opt_name)) {
+        opt_name <- deparse(substitute(option))
+      } else {
+        opt_name <- str_c("roboplot.",opt_name)
+      }
+      setOption(opt_name, option)
+      roboplotr_message(str_c("Roboplot option ",opt_name," set."))
+      }
   }
 
   roboplotr_check_param(verbose, "character", allow_null = T)
@@ -281,9 +271,9 @@ roboplot_set_options <- function(
     roboplotr_check_param(patterns, "character", NULL)
     roboplotr_valid_strings(patterns,c("","/","\\","x","-","|","+","."))
 
-    roboplotr_check_param(png_wide, "function", NULL, f.name = list(fun = first(substitute(png_wide)), check = "roboplot_png_specs"))
-    roboplotr_check_param(png_narrow, "function", NULL, f.name = list(fun = first(substitute(png_narrow)), check = "roboplot_png_specs"))
-    roboplotr_check_param(png_small, "function", NULL, f.name = list(fun = first(substitute(png_small)), check = "roboplot_png_specs"))
+    roboplotr_check_param(imgdl_wide, "function", NULL, f.name = list(fun = first(substitute(imgdl_wide)), check = "roboplot_set_imgdl_specs"))
+    roboplotr_check_param(imgdl_narrow, "function", NULL, f.name = list(fun = first(substitute(imgdl_narrow)), check = "roboplot_set_imgdl_specs"))
+    roboplotr_check_param(imgdl_small, "function", NULL, f.name = list(fun = first(substitute(imgdl_small)), check = "roboplot_set_imgdl_specs"))
 
     roboplotr_check_param(tick_colors, "list", c("x","y"))
     roboplotr_valid_colors(tick_colors)
@@ -309,11 +299,9 @@ roboplot_set_options <- function(
     set_roboplot_option(linewidth)
     set_roboplot_option(logo_file, "logo")
     set_roboplot_option(modebar, "modebar.buttons")
-    set_roboplot_option(png_wide,"png.wide")
-    set_roboplot_option(png_narrow,"png.narrow")
-    set_roboplot_option(png_small,"png.small")
-    # set_roboplot_option(png_large_fontsize, "png.font.size.lg")
-    # set_roboplot_option(png_small_fontsize, "png.font.size.sm")
+    set_roboplot_option(imgdl_wide,"imgdl.wide")
+    set_roboplot_option(imgdl_narrow,"imgdl.narrow")
+    set_roboplot_option(imgdl_small,"imgdl.small")
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(tick_colors, "colors.ticks")
     set_roboplot_option(trace_colors, "colors.traces")

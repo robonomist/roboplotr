@@ -14,11 +14,12 @@ roboplot_set_options(
   font_caption = NULL,
   grid_colors = NULL,
   height = NULL,
+  imgdl_wide = NULL,
+  imgdl_narrow = NULL,
+  imgdl_small = NULL,
   linewidth = NULL,
   logo_file = NULL,
   modebar = NULL,
-  png_large_fontsize = NULL,
-  png_small_fontsize = NULL,
   patterns = NULL,
   tick_colors = NULL,
   trace_colors = NULL,
@@ -41,13 +42,13 @@ roboplot_set_options(
 
 \item{height}{Numeric. Height of roboplotr plots in pixels.}
 
+\item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{roboplot_set_imgdl_specs}. Controls the dimensions and fonts of image files downloaded through modebar buttons.}
+
 \item{linewidth}{Numeric. The default roboplotr line trace width.}
 
 \item{logo_file}{Character. The filepath to the logo used in every plot.}
 
 \item{modebar}{Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.}
-
-\item{png_large_fontsize, png_small_fontsize}{Lists. Values must be numeric and named "main", "title", and "caption". Determines the fontsizes of images downloaded as .png files from the plot modebar.}
 
 \item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
@@ -106,9 +107,9 @@ p
 # Of modebar options, "closest" and "compare" control on hover comparison
 # points, and "zoomin" and "zoomout" are simple zoom buttons. You will
 # probably want "home" along with the previous options for resetting the
-# zoom. For downloading the plot data in .csv file format use "data_dl". Png
-# image sizes are differentiated with "img_w"(ide), "img_n"(arrow) or
-#"img_s"(mall).
+# zoom. For downloading the plot data in .csv file format use "data_dl".
+# Image sizes for downloaded image files are differentiated with
+# "img_w"(ide), "img_n"(arrow) or "img_s"(mall).
 
 roboplot_set_options(logo_file =
                        system.file("images", "Rlogo.png", package = "roboplotr"),
@@ -120,29 +121,15 @@ p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 
 p
 
-# Fonts are set with 'font_main', 'font_title' and 'font_caption', and are
-# set using roboplotr::roboplot_set_fonts(), with examples under that
-# documentation. When creating png files with
-# roboplotr::roboplot_create_widgets(), you can specify the font sizes or
-# large (wide or narrow) and small png files here separately, but no other
-# font specifications are possible.
+# Images downloaded through plotly modebar require separate layout
+# specifications which roboplotr::roboplot automatically takes care of. Image
+# sizes and font sizes might require extra specifications. Set these globally
+# with 'img_wide', 'img_narrow', and / or 'img_small' using
+# roboplotr::roboplot_set_imgdl_specs(), documented in detail in that
+# function.
 
-if(interactive()) {
-  roboplot_set_options(
-    png_large_fontsize = list(title = 12, main = 48, caption = 12),
-    png_small_fontsize = list(title = 12, main = 40, caption = 16),
-  )
+roboplot_set_options(imgdl_wide = roboplot_set_imgdl_specs(x = 1600))
 
-  p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-  p |> roboplot_create_widget(filepath = tempdir(),
-                              artefacts = c("png_small","png_wide"),
-                              render = FALSE
-  )
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti_pieni.png"))
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti_levea.png"))
-}
-
-roboplot_set_options(reset = TRUE)
 
 # Captions are partly controlled by 'caption defaults', while you must
 # provide the basic text by-plot in roboplotr::roboplot().

@@ -15,13 +15,13 @@ roboplot_set_caption(
 )
 }
 \arguments{
-\item{text}{Character. The text for plot caption, probably data source name for argument 'd'.}
+\item{text}{Character. The text for plot caption, probably data source name for argument 'd' of \code{\link[=roboplot]{roboplot()}}.}
 
-\item{prefix}{Character. Prefix inserted before the argument 'text', automatically separated by ": ".}
+\item{prefix}{Character. Prefix inserted before the argument 'text'. The prefix will automatically separated from text by ": ".}
 
 \item{updated}{Date or logical. If Date, will be inserted as the last update time in the caption. If TRUE, will try to get this information from argument '.data'.}
 
-\item{.data}{Data frame. The data frame the caption attempts to read the time of the last update from.}
+\item{.data}{Data frame. The data frame the caption attempts to read the time of the last update from. Use the same data you are providing as argument 'd' of \code{\link[=roboplot]{roboplot()}}.}
 
 \item{line.end}{Character. Character inserted to end of line. Default from roboplot.options.}
 
@@ -35,57 +35,54 @@ Get a string for \code{\link[=roboplot]{roboplot()}} captions.
 }
 \examples{
 # Used to define how captions are constructed inside roboplotr::roboplot()
-# captions. 'Text' is the caption text, and if only this is needed, you can
+# Use 'text' as the caption text, and if only this is needed, you can
 # use simply write the string. roboplotr::roboplot() will provide the
 # prefix and end-of-line character from global options that can be altered
 # with roboplotr::roboplot_set_options().
 
+
 d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
-p <- d |> roboplot(Alue,
-                   title = "Energian tuonti Kanadasta",
-                   subtitle = "Miljoonaa euroa",
-                   caption = "Tilastokeskus"
-)
 
-p
+d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €",
+                   caption = "Tilastokeskus")
 
-# If needed, the individual elements can be entered as function parameters
-# or simply provide everything as strings, overriding the defaults with
-# roboplotr::roboplot_set_options().
 
-p <- d |>
-  roboplot(Alue,
-           title = "Energy import",
-           subtitle = "Million euros",
+# Override the global options with function parameters.
+
+d |>
+  roboplot(Alue, "Energy import","Million euros",
            caption = roboplot_set_caption(
-             prepend = "From Canada",
+             prepend = "(Canada)",
              append = paste0("(Customs Finland, International trade ",
-                            "statistics;\nRadiation and Nuclear Safety ",
-                            "Authority; Gasum LLC)"),
+                             "statistics;\nRadiation and Nuclear Safety ",
+                             "Authority; Gasum LLC)"),
              text = "Statistics Finland",
-             prefix = "Source",
-             line.end = ""
-           )
+             prefix = "Source: ",
+             line.end = "")
   )
 
-p
 
-# If 'updated' is set to TRUE, need to provide the .data where
+# If 'updated' is set to TRUE, you need to provide the .data where
 # roboplotr::roboplot_set_caption() will look for the update info, and if
 # found, it appears under the caption text.
-p <- d |> roboplot(Alue,
-                   title = "Energian tuonti Kanadasta",
-                   subtitle = "Miljoonaa euroa",
-                   caption = roboplot_set_caption(
-                     text = "Tilastokeskus",
-                     updated = TRUE,
-                     .data = d
-                   )
+d |> roboplot(Alue,"Energian tuonti Kanadasta","Miljoonaa euroa",
+              caption = roboplot_set_caption(
+                text = "Tilastokeskus",
+                updated = TRUE,
+                .data = d
+              )
 )
 
-p
+# If you need to make manual changes repeatedly, you are probably better off
+# using roboplotr::roboplot_set_options() (documented therein) to change the
+# defaults to something more sensible.
 
-# If you need make manual changes repeatedly, you are probably better off
-# using roboplotr::roboplot_set_options() to change the defaults to something
-# more sensible.
+roboplot_set_options(caption_defaults =
+                       list(prefix = "Source: ", lineend = "", updated = NULL))
+
+d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
+
+# Revert to defaults:
+roboplot_set_options(reset = TRUE)
+
 }

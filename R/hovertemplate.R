@@ -47,7 +47,7 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #' p
 #'
 #' # Parameter 'extra' will be added to last line(s) of the hovertemplate, which
-#' # can be plain text or reference to the plotly object, with d3 syntax.
+#' # can be plain text or reference to the plotly object data, with d3 syntax.
 #'
 #' p <- d |> roboplot(
 #'   Alue, "Energian tuonti", "Milj. €", "Tilastokeskus",

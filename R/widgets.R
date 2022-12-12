@@ -1,7 +1,7 @@
-#' Write html and png files from [roboplot()] plots
+#' Write html and and other files from [roboplot()] plots
 #'
 #' @param p A plotly object.
-#' @param title Character. The filename of the html or png artefacts created
+#' @param title Character. The filename of the artefact(s) created
 #' (without file format). Will be formatted with underscores, and the title
 #' of argument 'p' will be used if no title is provided.
 #' @param filepath Character. The filepath to the created artefacts.
@@ -10,18 +10,18 @@
 #' @param self_contained Logical. Controls if the plot dependencies will be
 #' saved in an adjacent directory "plot_dependencies" or contained within the
 #' file, increasing size.
-#' @param artefacts Character vector. Controls what artefacts are save. One or
-#' more of "html", "png_wide", "png_small" or "png_narrow". A matching button
-#' must be present in the modebar.
+#' @param artefacts Character vector. Controls what artefacts are saved. One or
+#' more of "html", "img_w", "img_n" or "img_s". A matching button must be
+#' present in the modebar (control modebar buttons with
+#' [roboplot_set_options()].
 #' @examples
 #' # Save roboplotr::roboplot() plots as files. Control location with
 #' # 'filepath'. Default 'filepath' will be the current working directory. If a
-#' # 'title' is not provided, roboplotr::roboplot_create_widget() parses it from
-#' # the plot title.
+#' # 'title' is not provided, it will be parsed from plot title.
 #'
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 #'
-#' p <- d |>
+#' d |>
 #'   roboplot(Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus") |>
 #'   roboplot_create_widget(filepath = tempdir())
 #'
@@ -35,7 +35,7 @@
 #' # external folder "plot_dependencies", but elements can be bundled within the
 #' # widgets with 'self_contained' (if you want to forward the file, perhaps).
 #'
-#' p <- d |>
+#' d |>
 #'   roboplot(Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus") |>
 #'   roboplot_create_widget(
 #'     title = "Energian tuonti - Kanada",
@@ -46,21 +46,19 @@
 #'
 #' file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
 #'
-#' p
-#'
-#' # If you want to create png files, use a character vector in 'artefacts' to
-#' # control this. Exclude "html" if you want to create png files only. Png size
-#' # must be provided in the strings, possible options are "png_wide",
-#' # "png_narrow", and "png_small", but download button for the selected size
-#' # must exist in the plot modebar, controlled with
+#' # If you want to create image files, use a character vector in 'artefacts' to
+#' # control this. Exclude "html" if you want to create image files only. Image
+#' # size must be provided in the strings (possible options are "img_w",
+#' # "img_n", and "img_s"). Download button for the selected size must exist
+#' # in the plot modebar, controlled with and documented within
 #' # roboplotr::roboplot_set_options() ("wide" exists as default").
 #'
 #' if(interactive()) {
-#'   p |> roboplot_create_widget(filepath = tempdir(), artefacts = "png_wide")
+#'   p |> roboplot_create_widget(filepath = tempdir(), artefacts = "img_w")
 #'
 #'   file.exists(paste0(tempdir(),"/kanadan_energiantuonti_levea.png"))
 #' }
-#' @return The list 'p' of classes "plotly" and "html"
+#' @return A list of classes "plotly" and "html"
 #' @export
 #' @importFrom dplyr first
 #' @importFrom htmltools htmlDependency
@@ -70,7 +68,7 @@
 roboplot_create_widget <- function(p, title, filepath, render = T, self_contained = F, artefacts = "html") {
 
   roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F, allow_na = F)
-  roboplotr_valid_strings(artefacts, c("html","png_wide","png_small","png_narrow"), .fun = any)
+  roboplotr_valid_strings(artefacts, c("html","img_w","img_s","img_n"), .fun = any)
 
   if (missing(title)) {
     title <- (p$x$layoutAttrs |> unlist())[grep("title.text", names((p$x$layoutAttrs |> unlist())))] |>
@@ -98,7 +96,7 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
   detached_p$append <- NULL
 
   if(any(artefacts != "html")) {
-    detached_p |> roboplotr_automate_png(artefacts, filepath)
+    detached_p |> roboplotr_automate_imgdl(artefacts, filepath)
   }
 
   if("html" %in% artefacts) {
@@ -119,12 +117,12 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
 #' @importFrom purrr map map_chr
 #' @importFrom stringr str_c str_replace_all str_subset
 
-roboplotr_automate_png <- function(p, artefacts, dl_path = getwd()) {
+roboplotr_automate_imgdl <- function(p, artefacts, dl_path = getwd()) {
 
-  artefacts <- str_subset(artefacts, "png")
+  artefacts <- str_subset(artefacts, "img")
   mb_btns <- p$x$config$modeBarButtons |> unlist(recursive = F) |> map_chr(~ unlist(.x["name"])) |>
-    str_replace_all(c("Lataa kuva \\(leve\u00e4\\)" = "png_wide", "Lataa kuva \\(kapea\\)" = "png_narrow","Lataa kuva \\(pieni\\)" = "png_small")) |>
-    str_subset("png")
+    str_replace_all(c("Lataa kuva \\(leve\u00e4\\)" = "img_w", "Lataa kuva \\(kapea\\)" = "img_n","Lataa kuva \\(pieni\\)" = "img_s")) |>
+    str_subset("img")
 
   extra_artefacts <- subset(artefacts, !artefacts %in% mb_btns)
 
@@ -135,29 +133,29 @@ roboplotr_automate_png <- function(p, artefacts, dl_path = getwd()) {
 
   artefacts <- as.list(artefacts)
   p |> onRender(jsCode = str_c("function(gd,params,data) {
-            if(data.includes('png_wide')) {
+            if(data.includes('img_w')) {
               dlBtn = $(gd).find('[data-title=\"Lataa kuva (leve\u00e4)\"]')[0];
               dlBtn.click();
             };
-            if(data.includes('png_narrow')) {
+            if(data.includes('img_n')) {
               dlBtn = $(gd).find('[data-title=\"Lataa kuva (kapea)\"]')[0];
               dlBtn.click();
             };
-            if(data.includes('png_small')) {
+            if(data.includes('img_s')) {
               dlBtn = $(gd).find('[data-title=\"Lataa kuva (pieni)\"]')[0];
               dlBtn.click();
             };
     }"),  data = artefacts) |>
-    roboplot_create_widget(title = "pngdl", filepath = tempdir(), self_contained = T, render = F)
+    roboplot_create_widget(title = "imgdl", filepath = tempdir(), self_contained = F, render = F)
   b <- ChromoteSession$new()
   b$Browser$setDownloadBehavior(behavior = "allow", downloadPath = dl_path)
-  b$Page$navigate(str_c("file://",file.path(tempdir(),"pngdl.html")))
+  b$Page$navigate(str_c("file://",file.path(tempdir(),"imgdl.html")))
   Sys.sleep(2)
   b$close()
 
-  invisible(file.remove(file.path(tempdir(),"pngdl.html")))
+  invisible(file.remove(file.path(tempdir(),"imgdl.html")))
 
-  recent_files <- list.files(dl_path, full.names = T) |> str_subset("(png)$") |> map(~ {
+  recent_files <- list.files(dl_path, full.names = T) |> str_subset("(png|svg|webp|jpeg)$") |> map(~ {
     if (file.info(.x)$ctime |> as_datetime(tz = "UTC") >= now(tz = "UTC") - seconds(5)) { .x }
   }) |> roboplotr_compact()
   recent_length <- length(recent_files)

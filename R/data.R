@@ -1,11 +1,11 @@
 #' Energian tuonti ja vienti alkuperämaittain
 #'
-#' Otos energian tuonnista ja viennistä alkuperämaittain
+#' Otos energian tuonnista ja viennistä alkuperämaittain Tilastokeskuksen arkistotaulusta.
 #'
 #' @format ## `energiantuonti`
 #' Kehys jossa 925 riviä and 4 saraketta:
 #' \describe{
-#'   \item{Alue}{Maan tai määryhmän nimi}
+#'   \item{Alue}{Maan tai maaryhmän nimi}
 #'   \item{Suunta}{Tuonti tai vienti}
 #'   \item{time}{Vuosineljännes}
 #'   \item{value}{Arvo (miljoonaa euroa)}

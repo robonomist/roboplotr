@@ -28,7 +28,7 @@ test_that("Test for hovertemplate templating list", {
 
 test_that("Roboplot options are reset", {
   roboplot_set_options(reset = T)
-  expect_mapequal(getOption("roboplot.caption"), list(prefix = "Lähde",lineend = ".",updated = NULL))
+  expect_mapequal(getOption("roboplot.caption"), list(prefix = "Lähde: ",lineend = ".",updated = NULL))
   expect_match(getOption("roboplot.colors.background"),"white")
   expect_mapequal(getOption("roboplot.colors.border"), list(x = "black",y = "black"))
   expect_mapequal(getOption("roboplot.colors.grid"), list(x = "#E8E8E8",y = "#E8E8E8"))
@@ -43,8 +43,9 @@ test_that("Roboplot options are reset", {
   expect_match(getOption("roboplot.logo"),system.file("images", "robonomist.png", package = "roboplotr"))
   expect_setequal(getOption("roboplot.modebar.buttons"), c("closest","compare","img_w","data_dl"))
   expect_setequal(getOption("roboplot.patterntypes"), c("","/","\\","x","-","|","+","." ))
-  expect_mapequal(getOption("roboplot.png.font.size.lg"), list(title = 31, main = 24, caption = 19))
-  expect_mapequal(getOption("roboplot.png.font.size.sm"), list(title = 23, main = 18, caption = 14))
+  expect_mapequal(getOption("roboplot.imgdl.wide"), list(x = 1280, y = 720, title = 31, main = 24, caption = 19, suffix = "_levea", type = "png"))
+  expect_mapequal(getOption("roboplot.imgdl.narrow"), list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea", type = "png"))
+  expect_mapequal(getOption("roboplot.imgdl.small"), list(x = 889, y = 500, title = 23, main = 18, caption = 14, suffix = "_pieni", type = "png"))
   expect_match(getOption("roboplot.verbose"),"All")
   expect_match(getOption("roboplot.yaxis.ceiling"),"default")
 })
