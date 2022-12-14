@@ -1,6 +1,7 @@
 .onLoad <- function(..., override = F) {
   op <- options()
   op.roboplot.options <- list(
+    roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, artefacts = "html"),
     roboplot.caption = list(prefix = "L\uE4hde: ", lineend = ".", updated = NULL),
     roboplot.colors.background = "white",
     roboplot.colors.border = list(x = "black", y = "black"),
@@ -20,6 +21,7 @@
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea", type = "png"),
     roboplot.imgdl.small = list(x = 889, y = 500, title = 23, main = 18, caption = 14, suffix = "_pieni", type = "png"),
     roboplot.yaxis.ceiling = "default",
+    roboplot.width = NULL,
     roboplot.verbose = "All"
   )
 

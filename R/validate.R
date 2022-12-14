@@ -60,7 +60,9 @@ roboplotr_check_param <- function(var, type, size = 1, allow_null = T, allow_na 
         type.ok <- any(type.ok, any(map_lgl(type, ~ is(var, .x))))
       }
     } else {
-        type.ok <- any(map_lgl(type, ~ is(var, .x)))
+        if(!"any type" %in% type) {
+          type.ok <- any(map_lgl(type, ~ is(var, .x)))
+        }
         }
 
     # print(str_c("length: ", length.ok, " type: ",type.ok))

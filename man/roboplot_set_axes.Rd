@@ -5,10 +5,10 @@
 \title{Define axis and axis tick formats for \code{\link[=roboplot]{roboplot()}} plots.}
 \usage{
 roboplot_set_axes(
-  x = "time",
-  y = "value",
-  xticktype = "date",
-  yticktype = "numeric",
+  x = NULL,
+  y = NULL,
+  xticktype = NULL,
+  yticktype = NULL,
   xtitle = "",
   ytitle = "",
   xformat = NULL,

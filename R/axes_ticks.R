@@ -137,7 +137,29 @@
 #'
 #' @export
 #' @importFrom dplyr case_when
-roboplot_set_axes <- function(x = "time", y = "value", xticktype = "date", yticktype = "numeric", xtitle = "", ytitle = "", xformat = NULL, yformat = NULL, xlim = c(NA,NA), ylim = c(NA, NA)) {
+roboplot_set_axes <- function(x = NULL, y = NULL, xticktype = NULL, yticktype = NULL, xtitle = "", ytitle = "", xformat = NULL, yformat = NULL, xlim = c(NA,NA), ylim = c(NA, NA)) {
+
+  if(is.null(y)) {
+    y <- "value"
+  } else if (y != "value" & is.null(x)) {
+    x <- "value"
+  }
+
+  if(is.null(x)) {
+    x <- "time"
+  }
+
+  if(is.null(yticktype)) {
+    if(y == "value") { yticktype <- "numeric" } else if (x == "time") { yticktype <- "date" } else { yticktype <- "character"}
+  }
+
+  if(is.null(xticktype)) {
+    if(x == "time") { xticktype <- "date" } else if (x == "value") { xticktype <- "numeric" }
+  }
+
+  if(is.null(yticktype)) {
+    if(y == "value") { yticktype <- "numeric" } else if (x == "time") { yticktype <- "date" }
+  }
 
   roboplotr_check_param(x, "character",allow_null = F, allow_na = F)
   roboplotr_check_param(y, "character",allow_null = F, allow_na = F)
@@ -148,8 +170,8 @@ roboplot_set_axes <- function(x = "time", y = "value", xticktype = "date", ytick
   roboplotr_valid_strings(yticktype,axis_types,any)
   roboplotr_check_param(xformat, "character")
   roboplotr_check_param(yformat, "character")
-  roboplotr_check_param(xlim, "vector", size = 2, allow_null = F, allow_na = F)
-  roboplotr_check_param(ylim, "vector", size = 2, allow_null = F, allow_na = F)
+  roboplotr_check_param(xlim, "any type", size = 2, allow_null = F, allow_na = F)
+  roboplotr_check_param(ylim, "any type", size = 2, allow_null = F, allow_na = F)
 
 
   setclass <- function(type) {

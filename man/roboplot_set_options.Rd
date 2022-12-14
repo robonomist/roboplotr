@@ -5,6 +5,7 @@
 \title{Override the default options for colors, fonts etc. for any plot created with \code{\link[=roboplot]{roboplot()}}}
 \usage{
 roboplot_set_options(
+  artefacts = NULL,
   border_colors = NULL,
   background_color = NULL,
   caption_defaults = NULL,
@@ -25,11 +26,15 @@ roboplot_set_options(
   trace_colors = NULL,
   xaxis_ceiling = NULL,
   verbose = NULL,
+  widgets = NULL,
+  width = NULL,
   shinyapp = F,
   reset = F
 )
 }
 \arguments{
+\item{artefacts}{Function. Use \code{\link[=roboplot_set_artefacts]{roboplot_set_artefacts()}}.}
+
 \item{border_colors, grid_colors, tick_colors}{List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
 
 \item{background_color}{Character. Plot background color. Must be a hexadecimal color or a valid css color.}

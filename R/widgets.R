@@ -65,33 +65,41 @@
 #' @importFrom htmlwidgets saveWidget
 #' @importFrom stringr str_extract_all str_replace_all str_c str_squish
 
-roboplot_create_widget <- function(p, title, filepath, render = T, self_contained = F, artefacts = "html") {
+roboplot_create_widget <- function(
+    p,
+    title = NULL,
+    filepath = getOption("roboplot.artefacts")$filepath,
+    render = getOption("roboplot.artefacts")$render,
+    self_contained = getOption("roboplot.artefacts")$self_contained,
+    artefacts = getOption("roboplot.artefacts")$artefacts) {
 
   roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F, allow_na = F)
   roboplotr_valid_strings(artefacts, c("html","img_w","img_s","img_n"), .fun = any)
 
-  if (missing(title)) {
+  if (is.null(title)) {
     title <- (p$x$layoutAttrs |> unlist())[grep("title.text", names((p$x$layoutAttrs |> unlist())))] |>
       str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_")
     roboplotr_message(str_c("Using \"",roboplotr_string2filename(title),"\" for htmlwidget filename.."))
+  } else {
+    roboplotr_check_param(title, "character", allow_null = F, allow_na = F)
   }
 
   widget_title <- title
   title <- roboplotr_string2filename(title)
 
-  filepath <- if(missing(filepath)) {
-    if(isTRUE(getOption('knitr.in.progress'))) {
-      tempdir()
-    } else {
-      getwd() }
-  } else  { filepath }
+  # filepath <- if(missing(filepath)) {
+  #   if(isTRUE(getOption('knitr.in.progress'))) {
+  #     tempdir()
+  #   } else {
+  #     getwd() }
+  # } else  { filepath }
 
   if("html" %in% artefacts) {
     roboplotr_widget_deps(filepath = file.path(filepath,"plot_dependencies"))
     css_dep <- htmlDependency("style", "0.1", src = c(href= "plot_dependencies/css"),  stylesheet = "style.css")
     js_dep <- htmlDependency("js", "0.1", src = c(href= "plot_dependencies/js"),  script = "relayout.js")
     p$dependencies <- c(p$dependencies, list(css_dep, js_dep))
-    }
+  }
   detached_p <- p
   detached_p$append <- NULL
 
@@ -107,6 +115,53 @@ roboplot_create_widget <- function(p, title, filepath, render = T, self_containe
   if(render == T) {
     p
   } else { invisible(p) }
+}
+
+#' Set global parameters in [roboplot_set_options()] for artefact creation
+#' of [roboplot()] plots.
+#'
+#' @param auto Logical. Whether [roboplot()] will create artefacts automatically.
+#' @inheritParams roboplot_create_widget
+#' @examples
+#' # Used to set global defaults for widget or other artefact creation. Any of
+#' # these can be overridden by roboplotr::roboplot(). Only supposed to be
+#' # called inside roboplotr::roboplot_set_options(). Use 'filepath' to control
+#' # which directory the artefacts are created to, 'render' to control if the
+#' # roboplot() plot will be rendered on artefact creation, 'self_contained' to
+#' # control if html plot dependencies are placed in an adjacent directory or
+#' # contained within the html file, and 'artefacts' (one of "html",
+#' # "img_w","img_s", or "img_n") to control what artefacts are created.
+#'
+#' # roboplot_create_widget() shows how the parameters are used. Further
+#' # controls for other than "html" artefacts are are under
+#' # roboplot_set_imgdl_specs().
+#' @return A list.
+#' @export
+roboplot_set_artefacts <- function(
+    title = NULL,
+    filepath = getOption("roboplot.artefacts")$filepath,
+    render = getOption("roboplot.artefacts")$render,
+    self_contained = getOption("roboplot.artefacts")$self_contained,
+    artefacts = getOption("roboplot.artefacts")$artefacts,
+    auto = getOption("roboplot.artefacts")$auto
+    ) {
+  roboplotr_check_param(filepath, "character", allow_null = F)
+  roboplotr_check_param(render, "logical", allow_null = F)
+  roboplotr_check_param(self_contained, "logical", allow_null = F)
+  roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F)
+  roboplotr_valid_strings(
+    artefacts, c("html","img_w","img_s","img_n"), .fun = any
+  )
+  roboplotr_check_param(title, "character", allow_null = T)
+
+  list(
+    auto = auto,
+    filepath = filepath,
+    render = render,
+    self_contained = self_contained,
+    artefacts = artefacts,
+    title = title
+  )
 }
 
 
@@ -146,7 +201,7 @@ roboplotr_automate_imgdl <- function(p, artefacts, dl_path = getwd()) {
               dlBtn.click();
             };
     }"),  data = artefacts) |>
-    roboplot_create_widget(title = "imgdl", filepath = tempdir(), self_contained = F, render = F)
+    roboplot_create_widget(title = "imgdl", filepath = tempdir(), self_contained = F, render = F, artefacts = "html")
   b <- ChromoteSession$new()
   b$Browser$setDownloadBehavior(behavior = "allow", downloadPath = dl_path)
   b$Page$navigate(str_c("file://",file.path(tempdir(),"imgdl.html")))
@@ -161,7 +216,7 @@ roboplotr_automate_imgdl <- function(p, artefacts, dl_path = getwd()) {
   recent_length <- length(recent_files)
   if(recent_length > 0) {
     roboplotr_message(str_c("\nThe file",ifelse(recent_length > 1, "s",""),"\n", combine_words(recent_files,sep = ",\n", and = ", and\n"),"\n",
-                  ifelse(recent_length > 1, "are","is")," in ",dl_path,"."))
+                            ifelse(recent_length > 1, "are","is")," in ",dl_path,"."))
   }
 
 }

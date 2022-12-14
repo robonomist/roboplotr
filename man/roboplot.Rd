@@ -27,8 +27,9 @@ roboplot(
   legend_maxwidth = NULL,
   xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
   secondary_yaxis = NULL,
-  width = NULL,
-  legend_title = F
+  width = getOption("roboplot.width"),
+  legend_title = F,
+  artefacts = getOption("roboplot.artefacts")$auto
 )
 }
 \arguments{
@@ -78,6 +79,8 @@ plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of t
 Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.}
 
 \item{legend_title}{Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Use a character string if you want to provide your own legend title.}
+
+\item{artefacts}{Logical or function. Use \code{\link[=roboplot_set_artefacts]{roboplot_set_artefacts()}} for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by \code{\link[=roboplot_set_options]{roboplot_set_options()}}.}
 }
 \value{
 A list of classes "plotly" and "html"
@@ -251,4 +254,37 @@ d2 |>
            plot_type = c("Norja" = "bar", ".other" = "scatter"),
            secondary_yaxis = sec_axis,
            zeroline = NA)
+
+# Finally, you may get html or other files from the plots you create either
+# by using roboplotr::roboplot_create_artefacts() or simply using the
+# parameter 'artefacts' here.
+d2 |>
+  dplyr::filter(Suunta == "Tuonti") |>
+  dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
+  roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
+           plot_type = c("Norja" = "bar", ".other" = "scatter"),
+           secondary_yaxis = sec_axis,
+           zeroline = NA)
+# Finally, you may get html or other files from the plots you create either
+# by using roboplotr::roboplot_create_artefacts() or simply using the
+# parameter 'artefacts' here. The global defaults or artefact creation are
+# set with roboplotr::roboplot_set_options(), and for this example the
+# default filepath will be changed to a temporary directory.
+
+roboplot_set_options(
+  artefacts = roboplot_set_artefacts(filepath = tempdir())
+)
+
+d2 |>
+  dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue,"Energian tuonti","Milj. \u20AC","Tilastokeskus",artefacts = T)
+
+file.exists(str_c(tempdir(),"/energian_tuonti.html"))
+# Reset to defaults
+
+roboplot_set_options(reset = T)
+
+# Further specifications for creating artefacts is defined under
+# roboplotr::roboplot_set_options(), roboplotr::roboplot_create_widgets() and
+# roboplotr::roboplot_set_artefacts()
 }

@@ -166,6 +166,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' @param xaxis_ceiling Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.
 #' @param secondary_yaxis Expression. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 #' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.
+#' @param artefacts Logical or function. Use [roboplot_set_artefacts()] for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [roboplot_set_options()].
 #' @return A list of classes "plotly" and "html"
 #' @examples
 #' # The default use for roboplotr::roboplot is for line charts. Providing
@@ -332,6 +333,39 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'            plot_type = c("Norja" = "bar", ".other" = "scatter"),
 #'            secondary_yaxis = sec_axis,
 #'            zeroline = NA)
+#'
+#' # Finally, you may get html or other files from the plots you create either
+#' # by using roboplotr::roboplot_create_artefacts() or simply using the
+#' # parameter 'artefacts' here.
+#' d2 |>
+#'   dplyr::filter(Suunta == "Tuonti") |>
+#'   dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
+#'   roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
+#'            plot_type = c("Norja" = "bar", ".other" = "scatter"),
+#'            secondary_yaxis = sec_axis,
+#'            zeroline = NA)
+#' # Finally, you may get html or other files from the plots you create either
+#' # by using roboplotr::roboplot_create_artefacts() or simply using the
+#' # parameter 'artefacts' here. The global defaults or artefact creation are
+#' # set with roboplotr::roboplot_set_options(), and for this example the
+#' # default filepath will be changed to a temporary directory.
+#'
+#' roboplot_set_options(
+#'   artefacts = roboplot_set_artefacts(filepath = tempdir())
+#' )
+#'
+#' d2 |>
+#'   dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue,"Energian tuonti","Milj. \u20AC","Tilastokeskus",artefacts = T)
+#'
+#' file.exists(str_c(tempdir(),"/energian_tuonti.html"))
+#' # Reset to defaults
+#'
+#' roboplot_set_options(reset = T)
+#'
+#' # Further specifications for creating artefacts is defined under
+#' # roboplotr::roboplot_set_options(), roboplotr::roboplot_create_widgets() and
+#' # roboplotr::roboplot_set_artefacts()
 #' @export
 #' @importFrom dplyr coalesce distinct group_split pull
 #' @importFrom forcats fct_reorder
@@ -362,11 +396,12 @@ roboplot <- function(d,
                      legend_maxwidth = NULL,
                      xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
                      secondary_yaxis = NULL,
-                     width = NULL,
-                     legend_title = F
+                     width = getOption("roboplot.width"),
+                     legend_title = F,
+                     artefacts = getOption("roboplot.artefacts")$auto
 ){
 
-  margin <- NA # mieti mit\uE4 t\uE4ll\uE4 tehd\uE4\uE4n, poistuuko kokonaan? Toden\uE4k\uF6isesti
+  margin <- NA # will this be used at all? Probably not.
 
   if(missing(d)){
     stop("Argument 'd' must a data frame!", call. = F)
@@ -433,8 +468,15 @@ roboplot <- function(d,
     }
   }
 
-  roboplotr_check_param(xaxis_ceiling, "character", size = NULL, allow_null = F)
-  xaxis_ceiling <- match.arg(xaxis_ceiling, c("default","days","months","weeks","quarters","years","guess"))
+  roboplotr_check_param(xaxis_ceiling, "character", allow_null = F)
+  if(!"date" %in% plot_axes$xticktype) {
+    if("default" %in% xaxis_ceiling) {
+      roboplotr_alert("'xaxis_ceiling' is ignored if x-axis is not a date.")
+    }
+    xaxis_ceiling <- "default"
+  } else {
+    xaxis_ceiling <- match.arg(xaxis_ceiling, c("default","days","months","weeks","quarters","years","guess"))
+    }
   if(xaxis_ceiling != "default" & all(is.na(plot_axes$xlim)) & !"bar" %in% plot_type & !str_detect(plot_mode, "horizontal")) {
     if(xaxis_ceiling == "guess") {
       xaxis_ceiling <- roboplotr_guess_xaxis_ceiling(d, hovertext)
@@ -471,7 +513,7 @@ roboplot <- function(d,
   yaxis <- plot_axes$y
 
   ticktypes <- append(plot_axes,list(dateformat = hovertext$dateformat, reverse = str_detect(plot_type, "bar")))
-  if((plot_axes$yticktype != "numeric" | plot_axes$xticktype != "date") & (zeroline != F | rangeslider != F)) {
+  if((!plot_axes$yticktype %in% "numeric" | !plot_axes$xticktype %in% "date") & (zeroline != F | rangeslider != F)) {
     roboplotr_alert("Parameters 'zeroline' and 'rangeslider' are currently disabled when parameter 'plot_axis' xticktype is not date or yticktype is not numeric!")
     zeroline <- F
     rangeslider <- F
@@ -554,7 +596,7 @@ roboplot <- function(d,
   mintime <- min(d$time)#ifelse(class(d$time) == "factor", min(levels(d$time)), min(d$time))
 
   # if only one group for color, remove legend as default
-  legend_order <- ifelse("scatter" %in% plot_type, "reversed", "normal")
+  legend_order <- ifelse("bar" %in% plot_type, "reversed", "normal")
 
   p <- p |>
     roboplotr_config(title = title, subtitle = subtitle, caption = caption,
@@ -578,7 +620,16 @@ roboplot <- function(d,
     }
   }
 
-  p
+  if(is.logical(artefacts)) {
+    roboplotr_check_param(artefacts, c("logical"))
+    if (artefacts == TRUE) {
+      params <- getOption("roboplot.artefacts")
+      roboplot_create_widget(p, NULL, params$filepath, params$render, params$self_contained, params$artefacts)
+    } else { p }
+  } else {
+    roboplotr_check_param(artefacts, c("function"), NULL, f.name = list(fun = first(substitute(artefacts)), check = "roboplot_set_artefacts"))
+    roboplot_create_widget(p, artefacts$title, artefacts$filepath, artefacts$render, artefacts$self_contained, artefacts$artefacts)
+  }
 
 }
 
@@ -670,15 +721,14 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
               roboplot.legend.rank = ((as.numeric(!!color)-1) * 100) + ((as.numeric(.data$roboplot.dash)-1)*10))
 
   if(str_detect(plot_mode,"horizontal")) {
-    d <- roboplotr_get_bar_widths(d, yaxis)
+    d <- roboplotr_get_bar_widths(d, yaxis) |> arrange(desc(!!sym(yaxis)))
     if(length(unique(d$roboplot.plot.text)) > 1) {
       d <- mutate(d, roboplot.horizontal.label = str_c(as.character(!!sym(yaxis)),", ",as.character(.data$roboplot.plot.text)))
     } else {
       d <- mutate(d, roboplot.horizontal.label = as.character(!!sym(yaxis)))
     }
     if(!is.null(legend_maxwidth)) {
-      d <- arrange(d, !!sym(yaxis)) |>
-        mutate(roboplot.trunc = str_trunc(as.character((!!sym(yaxis))), legend_maxwidth) |> fct_inorder())
+      d <- d |> mutate(roboplot.trunc = str_trunc(as.character((!!sym(yaxis))), legend_maxwidth) |> fct_inorder())
     }
   }
 

@@ -1,5 +1,6 @@
 #' Override the default options for colors, fonts etc. for any plot created with [roboplot()]
 #'
+#' @param artefacts Function. Use [roboplot_set_artefacts()].
 #' @param border_colors,grid_colors,tick_colors List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
 #' @param background_color Character. Plot background color. Must be a hexadecimal color or a valid css color.
 #' @param caption_defaults List. Used to parse caption. Values must be named "prefix", "lineend" and "updated". "prefix" is character, and added to caption text with ": ". "lineend" is character added to caption line ends. "updated" is logical that determines whether caption tries to guess latest update date from plot data.
@@ -181,6 +182,7 @@
 #' @importFrom stringr str_c str_detect str_extract str_subset
 #' @importFrom R.utils setOption
 roboplot_set_options <- function(
+    artefacts = NULL,
     border_colors = NULL,
     background_color = NULL,
     caption_defaults = NULL,
@@ -201,6 +203,8 @@ roboplot_set_options <- function(
     trace_colors = NULL,
     xaxis_ceiling = NULL,
     verbose = NULL,
+    widgets = NULL,
+    width = NULL,
     shinyapp = F,
     reset = F
     ) {
@@ -209,6 +213,7 @@ roboplot_set_options <- function(
     if(!is.null(option)) {
       if(is.null(opt_name)) {
         opt_name <- deparse(substitute(option))
+        opt_name <- str_c("roboplot.",opt_name)
       } else {
         opt_name <- str_c("roboplot.",opt_name)
       }
@@ -232,10 +237,13 @@ roboplot_set_options <- function(
       setOption(opt, NULL)
     }
 
+    roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = first(substitute(artefacts)), check = "roboplot_set_artefacts"))
+
     roboplotr_check_param(border_colors, "list", c("x","y"))
     roboplotr_valid_colors(border_colors)
     roboplotr_check_param(background_color, "character")
     roboplotr_valid_colors(background_color)
+
     roboplotr_check_param(caption_defaults, "list", c("prefix","lineend","updated"))
     if(!is.null(caption_defaults)) {
       `caption_defaults$prefix` <- caption_defaults$prefix
@@ -243,7 +251,7 @@ roboplot_set_options <- function(
       `caption_defaults$updated` <- caption_defaults$updated
       roboplotr_check_param(`caption_defaults$prefix`, "character", allow_null = F)
       roboplotr_check_param(`caption_defaults$lineend`, "character", allow_null = F)
-      roboplotr_check_param(`caption_defaults$updated`, "logical")
+      roboplotr_check_param(`caption_defaults$updated`, "logical", allow_null = F)
 
     }
 
@@ -284,9 +292,12 @@ roboplot_set_options <- function(
 
     roboplotr_check_param(shinyapp, "logical", allow_null = F)
 
+    roboplotr_check_param(width, "numeric")
+
     roboplotr_check_param(xaxis_ceiling, "character")
     roboplotr_valid_strings(xaxis_ceiling, c("default","days","months","weeks","quarters","years","guess"), any)
 
+    set_roboplot_option(artefacts)
     set_roboplot_option(border_colors, "colors.border")
     set_roboplot_option(background_color, "colors.background")
     set_roboplot_option(caption_defaults, "caption")
@@ -305,6 +316,7 @@ roboplot_set_options <- function(
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(tick_colors, "colors.ticks")
     set_roboplot_option(trace_colors, "colors.traces")
+    set_roboplot_option(width)
     set_roboplot_option(xaxis_ceiling, "yaxis.ceiling")
 
 

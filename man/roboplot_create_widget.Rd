@@ -6,11 +6,11 @@
 \usage{
 roboplot_create_widget(
   p,
-  title,
-  filepath,
-  render = T,
-  self_contained = F,
-  artefacts = "html"
+  title = NULL,
+  filepath = getOption("roboplot.artefacts")$filepath,
+  render = getOption("roboplot.artefacts")$render,
+  self_contained = getOption("roboplot.artefacts")$self_contained,
+  artefacts = getOption("roboplot.artefacts")$artefacts
 )
 }
 \arguments{
