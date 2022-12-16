@@ -44,17 +44,21 @@ use in the function documentation.
 First off, we use roboplot_set_options() to set some global options with the 
 visual specifications we want.
 
-```{r}
+```{r roboplot_options}
 roboplot_set_options(
-  artefacts = roboplot_set_artefacts(filepath = file.path(tempdir(), "plots"), auto = T, artefacts = "img_w"),
+  artefacts = set_artefacts(
+    filepath = file.path("/home/antti/workspace/roboplotr", "plots"), auto = T, artefacts = "img_w"
+    ),
   caption_defaults = list(prefix = "Source: ", lineend = ".", updated = FALSE),
   height = 400,
-  imgdl_wide = roboplot_set_imgdl_specs(
-    x = 400, y = 600, suffix = "", format = "png"),
-  imgdl_narrow = roboplot_set_imgdl_specs(
-    x = 440, y = 550, suffix = "", format = "png"),
+  imgdl_wide = set_imgdl_layout(
+    width = 650, height = 400, suffix = "", format = "png"),
+  imgdl_narrow = set_imgdl_layout(
+    width = 550, height = 440, suffix = "", format = "png"),
   logo_file = system.file("image", "vtt-logo.png", package = "vtt"),
-  modebar = c("home", "closest", "compare", "zoom", "img_n", "img_w", "data_dl"),
+  modebar = c(
+    "home", "closest", "compare", "zoom", "img_n", "img_w", "data_dl"
+    ),
   trace_colors = c("#01205F", "#16AFED", "#0581BB", "#BF1115", "#93CF57"),
   width = 650,
   xaxis_ceiling = "months",
@@ -69,15 +73,15 @@ the external png files. We also defined the colors used by all plot traces in
 the order we want them to be used, as well as the plot dimensions, and the 
 x-axis ceiling handling. 
 
-When 'xaxis_ceiling' is provided, any scatter plots 
-with date format are given some breathing room to the upper end or the range by
-rounding the last date unit to the next unit of the denomination given.
+When 'xaxis_ceiling' is provided, any scatter plots with date format are given
+some breathing room to the upper end or the range by rounding the last date unit 
+to the next unit of the denomination given.
 
 Captions, height, width, xaxis_ceiling, trace colors and artefacts can be 
 controlled by-plot, too. Width is not necessarily needed with roboplotr as the 
 plot element locations are dynamically adjusted according to plot width, but for 
-demonstration purposes we provided a width. Axis limits can also be controlled 
-more precisely by-plot with 'plot_axes' parameter.
+demonstration purposes we provided a width, as we want our rendered plots to be
+the same width as the corresponding png files we are going to create.
 
 The specifications for image downloads are defined with imgdl_wide and 
 imgdl_narrow. Automating image downloads needs to have corresponding buttons in
@@ -87,14 +91,14 @@ buttons, and provide a suffix for the created files, and define the file format.
 
 We also want to automate the artefact file creation. This can be controlled 
 by-plot with the parameter 'artefacts' of roboplot(), but we'll use 
-roboplot_set_artefacts() here to set some global options. We set 'auto' to true
-(to make roboplotr() create the files automatically), and give 'filepath' where
+set_artefacts() here to set some global options. We set 'auto' to true
+(to make roboplot() create the files automatically), and give 'filepath' where
 the files will be located. We have already decided that generally we'll wide
 images (which we further specified with 'imgdl_wide'), we use 
-roboplot_set_artefacts() to set "img_w" as the default file and specify it 
+set_artefacts() to set "img_w" as the default file and specify it 
 separately when something else is needed.
 
-We also used 'verbose' as "Warning" that quiets most of the messages roboplotr
+We also set 'verbose' to "Warning" that quiets most of the messages roboplotr
 gives.
 
 Next we call some libraries we need for the data we are going to plot, and 
@@ -118,10 +122,7 @@ d <- data_get("oecd/EO") |>
     Country, mutate,
     value = 100 * value / mean(value[year(time) == 2019])
   ) |>
-  mutate(
-    Country = recode(Country, "Euro area (17 countries)" = "Euro area") |>
-           fct_reorder(value)
-    )
+  mutate(Country = recode(Country, "Euro area (17 countries)" = "Euro area"))
 
 attr(d, "frequency") <- "Quarterly"
 
@@ -134,22 +135,19 @@ roboplot(d,
 
 ```
 
+
 At the minimum, roboplot() needs some data to be plotted, a title, and a 
 caption. Subtitle is optional, but most likely needed - it is the best place to
 show the y-axis unit. Caption is parsed from the given string and elements 
 defined in roboplot_set_options().
-
-We also used forcats::fct_rerorder to transform the column Country as a factor,
-as roboplotr uses the factor levels to order the legend, and draws the traces in
-that order. We could have skipped this, in which case the factoring would be 
-handled by roboplot() in order of appearance.
 
 Data tranformation also stripped the data of the frequency attribute, which 
 roboplot() uses to parse date formats for several purposes, so we inserted that
 back. We could have skipped this, too, leaving it up to roboplot() to guess the 
 frequency.
 
-Next we will create another plot.
+Next we will create another plot, with a caption that does not respect the
+globally set format.
 
 ```{r inflation}
 inflation_eu <-
@@ -175,11 +173,10 @@ inflation_us <-
   filter(time >= "2015-01-01") |>
   transmute(geo = "USA", time, value)
 
-d <- bind_rows(inflation_us, inflation_eu) |>
-  mutate(geo = fct_reorder(geo, value))
+d <- bind_rows(inflation_us, inflation_eu)
 
 d |> roboplot(geo, "Consumer price inflation","Annual change of HICP, %",
-              caption = roboplot_set_caption(
+              caption = set_caption(
                 prefix = "Sources: ",
                 text = "Eurostat & US BLS")
   )
@@ -188,7 +185,7 @@ d |> roboplot(geo, "Consumer price inflation","Annual change of HICP, %",
 The previous examples show how the plotting is a lightweight task. As the
 source notation is a bit different from the previous plot and we have predefined 
 caption formatting previously with roboplot_set_options(), we must use 
-roboplot_set_caption() to override the prefix instead of just giving a single 
+set_caption() to override the prefix instead of just giving a single 
 string.
 
 Next we make a horizontal plot on producer prices, where we need to be be a bit
@@ -216,20 +213,24 @@ d |> roboplot(
   caption = "Statistics Finland",
   plot_type = "bar",
   plot_mode = "horizontal",
-  plot_axes = roboplot_set_axes(y = "CPA"),
+  plot_axes = set_axes(y = "CPA"),
   legend_maxwidth = 45,
-  artefacts = roboplot_set_artefacts(artefacts = "img_n")
+  artefacts = set_artefacts(artefacts = "img_n")
   )
 ```
 
 As we wanted to present a horizontal bar plot, we used the parameters 
 'plot_type' and 'plot_mode' from roboplot() to define the plot as such.
 
+Before plotting, we reordered the column that would be y-axis as factor based
+on value, as roboplot() only does this independently for the column that defines 
+'color'.
+
 We also used 'plot_axes' parameter of roboplot() and the function 
-roboplot_set_axes() parameter 'y' to set thecolumn "CPA" from the data to be the
-yaxis of the plot.roboplot_set_axes() can take further parameters (described in
+set_axes() parameter 'y' to set thecolumn "CPA" from the data to be the
+yaxis of the plot. set_axes() can take further parameters (described in
 detail in function documentation), but for a horizontal bar plot with otherwise
-standard data, roboplot_set_axes() can handle the ticktypes etc. for the plot by
+standard data, set_axes() can handle the ticktypes etc. for the plot by
 just providing the intended column name as parameter 'y'. For most cases this
 is enough.
 
@@ -243,7 +244,7 @@ plot are very narrow, we also provided 'legend_maxwidth'. This would normally
 cut legend items shorter, but with character strings in y-axis, it shortens 
 those with an ellipsis. Full texts can still be seen on hover.
 
-We also used the parameter 'artefacts' with roboplot_set_artefacts() to get an 
+We also used the parameter 'artefacts' with set_artefacts() to get an 
 image file with different dimensions than with earlier pictures. We defined the 
 layout for these files earlier on with roboplot_set_options().
 
@@ -258,20 +259,29 @@ data_get("tidy/thi") %>%
     Toimiala == "Yhteensä"
   ) %>%
   mutate(value = 100 * (value / lag(value, 12) - 1),
-         Indeksisarja = "Producer Price Index for Manufactured Products") |> 
+         Indeksisarja = "Producer Price Index for Manufactured Products") |>
+  drop_na() |>
   roboplot(Indeksisarja,
     "Producer Price Index for Manufactured Products",
     "Annual change, %",
     "Statistics Finland",
+    height = 440,
     width = 550,
-    artefacts = roboplot_set_artefacts(artefacts = "img_n")
+    artefacts = set_artefacts("img_n")
   )
 ```
 
 We decided to provide a column name for the parameter 'color', but as the plot
 takes the hovertemplate text from data, we had to translate the column text 
-manually into English to match the plot. We also wanted this plot to be a bit
-narrower.
+manually into English to match the plot. We could have just not provide the
+color just as well as there is only a single trace.
+
+We also wanted a plot with different dimensions, and we give the the same 
+dimensions that we decided the narrow png images will have, so the html output
+and png files match.
+
+We also needed to drop na-values, as otherwise the plot x-axis would have shown
+an unnecessary gap in the left side of the plot.
 
 As you can see, all of this makes the workflow for plot very short and simple.
 
@@ -293,15 +303,15 @@ data_get("tidy/ec_oil_bulletin") |>
     time >= "2018-01-01") |>
   mutate(
     value = value / 1000,
-    Country = recode(Country, FI = "Finland", DE = "Germany", SE = "Sweden")
-  ) |>
+    Country = recode(Country, FI = "Finland", DE = "Germany", SE = "Sweden")) |>
   roboplot(
     Country,
     "Petrol price, 95E10",
     "Euros per litre",
     "European Commission",
+    height = 440,
     width = 550,
-    artefacts = roboplot_set_artefacts(artefacts = "img_n")
+    artefacts = set_artefacts("img_n")
   )
 
 ```
@@ -312,9 +322,11 @@ bind_rows(list(
   WTI = data_get("eia/PET.RWTC.W")
 ), .id = "Tiedot") |>
   filter(time >= "2018-01-01") |>
-  roboplot(Tiedot,"Crude oil price","US Dollars per barrel","EIA",width = 550,
-           plot_axes = roboplot_set_axes(xformat = "%Y"),
-           artefacts = roboplot_set_artefacts(artefacts = "img_n")
+  roboplot(Tiedot,"Crude oil price","US Dollars per barrel","EIA",
+           height = 440,
+           width = 550,
+           plot_axes = set_axes(xformat = "%Y"),
+           artefacts = set_artefacts("img_n")
            )
 ```
 
@@ -331,19 +343,18 @@ d |>
     ma28 = slider::slide_index_dbl(value, time, mean, .before = days(28))
   ) |>
   group_by(Area, time = lubridate::floor_date(time, "days")) |>
-  summarise(value = mean(ma28)) |>
-  ungroup() |>
+  summarise(value = mean(ma28), .groups = "drop") |>
   arrange(Area, time) |>
   roboplot(Area,"Electricity prices, 28-day moving average","€/MWh","Entso-E",
-           plot_axes = roboplot_set_axes(xformat = "%Y"))
+           plot_axes = set_axes(xformat = "%Y"))
 ```
 
-The previous two plots hava weekly and daily data and roboplotr() changes date
+The previous two plots have weekly and daily data, and roboplotr() changes date
 format for different zoom levels based on frequency. We wanted to to ensure the 
 x-axis is always  displayed in years, so we provided 'xformat' in plot_axes.
 
 ```{r sentiment_average}
-data_get("ec/esi_nace2") |>
+d <- data_get("ec/esi_nace2") |>
   filter(
     Country %in% 
       c("European Union (current composition)", "Finland", "Germany", "Sweden"),
@@ -356,14 +367,20 @@ data_get("ec/esi_nace2") |>
       recode(Country, "European Union (current composition)" = "EU") |>
       fct_relevel("EU","Finland"),
     Indicator = "Economic sentiment indicator"
-    ) |>
-  roboplot(
+    )
+devtools::load_all()
+d |> roboplot(
     Country,
     "Economic sentiment indicator",
     "Score, 100 = long-run average",
     "European Commission",
+    artefacts = F
   )
 ```
+
+For this plot we didn't want roboplot() to order the traces automatically but 
+draw the traces in the order of our choosing, so we trasformed it to factor
+before piping the data to roboplotr().
 
 ```{r consumer_confidence_eu}
 data_get("ec/esi_nace2") |> 
@@ -403,7 +420,7 @@ d |>
     )
 ```
 
-For the next plots we want to use a stronger zeroline than what the default 
+For the next few plots we want to use a stronger zeroline than what the default 
 plotly plots have, so we will use the 'zeroline' parameter. Zeroline can also 
 take a numeric value which locates the zeroline at the given y-axis location.
 
@@ -427,7 +444,7 @@ data_get("tidy/10yield") |>
     Maa,
     "Long-term government bond rates",
     "%, 10-year bond",
-    caption = roboplot_set_caption(
+    caption = set_caption(
       prefix = "Sources: ", text = "Bank of Finland, Deutche Bundesbank & Fed"),
     zeroline = TRUE)
 ```
@@ -438,7 +455,7 @@ For the next plot we need to plot data other than dates as x-axis values.
 data_get("ecb/YC",
      dl_filter = "B.U2.EUR.4F.G_N_A.SV_C_YM.",
      query_args = list(startPeriod = "2022-01-01"),
-     labels=FALSE
+     labels = FALSE
      ) |>
   filter(`Financial market data type` |> str_starts("SR_")) |>
   filter(
@@ -458,13 +475,14 @@ data_get("ecb/YC",
     Time,
     "Yield curves for AAA euro area government bonds",
     "% interest rate vs. maturity",
-    caption = roboplot_set_caption(
+    caption = set_caption(
       "ECB",
       prepend = "The curves show the yield curve at various points in time",
     ),
-    plot_axes = roboplot_set_axes(x = "Maturity", xticktype = "numeric"),
+    plot_axes = set_axes(x = "Maturity", xticktype = "numeric"),
+    height = 440,
     width = 550,
-    artefacts = roboplot_set_artefacts(artefacts = "img_n")
+    artefacts = set_artefacts("img_n")
   )
 ```
 
@@ -472,8 +490,8 @@ We used 'plot_axes' in a similar way we used it with the previous horizontal bar
 plot, but this time we defined the data column used for x-axis, and provided
 the type roboplotr() will use for tick formatting.
 
-We also wanted to prepend an explanation about the ploit to the caption, which 
-roboplot_set_caption() can take as a parameter.
+We also wanted to prepend an explanation about the plot to the caption, which 
+set_caption() can take as a parameter.
 
 ```{r unemployment}
 data_get("eurostat/une_rt_m") |>
@@ -486,9 +504,10 @@ data_get("eurostat/une_rt_m") |>
   mutate(
     geo = recode(geo, "European Union - 27 countries (from 2020)" = "EU")) |>
   roboplot(
-    geo,"Unemployment rate","%, seasonally adjusted","Eurostat.", 
+    geo,"Unemployment rate","%, seasonally adjusted","Eurostat.",
+    height = 440,
     width = 550,
-    artefacts = roboplot_set_artefacts(artefacts = "img_n")
+    artefacts = set_artefacts("img_n")
     )
 
 ```
@@ -506,7 +525,7 @@ Quandl::Quandl("BCHAIN/MKTCP") |>
     title = "Bitcoin Market Capitalization",
     subtitle = "Billion dollars",
     caption = "Nasdaq Data Link",
-    plot_axes = roboplot_set_axes(xformat = "%Y")
+    plot_axes = set_axes(xformat = "%Y")
   )
 ```
 
@@ -537,7 +556,7 @@ d |>
     title = "Value of monthly exports from China", 
     subtitle = "Billion US dollars", 
     caption = "National Bureau of Statistics, China", 
-    plot_axes = roboplot_set_axes(xticktype = "character")
+    plot_axes = set_axes(xticktype = "character")
     )
 ```
 
@@ -550,6 +569,10 @@ to be in.
 
 ```{r png_check}
 
-list.files(str_c(tempdir(),"/plots")) |> str_subset("png$")
+list.files(str_c(tempdir(),"/plots")) |> 
+  str_subset("png$") |> 
+  str_c(collapse = "\n") |>
+  roboplotr:::roboplotr_combine_words() |> 
+  cat()
 
 ```

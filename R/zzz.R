@@ -10,9 +10,9 @@
     roboplot.colors.ticks = list(x = "#E8E8E8", y = "#E8E8E8"),
     roboplot.dashtypes = c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"),
     roboplot.patterntypes = c("","/","\\","x","-","|","+","."),
-    roboplot.font.caption = list(size = 10, family = "sans-serif", path = NULL, color = "#696969"),
-    roboplot.font.main = list(size = 14, family = "sans-serif", path = NULL, color = "#696969"),
-    roboplot.font.title = list(size = 17, family = "sans-serif", path = NULL, color = "#696969", bold = T),
+    roboplot.font.caption = list(size = 10, family = "Arial, sans-serif", path = NULL, color = "#696969"),
+    roboplot.font.main = list(size = 14, family = "Arial, sans-serif", path = NULL, color = "#696969"),
+    roboplot.font.title = list(size = 17, family = "Arial, sans-serif", path = NULL, color = "#696969", bold = T),
     roboplot.height = 550,
     roboplot.linewidth = 2,
     roboplot.logo = system.file("images", "robonomist.png", package = "roboplotr"),
@@ -20,8 +20,8 @@
     roboplot.imgdl.wide = list(x = 1280, y = 720, title = 31, main = 24, caption = 19, suffix = "_levea", type = "png"),
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea", type = "png"),
     roboplot.imgdl.small = list(x = 889, y = 500, title = 23, main = 18, caption = 14, suffix = "_pieni", type = "png"),
-    roboplot.yaxis.ceiling = "default",
     roboplot.width = NULL,
+    roboplot.xaxis.ceiling = "default",
     roboplot.verbose = "All"
   )
 

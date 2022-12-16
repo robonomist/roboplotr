@@ -14,7 +14,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
     # orientation <- "h"#case_when(orientation == "auto" ~ ifelse(legend_position == "right", "v","h"), TRUE ~ str_extract(orientation, "^(v|h)"))
     p |> layout(
       showlegend = T,
-      legend = list(font = getOption("roboplot.font.main"),
+      legend = list(font = getOption("roboplot.font.main")[c("color","family","size")],
                     bgcolor = getOption("roboplot.colors.background") |> decode_colour() |> encode_colour(alpha = 0.7),
                     x = x.pos, y = y.pos,
                     orientation = "h",
@@ -30,7 +30,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
     # orientation <- "h"#case_when(orientation == "auto" ~ ifelse(legend_position == "right", "v","h"), TRUE ~ str_extract(orientation, "^(v|h)"))
     p |> layout(
       showlegend = T,
-      legend = list(font = getOption("roboplot.font.main"),
+      legend = list(font = getOption("roboplot.font.main")[c("color","family","size")],
                     bgcolor = getOption("roboplot.colors.background") |> decode_colour() |> encode_colour(alpha = 0.7),
                     x = x.pos, y = y.pos,
                     orientation = "h",
@@ -54,7 +54,7 @@ roboplotr_caption <- function(p, caption) {
           x = 0, text = caption, align = "left",
           showarrow = F, xref = 'paper', yref = "paper",
           xanchor='left', yanchor = 'bottom', xshift=0, yshift=0,
-          font = getOption("roboplot.font.caption")
+          font = getOption("roboplot.font.caption")[c("color","family","size")]
         )
       )
   }
@@ -79,7 +79,7 @@ roboplotr_title <- function(p, title, subtitle) {
             "<span>",title,
             as.character(tags$span(HTML(str_c("<br>",subtitle)), style = "font-size: 75%")),"</span>"
           ),
-          font = getOption("roboplot.font.title"),
+          font = getOption("roboplot.font.title")[c("color","family","size")],
           xanchor = "left",
           yanchor = "bottom",
           # y = 0.9325,
@@ -118,7 +118,7 @@ roboplotr_title <- function(p, title, subtitle) {
 #'
 #' d |>
 #'   roboplot(Alue, "Energy import","Million euros",
-#'            caption = roboplot_set_caption(
+#'            caption = set_caption(
 #'              prepend = "(Canada)",
 #'              append = paste0("(Customs Finland, International trade ",
 #'                              "statistics;\nRadiation and Nuclear Safety ",
@@ -130,10 +130,10 @@ roboplotr_title <- function(p, title, subtitle) {
 #'
 #'
 #' # If 'updated' is set to TRUE, you need to provide the .data where
-#' # roboplotr::roboplot_set_caption() will look for the update info, and if
+#' # roboplotr::set_caption() will look for the update info, and if
 #' # found, it appears under the caption text.
 #' d |> roboplot(Alue,"Energian tuonti Kanadasta","Miljoonaa euroa",
-#'               caption = roboplot_set_caption(
+#'               caption = set_caption(
 #'                 text = "Tilastokeskus",
 #'                 updated = TRUE,
 #'                 .data = d
@@ -156,7 +156,7 @@ roboplotr_title <- function(p, title, subtitle) {
 #' @importFrom stringr str_c
 #' @export
 
-roboplot_set_caption <- function(text = NULL, prefix = getOption("roboplot.caption")$prefix, updated = getOption("roboplot.caption")$updated, .data = NULL, line.end = getOption("roboplot.caption")$lineend, prepend = NULL,append = NULL) {
+set_caption <- function(text = NULL, prefix = getOption("roboplot.caption")$prefix, updated = getOption("roboplot.caption")$updated, .data = NULL, line.end = getOption("roboplot.caption")$lineend, prepend = NULL,append = NULL) {
 
   roboplotr_check_param(prefix, type = "character")
   roboplotr_check_param(.data, type = "data.frame", NULL, allow_null = T)
@@ -214,12 +214,13 @@ roboplotr_highlight_legend <- function(highlight, df) {
 }
 
 
-#' Get a list used as font specifications in [roboplot()]
+#' Get a list for [roboplot_set_options()] used as font specifications in [roboplot()]
 #'
-#' @param path Character. Either "serif", "sans-serif" or a path to .otf or .ttf file.
+#' @param font Character. One of "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT" or a path to an .otf or .ttf file.
+#' @param fallback Character. Only used when a file path is used with 'font'. Fallback font when the defined font is unavailable. Especially concerns image downloads.
 #' @param size Double. Determines font size for the font.
 #' @param color Character. Must be a hexadecimal color or a valid css color.
-#' @param bold_title Logical. Only used for title font. Determines if the title is bolded.
+#' @param bold_title Logical. Only used for font of type 'title'. Determines if the title is bolded.
 #' @param type Character. One of "main", "title" or "caption".
 #' @importFrom stringr str_c str_extract
 #' @returns A list
@@ -228,22 +229,25 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' # inside roboplotr::roboplot_set_options(). 'path' can be a file path or
 #' # string "serif" or "sans-serif", if no specific font path will be provided.
 #' # This will change fonts according to the list output of
-#' # roboplotr::roboplot_set_font(). You can designate font color, size, and
+#' # roboplotr::set_font(). You can designate font color, size, and
 #' # path, and (for title font only) whether it is bolded. You must also provide
-#' # one of "title", "main" or "caption" as 'type' if an actual filepath is
+#' # one of "title", "main" or "caption" as 'type' and a web-safe fallback font
+#' # if an actual filepath is
 #' # provided for 'path'.
 #'
+#'
 #' roboplot_set_options(
-#'   font_title = roboplot_set_font(size = 17, path = "serif", bold = TRUE),
-#'   font_main =  roboplot_set_font(
+#'   font_title = set_font(size = 17, font = "Tahoma", bold = TRUE),
+#'   font_main =  set_font(
 #'     size = 11,
-#'     path = system.file("www","fonts","bladerunner.TTF", package = "roboplotr"),
+#'     font = system.file("www","fonts","bladerunner.TTF", package = "roboplotr"),
+#'     fallback = "sans-serif",
 #'     color = "darkred",
 #'     type = "main"),
-#'   font_caption = roboplot_set_font(color = "green")
+#'   font_caption = set_font(color = "green")
 #' )
 #'
-#' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+#' # d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 #'
 #' d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
 #'
@@ -261,20 +265,26 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' # revert to defaults:
 #' roboplot_set_options(reset = TRUE)
 #' @export
-roboplot_set_font <- function(path = "sans-serif", size = 12, color = "black", bold_title = T, type = NULL) {
+set_font <- function(font = "Arial", fallback = NULL, size = 12, color = "black", bold_title = T, type = NULL) {
 
-  roboplotr_check_param(path, "character", allow_null = F)
-  if(!path %in% c("serif","sans-serif")) {
-    if (!file.exists(path) | !str_extract(path, "[^\\.]*$") %in% c("otf","ttf","OTF","TTF")) {
-      stop(str_c("Font path does not seem to exist or the font file is not in file format .otf or .ttf. Is the file path correct?\nTry using a call of system.file() (eg. system.file(\"www\",\"fonts\",\"Roboto-Regular.ttf\", package = \"roboplotr\"))\nYou can also use \"serif\" or \"sans-serif\" in place of a font path."), call. = F)
+  websafe <- c("Arial","Verdana","Tahoma","Trebuchet","Times New Roman","Georgia","Garamond","Courier New","Brush Script MT")
+
+  roboplotr_check_param(font, "character", allow_null = F)
+
+  if(!font %in% websafe) {
+    if (!file.exists(font) | !str_extract(font, "[^\\.]*$") %in% c("otf","ttf","OTF","TTF")) {
+      stop(str_c("The give 'font' does not seem to exist or the font file is not in file format .otf or .ttf. Is the file path correct?\n",
+                 "Try using a call of system.file() (eg. system.file(\"www\",\"fonts\",\"Roboto-Regular.ttf\", package = \"roboplotr\"))\n",
+                 "You can use any of ",roboplotr_combine_words(str_c("\"",websafe,"\""), and = " or ")," instead."), call. = F)
     }
   }
+
   roboplotr_check_param(size, "numeric", allow_null = F)
   roboplotr_check_param(color, "character", allow_null = F)
   roboplotr_valid_colors(color)
   roboplotr_check_param(bold_title, "logical", allow_null = F)
 
-  if(!path %in% c("serif","sans-serif")) {
+  if(!font %in% websafe) {
     roboplotr_check_param(type, "character", allow_null = F)
     type <- tolower(type)
     if(!type %in% c("main","title","caption")) {
@@ -282,12 +292,22 @@ roboplot_set_font <- function(path = "sans-serif", size = 12, color = "black", b
     }
   }
 
-  if(path %in% c("serif","sans-serif")) {
-    family <- path
-    path <- NULL
+  fallbacks <- c("Arial|Verdana|Tahoma|Trebuchet" = "sans-serif",
+                 "Times New Roman|Georgia|Garamond" = "serif",
+                 "Courier New" = "monospace",
+                 "Brush Script MT" = "cursive")
+
+  if(font %in% websafe) {
+    fallback <- str_replace_all(font, fallbacks)
+    family <- str_c(font,", ",fallback)
+    font <- NULL
+    fallback <- NULL
   } else {
+    roboplotr_check_param(fallback, "character", allow_null = F)
+    roboplotr_valid_strings(fallback, websafe, any)
+    fallback <- str_c(fallback," , ",str_replace_all(fallback, fallbacks))
     family <- str_c("roboplot-",type)
   }
 
-  list(path = path, family = family, size = size, color = color, bold = bold_title)
+  list(path = font, family = family, fallback = fallback, size = size, color = color, bold = bold_title)
 }

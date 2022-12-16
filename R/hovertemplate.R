@@ -39,7 +39,7 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #'
 #' p <- d |> roboplot(
 #'   Alue, "Energian tuonti", "Miljoonaa euroa", "Tilastokeskus",
-#'   hovertext = roboplot_set_hovertext(
+#'   hovertext = set_hovertext(
 #'     frequency = "Monthly", rounding = 2, unit = "Milj. €"
 #'     )
 #' )
@@ -51,12 +51,12 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #'
 #' p <- d |> roboplot(
 #'   Alue, "Energian tuonti", "Milj. €", "Tilastokeskus",
-#'   hovertext = roboplot_set_hovertext("Annual", extra = "(%{x:|Q})")
+#'   hovertext = set_hovertext("Annual", extra = "(%{x:|Q})")
 #' )
 #' p
 #' @returns A list
 #' @export
-roboplot_set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", extra = NULL) {
+set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", extra = NULL) {
 
   roboplotr_check_param(frequency, "character", allow_null = T)
   if(!is.null(frequency)) { roboplotr_valid_strings(frequency,c("Annual","Quarterly","Monthly","Weekly","Daily"), .fun = any) }

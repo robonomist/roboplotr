@@ -9,7 +9,7 @@
 #' @param xformat,yformat Character. Formatting for axis tick text. Use
 #' \href{https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md}{d3 time format}
 #' for dates and \href{https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma}{d3 number format}
-#' for numbers. Ignored for charaters.
+#' for numbers. Ignored for characters.
 #' @param xlim,ylim Vector of length 2. Used as the axis limits. These are not
 #' type-checked by [roboplot()], but should match the values used in the
 #' respecting plot axis.
@@ -21,7 +21,7 @@
 #'   dplyr::filter(Alue %in% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
 #' attr(d, "frequency") <- "Quarterly"
 #'
-#' # Control the plot axes with roboplotr::roboplot_set_axes, setting the columns
+#' # Control the plot axes with roboplotr::set_axes, setting the columns
 #' # from roboplotr::roboplot variable 'd' as the axis data sources with 'x' and
 #' # 'y', and ticktypes with 'xticktype' and 'yticktype'.
 #' d |> dplyr::filter(time == max(time)) |>
@@ -30,7 +30,7 @@
 #'            "Milj. €","Tilastokeskus",
 #'            plot_type = "bar",
 #'            plot_mode = "horizontal",
-#'            plot_axes = roboplot_set_axes(
+#'            plot_axes = set_axes(
 #'              y = "Alue",
 #'              yticktype = "character",
 #'              x = "value",
@@ -49,7 +49,7 @@
 #' d |>
 #'   dplyr::filter(Suunta == "Tuonti") |>
 #'   roboplot(Alue,"Energian tuonti","Milj. €","Tilastokeskus",
-#'            plot_axes = roboplot_set_axes(
+#'            plot_axes = set_axes(
 #'              ytitle = "Arvo",
 #'              xformat = "Y%y",
 #'              yformat = "+$05,",
@@ -57,7 +57,7 @@
 #'              xlim = c("2015-01-01","2023-01-01"))
 #'   )
 #'
-#' # roboplotr::roboplot_set_axes also gives the user fine-grained control for
+#' # roboplotr::set_axes also gives the user fine-grained control for
 #' # plots where there might not be data in a format that is directly transerable
 #' # to date or numeric format.
 #'
@@ -80,7 +80,7 @@
 #' d2 |>
 #'   roboplotr::roboplot(title = "Growth Rate of Investment",
 #'                       caption = "National bureau of statistics, China",
-#'                       plot_axes = roboplot_set_axes(xticktype = "character"))
+#'                       plot_axes = set_axes(xticktype = "character"))
 #'
 #' # Or you might have numeric data on both axes. roboplotr::roboplot() will draw
 #' # any traces in the order they appear in the data, so it is up to the user to
@@ -98,14 +98,14 @@
 #' d3 |> dplyr::arrange(obs1, value) |>
 #'   roboplotr::roboplot(title = "Random values",
 #'                       caption = "Robonomist",
-#'                       plot_axes = roboplot_set_axes(
+#'                       plot_axes = set_axes(
 #'                         x = "obs1",
 #'                         xticktype = "numeric"))
 #'
 #' # You might just want to switch the axes for time and value
 #' d |> dplyr::filter(Suunta == "Tuonti") |>
 #'   roboplotr::roboplot(Alue, "Energian tuonti","Milj. €", "Tilastokeskus",
-#'                       plot_axes = roboplot_set_axes(
+#'                       plot_axes = set_axes(
 #'                         y = "time",
 #'                         yticktype = "date",
 #'                         x = "value",
@@ -115,7 +115,7 @@
 #' # Or you might want to draw character strings on some axis.
 #' d |> dplyr::filter(Suunta == "Tuonti") |>
 #'   roboplotr::roboplot(Alue, "Energian tuonti","Milj. €", "Tilastokeskus",
-#'                       plot_axes = roboplot_set_axes(
+#'                       plot_axes = set_axes(
 #'                         y = "Alue",
 #'                         yticktype = "character",
 #'                         x = "value",
@@ -128,7 +128,7 @@
 #'   roboplotr::roboplot(Alue, "Energian tuonti","Milj. €", "Tilastokeskus",
 #'                       plot_type = "bar",
 #'                       plot_mode = "horizontal",
-#'                       plot_axes = roboplot_set_axes(
+#'                       plot_axes = set_axes(
 #'                         y = "Alue",
 #'                         yticktype = "character",
 #'                         x = "value",
@@ -137,7 +137,7 @@
 #'
 #' @export
 #' @importFrom dplyr case_when
-roboplot_set_axes <- function(x = NULL, y = NULL, xticktype = NULL, yticktype = NULL, xtitle = "", ytitle = "", xformat = NULL, yformat = NULL, xlim = c(NA,NA), ylim = c(NA, NA)) {
+set_axes <- function(x = NULL, y = NULL, xticktype = NULL, yticktype = NULL, xtitle = "", ytitle = "", xformat = NULL, yformat = NULL, xlim = c(NA,NA), ylim = c(NA, NA)) {
 
   if(is.null(y)) {
     y <- "value"
@@ -223,7 +223,7 @@ roboplotr_get_tick_layout <- function(ticktype,
                                      background_color = getOption("roboplot.colors.background"),
                                      border_color = getOption("roboplot.colors.border"),
                                      tick_color = getOption("roboplot.colors.ticks")) {
-  font <- getOption("roboplot.font.main")
+  font <- getOption("roboplot.font.main")[c("color","family","size")]
   if (ticktype == "date") {
     # print(ticktype)
     dlist <- list(tickfont = font,

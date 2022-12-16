@@ -134,15 +134,15 @@ roboplot_create_widget <- function(
 #'
 #' # roboplot_create_widget() shows how the parameters are used. Further
 #' # controls for other than "html" artefacts are are under
-#' # roboplot_set_imgdl_specs().
+#' # set_imgdl_layout().
 #' @return A list.
 #' @export
-roboplot_set_artefacts <- function(
+set_artefacts <- function(
+    artefacts = getOption("roboplot.artefacts")$artefacts,
     title = NULL,
     filepath = getOption("roboplot.artefacts")$filepath,
     render = getOption("roboplot.artefacts")$render,
     self_contained = getOption("roboplot.artefacts")$self_contained,
-    artefacts = getOption("roboplot.artefacts")$artefacts,
     auto = getOption("roboplot.artefacts")$auto
     ) {
   roboplotr_check_param(filepath, "character", allow_null = F)
@@ -288,75 +288,75 @@ roboplotr_widget_deps <- function(filepath = NULL) {
 # @param files_path The folder where the artefacts to be uploaded are located.
 # @param upload_path The gcs folder where the artefacts will be uploaded to.
 # @param overwrite If named files exist in the cloud storage, will they be overwritten.
-#' @importFrom knitr current_input
-#' @importFrom stringr str_remove str_replace_all str_c str_detect
-#' @importFrom dplyr case_when
-#' @importFrom googleCloudStorageR gcs_metadata_object gcs_upload gcs_get_global_bucket gcs_auth gcs_global_bucket gcs_list_objects
-#' @importFrom purrr walk
-roboplotr_upload_widgets <- function(files_path, upload_path, overwrite = FALSE) {
-
-  if (length(Sys.glob(file.path(getwd() |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))) != 0){
-    aut_file <- Sys.glob(file.path(getwd() |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))
-  } else {
-    aut_file <- Sys.glob(file.path("~" |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))
-  }
-
-  tryCatch(gcs_auth(aut_file), error = function(e) {
-    str <- str_c("Do you have the proper authorisation file in the directory?\n")
-    stop(str, call. = F)
-  })
-  suppressMessages(gcs_global_bucket("pttry"))
-
-  is_knitting <- isTRUE(getOption('knitr.in.progress'))
-
-  if(missing(files_path)) {
-    if(is_knitting == T) {
-      cur_input <- current_input()
-      files_path <- tempdir()
-    } else {
-      stop("Give the path to the files you wish to upload. Careful! This will upload every .html, .css, .map, .scss, .txt and .js file in the given path!", call. = F)
-    }
-  } else {
-    upl_files <-  list.files(path = files_path, recursive = T, full.names = T) |> str_subset("\\.(css|js|map|scss|html|txt)$") |> str_c(collapse = ", ")
-    roboplotr_warning(str_c("Give the path to the files you wish to upload. Careful! This will upload all of ",upl_files,"!\nType \"upload\" to continue:"))
-    ans <- readline(" ")
-    if (ans != "upload") { stop("Canceled", call. = F) }
-  }
-
-  if (missing(upload_path) & !is_knitting) {
-    stop("Give the path to the folder in the upload bucket where you wish to upload the files to.", call. = F)
-  }
-
-  artefact_files <- list.files(files_path, recursive = T) |> str_subset("\\.(css|js|map|scss|html|txt)$")
-  if(overwrite == FALSE) { message("Overwrite is set to false, set overwrite = T in roboplotr_upload_widgets if you want to overwrite existing uploads.") }
-  walk(artefact_files, function(artefact_file) {
-    upload_file <- if(is_knitting) {
-      prefix <- cur_input |> str_remove("\\.Rmd$") |> str_replace_all("/","_") |> str_c("_artefacts")
-      file.path("ennustekuvat",prefix,artefact_file)
-    } else {
-      file.path(upload_path,artefact_file)
-    }
-    obj.existence <- suppressMessages(gcs_list_objects(prefix = upload_file) |> nrow() |> as.logical())
-    # print(artefact_file)
-    # print(upload_file)
-    if(obj.existence == TRUE & overwrite == FALSE) {
-      roboplotr_warning(str_c("The file ",upload_file, " already exists!"))
-    } else {
-      if(obj.existence == TRUE) {
-        roboplotr_alert(str_c("Overwriting previous upload of ",upload_file))
-      } else {
-        roboplotr_message(str_c("Uploading ",upload_file))
-      }
-      upload_type <- case_when(str_detect(upload_file, "css$") ~ "text/css",
-                               str_detect(upload_file, "js$") ~ "text/javascript",
-                               str_detect(upload_file, "txt$") ~ "text/plain",
-                               str_detect(upload_file, "map$") ~ "application/json",
-                               TRUE ~ as.character(NA))
-      if(is.na(upload_type)) { upload_type <- NULL}
-      meta <- gcs_metadata_object(artefact_file, cacheControl = "public, max-age=600")
-      meta[["name"]] <- str_replace_all(upload_file, c("\\%C3\\%B6" = "\u00f6", "\\%C3\\%A4" = "\u00e4", "\\%2F" = "/"))
-      gcs_upload(file.path(files_path,artefact_file), gcs_get_global_bucket(), name = upload_file, type = upload_type, object_metadata = meta, predefinedAcl="bucketLevel")
-    }
-
-  })
-}
+# @importFrom knitr current_input
+# @importFrom stringr str_remove str_replace_all str_c str_detect
+# @importFrom dplyr case_when
+# @importFrom googleCloudStorageR gcs_metadata_object gcs_upload gcs_get_global_bucket gcs_auth gcs_global_bucket gcs_list_objects
+# @importFrom purrr walk
+# roboplotr_upload_widgets <- function(files_path, upload_path, overwrite = FALSE) {
+#
+#   if (length(Sys.glob(file.path(getwd() |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))) != 0){
+#     aut_file <- Sys.glob(file.path(getwd() |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))
+#   } else {
+#     aut_file <- Sys.glob(file.path("~" |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))
+#   }
+#
+#   tryCatch(gcs_auth(aut_file), error = function(e) {
+#     str <- str_c("Do you have the proper authorisation file in the directory?\n")
+#     stop(str, call. = F)
+#   })
+#   suppressMessages(gcs_global_bucket("pttry"))
+#
+#   is_knitting <- isTRUE(getOption('knitr.in.progress'))
+#
+#   if(missing(files_path)) {
+#     if(is_knitting == T) {
+#       cur_input <- current_input()
+#       files_path <- tempdir()
+#     } else {
+#       stop("Give the path to the files you wish to upload. Careful! This will upload every .html, .css, .map, .scss, .txt and .js file in the given path!", call. = F)
+#     }
+#   } else {
+#     upl_files <-  list.files(path = files_path, recursive = T, full.names = T) |> str_subset("\\.(css|js|map|scss|html|txt)$") |> str_c(collapse = ", ")
+#     roboplotr_warning(str_c("Give the path to the files you wish to upload. Careful! This will upload all of ",upl_files,"!\nType \"upload\" to continue:"))
+#     ans <- readline(" ")
+#     if (ans != "upload") { stop("Canceled", call. = F) }
+#   }
+#
+#   if (missing(upload_path) & !is_knitting) {
+#     stop("Give the path to the folder in the upload bucket where you wish to upload the files to.", call. = F)
+#   }
+#
+#   artefact_files <- list.files(files_path, recursive = T) |> str_subset("\\.(css|js|map|scss|html|txt)$")
+#   if(overwrite == FALSE) { message("Overwrite is set to false, set overwrite = T in roboplotr_upload_widgets if you want to overwrite existing uploads.") }
+#   walk(artefact_files, function(artefact_file) {
+#     upload_file <- if(is_knitting) {
+#       prefix <- cur_input |> str_remove("\\.Rmd$") |> str_replace_all("/","_") |> str_c("_artefacts")
+#       file.path("ennustekuvat",prefix,artefact_file)
+#     } else {
+#       file.path(upload_path,artefact_file)
+#     }
+#     obj.existence <- suppressMessages(gcs_list_objects(prefix = upload_file) |> nrow() |> as.logical())
+#     # print(artefact_file)
+#     # print(upload_file)
+#     if(obj.existence == TRUE & overwrite == FALSE) {
+#       roboplotr_warning(str_c("The file ",upload_file, " already exists!"))
+#     } else {
+#       if(obj.existence == TRUE) {
+#         roboplotr_alert(str_c("Overwriting previous upload of ",upload_file))
+#       } else {
+#         roboplotr_message(str_c("Uploading ",upload_file))
+#       }
+#       upload_type <- case_when(str_detect(upload_file, "css$") ~ "text/css",
+#                                str_detect(upload_file, "js$") ~ "text/javascript",
+#                                str_detect(upload_file, "txt$") ~ "text/plain",
+#                                str_detect(upload_file, "map$") ~ "application/json",
+#                                TRUE ~ as.character(NA))
+#       if(is.na(upload_type)) { upload_type <- NULL}
+#       meta <- gcs_metadata_object(artefact_file, cacheControl = "public, max-age=600")
+#       meta[["name"]] <- str_replace_all(upload_file, c("\\%C3\\%B6" = "\u00f6", "\\%C3\\%A4" = "\u00e4", "\\%2F" = "/"))
+#       gcs_upload(file.path(files_path,artefact_file), gcs_get_global_bucket(), name = upload_file, type = upload_type, object_metadata = meta, predefinedAcl="bucketLevel")
+#     }
+#
+#   })
+# }

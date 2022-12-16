@@ -1,11 +1,11 @@
 #' Override the default options for colors, fonts etc. for any plot created with [roboplot()]
 #'
-#' @param artefacts Function. Use [roboplot_set_artefacts()].
+#' @param artefacts Function. Use [set_artefacts()].
 #' @param border_colors,grid_colors,tick_colors List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
 #' @param background_color Character. Plot background color. Must be a hexadecimal color or a valid css color.
 #' @param caption_defaults List. Used to parse caption. Values must be named "prefix", "lineend" and "updated". "prefix" is character, and added to caption text with ": ". "lineend" is character added to caption line ends. "updated" is logical that determines whether caption tries to guess latest update date from plot data.
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
-#' @param font_main,font_title,font_caption Functions. Use [roboplot_set_font()].
+#' @param font_main,font_title,font_caption Functions. Use [set_font()].
 #' @param height Numeric. Height of roboplotr plots in pixels.
 #' @param linewidth Numeric. The default roboplotr line trace width.
 #' @param logo_file Character. The filepath to the logo used in every plot.
@@ -13,7 +13,7 @@
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
-#' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [roboplot_set_imgdl_specs]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
+#' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [set_imgdl_layout]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
 #' @param verbose Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
 #' @param shinyapp Logical. Makes fonts, css and javascript available for shiny apps.
 #' @param reset Logical. Ignores other options, resets options to defaults.
@@ -78,15 +78,15 @@
 #' # specifications which roboplotr::roboplot automatically takes care of. Image
 #' # sizes and font sizes might require extra specifications. Set these globally
 #' # with 'img_wide', 'img_narrow', and / or 'img_small' using
-#' # roboplotr::roboplot_set_imgdl_specs(), documented in detail in that
+#' # roboplotr::set_imgdl_layout(), documented in detail in that
 #' # function.
 #'
-#' roboplot_set_options(imgdl_wide = roboplot_set_imgdl_specs(x = 1600))
+#' roboplot_set_options(imgdl_wide = set_imgdl_layout(x = 1600))
 #'
 #'
 #' # Captions are partly controlled by 'caption defaults', while you must
 #' # provide the basic text by-plot in roboplotr::roboplot().
-#' # roboplotr::roboplot_set_caption() is used on by-plot basis for more
+#' # roboplotr::set_caption() is used on by-plot basis for more
 #' # control, but you can provide global settings for some features. Provide a
 #' # named list with all of "prefix", "lineend" and "updated", and captions will
 #' # be changed accordingly. Use 'updated' = TRUE for roboplotr::roboplot() to
@@ -237,7 +237,7 @@ roboplot_set_options <- function(
       setOption(opt, NULL)
     }
 
-    roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = first(substitute(artefacts)), check = "roboplot_set_artefacts"))
+    roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = first(substitute(artefacts)), check = "set_artefacts"))
 
     roboplotr_check_param(border_colors, "list", c("x","y"))
     roboplotr_valid_colors(border_colors)
@@ -258,9 +258,9 @@ roboplot_set_options <- function(
     roboplotr_check_param(dashtypes, "character", NULL)
     roboplotr_valid_strings(dashtypes,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"))
 
-    roboplotr_check_param(font_main, "function", NULL, f.name = list(fun = first(substitute(font_main)), check = "roboplot_set_font"))
-    roboplotr_check_param(font_title, "function", NULL, f.name = list(fun = first(substitute(font_title)), check = "roboplot_set_font"))
-    roboplotr_check_param(font_caption, "function", NULL, f.name = list(fun = first(substitute(font_caption)), check = "roboplot_set_font"))
+    roboplotr_check_param(font_main, "function", NULL, f.name = list(fun = first(substitute(font_main)), check = "set_font"))
+    roboplotr_check_param(font_title, "function", NULL, f.name = list(fun = first(substitute(font_title)), check = "set_font"))
+    roboplotr_check_param(font_caption, "function", NULL, f.name = list(fun = first(substitute(font_caption)), check = "set_font"))
 
     roboplotr_check_param(grid_colors, "list", c("x","y"))
     roboplotr_valid_colors(grid_colors)
@@ -279,9 +279,9 @@ roboplot_set_options <- function(
     roboplotr_check_param(patterns, "character", NULL)
     roboplotr_valid_strings(patterns,c("","/","\\","x","-","|","+","."))
 
-    roboplotr_check_param(imgdl_wide, "function", NULL, f.name = list(fun = first(substitute(imgdl_wide)), check = "roboplot_set_imgdl_specs"))
-    roboplotr_check_param(imgdl_narrow, "function", NULL, f.name = list(fun = first(substitute(imgdl_narrow)), check = "roboplot_set_imgdl_specs"))
-    roboplotr_check_param(imgdl_small, "function", NULL, f.name = list(fun = first(substitute(imgdl_small)), check = "roboplot_set_imgdl_specs"))
+    roboplotr_check_param(imgdl_wide, "function", NULL, f.name = list(fun = first(substitute(imgdl_wide)), check = "set_imgdl_layout"))
+    roboplotr_check_param(imgdl_narrow, "function", NULL, f.name = list(fun = first(substitute(imgdl_narrow)), check = "set_imgdl_layout"))
+    roboplotr_check_param(imgdl_small, "function", NULL, f.name = list(fun = first(substitute(imgdl_small)), check = "set_imgdl_layout"))
 
     roboplotr_check_param(tick_colors, "list", c("x","y"))
     roboplotr_valid_colors(tick_colors)
@@ -317,7 +317,7 @@ roboplot_set_options <- function(
     set_roboplot_option(tick_colors, "colors.ticks")
     set_roboplot_option(trace_colors, "colors.traces")
     set_roboplot_option(width)
-    set_roboplot_option(xaxis_ceiling, "yaxis.ceiling")
+    set_roboplot_option(xaxis_ceiling, "xaxis.ceiling")
 
 
 

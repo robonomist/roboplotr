@@ -14,14 +14,26 @@ roboplotr_modebar <- function(p, title, subtitle) {
   }
 
   js_string <- function(layout, ttl = dl_title) {
-    plot_title <- list(title,subtitle,getOption("roboplot.font.title")$bold)
+    tf <- getOption("roboplot.font.title")
+    mf <- getOption("roboplot.font.main")
+    cf <- getOption("roboplot.font.caption")
+    plot_title <- list(title,subtitle,tf$bold)
+    tf <- ifelse(!is.null(tf$fallback), str_c('"title.font.family": "',tf$fallback,'",'),'')
+    mf <- ifelse(!is.null(mf$fallback), str_c(
+      '"xaxis.tickfont.family": "',mf$fallback,'",
+       "yaxis.tickfont.family": "',mf$fallback,'",
+       "legend.font.family": "',mf$fallback,'",
+      ')
+      ,'')
+    cf <- ifelse(!is.null(cf$fallback), str_c('"annotations[0].font.family": "',cf$fallback,'",'),'')
+    dl_fonts <- str_c(tf,mf,cf)
     str_c('
           function(gd, params) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
           delete gd.layout.xaxis.rangeslider;
           delete gd.layout.height
           delete gd.layout.width
-          Plotly.relayout(gd, {height: ',layout$y,', width: ',layout$x,',
+          Plotly.relayout(gd, {height: ',layout$y,', width: ',layout$x,',',dl_fonts,'
           "annotations[0].font.size": ',layout$caption,',
           "xaxis.tickfont.size": ',layout$main,',
           "yaxis.tickfont.size": ',layout$main,',
@@ -113,12 +125,12 @@ roboplotr_modebar <- function(p, title, subtitle) {
 }
 
 
-#' Get a list used for [roboplot()] relayouts for downloaded image files when the appropriate modebar button is pressed
+#' Use in [roboplot_set_options()] to get a list used for [roboplot()] relayouts for downloaded image files when the appropriate modebar button is pressed
 #'
-#' @param x,y Double. The dimensions for the image file in pixels the modebar button will produce.
-#' @param mainfont,titlefont,captionfont Double. The font sizes used in the image file the modebar button will produce.
+#' @param height,width Doubles. The dimensions for the image file in pixels the modebar button will produce.
+#' @param mainfont,titlefont,captionfont Doubles. The font sizes used in the image file the modebar button will produce.
 #' @param suffix Character. Suffix attached after the name of the downloaded image file.
-#' @param format Character. One of "png", "svg", "jpg", or "webp". Define the file format of the downloaded image file.
+#' @param format Character. One of "png", "svg", "jpg", or "webp". Defines the file format of the downloaded image file.
 #' @examples
 #' # Used inside roboplotr::roboplot_set_options() to control image download
 #' # specifications. Parameters 'x' and 'y' control the image dimensions. The
@@ -130,7 +142,7 @@ roboplotr_modebar <- function(p, title, subtitle) {
 #'
 #' roboplot_set_options(
 #'   imgdl_wide =
-#'     roboplot_set_imgdl_specs(
+#'     set_imgdl_layout(
 #'       x = 1400,
 #'       y = 350,
 #'       mainfont = 16,
@@ -159,17 +171,17 @@ roboplotr_modebar <- function(p, title, subtitle) {
 #'
 #' roboplot_set_options(
 #'   imgdl_wide =
-#'     roboplot_set_imgdl_specs(
-#'       x = 1400,
-#'       y = 350,
+#'     set_imgdl_layout(
+#'       width = 1400,
+#'       height = 350,
 #'       mainfont = 16,
 #'       titlefont = 24,
 #'       captionfont = 14,
 #'       suffix = "_wide"),
 #'   imgdl_narrow =
-#'     roboplot_set_imgdl_specs(
-#'       x = 400,
-#'       y = 600,
+#'     set_imgdl_layout(
+#'       width = 400,
+#'       height = 600,
 #'       mainfont = 16,
 #'       titlefont = 24,
 #'       captionfont = 14,
@@ -192,21 +204,21 @@ roboplotr_modebar <- function(p, title, subtitle) {
 #' roboplot_set_options(reset = TRUE)
 #' @returns A list
 #' @export
-roboplot_set_imgdl_specs <- function(
-    x = 1280,
-    y = 720,
+set_imgdl_layout <- function(
+    width = 1280,
+    height = 720,
     mainfont = getOption("roboplot.font.main")$size,
     titlefont = getOption("roboplot.font.title")$size,
     captionfont = getOption("roboplot.font.caption")$size,
     suffix = "_img",
     format = "png") {
-  roboplotr_check_param(x, "numeric", allow_null = F)
-  roboplotr_check_param(y, "numeric", allow_null = F)
+  roboplotr_check_param(width, "numeric", allow_null = F)
+  roboplotr_check_param(height, "numeric", allow_null = F)
   roboplotr_check_param(mainfont, "numeric", allow_null = F)
   roboplotr_check_param(titlefont, "numeric", allow_null = F)
   roboplotr_check_param(captionfont, "numeric", allow_null = F)
   roboplotr_check_param(suffix, "character", allow_null = F)
   roboplotr_check_param(format, "character", allow_null = F)
   roboplotr_valid_strings(format, c("png","svg","jpeg", "webp"), any)
-  list(x = x, y = y, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix, type = format)
+  list(x = width, y = height, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix, type = format)
 }

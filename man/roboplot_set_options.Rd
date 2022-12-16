@@ -33,7 +33,7 @@ roboplot_set_options(
 )
 }
 \arguments{
-\item{artefacts}{Function. Use \code{\link[=roboplot_set_artefacts]{roboplot_set_artefacts()}}.}
+\item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}.}
 
 \item{border_colors, grid_colors, tick_colors}{List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
 
@@ -43,11 +43,11 @@ roboplot_set_options(
 
 \item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
 
-\item{font_main, font_title, font_caption}{Functions. Use \code{\link[=roboplot_set_font]{roboplot_set_font()}}.}
+\item{font_main, font_title, font_caption}{Functions. Use \code{\link[=set_font]{set_font()}}.}
 
 \item{height}{Numeric. Height of roboplotr plots in pixels.}
 
-\item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{roboplot_set_imgdl_specs}. Controls the dimensions and fonts of image files downloaded through modebar buttons.}
+\item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{set_imgdl_layout}. Controls the dimensions and fonts of image files downloaded through modebar buttons.}
 
 \item{linewidth}{Numeric. The default roboplotr line trace width.}
 
@@ -130,15 +130,15 @@ p
 # specifications which roboplotr::roboplot automatically takes care of. Image
 # sizes and font sizes might require extra specifications. Set these globally
 # with 'img_wide', 'img_narrow', and / or 'img_small' using
-# roboplotr::roboplot_set_imgdl_specs(), documented in detail in that
+# roboplotr::set_imgdl_layout(), documented in detail in that
 # function.
 
-roboplot_set_options(imgdl_wide = roboplot_set_imgdl_specs(x = 1600))
+roboplot_set_options(imgdl_wide = set_imgdl_layout(x = 1600))
 
 
 # Captions are partly controlled by 'caption defaults', while you must
 # provide the basic text by-plot in roboplotr::roboplot().
-# roboplotr::roboplot_set_caption() is used on by-plot basis for more
+# roboplotr::set_caption() is used on by-plot basis for more
 # control, but you can provide global settings for some features. Provide a
 # named list with all of "prefix", "lineend" and "updated", and captions will
 # be changed accordingly. Use 'updated' = TRUE for roboplotr::roboplot() to

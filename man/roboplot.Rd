@@ -21,27 +21,28 @@ roboplot(
   hovertext = NULL,
   plot_type = "scatter",
   plot_mode = "line+dodge",
-  plot_axes = roboplot_set_axes(),
+  plot_axes = set_axes(),
   height = getOption("roboplot.height"),
   facet_split = NULL,
   legend_maxwidth = NULL,
-  xaxis_ceiling = getOption("roboplot.yaxis.ceiling"),
+  xaxis_ceiling = getOption("roboplot.xaxis.ceiling"),
   secondary_yaxis = NULL,
   width = getOption("roboplot.width"),
   legend_title = F,
-  artefacts = getOption("roboplot.artefacts")$auto
+  artefacts = getOption("roboplot.artefacts")$auto,
+  ...
 )
 }
 \arguments{
-\item{d}{Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric).}
+\item{d}{Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric). Other columns could be specified instead with 'plot_axes', using \code{\link[=set_axes]{set_axes()}}.}
 
 \item{color}{Expression. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.}
 
 \item{title, subtitle}{Characters. Labels for plot elements.}
 
-\item{caption}{Function or character. Use \code{\link[=roboplot_set_caption]{roboplot_set_caption()}}.}
+\item{caption}{Function or character. Use \code{\link[=set_caption]{set_caption()}}.}
 
-\item{legend_position, legend_orientation}{Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.#' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.}
+\item{legend_position, legend_orientation}{Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.}
 
 \item{trace_color}{Character vector, named if length > 1. Trace color for all trace. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
 
@@ -58,14 +59,14 @@ Will not currently work with multiple patterns.}
 
 \item{line_width}{Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.}
 
-\item{hovertext}{Function. Use \code{\link[=roboplot_set_hovertext]{roboplot_set_hovertext()}}.}
+\item{hovertext}{Function. Use \code{\link[=set_hovertext]{set_hovertext()}}.}
 
 \item{plot_type}{Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
 
 \item{plot_mode}{Character. Determines the barmode for bars and scatters. Can be "scatter" or "line" or lines, "dodge", "horizontal" or "stack" for bars, and "rotated" for pies.
 plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of the first item of the color variable as factor.}
 
-\item{plot_axes}{Function. Function. Use \code{\link[=roboplot_set_axes]{roboplot_set_axes()}}.}
+\item{plot_axes}{Function. Function. Use \code{\link[=set_axes]{set_axes()}}.}
 
 \item{height, width}{Double. Height and width of the plot. Default width is NULL for responsive plots, give a value for static plot width.}
 
@@ -80,7 +81,9 @@ Parameter 'zeroline' will be ignored. Cannot currently differentiate between the
 
 \item{legend_title}{Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Use a character string if you want to provide your own legend title.}
 
-\item{artefacts}{Logical or function. Use \code{\link[=roboplot_set_artefacts]{roboplot_set_artefacts()}} for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by \code{\link[=roboplot_set_options]{roboplot_set_options()}}.}
+\item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by \code{\link[=roboplot_set_options]{roboplot_set_options()}}.}
+
+\item{...}{Placeholder for other parameters.}
 }
 \value{
 A list of classes "plotly" and "html"
@@ -106,11 +109,11 @@ d1 |> roboplot(color = Alue,
 # Legend will automatically be omitted if only a single observation exists
 # for 'color' is unless legend_position is given (currently only "bottom"
 # works). Caption may be further specified with the helper function
-# roboplotr::roboplot_set_caption (see documentation for mote control).
+# roboplotr::set_caption (see documentation for mote control).
 d1 |>
   dplyr::filter(Alue == "Yhdistynyt kuningaskunta") |>
   roboplot(Alue,"Energian tuonti Yhdistyneest\uE4 kuningaskunnasta","Milj. \u20AC",
-           caption = roboplot_set_caption(text = "Tilastokeskus",
+           caption = set_caption(text = "Tilastokeskus",
                                           updated = TRUE,
                                           .data = d1
            )
@@ -163,7 +166,7 @@ d3 |>
            glue::glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
            pattern = Suunta,
            plot_type = "bar",
-           caption = roboplot_set_caption(text = "Tilastokeskus",
+           caption = set_caption(text = "Tilastokeskus",
                                           updated = TRUE,
                                           .data = d1,
                                           line.end = "!",
@@ -173,12 +176,12 @@ d3 |>
                                             "Toistan, vuonna {lubridate::year(max(d3$time))}")
            ))
 
-# Plot axis can be controlled with roboplotr::roboplot_set_axes (see
+# Plot axis can be controlled with roboplotr::set_axes (see
 # documentation for more examples).
 d2 |>
   dplyr::filter(Suunta == "Tuonti") |>
   roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
-           plot_axes = roboplot_set_axes(
+           plot_axes = set_axes(
              ytitle = "Arvo",
              xformat = "Vuonna \%Y",
              ylim = c(-100,100))
@@ -196,7 +199,7 @@ d3 |>
            plot_type = "bar",
            legend_maxwidth = 12,
            plot_mode = "horizontal",
-           plot_axes = roboplot_set_axes(
+           plot_axes = set_axes(
              y = "Alue",
              yticktype = "character",
              x = "value",
@@ -272,7 +275,7 @@ d2 |>
 # default filepath will be changed to a temporary directory.
 
 roboplot_set_options(
-  artefacts = roboplot_set_artefacts(filepath = tempdir())
+  artefacts = set_artefacts(filepath = tempdir())
 )
 
 d2 |>
@@ -286,5 +289,5 @@ roboplot_set_options(reset = T)
 
 # Further specifications for creating artefacts is defined under
 # roboplotr::roboplot_set_options(), roboplotr::roboplot_create_widgets() and
-# roboplotr::roboplot_set_artefacts()
+# roboplotr::set_artefacts()
 }
