@@ -38,7 +38,7 @@ Get a string for \code{\link[=roboplot]{roboplot()}} captions.
 # Use 'text' as the caption text, and if only this is needed, you can
 # use simply write the string. roboplotr::roboplot() will provide the
 # prefix and end-of-line character from global options that can be altered
-# with roboplotr::roboplot_set_options().
+# with roboplotr::set_roboplot_options().
 
 
 d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
@@ -74,15 +74,15 @@ d |> roboplot(Alue,"Energian tuonti Kanadasta","Miljoonaa euroa",
 )
 
 # If you need to make manual changes repeatedly, you are probably better off
-# using roboplotr::roboplot_set_options() (documented therein) to change the
+# using roboplotr::set_roboplot_options() (documented therein) to change the
 # defaults to something more sensible.
 
-roboplot_set_options(caption_defaults =
+set_roboplot_options(caption_defaults =
                        list(prefix = "Source: ", lineend = "", updated = NULL))
 
 d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
 
 # Revert to defaults:
-roboplot_set_options(reset = TRUE)
+set_roboplot_options(reset = TRUE)
 
 }

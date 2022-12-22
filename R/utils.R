@@ -30,7 +30,7 @@
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada","Norja"), Suunta == "Tuonti")
 #'
-#' roboplot_set_options(
+#' set_roboplot_options(
 #'   border_colors = list(x = "#eed5d2", y = "#8b7d7b"),
 #'   grid_colors = list(x = "#9aff9a", y = "cornsilk"),
 #'   tick_colors = list(x = "darkgray", y = "dimgrey"),
@@ -44,7 +44,7 @@
 #'
 #' # When testing different options, you can use 'reset' to reset default values.
 #'
-#' roboplot_set_options(reset = TRUE)
+#' set_roboplot_options(reset = TRUE)
 #'
 #' p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 #'
@@ -64,7 +64,7 @@
 #' # Image sizes for downloaded image files are differentiated with
 #' # "img_w"(ide), "img_n"(arrow) or "img_s"(mall).
 #'
-#' roboplot_set_options(logo_file =
+#' set_roboplot_options(logo_file =
 #'                        system.file("images", "Rlogo.png", package = "roboplotr"),
 #'                      modebar = c("home","closest","compare","zoomin","zoomout",
 #'                                  "img_w","img_n","img_s","data_dl"),
@@ -81,7 +81,7 @@
 #' # roboplotr::set_imgdl_layout(), documented in detail in that
 #' # function.
 #'
-#' roboplot_set_options(imgdl_wide = set_imgdl_layout(x = 1600))
+#' set_roboplot_options(imgdl_wide = set_imgdl_layout(x = 1600))
 #'
 #'
 #' # Captions are partly controlled by 'caption defaults', while you must
@@ -92,7 +92,7 @@
 #' # be changed accordingly. Use 'updated' = TRUE for roboplotr::roboplot() to
 #' # try and extract the latest update from the data used.
 #'
-#' roboplot_set_options(
+#' set_roboplot_options(
 #'   caption_defaults = list(prefix = "Lähteenä", lineend = "", updated = TRUE)
 #' )
 #'
@@ -111,7 +111,7 @@
 #' # guess an appropriate gap. This can also be controlled by-plot and will not
 #' # work with bar plots.
 #'
-#' roboplot_set_options(
+#' set_roboplot_options(
 #'   dashtypes = c("longdash", "dashdot", "longdashdot", "solid", "dash", "dot"),
 #'   linewidth = 4,
 #'   patterns = c("x","-","|","+",".","","/","\\"),
@@ -131,7 +131,7 @@
 #'
 #' p
 #'
-#' roboplot_set_options(reset = TRUE)
+#' set_roboplot_options(reset = TRUE)
 #'
 #'
 #' # When used inside shiny apps (assumed to use bs4Dash::dashboardPage()), run
@@ -141,7 +141,7 @@
 #'
 #' ui <- bs4Dash::dashboardPage(
 #'   bs4Dash::dashboardHeader(title = "Basic dashboard",
-#'                            roboplot_set_options(shinyapp = TRUE)
+#'                            set_roboplot_options(shinyapp = TRUE)
 #'   ),
 #'   bs4Dash::dashboardSidebar(),
 #'   bs4Dash::dashboardBody(
@@ -181,7 +181,7 @@
 #' @importFrom shiny addResourcePath
 #' @importFrom stringr str_c str_detect str_extract str_subset
 #' @importFrom R.utils setOption
-roboplot_set_options <- function(
+set_roboplot_options <- function(
     artefacts = NULL,
     border_colors = NULL,
     background_color = NULL,
@@ -327,7 +327,7 @@ roboplot_set_options <- function(
 
     if(shinyapp) {
 
-      roboplotr_alert("Reminder: roboplot_set_options() needs to be run inside the app ui header!")
+      roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header!")
       roboplotr_widget_deps(tempdir())
       addResourcePath("js", system.file("www","js", package = "roboplotr"))
       addResourcePath("fonts", file.path(tempdir(),"fonts"))

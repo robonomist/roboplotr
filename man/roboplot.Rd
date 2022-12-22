@@ -81,7 +81,7 @@ Parameter 'zeroline' will be ignored. Cannot currently differentiate between the
 
 \item{legend_title}{Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Use a character string if you want to provide your own legend title.}
 
-\item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by \code{\link[=roboplot_set_options]{roboplot_set_options()}}.}
+\item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
 \item{...}{Placeholder for other parameters.}
 }
@@ -271,10 +271,10 @@ d2 |>
 # Finally, you may get html or other files from the plots you create either
 # by using roboplotr::roboplot_create_artefacts() or simply using the
 # parameter 'artefacts' here. The global defaults or artefact creation are
-# set with roboplotr::roboplot_set_options(), and for this example the
+# set with roboplotr::set_roboplot_options(), and for this example the
 # default filepath will be changed to a temporary directory.
 
-roboplot_set_options(
+set_roboplot_options(
   artefacts = set_artefacts(filepath = tempdir())
 )
 
@@ -285,9 +285,9 @@ d2 |>
 file.exists(str_c(tempdir(),"/energian_tuonti.html"))
 # Reset to defaults
 
-roboplot_set_options(reset = T)
+set_roboplot_options(reset = T)
 
 # Further specifications for creating artefacts is defined under
-# roboplotr::roboplot_set_options(), roboplotr::roboplot_create_widgets() and
+# roboplotr::set_roboplot_options(), roboplotr::roboplot_create_widgets() and
 # roboplotr::set_artefacts()
 }

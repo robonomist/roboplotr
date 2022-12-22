@@ -2,7 +2,7 @@
 % Please edit documentation in R/modebar.R
 \name{set_imgdl_layout}
 \alias{set_imgdl_layout}
-\title{Use in \code{\link[=roboplot_set_options]{roboplot_set_options()}} to get a list used for \code{\link[=roboplot]{roboplot()}} relayouts for downloaded image files when the appropriate modebar button is pressed}
+\title{Use in \code{\link[=set_roboplot_options]{set_roboplot_options()}} to get a list used for \code{\link[=roboplot]{roboplot()}} relayouts for downloaded image files when the appropriate modebar button is pressed}
 \usage{
 set_imgdl_layout(
   width = 1280,
@@ -27,10 +27,10 @@ set_imgdl_layout(
 A list
 }
 \description{
-Use in \code{\link[=roboplot_set_options]{roboplot_set_options()}} to get a list used for \code{\link[=roboplot]{roboplot()}} relayouts for downloaded image files when the appropriate modebar button is pressed
+Use in \code{\link[=set_roboplot_options]{set_roboplot_options()}} to get a list used for \code{\link[=roboplot]{roboplot()}} relayouts for downloaded image files when the appropriate modebar button is pressed
 }
 \examples{
-# Used inside roboplotr::roboplot_set_options() to control image download
+# Used inside roboplotr::set_roboplot_options() to control image download
 # specifications. Parameters 'x' and 'y' control the image dimensions. The
 # image uses the font specifications of the main plot, but you might need to
 # alter the font sizes with 'mainfont', 'titlefont' and 'captionfont'. You
@@ -38,7 +38,7 @@ Use in \code{\link[=roboplot_set_options]{roboplot_set_options()}} to get a list
 # from the plot title), and provide any one of "png","svg","jpeg", or "webp"
 # for the file format.
 
-roboplot_set_options(
+set_roboplot_options(
   imgdl_wide =
     set_imgdl_layout(
       x = 1400,
@@ -60,14 +60,14 @@ if(interactive()) {
 }
 
 # The plotly image downloads are controlled by the modebar, so if you use
-# other than 'img_wide' you need to use roboplotr::roboplot_set_options to
+# other than 'img_wide' you need to use roboplotr::set_roboplot_options to
 # control the modebar accordingly in addition to giving the downloaded image
 # specifications (roboplotr::roboplot() does have some defaults in place
 # for every size, so you can skip image specifications even if you do add
 # use other image download buttons in the modebar). With multiple image
 # download buttons the 'suffix' parameter is especially handy.
 
-roboplot_set_options(
+set_roboplot_options(
   imgdl_wide =
     set_imgdl_layout(
       width = 1400,
@@ -99,5 +99,5 @@ if(interactive()) {
 }
 
 # Revert to defaults:
-roboplot_set_options(reset = TRUE)
+set_roboplot_options(reset = TRUE)
 }

@@ -166,7 +166,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' @param xaxis_ceiling Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.
 #' @param secondary_yaxis Expression. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 #' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.
-#' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [roboplot_set_options()].
+#' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [set_roboplot_options()].
 #' @param ... Placeholder for other parameters.
 #' @return A list of classes "plotly" and "html"
 #' @examples
@@ -348,10 +348,10 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' # Finally, you may get html or other files from the plots you create either
 #' # by using roboplotr::roboplot_create_artefacts() or simply using the
 #' # parameter 'artefacts' here. The global defaults or artefact creation are
-#' # set with roboplotr::roboplot_set_options(), and for this example the
+#' # set with roboplotr::set_roboplot_options(), and for this example the
 #' # default filepath will be changed to a temporary directory.
 #'
-#' roboplot_set_options(
+#' set_roboplot_options(
 #'   artefacts = set_artefacts(filepath = tempdir())
 #' )
 #'
@@ -362,10 +362,10 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' file.exists(str_c(tempdir(),"/energian_tuonti.html"))
 #' # Reset to defaults
 #'
-#' roboplot_set_options(reset = T)
+#' set_roboplot_options(reset = T)
 #'
 #' # Further specifications for creating artefacts is defined under
-#' # roboplotr::roboplot_set_options(), roboplotr::roboplot_create_widgets() and
+#' # roboplotr::set_roboplot_options(), roboplotr::roboplot_create_widgets() and
 #' # roboplotr::set_artefacts()
 #' @export
 #' @importFrom dplyr coalesce distinct group_split pull

@@ -27,7 +27,7 @@ test_that("Test for hovertemplate templating list", {
 })
 
 test_that("Roboplot options are reset", {
-  roboplot_set_options(reset = T)
+  set_roboplot_options(reset = T)
   expect_mapequal(getOption("roboplot.caption"), list(prefix = "Lähde: ",lineend = ".",updated = NULL))
   expect_match(getOption("roboplot.colors.background"),"white")
   expect_mapequal(getOption("roboplot.colors.border"), list(x = "black",y = "black"))

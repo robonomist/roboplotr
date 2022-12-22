@@ -105,7 +105,7 @@ roboplotr_title <- function(p, title, subtitle) {
 #' # Use 'text' as the caption text, and if only this is needed, you can
 #' # use simply write the string. roboplotr::roboplot() will provide the
 #' # prefix and end-of-line character from global options that can be altered
-#' # with roboplotr::roboplot_set_options().
+#' # with roboplotr::set_roboplot_options().
 #'
 #'
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
@@ -141,16 +141,16 @@ roboplotr_title <- function(p, title, subtitle) {
 #' )
 #'
 #' # If you need to make manual changes repeatedly, you are probably better off
-#' # using roboplotr::roboplot_set_options() (documented therein) to change the
+#' # using roboplotr::set_roboplot_options() (documented therein) to change the
 #' # defaults to something more sensible.
 #'
-#' roboplot_set_options(caption_defaults =
+#' set_roboplot_options(caption_defaults =
 #'                        list(prefix = "Source: ", lineend = "", updated = NULL))
 #'
 #' d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
 #'
 #' # Revert to defaults:
-#' roboplot_set_options(reset = TRUE)
+#' set_roboplot_options(reset = TRUE)
 #'
 #' @importFrom lubridate as_date is.Date
 #' @importFrom stringr str_c
@@ -214,7 +214,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 }
 
 
-#' Get a list for [roboplot_set_options()] used as font specifications in [roboplot()]
+#' Get a list for [set_roboplot_options()] used as font specifications in [roboplot()]
 #'
 #' @param font Character. One of "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT" or a path to an .otf or .ttf file.
 #' @param fallback Character. Only used when a file path is used with 'font'. Fallback font when the defined font is unavailable. Especially concerns image downloads.
@@ -226,7 +226,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' @returns A list
 #' @examples
 #' # Used to set fonts used by roboplotr::roboplot(). Only supposed to be called
-#' # inside roboplotr::roboplot_set_options(). 'path' can be a file path or
+#' # inside roboplotr::set_roboplot_options(). 'path' can be a file path or
 #' # string "serif" or "sans-serif", if no specific font path will be provided.
 #' # This will change fonts according to the list output of
 #' # roboplotr::set_font(). You can designate font color, size, and
@@ -236,7 +236,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' # provided for 'path'.
 #'
 #'
-#' roboplot_set_options(
+#' set_roboplot_options(
 #'   font_title = set_font(size = 17, font = "Tahoma", bold = TRUE),
 #'   font_main =  set_font(
 #'     size = 11,
@@ -263,7 +263,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' }
 #'
 #' # revert to defaults:
-#' roboplot_set_options(reset = TRUE)
+#' set_roboplot_options(reset = TRUE)
 #' @export
 set_font <- function(font = "Arial", fallback = NULL, size = 12, color = "black", bold_title = T, type = NULL) {
 

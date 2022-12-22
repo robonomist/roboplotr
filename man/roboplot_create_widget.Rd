@@ -32,7 +32,7 @@ file, increasing size.}
 \item{artefacts}{Character vector. Controls what artefacts are saved. One or
 more of "html", "img_w", "img_n" or "img_s". A matching button must be
 present in the modebar (control modebar buttons with
-\code{\link[=roboplot_set_options]{roboplot_set_options()}}.}
+\code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 }
 \value{
 A list of classes "plotly" and "html"
@@ -77,7 +77,7 @@ file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
 # size must be provided in the strings (possible options are "img_w",
 # "img_n", and "img_s"). Download button for the selected size must exist
 # in the plot modebar, controlled with and documented within
-# roboplotr::roboplot_set_options() ("wide" exists as default").
+# roboplotr::set_roboplot_options() ("wide" exists as default").
 
 if(interactive()) {
   p |> roboplot_create_widget(filepath = tempdir(), artefacts = "img_w")

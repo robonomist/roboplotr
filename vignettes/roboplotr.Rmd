@@ -46,11 +46,11 @@ use in the function documentation.
 
 ## Setting the global options
 
-First off, we use roboplot_set_options() to set some global options to define 
+First off, we use set_roboplot_options() to set some global options to define 
 some visual and other specifications.
 
 ```{r roboplot_options}
-roboplot_set_options(
+set_roboplot_options(
   artefacts = set_artefacts(
     filepath = file.path(tempdir(), "plots"), auto = T, artefacts = "img_w"
     ),
@@ -148,7 +148,7 @@ roboplot(d,
 At the minimum, roboplot() needs some data to be plotted, a title, and a 
 caption. Subtitle is optional, but most likely needed - it is the best place to
 show the y-axis unit. Caption is parsed from the given string and elements 
-defined in roboplot_set_options().
+defined in set_roboplot_options().
 
 Data tranformation also stripped the data of the frequency attribute, which 
 roboplot() uses to parse date formats for several purposes, so we inserted that
@@ -195,7 +195,7 @@ d |> roboplot(geo, "Consumer price inflation","Annual change of HICP, %",
 
 The previous examples show how plotting with roboplotr is a lightweight task. As
 the source notation is a bit different from the previous plot and we have
-predefined caption formatting previously with roboplot_set_options(), we must
+predefined caption formatting previously with set_roboplot_options(), we must
 use set_caption() to override the prefix instead of just giving a single string.
 
 ## Horizontal bar plots and x-axis string width, and omitted legends
@@ -296,7 +296,7 @@ We also wanted a plot with different dimensions, and we give the the same
 dimensions that we decided the narrow png images will have, so the html output
 and png files match. We also used the parameter 'artefacts' with set_artefacts()
 to get an image file with different dimensions than with earlier pictures. We
-defined the layout for these files earlier on with roboplot_set_options().
+defined the layout for these files earlier on with set_roboplot_options().
 
 As you can see from the next few examples, all of this makes the workflow for
 createing dynamic plots very short and simple.

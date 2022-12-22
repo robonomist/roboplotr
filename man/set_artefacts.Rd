@@ -2,7 +2,7 @@
 % Please edit documentation in R/widgets.R
 \name{set_artefacts}
 \alias{set_artefacts}
-\title{Set global parameters in \code{\link[=roboplot_set_options]{roboplot_set_options()}} for artefact creation
+\title{Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for artefact creation
 of \code{\link[=roboplot]{roboplot()}} plots.}
 \usage{
 set_artefacts(
@@ -18,7 +18,7 @@ set_artefacts(
 \item{artefacts}{Character vector. Controls what artefacts are saved. One or
 more of "html", "img_w", "img_n" or "img_s". A matching button must be
 present in the modebar (control modebar buttons with
-\code{\link[=roboplot_set_options]{roboplot_set_options()}}.}
+\code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
 \item{title}{Character. The filename of the artefact(s) created
 (without file format). Will be formatted with underscores, and the title
@@ -39,13 +39,13 @@ file, increasing size.}
 A list.
 }
 \description{
-Set global parameters in \code{\link[=roboplot_set_options]{roboplot_set_options()}} for artefact creation
+Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for artefact creation
 of \code{\link[=roboplot]{roboplot()}} plots.
 }
 \examples{
 # Used to set global defaults for widget or other artefact creation. Any of
 # these can be overridden by roboplotr::roboplot(). Only supposed to be
-# called inside roboplotr::roboplot_set_options(). Use 'filepath' to control
+# called inside roboplotr::set_roboplot_options(). Use 'filepath' to control
 # which directory the artefacts are created to, 'render' to control if the
 # roboplot() plot will be rendered on artefact creation, 'self_contained' to
 # control if html plot dependencies are placed in an adjacent directory or

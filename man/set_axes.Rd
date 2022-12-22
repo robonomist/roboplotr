@@ -5,16 +5,16 @@
 \title{Define axis and axis tick formats for \code{\link[=roboplot]{roboplot()}} plots.}
 \usage{
 set_axes(
-  x = NULL,
   y = NULL,
-  xticktype = NULL,
+  x = NULL,
   yticktype = NULL,
-  xtitle = "",
+  xticktype = NULL,
   ytitle = "",
-  xformat = NULL,
+  xtitle = "",
   yformat = NULL,
-  xlim = c(NA, NA),
-  ylim = c(NA, NA)
+  xformat = NULL,
+  ylim = c(NA, NA),
+  xlim = c(NA, NA)
 )
 }
 \arguments{

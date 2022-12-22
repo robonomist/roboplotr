@@ -126,14 +126,14 @@ roboplotr_modebar <- function(p, title, subtitle) {
 }
 
 
-#' Use in [roboplot_set_options()] to get a list used for [roboplot()] relayouts for downloaded image files when the appropriate modebar button is pressed
+#' Use in [set_roboplot_options()] to get a list used for [roboplot()] relayouts for downloaded image files when the appropriate modebar button is pressed
 #'
 #' @param height,width Doubles. The dimensions for the image file in pixels the modebar button will produce.
 #' @param mainfont,titlefont,captionfont Doubles. The font sizes used in the image file the modebar button will produce.
 #' @param suffix Character. Suffix attached after the name of the downloaded image file.
 #' @param format Character. One of "png", "svg", "jpg", or "webp". Defines the file format of the downloaded image file.
 #' @examples
-#' # Used inside roboplotr::roboplot_set_options() to control image download
+#' # Used inside roboplotr::set_roboplot_options() to control image download
 #' # specifications. Parameters 'x' and 'y' control the image dimensions. The
 #' # image uses the font specifications of the main plot, but you might need to
 #' # alter the font sizes with 'mainfont', 'titlefont' and 'captionfont'. You
@@ -141,7 +141,7 @@ roboplotr_modebar <- function(p, title, subtitle) {
 #' # from the plot title), and provide any one of "png","svg","jpeg", or "webp"
 #' # for the file format.
 #'
-#' roboplot_set_options(
+#' set_roboplot_options(
 #'   imgdl_wide =
 #'     set_imgdl_layout(
 #'       x = 1400,
@@ -163,14 +163,14 @@ roboplotr_modebar <- function(p, title, subtitle) {
 #' }
 #'
 #' # The plotly image downloads are controlled by the modebar, so if you use
-#' # other than 'img_wide' you need to use roboplotr::roboplot_set_options to
+#' # other than 'img_wide' you need to use roboplotr::set_roboplot_options to
 #' # control the modebar accordingly in addition to giving the downloaded image
 #' # specifications (roboplotr::roboplot() does have some defaults in place
 #' # for every size, so you can skip image specifications even if you do add
 #' # use other image download buttons in the modebar). With multiple image
 #' # download buttons the 'suffix' parameter is especially handy.
 #'
-#' roboplot_set_options(
+#' set_roboplot_options(
 #'   imgdl_wide =
 #'     set_imgdl_layout(
 #'       width = 1400,
@@ -202,7 +202,7 @@ roboplotr_modebar <- function(p, title, subtitle) {
 #' }
 #'
 #' # Revert to defaults:
-#' roboplot_set_options(reset = TRUE)
+#' set_roboplot_options(reset = TRUE)
 #' @returns A list
 #' @export
 set_imgdl_layout <- function(

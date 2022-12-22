@@ -13,7 +13,7 @@
 #' @param artefacts Character vector. Controls what artefacts are saved. One or
 #' more of "html", "img_w", "img_n" or "img_s". A matching button must be
 #' present in the modebar (control modebar buttons with
-#' [roboplot_set_options()].
+#' [set_roboplot_options()].
 #' @examples
 #' # Save roboplotr::roboplot() plots as files. Control location with
 #' # 'filepath'. Default 'filepath' will be the current working directory. If a
@@ -51,7 +51,7 @@
 #' # size must be provided in the strings (possible options are "img_w",
 #' # "img_n", and "img_s"). Download button for the selected size must exist
 #' # in the plot modebar, controlled with and documented within
-#' # roboplotr::roboplot_set_options() ("wide" exists as default").
+#' # roboplotr::set_roboplot_options() ("wide" exists as default").
 #'
 #' if(interactive()) {
 #'   p |> roboplot_create_widget(filepath = tempdir(), artefacts = "img_w")
@@ -117,7 +117,7 @@ roboplot_create_widget <- function(
   } else { invisible(p) }
 }
 
-#' Set global parameters in [roboplot_set_options()] for artefact creation
+#' Set global parameters in [set_roboplot_options()] for artefact creation
 #' of [roboplot()] plots.
 #'
 #' @param auto Logical. Whether [roboplot()] will create artefacts automatically.
@@ -125,7 +125,7 @@ roboplot_create_widget <- function(
 #' @examples
 #' # Used to set global defaults for widget or other artefact creation. Any of
 #' # these can be overridden by roboplotr::roboplot(). Only supposed to be
-#' # called inside roboplotr::roboplot_set_options(). Use 'filepath' to control
+#' # called inside roboplotr::set_roboplot_options(). Use 'filepath' to control
 #' # which directory the artefacts are created to, 'render' to control if the
 #' # roboplot() plot will be rendered on artefact creation, 'self_contained' to
 #' # control if html plot dependencies are placed in an adjacent directory or

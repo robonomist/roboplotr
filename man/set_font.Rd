@@ -2,7 +2,7 @@
 % Please edit documentation in R/labels.R
 \name{set_font}
 \alias{set_font}
-\title{Get a list for \code{\link[=roboplot_set_options]{roboplot_set_options()}} used as font specifications in \code{\link[=roboplot]{roboplot()}}}
+\title{Get a list for \code{\link[=set_roboplot_options]{set_roboplot_options()}} used as font specifications in \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_font(
   font = "Arial",
@@ -30,11 +30,11 @@ set_font(
 A list
 }
 \description{
-Get a list for \code{\link[=roboplot_set_options]{roboplot_set_options()}} used as font specifications in \code{\link[=roboplot]{roboplot()}}
+Get a list for \code{\link[=set_roboplot_options]{set_roboplot_options()}} used as font specifications in \code{\link[=roboplot]{roboplot()}}
 }
 \examples{
 # Used to set fonts used by roboplotr::roboplot(). Only supposed to be called
-# inside roboplotr::roboplot_set_options(). 'path' can be a file path or
+# inside roboplotr::set_roboplot_options(). 'path' can be a file path or
 # string "serif" or "sans-serif", if no specific font path will be provided.
 # This will change fonts according to the list output of
 # roboplotr::set_font(). You can designate font color, size, and
@@ -44,12 +44,12 @@ Get a list for \code{\link[=roboplot_set_options]{roboplot_set_options()}} used 
 # provided for 'path'.
 
 
-roboplot_set_options(
+set_roboplot_options(
   font_title = set_font(size = 17, font = "Tahoma", bold = TRUE),
   font_main =  set_font(
     size = 11,
     font = system.file("www","fonts","bladerunner.TTF", package = "roboplotr"),
-    fallback = "sans-serif",
+    fallback = "Verdana",
     color = "darkred",
     type = "main"),
   font_caption = set_font(color = "green")
@@ -71,5 +71,5 @@ if(interactive()) {
 }
 
 # revert to defaults:
-roboplot_set_options(reset = TRUE)
+set_roboplot_options(reset = TRUE)
 }
