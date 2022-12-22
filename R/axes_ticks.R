@@ -137,7 +137,7 @@
 #'
 #' @export
 #' @importFrom dplyr case_when
-set_axes <- function(x = NULL, y = NULL, xticktype = NULL, yticktype = NULL, xtitle = "", ytitle = "", xformat = NULL, yformat = NULL, xlim = c(NA,NA), ylim = c(NA, NA)) {
+set_axes <- function(y = NULL, x = NULL,  yticktype = NULL, xticktype = NULL, ytitle = "", xtitle = "", yformat = NULL, xformat = NULL, ylim = c(NA, NA), xlim = c(NA,NA)) {
 
   if(is.null(y)) {
     y <- "value"

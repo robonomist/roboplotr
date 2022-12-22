@@ -18,22 +18,23 @@ roboplotr_modebar <- function(p, title, subtitle) {
     mf <- getOption("roboplot.font.main")
     cf <- getOption("roboplot.font.caption")
     plot_title <- list(title,subtitle,tf$bold)
-    tf <- ifelse(!is.null(tf$fallback), str_c('"title.font.family": "',tf$fallback,'",'),'')
-    mf <- ifelse(!is.null(mf$fallback), str_c(
-      '"xaxis.tickfont.family": "',mf$fallback,'",
-       "yaxis.tickfont.family": "',mf$fallback,'",
-       "legend.font.family": "',mf$fallback,'",
-      ')
-      ,'')
-    cf <- ifelse(!is.null(cf$fallback), str_c('"annotations[0].font.family": "',cf$fallback,'",'),'')
-    dl_fonts <- str_c(tf,mf,cf)
+    # tf <- ifelse(!is.null(tf$fallback), str_c('"title.font.family": "',tf$fallback,'",'),'')
+    # mf <- ifelse(!is.null(mf$fallback), str_c(
+    #   '"xaxis.tickfont.family": "',mf$fallback,'",
+    #    "yaxis.tickfont.family": "',mf$fallback,'",
+    #    "legend.font.family": "',mf$fallback,'",
+    #   ')
+    #   ,'')
+    # cf <- ifelse(!is.null(cf$fallback), str_c('"annotations[0].font.family": "',cf$fallback,'",'),'')
+    # dl_fonts <- str_c(tf,mf,cf)
+    ## add this: ',dl_fonts,'
     str_c('
           function(gd, params) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
           delete gd.layout.xaxis.rangeslider;
           delete gd.layout.height
           delete gd.layout.width
-          Plotly.relayout(gd, {height: ',layout$y,', width: ',layout$x,',',dl_fonts,'
+          Plotly.relayout(gd, {height: ',layout$y,', width: ',layout$x,',
           "annotations[0].font.size": ',layout$caption,',
           "xaxis.tickfont.size": ',layout$main,',
           "yaxis.tickfont.size": ',layout$main,',

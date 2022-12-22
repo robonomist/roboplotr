@@ -241,7 +241,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'   font_main =  set_font(
 #'     size = 11,
 #'     font = system.file("www","fonts","bladerunner.TTF", package = "roboplotr"),
-#'     fallback = "sans-serif",
+#'     fallback = "Verdana",
 #'     color = "darkred",
 #'     type = "main"),
 #'   font_caption = set_font(color = "green")
@@ -307,6 +307,10 @@ set_font <- function(font = "Arial", fallback = NULL, size = 12, color = "black"
     roboplotr_valid_strings(fallback, websafe, any)
     fallback <- str_c(fallback," , ",str_replace_all(fallback, fallbacks))
     family <- str_c("roboplot-",type)
+    # roboplotr_check_param(fallback, "character", allow_null = F)
+    # roboplotr_valid_strings(fallback, websafe, any)
+    # fallback <- str_c(fallback,", ",str_replace_all(fallback, fallbacks))
+    # family <- str_c("roboplot-",type,", ",fallback)
   }
 
   list(path = font, family = family, fallback = fallback, size = size, color = color, bold = bold_title)
