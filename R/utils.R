@@ -366,22 +366,27 @@ roboplotr_string2filename <- function(string) {
 #' @importFrom rlang sym quo_name
 #' @importFrom stringr str_c str_replace str_replace_all
 #' @importFrom tidyr unite
-roboplotr_transform_data_for_download <- function(d, color, pattern, facet_split, plot_mode, plot_yaxis) {
-  d <- d |> rename(csv.data.tiedot = !! sym(quo_name(color)))
-  if(!is.null(facet_split)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!facet_split, sep = ", ")}
-  if(!is.null(pattern)) { if(quo_name(color) != quo_name(pattern)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!pattern, sep = ", ") }}
-  if(str_detect(plot_mode,"horizontal")) {
-    if (quo_name(color) != quo_name(plot_yaxis)) {
-      d <- unite(d, "csv.data.tiedot", .data[[plot_yaxis]], .data$csv.data.tiedot, sep = ", ")
-    }
-    }
-  d |>
-    select(matches(c("csv.data.tiedot","time","value"))) |>
+roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes) {
+  if (!is.null(color)) {  color <- as_name(color) }
+  if (!is.null(pattern)) {  pattern <- as_name(pattern) }
+  # d <- d |> rename(csv.data.tiedot = !! sym(quo_name(color)))
+  # if(!is.null(facet_split)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!facet_split, sep = ", ")}
+  # if(!is.null(pattern)) { if(quo_name(color) != quo_name(pattern)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!pattern, sep = ", ") }}
+  # if(str_detect(plot_mode,"horizontal")) {
+  #   if (quo_name(color) != quo_name(plot_yaxis)) {
+  #     d <- unite(d, "csv.data.tiedot", .data[[plot_yaxis]], .data$csv.data.tiedot, sep = ", ")
+  #   }
+  #   }
+  d <- d |>
+    select(matches(c(plot_axes$y, color, pattern, plot_axes$x)), -matches("roboplot.topic")) |>
     mutate(
-      across(!matches(c("value","time")), ~ as.character(.x) |> str_replace_all("[^[:alnum:]]", "_")),
-      time = str_c(.data$time),
-      value = str_replace(.data$value, "\\.",",")
+      across(!is.numeric, ~ as.character(.x) |> str_replace_all(c("[^[:alnum:]\\s\\,\\;\\']"= "_",";"=",","'"="\u2019"))), #note: semi-colon as colon for final csv
+      across(is.numeric, ~ as.character(.x) |> str_replace_all("\\.", ","))
     )
+
+  testi <<- d
+
+  d
 }
 
 
@@ -409,18 +414,23 @@ roboplotr_get_dateformat <- function(d, msg = T) {
   }
   d_attrs <- attributes(d)
   wrn <- F
-  tf <- if(is.null(d_attrs$frequency)) {
-    wrn <- T
-    get_padr_frequency(d$time)
-  } else if (is.list(d_attrs$frequency)) {
-    if(is.null(d_attrs$frequency$en)) {
-      wrn <- T
-      get_padr_frequency(d$time)
-    } else{
-      as.character(d_attrs$frequency$en)
-    }
+  datecol <- map(names(d), ~ if("Date" %in% class(d[[.x]])) { .x }) |> roboplotr_compact() %>% first()
+  if(length(datecol) == 0) {
+    tf <- NULL
   } else {
-    as.character(d_attrs$frequency)
+    tf <- if(is.null(d_attrs$frequency)) {
+      wrn <- T
+      get_padr_frequency(d[[datecol]])
+    } else if (is.list(d_attrs$frequency)) {
+      if(is.null(d_attrs$frequency$en)) {
+        wrn <- T
+        get_padr_frequency(d[[datecol]])
+      } else{
+        as.character(d_attrs$frequency$en)
+      }
+    } else {
+      as.character(d_attrs$frequency)
+    }
   }
   if(wrn == T & msg == T) {
     wrn <- if(is.null(tf)) {"Resorting to default %Y-%m-%d" } else { str_c("Guessing frequency \"",names(dateformats[tf]),"\" for date format ",dateformats[[tf]]) }

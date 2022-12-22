@@ -3,13 +3,13 @@
 #' @importFrom plotly plot_ly
 #' @importFrom lubridate as_date today
 roboplotr_config <- function(p,
-                            title, subtitle = "", caption,
-                            legend_position, legend_orientation, legend_order,
-                            height,
-                            margin = NA,
-                            zeroline = F,
-                            enable_rangeslider = list(rangeslider = F, max = as_date(today)),
-                            ticktypes) {
+                             title, subtitle = "", caption,
+                             legend_position, legend_orientation, legend_order,
+                             height,
+                             margin = NA,
+                             zeroline = F,
+                             enable_rangeslider = list(rangeslider = F, max = as_date(today)),
+                             ticktypes) {
 
 
   if(!is.logical(enable_rangeslider$rangeslider) & !is.character(enable_rangeslider$rangeslider)) {
@@ -426,14 +426,14 @@ roboplot <- function(d,
   }
 
   if(missing(color)) {
-    color <- quo(!!sym(".topic"))
+    color <- quo(!!sym("roboplot.topic"))
   } else {
     color <- roboplotr_check_valid_var(enquo(color), d_names)
   }
 
-  if(as_name(color) == ".topic"){
-    roboplotr_alert("Without an unquoted arg 'color' the variable named \".topic\" is added to data 'd', using the argument 'title' trunctated to 30 characters as value for the variable.")
-    d <- mutate(d, .topic = str_trunc(title,30))
+  if(as_name(color) == "roboplot.topic"){
+    roboplotr_alert("Without an unquoted arg 'color' the variable named \"roboplot.topic\" is added to data 'd', using the argument 'title' trunctated to 30 characters as value for the variable.")
+    d <- mutate(d, roboplot.topic = str_trunc(title,30))
   }
 
   pattern <- roboplotr_check_valid_var(enquo(pattern), d_names)
@@ -457,7 +457,7 @@ roboplot <- function(d,
 
   roboplotr_check_param(hovertext, "function", NULL, f.name = list(fun = first(substitute(hovertext)), check = "set_hovertext"))
 
-    if(is.null(hovertext)) {
+  if(is.null(hovertext)) {
     hovertext <- set_hovertext(roboplotr_get_dateformat(d),unit = tolower(subtitle))
   } else if (is.null(hovertext$dateformat)) {
     hovertext$dateformat <- roboplotr_hovertemplate_freq(roboplotr_get_dateformat(d))
@@ -471,14 +471,14 @@ roboplot <- function(d,
   }
 
   roboplotr_check_param(xaxis_ceiling, "character", allow_null = F)
-  if(!"date" %in% plot_axes$xticktype) {
+  if(!"date" %in% plot_axes$xticktype | !"time" %in% d_names) {
     if("default" %in% xaxis_ceiling) {
-      roboplotr_alert("'xaxis_ceiling' is ignored if x-axis is not a date.")
+      roboplotr_alert("'xaxis_ceiling' is ignored if x-axis is not a date or a \"time\" column does not exist.")
     }
     xaxis_ceiling <- "default"
   } else {
     xaxis_ceiling <- match.arg(xaxis_ceiling, c("default","days","months","weeks","quarters","years","guess"))
-    }
+  }
   if(xaxis_ceiling != "default" & all(is.na(plot_axes$xlim)) & !"bar" %in% plot_type & !str_detect(plot_mode, "horizontal")) {
     if(xaxis_ceiling == "guess") {
       xaxis_ceiling <- roboplotr_guess_xaxis_ceiling(d, hovertext)
@@ -519,7 +519,7 @@ roboplot <- function(d,
     roboplotr_alert("Parameters 'zeroline' and 'rangeslider' are currently disabled when parameter 'plot_axis' xticktype is not date or yticktype is not numeric!")
     zeroline <- F
     rangeslider <- F
-    }
+  }
 
   if(!is.factor(d[[as_name(color)]])) {
     d <- mutate(d, {{color}} := fct_reorder({{color}}, .data$value, .fun = mean, na.rm = T) |> fct_rev())
@@ -533,11 +533,11 @@ roboplot <- function(d,
     stop("Plot type must be \"scatter\" or \"bar\", or a named character vector!", call. = F)
   } else if (length(plot_type) == 1 & is.null(names(plot_type))){
     d <- d |> mutate(roboplot.plot.type = plot_type)
-  # } else if (!all(unique_groups %in% names(plot_type))) {
-  #   stop(str_c("All variables in column \"",as_name(color),"\" must have a corresponding plot type!"), call. = F)
-  # } else {
-  #   d <- mutate(d, roboplot.plot.type = str_replace_all(!!color, plot_type))
-  # }
+    # } else if (!all(unique_groups %in% names(plot_type))) {
+    #   stop(str_c("All variables in column \"",as_name(color),"\" must have a corresponding plot type!"), call. = F)
+    # } else {
+    #   d <- mutate(d, roboplot.plot.type = str_replace_all(!!color, plot_type))
+    # }
   } else if (!all(unique_groups %in% names(plot_type)) & !(".other" %in% names(plot_type)) ) {
     stop(str_c("All variables in column \"",as_name(color),"\" must have a corresponding 'plot_type', or key \".other\" must be included!"), call. = F)
   } else {
@@ -580,13 +580,13 @@ roboplot <- function(d,
 
   if(is.null(legend_position) & length(unique_groups) < 2) { legend_position <- NA }
 
-  if(!is.null(facet_split)) {
-    p <- roboplotr_get_facet_plot(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, plot_axes)
-  } else {
-    p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width, legend_title)
-  }
+  # if(!is.null(facet_split)) {
+  #   p <- roboplotr_get_facet_plot(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, plot_axes)
+  # } else {
+  p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width, legend_title)
+  # }
 
-  p$data <- roboplotr_transform_data_for_download(d, color, pattern, facet_split, plot_mode, plot_axes$y)
+  p$data <- roboplotr_transform_data_for_download(d, color, pattern, plot_axes)
 
   if(!isRunning()) { p$elementId <- str_c("widget_",roboplotr_string2filename(title),"_",str_pad(round(runif(1)*1000000),6,"left","0")) }
   p$title <- title
@@ -594,33 +594,33 @@ roboplot <- function(d,
   p$trace_types <- distinct(d, !!color, .data$roboplot.plot.type) |> pull(2,1)
   p$plot_mode <- plot_mode
 
-  maxtime <- max(d$time)#ifelse(class(d$time) == "factor", max(levels(d$time)), max(d$time))
-  mintime <- min(d$time)#ifelse(class(d$time) == "factor", min(levels(d$time)), min(d$time))
+  maxtime <- if("time" %in% d_names) { max(d$time) } else { NULL }#ifelse(class(d$time) == "factor", max(levels(d$time)), max(d$time))
+  mintime <- if("time" %in% d_names) { min(d$time) } else { NULL }#ifelse(class(d$time) == "factor", min(levels(d$time)), min(d$time))
 
   # if only one group for color, remove legend as default
   legend_order <- ifelse(!"bar" %in% plot_type, "reversed", "normal")
 
   p <- p |>
     roboplotr_config(title = title, subtitle = subtitle, caption = caption,
-                    legend_position = legend_position, legend_orientation = legend_orientation, legend_order = legend_order,
-                    margin = margin,
-                    height = height,
-                    zeroline = list(zeroline = zeroline, xrange = list(min = mintime, max = maxtime)),
-                    enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
-                    ticktypes = ticktypes)
+                     legend_position = legend_position, legend_orientation = legend_orientation, legend_order = legend_order,
+                     margin = margin,
+                     height = height,
+                     zeroline = list(zeroline = zeroline, xrange = list(min = mintime, max = maxtime)),
+                     enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
+                     ticktypes = ticktypes)
 
   ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.
-  if(!is.null(facet_split)) {
-    yloc <- max(d$value)
-    split_facet <- group_split(d,!!facet_split)
-    for(i in seq(length(split_facet))) {
-      xloc <- split_facet[[i]]$time |> unique() |> sort() |> median()
-      ann_text <- split_facet[[i]][[as_name(facet_split)]] |> unique() |> str_pad(width = 10, side = "both", pad = " ")
-      p <- p |>
-        layout(annotations =
-                 list(text = ann_text, yref = str_c("y",i), xref = str_c("x",i), showarrow = F, y = yloc, x = xloc, bgcolor = "white", borderwidth = 1, borderpad = 4, bordercolor = "black"))
-    }
-  }
+  # if(!is.null(facet_split)) {
+  #   yloc <- max(d$value)
+  #   split_facet <- group_split(d,!!facet_split)
+  #   for(i in seq(length(split_facet))) {
+  #     xloc <- split_facet[[i]]$time |> unique() |> sort() |> median()
+  #     ann_text <- split_facet[[i]][[as_name(facet_split)]] |> unique() |> str_pad(width = 10, side = "both", pad = " ")
+  #     p <- p |>
+  #       layout(annotations =
+  #                list(text = ann_text, yref = str_c("y",i), xref = str_c("x",i), showarrow = F, y = yloc, x = xloc, bgcolor = "white", borderwidth = 1, borderpad = 4, bordercolor = "black"))
+  #   }
+  # }
 
   if(is.logical(artefacts)) {
     roboplotr_check_param(artefacts, c("logical"))
@@ -636,62 +636,62 @@ roboplot <- function(d,
 }
 
 
-#' @importFrom dplyr filter group_split
-#' @importFrom purrr map2
-#' @importFrom plotly add_trace layout plot_ly subplot
-#' @importFrom stringr str_replace_all
-roboplotr_get_facet_plot <- function(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, plot_axes) {
-
-  split_facet <- d |> group_split(!!facet_split)
-
-  p <- map2(split_facet,seq(length(split_facet)), function(facet, i) {
-
-    p <- plot_ly(facet, x = ~time, height = height, colors = pull(distinct(d,.data$roboplot.trace.color)))
-
-    split_d <- group_split(facet, !!color, !!pattern)
-    split_d <- if(any(plot_type == "scatter")) { rev(split_d) } else { split_d }
-
-    for (g in split_d) {
-      g.dash <- unique(d$roboplot.dash)
-      g.name <- unique(g[[as_name(color)]])
-      g.level <-  which(g.name == levels(g.name))
-      g.type <- unique(g$roboplot.plot.type)
-      g.linewidth <- unique(g$roboplot.linewidth)
-      legend.rank <- g.level * 100  + ( if(!is.null(pattern)){ which(g.dash == levels(g.dash)) * 10 } else  { 0 } )
-      show.legend <- if (i > 1) {F} else if(!is.null(trace_color)) { T } else { roboplotr_highlight_legend(highlight, filter(d, !!color == g.name)) }
-      p <- p |>
-        add_trace(data=g, y = ~value, text = g.name,
-                  texttemplate = NA,
-                  hovertemplate = roboplotr_hovertemplate(hovertext),
-                  line = if(g.type == "scatter") { list(width = g.linewidth, dash = g.dash) } else { NULL },
-                  offsetgroup = if(g.type == "bar") { g.name } else { NULL },
-                  legendgroup = g.name,
-                  legendrank = legend.rank,
-                  showlegend = show.legend,
-                  name = g.name,
-                  color = color,
-                  type = g.type, mode = if(g.type == "scatter") { "lines" } else { NULL }
-        )
-    }
-
-    if(any(!plot_mode %in% c("dodge","line","stack","horizontal"))) {
-      stop("Plot mode must be \"dodge\", \"line\", \"stack\" or \"horizontal\"!", call. = F)
-    } else {
-      p_mode <- ifelse(str_detect(plot_mode, "dodge|horizontal"), "group","relative")
-      p  <- layout(p, barmode = p_mode)
-    }
-    if(i > 1) {
-      p <- p |>
-        roboplotr_set_ticks(ticktypes = ticktypes) |>
-        layout(yaxis = list(range = plot_axes$ylim, showticklabels = F, showline = getOption("roboplot.colors.background")$y != getOption("roboplot.colors.border")$y))
-    }
-
-    p
-
-  })
-
-  subplot(p)
-}
+# #' @importFrom dplyr filter group_split
+# #' @importFrom purrr map2
+# #' @importFrom plotly add_trace layout plot_ly subplot
+# #' @importFrom stringr str_replace_all
+# roboplotr_get_facet_plot <- function(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, plot_axes) {
+#
+#   split_facet <- d |> group_split(!!facet_split)
+#
+#   p <- map2(split_facet,seq(length(split_facet)), function(facet, i) {
+#
+#     p <- plot_ly(facet, x = ~time, height = height, colors = pull(distinct(d,.data$roboplot.trace.color)))
+#
+#     split_d <- group_split(facet, !!color, !!pattern)
+#     split_d <- if(any(plot_type == "scatter")) { rev(split_d) } else { split_d }
+#
+#     for (g in split_d) {
+#       g.dash <- unique(d$roboplot.dash)
+#       g.name <- unique(g[[as_name(color)]])
+#       g.level <-  which(g.name == levels(g.name))
+#       g.type <- unique(g$roboplot.plot.type)
+#       g.linewidth <- unique(g$roboplot.linewidth)
+#       legend.rank <- g.level * 100  + ( if(!is.null(pattern)){ which(g.dash == levels(g.dash)) * 10 } else  { 0 } )
+#       show.legend <- if (i > 1) {F} else if(!is.null(trace_color)) { T } else { roboplotr_highlight_legend(highlight, filter(d, !!color == g.name)) }
+#       p <- p |>
+#         add_trace(data=g, y = ~value, text = g.name,
+#                   texttemplate = NA,
+#                   hovertemplate = roboplotr_hovertemplate(hovertext),
+#                   line = if(g.type == "scatter") { list(width = g.linewidth, dash = g.dash) } else { NULL },
+#                   offsetgroup = if(g.type == "bar") { g.name } else { NULL },
+#                   legendgroup = g.name,
+#                   legendrank = legend.rank,
+#                   showlegend = show.legend,
+#                   name = g.name,
+#                   color = color,
+#                   type = g.type, mode = if(g.type == "scatter") { "lines" } else { NULL }
+#         )
+#     }
+#
+#     if(any(!plot_mode %in% c("dodge","line","stack","horizontal"))) {
+#       stop("Plot mode must be \"dodge\", \"line\", \"stack\" or \"horizontal\"!", call. = F)
+#     } else {
+#       p_mode <- ifelse(str_detect(plot_mode, "dodge|horizontal"), "group","relative")
+#       p  <- layout(p, barmode = p_mode)
+#     }
+#     if(i > 1) {
+#       p <- p |>
+#         roboplotr_set_ticks(ticktypes = ticktypes) |>
+#         layout(yaxis = list(range = plot_axes$ylim, showticklabels = F, showline = getOption("roboplot.colors.background")$y != getOption("roboplot.colors.border")$y))
+#     }
+#
+#     p
+#
+#   })
+#
+#   subplot(p)
+# }
 
 #' @importFrom dplyr arrange distinct first group_split mutate pull slice_min summarize
 #' @importFrom forcats fct_inorder
@@ -701,6 +701,7 @@ roboplotr_get_facet_plot <- function(d, facet_split, height, color, pattern, plo
 #' @importFrom stringr str_replace_all str_trunc
 roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width, legend_title) {
 
+  ttypes <<- ticktypes
   plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color))
 
   trace_showlegend <- if(is.null(legend_position)) { T } else if (is.na(legend_position)) { F } else { T }
@@ -719,7 +720,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
                 if(quo_name(color) != quo_name(pattern)) {
                   str_c(!!color, ", ",!!pattern) |> str_remove(", alkuper\uE4inen")
                 } else {!!color}
-                } else {!!color},
+              } else {!!color},
               roboplot.legend.rank = ((as.numeric(!!color)-1) * 100) + ((as.numeric(.data$roboplot.dash)-1)*10))
 
   if(str_detect(plot_mode,"horizontal")) {
@@ -753,10 +754,8 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
   trace_params <- map(split_d, function(g) {
 
     tracetype <- unique(g$roboplot.plot.type)
-    hovertime <- if (tracetype == "pie" | str_detect(plot_mode, "horizontal")) {NULL} else { "x" }
     hoverlab <- case_when(tracetype == "pie" ~ "label", str_detect(plot_mode, "horizontal") ~ "text", TRUE ~ "text")
-    hoverval <- case_when(tracetype == "pie" ~ "value",  tracetype == "bar" & str_detect(plot_mode,"horizontal") ~ "x", TRUE ~ "y")
-    hovertemplate <- roboplotr_hovertemplate(hovertext, val = hoverval, lab = hoverlab, time = hovertime, ticktypes)
+    hovertemplate <- roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
     marker_line_color <- NULL
     legend_rank <- mean(g$roboplot.legend.rank)
     if(tracetype == "pie") {
@@ -789,7 +788,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
                             direction = "clockwise", #pie
                             xhoverformat = roboplotr_hovertemplate_freq(hovertext$dateformat),
                             hoverlabel = list(bgcolor = ~ roboplot.bg.color, color = ~ roboplot.tx.color), #pie
-                            hovertemplate = if(length(unique(g$time))==1 & plot_mode != "horizontal") { ~ str_c(.data$roboplot.plot.text,"\n",format(round(.data$value,hovertext$rounding), scientific = F, big.mark = " ", decimal.mark = ","),hovertext$unit,"<extra></extra>") } else { hovertemplate },
+                            hovertemplate = hovertemplate,#if(length(unique(g$time))==1 & plot_mode != "horizontal") { ~ str_c(.data$roboplot.plot.text,"\n",format(round(.data$value,hovertext$rounding), scientific = F, big.mark = " ", decimal.mark = ","),hovertext$unit,"<extra></extra>") } else { hovertemplate },
                             insidetextfont = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, color = ~ roboplot.in.tx.color), #pie
                             labels = color, #pie
                             legendgroup = color,

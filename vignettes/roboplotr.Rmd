@@ -263,12 +263,12 @@ Next we will create another plot with only a single observation and different
 dimensions, this time a line plot.
 
 ```{r producer price index}
-data_get("tidy/thi") %>%
+data_get("tidy/thi") |>
   filter(
     Indeksisarja == "Teollisuuden tuottajahintaindeksi",
     Tiedot == "Pisteluku (2015=100)",
     Toimiala == "Yhteensä"
-  ) %>%
+  ) |>
   mutate(value = 100 * (value / lag(value, 12) - 1),
          Indeksisarja = "Producer Price Index for Manufactured Products") |>
   drop_na() |>
@@ -406,7 +406,7 @@ d <- data_get("ec/esi_nace2") |>
       fct_relevel("EU","Finland"),
     Indicator = "Economic sentiment indicator"
     )
-devtools::load_all()
+
 d |> roboplot(
     Country,
     "Economic sentiment indicator",

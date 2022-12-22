@@ -294,7 +294,9 @@ roboplotr_set_ticks <- function(p, ticktypes) {
   tickformatstops <- ticktypes$dateformat %||%  "%Y"
   tickformatstops <- which(dateformats == tickformatstops) %||% 1
   tickformatstops <- dateformats[c(max(tickformatstops-2,1),max(tickformatstops-1,1), tickformatstops, min(tickformatstops+1,5))]
-  dtick <- if (length(unique(p$data$time)) < 6) {
+  dtick <- if(!"time" %in% names(p$data)) {
+    NULL
+  } else if (length(unique(p$data$time)) < 6) {
     switch(ticktypes$dateformat %||%  "%Y","%Y" = "M12","%YQ%q" = "M3","%m/%Y" = "M1",#"%YW%V" = 604800000,
            "%d.%m.%Y" = 86400000, "M12")
   } else { NULL }
@@ -303,7 +305,7 @@ roboplotr_set_ticks <- function(p, ticktypes) {
            yaxis= roboplotr_get_tick_layout(ticktypes$yticktype, "y", ticktypes$yformat, tickformatstops, dtick, ticktypes$reverse, ticktypes$ytitle))
 
   #placeholder, relayout.js pitää kirjoittaa tätä varten vähän uusiksi jotta legend, lähde ja logo asettuvat oikein jos tickit oikeasti poistaa
-  if(length(unique(p$data$time))==1 & ticktypes$x == "date") {
+  if(length(unique(p$data[[ticktypes$x]]))==1 & ticktypes$x == "date") {
     p <- p |> layout(xaxis = list(tickfont = list(color = getOption("roboplot.colors.background"))))
   }
   p

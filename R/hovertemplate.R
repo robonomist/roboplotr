@@ -79,9 +79,14 @@ set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", extra = NUL
   list(dateformat = frequency, rounding = rounding, unit = unit, extra = extra)
 }
 
-roboplotr_hovertemplate <- function(params, lab = "text", val = "y", time = "x", ticktypes) {
-  # print(ticktypes)
-  if(is.null(time)) { time <- "" } else { time <- str_c("%{",time,"|",params$dateformat,"}") }
-  str_c("%{",lab,"}<br>%{",val,":,.",params$rounding,"f}",params$unit,"<br>",time,params$extra,"<extra></extra>")
-
+roboplotr_hovertemplate <- function(params, lab = "text",ticktypes) {
+  labstring <- str_c("%{",lab,"}")
+  ystring <- case_when(ticktypes$yticktype == "character" ~ "",
+                       ticktypes$yticktype == "numeric" ~ str_c("%{y:,.",params$rounding,"f}",params$unit),
+                       ticktypes$yticktype == "date" ~ str_c("%{y|",params$dateformat,"}"))
+  if(str_length(ystring) == 0) { ystring <- NULL }
+  xstring <- case_when(ticktypes$xticktype == "character" ~ "%{x}",
+                       ticktypes$xticktype == "numeric" ~ str_c("%{x:,.",params$rounding,"f}",params$unit),
+                       ticktypes$xticktype == "date" ~ str_c("%{x|",params$dateformat,"}"))
+  str_c(c(labstring,ystring,xstring,params$extra,"<extra></extra>"), collapse = "<br>")
 }

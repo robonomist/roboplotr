@@ -37,7 +37,8 @@ Suggests:
     rmarkdown,
     bs4Dash,
     robonomistClient,
-    Quandl
+    Quandl,
+    slider
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)

@@ -55,9 +55,9 @@ roboplotr_modebar <- function(p, title, subtitle) {
 
   dl_string <- (function() {
     row.data <- p$data |> pmap(function(...) {
-      as.character(list(...)) |> replace_na("NA") |> str_replace_all(c(";"=",","'"="\u2019")) |> str_c(collapse = ";")
+      as.character(list(...)) |> replace_na("NA") |> str_c(collapse = ";")
     }) |> unlist() |> str_c(collapse = "\\n")
-    col.names <- names(p$data) |> str_replace("csv\\.data\\.tiedot","tiedot") |> str_c(collapse = ";")
+    col.names <- names(p$data) |>  str_c(collapse = ";")
     str_c(str_c(title,", ",subtitle),str_c(rep(";",length(names(p$data))-2),collapse = ""),"\\n",col.names,"\\n",row.data)
   })()
 
