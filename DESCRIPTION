@@ -28,7 +28,6 @@ Imports:
     tidyr,
     chromote,
     stats,
-    googleCloudStorageR,
     methods,
     crayon
 Suggests: 
@@ -38,7 +37,8 @@ Suggests:
     bs4Dash,
     robonomistClient,
     Quandl,
-    slider
+    slider,
+    tidyverse
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)

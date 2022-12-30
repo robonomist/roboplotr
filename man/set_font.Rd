@@ -45,6 +45,7 @@ Get a list for \code{\link[=set_roboplot_options]{set_roboplot_options()}} used 
 
 
 set_roboplot_options(
+  caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
   font_title = set_font(size = 17, font = "Tahoma", bold = TRUE),
   font_main =  set_font(
     size = 11,
@@ -55,7 +56,7 @@ set_roboplot_options(
   font_caption = set_font(color = "green")
 )
 
-# d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 
 d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
 

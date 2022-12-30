@@ -5,14 +5,15 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
            "Quarterly" = "%YQ%q",
            "Monthly" = "%m/%Y",
            "Weekly" = "%YW%V",
-           "Daily" = "%d.%m.%Y",
+           "Daily" = getOption("roboplot.locale")$date,
            default
     )
   }
 }
 
 
-#' Get a list used for [roboplot()] hovertemplate text formatting
+#' Use in [roboplot()] parameter 'hovertext' to get a list used for
+#' hovertemplate text formatting
 #'
 #' @param frequency Character. Determines how hovertemplate dates are formatted.
 #' One of "Annual", "Quarterly", "Monthly", "Weekly", "Daily" or NULL. Default
@@ -37,23 +38,22 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #'   dplyr::filter(Alue %in% c("Kanada","Norja","Yhdistynyt kuningaskunta"),
 #'                 Suunta == "Tuonti")
 #'
-#' p <- d |> roboplot(
-#'   Alue, "Energian tuonti", "Miljoonaa euroa", "Tilastokeskus",
+#' d |> roboplot(
+#'   Alue, "Energian tuonti", "Miljoonaa euroa", "Lähde: Tilastokeskus.",
 #'   hovertext = set_hovertext(
 #'     frequency = "Monthly", rounding = 2, unit = "Milj. €"
 #'     )
 #' )
 #'
-#' p
 #'
 #' # Parameter 'extra' will be added to last line(s) of the hovertemplate, which
 #' # can be plain text or reference to the plotly object data, with d3 syntax.
 #'
-#' p <- d |> roboplot(
-#'   Alue, "Energian tuonti", "Milj. €", "Tilastokeskus",
+#' d |> roboplot(
+#'   Alue, "Energian tuonti", "Milj. €", "Lähde: Tilastokeskus.",
 #'   hovertext = set_hovertext("Annual", extra = "(%{x:|Q})")
 #' )
-#' p
+#'
 #' @returns A list
 #' @export
 set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", extra = NULL) {

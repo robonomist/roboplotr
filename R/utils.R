@@ -1,13 +1,14 @@
 #' Override the default options for colors, fonts etc. for any plot created with [roboplot()]
 #'
-#' @param artefacts Function. Use [set_artefacts()].
+#' @param artefacts Function. Control html and other file creation. Use [set_artefacts()].
 #' @param border_colors,grid_colors,tick_colors List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
 #' @param background_color Character. Plot background color. Must be a hexadecimal color or a valid css color.
 #' @param caption_defaults List. Used to parse caption. Values must be named "prefix", "lineend" and "updated". "prefix" is character, and added to caption text with ": ". "lineend" is character added to caption line ends. "updated" is logical that determines whether caption tries to guess latest update date from plot data.
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @param font_main,font_title,font_caption Functions. Use [set_font()].
-#' @param height Numeric. Height of roboplotr plots in pixels.
+#' @param height,width Numerics. Height and width of roboplotr plots in pixels.
 #' @param linewidth Numeric. The default roboplotr line trace width.
+#' @param locale Function. Defines locale parameters as [roboplot()] needs them. Use [set_artefacts()].
 #' @param logo_file Character. The filepath to the logo used in every plot.
 #' @param modebar Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
@@ -25,13 +26,15 @@
 #'
 #' # Basic plot frame colors for ticks, grid and border must be defined by axis
 #' # with lists of color hex codes or valid css colors. Same with plot backround.
-#' # Height can be controlled by-plot or globally.
-#' #
+#' # Height can be controlled by-plot or globally. You can also preconstruct
+#' # some defaults for captions.
+#'
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada","Norja"), Suunta == "Tuonti")
 #'
 #' set_roboplot_options(
 #'   border_colors = list(x = "#eed5d2", y = "#8b7d7b"),
+#'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
 #'   grid_colors = list(x = "#9aff9a", y = "cornsilk"),
 #'   tick_colors = list(x = "darkgray", y = "dimgrey"),
 #'   background_color = "ghostwhite",
@@ -64,11 +67,11 @@
 #' # Image sizes for downloaded image files are differentiated with
 #' # "img_w"(ide), "img_n"(arrow) or "img_s"(mall).
 #'
-#' set_roboplot_options(logo_file =
-#'                        system.file("images", "Rlogo.png", package = "roboplotr"),
-#'                      modebar = c("home","closest","compare","zoomin","zoomout",
-#'                                  "img_w","img_n","img_s","data_dl"),
-#'                      verbose = "All")
+#' set_roboplot_options(
+#'   logo_file = system.file("images", "Rlogo.png", package = "roboplotr"),
+#'   modebar = c("home","closest","compare","zoomin","zoomout",
+#'               "img_w","img_n","img_s","data_dl"),
+#'   verbose = "All")
 #'
 #' p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 #'
@@ -81,7 +84,7 @@
 #' # roboplotr::set_imgdl_layout(), documented in detail in that
 #' # function.
 #'
-#' set_roboplot_options(imgdl_wide = set_imgdl_layout(x = 1600))
+#' set_roboplot_options(imgdl_wide = set_imgdl_layout(width = 1600))
 #'
 #'
 #' # Captions are partly controlled by 'caption defaults', while you must
@@ -196,6 +199,7 @@ set_roboplot_options <- function(
     imgdl_narrow = NULL,
     imgdl_small = NULL,
     linewidth = NULL,
+    locale = NULL,
     logo_file = NULL,
     modebar = NULL,
     patterns = NULL,
@@ -203,7 +207,6 @@ set_roboplot_options <- function(
     trace_colors = NULL,
     xaxis_ceiling = NULL,
     verbose = NULL,
-    widgets = NULL,
     width = NULL,
     shinyapp = F,
     reset = F
@@ -267,6 +270,10 @@ set_roboplot_options <- function(
 
     roboplotr_check_param(height, "numeric")
 
+    roboplotr_check_param(linewidth, "numeric")
+
+    roboplotr_check_param(locale, "function", NULL, f.name = list(fun = first(substitute(locale)), check = "set_locale"))
+
     roboplotr_check_param(logo_file, "character")
     if(!is.null(logo_file)) {
       if (!file.exists(logo_file)) {
@@ -307,6 +314,7 @@ set_roboplot_options <- function(
     set_roboplot_option(font_caption, "font.caption")
     set_roboplot_option(grid_colors, "colors.grid")
     set_roboplot_option(height)
+    set_roboplot_option(locale)
     set_roboplot_option(linewidth)
     set_roboplot_option(logo_file, "logo")
     set_roboplot_option(modebar, "modebar.buttons")
@@ -354,13 +362,62 @@ set_roboplot_options <- function(
 # @param string The string that will be trunctated to filename
 #' @importFrom stringr str_extract_all str_replace_all str_c str_squish
 roboplotr_string2filename <- function(string) {
-  str_extract_all(string, "[a-z\uE5\uE4\uF6,A-Z\uC5\uC4\uD6,\\s,_,\\.,0-9]", simplify = T) |>
+  str_extract_all(string, "[a-z\uE5\uE4\uF6,A-Z\uC5\uC4\uD6,\\s,_,\\.,0-9,-]", simplify = T) |>
     str_c(collapse = "") |>
     str_squish() |>
     tolower() |>
-    str_replace_all(c("\uE4" = "a", "\uE5" = "o", "\uF6" = "o", " |\\." = "_", "," = ""))
+    str_replace_all(c("\uE4" = "a", "\uE5" = "o", "\uF6" = "o", " |\\.|-" = "_", "," = ""))
 }
 
+#' Used to set locale parameters for [roboplot()] in [set_roboplot_options()]
+#'
+#' @param locale Character. Currently supports on only "en-GB", "en-US",
+#' "sv-SE", or "fi-FI" (the default).
+#' @examples
+#' # You might want to display dates or numbers with some another default format
+#' # for decimal marks or thousand marks.
+#'
+#' set_roboplot_options(
+#'   locale = set_locale("en-GB"),
+#'   caption_defaults = list(prefix = "Source: ", lineend = ".", updated = FALSE)
+#'   )
+#'
+#' d <- energiantuonti |>
+#'   dplyr::filter(Alue == "Kanada", Suunta == "Tuonti") |>
+#'   dplyr::mutate(value = value * 1000000, Alue = "Canada")
+#'
+#' d |>
+#'   roboplot(color = Alue,
+#'            title = "Energy import",
+#'            subtitle = "Mil. \u20AC",
+#'            caption = "Statistics Finland")
+#'
+#' # This works on dates, too, if you need to show an exact date. In this
+#' # example you wouldn't, and it only matters on the hoverlabel here, but let's
+#' # force roboplotr() to display dates at by-day accuracy for the sake of example
+#' # by using data frequency of "Daily".
+#'
+#' attr(d, "frequency") <- "Daily"
+#'
+#' d |> roboplot(color = Alue,
+#'               title = "Energy import",
+#'               subtitle = "Mil. \u20AC",
+#'               caption = "Statistics Finland")
+#'
+#' # Revert to defaults:
+#' set_roboplot_options(reset = TRUE)
+#'
+#' @return A list
+#' @export
+#' @importFrom dplyr case_when
+set_locale <- function(locale = "fi-FI") {
+  roboplotr_check_param(locale, "character", allow_null = F)
+  roboplotr_valid_strings(locale, c("en-GB","en-US","sv-SE","fi-FI"), any)
+  loc <- case_when(locale == "en-GB" ~ "en", locale == "en-US" ~ "en-US", locale == "sv-SE" ~ "sv", TRUE ~ "fi")
+  sep <- case_when(loc %in% c("en", "en-US") ~ ",.", TRUE ~ ", ")
+  dat <- case_when(loc == "en" ~ "%-d/%-m/%Y", loc == "en-US" ~ "%-m/%-d/%Y", TRUE ~ "%-d.%-m.%Y")
+  list(locale = loc, separators = sep, date = dat)
+}
 
 #' @importFrom dplyr across everything matches mutate rename select
 #' @importFrom rlang sym quo_name
@@ -380,15 +437,18 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes) 
   d <- d |>
     select(matches(c(plot_axes$y, color, pattern, plot_axes$x)), -matches("roboplot.topic")) |>
     mutate(
-      across(!is.numeric, ~ as.character(.x) |> str_replace_all(c("[^[:alnum:]\\s\\,\\;\\']"= "_",";"=",","'"="\u2019"))), #note: semi-colon as colon for final csv
+      across(!is.numeric, ~ as.character(.x) |> roboplotr_transform_string()), #note: semi-colon as colon for final csv
       across(is.numeric, ~ as.character(.x) |> str_replace_all("\\.", ","))
     )
 
-  testi <<- d
-
   d
+
 }
 
+#' @importFrom stringr str_replace_all
+roboplotr_transform_string <- function(string) {
+  str_replace_all(string, c("[^[:alnum:]\\s\\,\\;\\',\\&,\\%,\\-]"= "_","'"="\u2019", "\\&" = "\u0026","\\%" = "\\u0025"))
+}
 
 #' @importFrom dplyr case_when
 #' @importFrom padr get_interval
@@ -399,7 +459,7 @@ roboplotr_get_dateformat <- function(d, msg = T) {
                    "Quarterly" = "%YQ%q",
                    "Monthly" = "%m/%Y",
                    "Weekly" = "%YW%V",
-                   "Daily" = "%d.%m.%Y")
+                   "Daily" = getOption("roboplot.locale")$date)
 
   get_padr_frequency <- function(ts) {
     ts <- tryCatch(get_interval(ts), error = function(e) return( NA ))
@@ -414,7 +474,7 @@ roboplotr_get_dateformat <- function(d, msg = T) {
   }
   d_attrs <- attributes(d)
   wrn <- F
-  datecol <- map(names(d), ~ if("Date" %in% class(d[[.x]])) { .x }) |> roboplotr_compact() %>% first()
+  datecol <- map(names(d), ~ if("Date" %in% class(d[[.x]])) { .x }) |> roboplotr_compact() |> first()
   if(length(datecol) == 0) {
     tf <- NULL
   } else {

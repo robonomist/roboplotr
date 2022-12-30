@@ -48,7 +48,9 @@ Write html and and other files from \code{\link[=roboplot]{roboplot()}} plots
 d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 
 d |>
-  roboplot(Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus") |>
+  roboplot(
+    Alue, "Energian tuonti Kanadasta", "Milj €", "Lähde: Tilastokeskus."
+    ) |>
   roboplot_create_widget(filepath = tempdir())
 
 file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
@@ -62,7 +64,9 @@ file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
 # widgets with 'self_contained' (if you want to forward the file, perhaps).
 
 d |>
-  roboplot(Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus") |>
+  roboplot(
+    Alue, "Kanadan energiantuonti", "Milj €", "Lähde: Tilastokeskus."
+    ) |>
   roboplot_create_widget(
     title = "Energian tuonti - Kanada",
     filepath = tempdir(),

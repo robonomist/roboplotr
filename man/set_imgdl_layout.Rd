@@ -39,10 +39,11 @@ Use in \code{\link[=set_roboplot_options]{set_roboplot_options()}} to get a list
 # for the file format.
 
 set_roboplot_options(
+  caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
   imgdl_wide =
     set_imgdl_layout(
-      x = 1400,
-      y = 350,
+      width = 1400,
+      height = 350,
       mainfont = 16,
       titlefont = 24,
       captionfont = 14,

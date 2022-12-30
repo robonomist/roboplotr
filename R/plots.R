@@ -180,7 +180,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' d1 |> roboplot(color = Alue,
 #'                title = "Energian tuonti",
 #'                subtitle = "Milj. \u20AC",
-#'                caption = "Tilastokeskus")
+#'                caption = "Lähde: Tilastokeskus.")
 #'
 #'
 #' # Legend will automatically be omitted if only a single observation exists
@@ -196,6 +196,12 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'            )
 #'   )
 #'
+#'
+#' # You can also use set_roboplot_options() to preconstruct some caption texts.
+#'
+#' set_roboplot_options(
+#'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
+#'   )
 #'
 #' # Legend can also be omitted by giving a legend_position of NA. Height and
 #' # width can also be specified, while for most uses width specification is
@@ -357,12 +363,14 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #'
 #' d2 |>
 #'   dplyr::filter(Suunta == "Tuonti") |>
-#'   roboplot(Alue,"Energian tuonti","Milj. \u20AC","Tilastokeskus",artefacts = T)
+#'   roboplot(Alue,"Energian tuonti","Milj. \u20AC","Tilastokeskus",
+#'   artefacts = TRUE)
 #'
-#' file.exists(str_c(tempdir(),"/energian_tuonti.html"))
+#' file.exists(paste0(tempdir(),"/energian_tuonti.html"))
+#'
 #' # Reset to defaults
 #'
-#' set_roboplot_options(reset = T)
+#' set_roboplot_options(reset = TRUE)
 #'
 #' # Further specifications for creating artefacts is defined under
 #' # roboplotr::set_roboplot_options(), roboplotr::roboplot_create_widgets() and
@@ -693,7 +701,7 @@ roboplot <- function(d,
 #   subplot(p)
 # }
 
-#' @importFrom dplyr arrange distinct first group_split mutate pull slice_min summarize
+#' @importFrom dplyr arrange desc distinct first group_split mutate pull slice_min summarize
 #' @importFrom forcats fct_inorder
 #' @importFrom plotly plot_ly layout subplot
 #' @importFrom rlang := sym
@@ -701,7 +709,6 @@ roboplot <- function(d,
 #' @importFrom stringr str_replace_all str_trunc
 roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width, legend_title) {
 
-  ttypes <<- ticktypes
   plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color))
 
   trace_showlegend <- if(is.null(legend_position)) { T } else if (is.na(legend_position)) { F } else { T }
@@ -747,8 +754,10 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
     -(group_by(d, !!color) |> summarize(value = sum(.data$value), .groups = "drop") |> mutate(value = .data$value / sum(.data$value)) |> slice_min(!!color) |> pull(.data$value) * 360 / 2)
   } else { 0 }
 
-  if(length(split_d) > height / 50) {
-    roboplotr_alert(str_c("This many legend items might make the legend too large to render for some widths, you might want to use 'height' of ",length(split_d) * 50,"."))
+  if(!is.null(height)) {
+    if(length(split_d) > height / 50) {
+      roboplotr_alert(str_c("This many legend items might make the legend too large to render for some widths, you might want to use 'height' of ",length(split_d) * 50,"."))
+    }
   }
 
   trace_params <- map(split_d, function(g) {
@@ -766,8 +775,6 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
       grid_color <- getOption("roboplot.colors.grid")
       marker_line_color <- first(grid_color[grid_color != background_color])
       marker_line_color <- replace(marker_line_color, length(marker_line_color) == 0, roboplotr_alter_color(background_color,"darker"))
-
-      testi <<- g
     }
 
     show.legend <- if(is.null(highlight)) { trace_showlegend } else { roboplotr_highlight_legend(highlight, g) }
@@ -852,7 +859,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
   }
 
   # hoverlabel font is determined currently here, move to an appropriate place..
-  p |> layout(hoverlabel = list(font = getOption("roboplot.font.main")[c("family","size")]))
+  p |> layout(hoverlabel = list(font = getOption("roboplot.font.main")[c("family","size")])) |> config(responsive = T)
 
 }
 

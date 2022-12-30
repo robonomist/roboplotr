@@ -80,7 +80,7 @@ roboplotr_check_param <- function(var, type, size = 1, allow_null = T, allow_na 
 roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = all) {
   if(!is.null(strings_to_validate)) {
     if(!.fun(valid_values %in% strings_to_validate)) {
-      stop (str_c("'",substitute(strings_to_validate),"' must be among ",roboplotr_combine_words(str_replace_all(valid_values,"\\\\", "\\\\\\\\")),"!"), call. = F)
+      stop (str_c("'",deparse(substitute(strings_to_validate)),"' must be among ",roboplotr_combine_words(str_replace_all(valid_values,"\\\\", "\\\\\\\\")),"!"), call. = F)
     }
   }
 }

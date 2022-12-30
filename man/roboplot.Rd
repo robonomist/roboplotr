@@ -103,7 +103,7 @@ d1 <- d |> dplyr::filter(Suunta == "Tuonti")
 d1 |> roboplot(color = Alue,
                title = "Energian tuonti",
                subtitle = "Milj. \u20AC",
-               caption = "Tilastokeskus")
+               caption = "Lähde: Tilastokeskus.")
 
 
 # Legend will automatically be omitted if only a single observation exists
@@ -119,6 +119,12 @@ d1 |>
            )
   )
 
+
+# You can also use set_roboplot_options() to preconstruct some caption texts.
+
+set_roboplot_options(
+  caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
+  )
 
 # Legend can also be omitted by giving a legend_position of NA. Height and
 # width can also be specified, while for most uses width specification is
@@ -280,12 +286,14 @@ set_roboplot_options(
 
 d2 |>
   dplyr::filter(Suunta == "Tuonti") |>
-  roboplot(Alue,"Energian tuonti","Milj. \u20AC","Tilastokeskus",artefacts = T)
+  roboplot(Alue,"Energian tuonti","Milj. \u20AC","Tilastokeskus",
+  artefacts = TRUE)
 
-file.exists(str_c(tempdir(),"/energian_tuonti.html"))
+file.exists(paste0(tempdir(),"/energian_tuonti.html"))
+
 # Reset to defaults
 
-set_roboplot_options(reset = T)
+set_roboplot_options(reset = TRUE)
 
 # Further specifications for creating artefacts is defined under
 # roboplotr::set_roboplot_options(), roboplotr::roboplot_create_widgets() and

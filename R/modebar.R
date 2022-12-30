@@ -9,8 +9,7 @@ roboplotr_modebar <- function(p, title, subtitle) {
   if(is.null(title)) {
     dl_title <- "img"
   } else {
-    dl_title <- str_extract_all(title, "[a-z\u00e5\u00e4\u00f6,A-Z\u00c5\u00c4\u00d6,\\s,_,\\.,0-9]", simplify = T) |>
-      roboplotr_string2filename()
+    dl_title <- roboplotr_string2filename(title)
   }
 
   js_string <- function(layout, ttl = dl_title) {
@@ -58,7 +57,9 @@ roboplotr_modebar <- function(p, title, subtitle) {
       as.character(list(...)) |> replace_na("NA") |> str_c(collapse = ";")
     }) |> unlist() |> str_c(collapse = "\\n")
     col.names <- names(p$data) |>  str_c(collapse = ";")
-    str_c(str_c(title,", ",subtitle),str_c(rep(";",length(names(p$data))-2),collapse = ""),"\\n",col.names,"\\n",row.data)
+    ti <- roboplotr_transform_string(title)
+    su <- roboplotr_transform_string(subtitle)
+    str_c(str_c(ti,", ",su),str_c(rep(";",length(names(p$data))-2),collapse = ""),"\\n",col.names,"\\n",row.data)
   })()
 
 
@@ -142,10 +143,11 @@ roboplotr_modebar <- function(p, title, subtitle) {
 #' # for the file format.
 #'
 #' set_roboplot_options(
+#'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
 #'   imgdl_wide =
 #'     set_imgdl_layout(
-#'       x = 1400,
-#'       y = 350,
+#'       width = 1400,
+#'       height = 350,
 #'       mainfont = 16,
 #'       titlefont = 24,
 #'       captionfont = 14,

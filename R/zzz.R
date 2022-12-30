@@ -2,7 +2,8 @@
   op <- options()
   op.roboplot.options <- list(
     roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, artefacts = "html"),
-    roboplot.caption = list(prefix = "L\uE4hde: ", lineend = ".", updated = NULL),
+    # roboplot.caption = list(prefix = "L\uE4hde: ", lineend = ".", updated = FALSE),
+    roboplot.caption = list(prefix = "", lineend = "", updated = FALSE),
     roboplot.colors.background = "white",
     roboplot.colors.border = list(x = "black", y = "black"),
     roboplot.colors.traces =  c("#c1272d","#f15a24","#f7931e","#dcc48a","#118f9a","#951d46"),
@@ -15,6 +16,7 @@
     roboplot.font.title = list(size = 17, family = "Arial, sans-serif", path = NULL, color = "#696969", bold = T),
     roboplot.height = 550,
     roboplot.linewidth = 2,
+    roboplot.locale = list(locale = "fi", separators = ", ", date = "%-d.%-m.%Y"),
     roboplot.logo = system.file("images", "robonomist.png", package = "roboplotr"),
     roboplot.modebar.buttons = c("closest","compare","img_w","data_dl"),
     roboplot.imgdl.wide = list(x = 1280, y = 720, title = 31, main = 24, caption = 19, suffix = "_levea", type = "png"),

@@ -144,8 +144,9 @@ roboplotr_title <- function(p, title, subtitle) {
 #' # using roboplotr::set_roboplot_options() (documented therein) to change the
 #' # defaults to something more sensible.
 #'
-#' set_roboplot_options(caption_defaults =
-#'                        list(prefix = "Source: ", lineend = "", updated = NULL))
+#' set_roboplot_options(
+#'   caption_defaults = list(prefix = "Source: ", lineend = "", updated = FALSE)
+#'   )
 #'
 #' d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
 #'
@@ -237,6 +238,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'
 #'
 #' set_roboplot_options(
+#'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
 #'   font_title = set_font(size = 17, font = "Tahoma", bold = TRUE),
 #'   font_main =  set_font(
 #'     size = 11,
@@ -247,7 +249,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'   font_caption = set_font(color = "green")
 #' )
 #'
-#' # d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+#' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 #'
 #' d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
 #'

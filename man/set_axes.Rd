@@ -45,6 +45,11 @@ Define axis and axis tick formats for \code{\link[=roboplot]{roboplot()}} plots.
 \examples{
 # The primary usage is for creating horizontal bar plots when combining the
 # roboplotr::roboplot plot_axes control with plot_mode "horizontal".
+
+set_roboplot_options(
+caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
+)
+
 d <- energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
 attr(d, "frequency") <- "Quarterly"
@@ -105,6 +110,10 @@ d2 <- dplyr::tribble(
   "Jan-Oct", -8.8
 )
 
+set_roboplot_options(
+  caption = list(prefix = "Source: ", lineend = ".", updated = FALSE)
+ )
+
 d2 |>
   roboplotr::roboplot(title = "Growth Rate of Investment",
                       caption = "National bureau of statistics, China",
@@ -129,6 +138,10 @@ d3 |> dplyr::arrange(obs1, value) |>
                       plot_axes = set_axes(
                         x = "obs1",
                         xticktype = "numeric"))
+
+set_roboplot_options(
+caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
+)
 
 # You might just want to switch the axes for time and value
 d |> dplyr::filter(Suunta == "Tuonti") |>
@@ -162,5 +175,7 @@ d |> dplyr::filter(Suunta == "Tuonti") |>
                         x = "value",
                         xticktype = "numeric"
                       ))
+# Revert to defaults:
+set_roboplot_options(reset = TRUE)
 
 }

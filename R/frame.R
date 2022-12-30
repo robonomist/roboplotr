@@ -14,7 +14,7 @@ roboplotr_set_background <- function(p, color = getOption("roboplot.colors.backg
 #' @importFrom plotly layout
 #' @importFrom stringr str_remove
 roboplotr_set_margin <-function(p, margin) {
-  
+
   if (!is.list(margin)) {
     stop("Insert plot margins as list (default is list(t,r,b,l,pad))\nNote that top and bottom margins will be currently ignored but programmatically set instead.", call. = F)
   } else if (any(!names(margin) %in% c("t","r","b","l","pad")) | any(!is.double(unlist(margin)))) {

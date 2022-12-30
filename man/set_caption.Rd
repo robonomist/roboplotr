@@ -77,8 +77,9 @@ d |> roboplot(Alue,"Energian tuonti Kanadasta","Miljoonaa euroa",
 # using roboplotr::set_roboplot_options() (documented therein) to change the
 # defaults to something more sensible.
 
-set_roboplot_options(caption_defaults =
-                       list(prefix = "Source: ", lineend = "", updated = NULL))
+set_roboplot_options(
+  caption_defaults = list(prefix = "Source: ", lineend = "", updated = FALSE)
+  )
 
 d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
 

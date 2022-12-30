@@ -19,6 +19,7 @@ set_roboplot_options(
   imgdl_narrow = NULL,
   imgdl_small = NULL,
   linewidth = NULL,
+  locale = NULL,
   logo_file = NULL,
   modebar = NULL,
   patterns = NULL,
@@ -26,14 +27,13 @@ set_roboplot_options(
   trace_colors = NULL,
   xaxis_ceiling = NULL,
   verbose = NULL,
-  widgets = NULL,
   width = NULL,
   shinyapp = F,
   reset = F
 )
 }
 \arguments{
-\item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}.}
+\item{artefacts}{Function. Control html and other file creation. Use \code{\link[=set_artefacts]{set_artefacts()}}.}
 
 \item{border_colors, grid_colors, tick_colors}{List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
 
@@ -45,11 +45,13 @@ set_roboplot_options(
 
 \item{font_main, font_title, font_caption}{Functions. Use \code{\link[=set_font]{set_font()}}.}
 
-\item{height}{Numeric. Height of roboplotr plots in pixels.}
+\item{height, width}{Numerics. Height and width of roboplotr plots in pixels.}
 
 \item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{set_imgdl_layout}. Controls the dimensions and fonts of image files downloaded through modebar buttons.}
 
 \item{linewidth}{Numeric. The default roboplotr line trace width.}
+
+\item{locale}{Function. Defines locale parameters as \code{\link[=roboplot]{roboplot()}} needs them. Use \code{\link[=set_artefacts]{set_artefacts()}}.}
 
 \item{logo_file}{Character. The filepath to the logo used in every plot.}
 
@@ -77,13 +79,15 @@ Override the default options for colors, fonts etc. for any plot created with \c
 
 # Basic plot frame colors for ticks, grid and border must be defined by axis
 # with lists of color hex codes or valid css colors. Same with plot backround.
-# Height can be controlled by-plot or globally.
-#
+# Height can be controlled by-plot or globally. You can also preconstruct
+# some defaults for captions.
+
 d <- energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada","Norja"), Suunta == "Tuonti")
 
 set_roboplot_options(
   border_colors = list(x = "#eed5d2", y = "#8b7d7b"),
+  caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
   grid_colors = list(x = "#9aff9a", y = "cornsilk"),
   tick_colors = list(x = "darkgray", y = "dimgrey"),
   background_color = "ghostwhite",
@@ -116,11 +120,11 @@ p
 # Image sizes for downloaded image files are differentiated with
 # "img_w"(ide), "img_n"(arrow) or "img_s"(mall).
 
-set_roboplot_options(logo_file =
-                       system.file("images", "Rlogo.png", package = "roboplotr"),
-                     modebar = c("home","closest","compare","zoomin","zoomout",
-                                 "img_w","img_n","img_s","data_dl"),
-                     verbose = "All")
+set_roboplot_options(
+  logo_file = system.file("images", "Rlogo.png", package = "roboplotr"),
+  modebar = c("home","closest","compare","zoomin","zoomout",
+              "img_w","img_n","img_s","data_dl"),
+  verbose = "All")
 
 p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 
@@ -133,7 +137,7 @@ p
 # roboplotr::set_imgdl_layout(), documented in detail in that
 # function.
 
-set_roboplot_options(imgdl_wide = set_imgdl_layout(x = 1600))
+set_roboplot_options(imgdl_wide = set_imgdl_layout(width = 1600))
 
 
 # Captions are partly controlled by 'caption defaults', while you must

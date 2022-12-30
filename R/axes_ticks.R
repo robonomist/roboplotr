@@ -17,6 +17,11 @@
 #' @examples
 #' # The primary usage is for creating horizontal bar plots when combining the
 #' # roboplotr::roboplot plot_axes control with plot_mode "horizontal".
+#'
+#' set_roboplot_options(
+#' caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
+#' )
+#'
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
 #' attr(d, "frequency") <- "Quarterly"
@@ -77,6 +82,10 @@
 #'   "Jan-Oct", -8.8
 #' )
 #'
+#' set_roboplot_options(
+#'   caption = list(prefix = "Source: ", lineend = ".", updated = FALSE)
+#'  )
+#'
 #' d2 |>
 #'   roboplotr::roboplot(title = "Growth Rate of Investment",
 #'                       caption = "National bureau of statistics, China",
@@ -101,6 +110,10 @@
 #'                       plot_axes = set_axes(
 #'                         x = "obs1",
 #'                         xticktype = "numeric"))
+#'
+#' set_roboplot_options(
+#' caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
+#' )
 #'
 #' # You might just want to switch the axes for time and value
 #' d |> dplyr::filter(Suunta == "Tuonti") |>
@@ -134,6 +147,8 @@
 #'                         x = "value",
 #'                         xticktype = "numeric"
 #'                       ))
+#' # Revert to defaults:
+#' set_roboplot_options(reset = TRUE)
 #'
 #' @export
 #' @importFrom dplyr case_when
@@ -196,7 +211,6 @@ set_axes <- function(y = NULL, x = NULL,  yticktype = NULL, xticktype = NULL, yt
     )
 }
 
-
 #' @importFrom plotly layout config
 roboplotr_set_axis_ranges <- function(p, range) {
   fixed_range <- if (any(c("zoom","zoomin2d","pan") %in% getOption("roboplot.modebar.buttons"))) { F } else { T }
@@ -205,8 +219,8 @@ roboplotr_set_axis_ranges <- function(p, range) {
   if(!all(is.na(range$ylim)) & any(is.na(range$ylim)) || !all(is.na(range$xlim)) & any(is.na(range$xlim))) {
     roboplotr_alert("Provide both ends for any axis limits!")
   }
-  config(p, locale = "fi") |>
-    layout(separators = ", ") |>
+  config(p, locale = getOption("roboplot.locale")$locale) |>
+    layout(separators = getOption("roboplot.locale")$separators) |>
     layout(xaxis = if(all(is.na(range$xlim))) { list(fixedrange = fixed_range) } else { list(fixedrange = fixed_range, range = range$xlim) },
            yaxis = list(fixedrange = fixed_range, range = range$ylim)) |>
     layout(hovermode = "compare")
@@ -282,6 +296,7 @@ roboplotr_get_tick_layout <- function(ticktype,
   }
 
 }
+#' @importFrom dplyr case_when
 #' @importFrom plotly layout
 #' @importFrom rlang %||%
 roboplotr_set_ticks <- function(p, ticktypes) {
@@ -290,15 +305,22 @@ roboplotr_set_ticks <- function(p, ticktypes) {
                    "Monthly" = "%m/%Y",
                    # "Weekly" = "%YW%V",
                    "Weekly" = "%m/%Y",
-                   "Daily" = "%d.%m.%Y")
+                   "Daily" = getOption("roboplot.locale")$date)
   tickformatstops <- ticktypes$dateformat %||%  "%Y"
   tickformatstops <- which(dateformats == tickformatstops) %||% 1
   tickformatstops <- dateformats[c(max(tickformatstops-2,1),max(tickformatstops-1,1), tickformatstops, min(tickformatstops+1,5))]
   dtick <- if(!"time" %in% names(p$data)) {
     NULL
   } else if (length(unique(p$data$time)) < 6) {
-    switch(ticktypes$dateformat %||%  "%Y","%Y" = "M12","%YQ%q" = "M3","%m/%Y" = "M1",#"%YW%V" = 604800000,
-           "%d.%m.%Y" = 86400000, "M12")
+    case_when(is.null(ticktypes$dateformat) == T ~ list("M12"),
+              ticktypes$dateformat == "%Y" ~ list("M12"),
+              ticktypes$dateformat == "%YQ%q" ~ list("M3"),
+              ticktypes$dateformat == "%m/%Y" ~ list("M1"),
+              ticktypes$dateformat == getOption("roboplot.locale")$date ~ list(86400000),
+              TRUE ~ list("M12")
+    )[[1]]
+    # switch(ticktypes$dateformat %||% "%Y","%Y" = "M12","%YQ%q" = "M3","%m/%Y" = "M1",#"%YW%V" = 604800000,
+    #        "%d.%m.%Y" = 86400000, "M12")
   } else { NULL }
   p <- p |>
     layout(xaxis= roboplotr_get_tick_layout(ticktypes$xticktype, "x", ticktypes$xformat, tickformatstops, dtick, ticktypes$reverse, ticktypes$xtitle),
