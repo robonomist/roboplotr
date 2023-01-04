@@ -763,7 +763,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
   trace_params <- map(split_d, function(g) {
 
     tracetype <- unique(g$roboplot.plot.type)
-    hoverlab <- case_when(tracetype == "pie" ~ "label", str_detect(plot_mode, "horizontal") ~ "text", TRUE ~ "text")
+    hoverlab <- case_when(tracetype == "pie" ~ "label", str_detect(plot_mode, "horizontal") ~ "text", TRUE ~ "customdata")
     hovertemplate <- roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
     marker_line_color <- NULL
     legend_rank <- mean(g$roboplot.legend.rank)
@@ -790,7 +790,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
     legendgrouptitle <- if (legend_title == F) { NULL } else if ( is.character(legend_title) ) { str_c("<b>",legend_title,"</b>") } else { str_c("<b>",as_name(color),"</b>") }
 
     plotting_params <- list(color = color, #!pie
-                            customdata = ~ roboplot.plot.text,
+                            customdata = if(str_detect(plot_mode,"horizontal")) { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
                             data=g,
                             direction = "clockwise", #pie
                             xhoverformat = roboplotr_hovertemplate_freq(hovertext$dateformat),
@@ -830,7 +830,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
     } else if (tracetype == "bar" & str_detect(plot_mode,"horizontal")) {
       plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition","marker","customdata")]
     } else if (tracetype == "bar") {
-      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker")]
+      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker","customdata")]
     } else if (tracetype == "pie") {
       plotting_params[c(shared_params,"labels","textposition","textinfo","insidetextfont","direction","rotation","sort","hoverlabel","marker", "values")]
     }

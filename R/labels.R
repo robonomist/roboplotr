@@ -85,7 +85,7 @@ roboplotr_title <- function(p, title, subtitle) {
           # y = 0.9325,
           y = 1,
           x = 0,
-          # yref = "paper",
+          yref = "container",
           xref = "paper"
           )
       )

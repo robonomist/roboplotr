@@ -312,11 +312,11 @@ roboplotr_set_ticks <- function(p, ticktypes) {
   dtick <- if(!"time" %in% names(p$data)) {
     NULL
   } else if (length(unique(p$data$time)) < 6) {
-    case_when(is.null(ticktypes$dateformat) == T ~ list("M12"),
-              ticktypes$dateformat == "%Y" ~ list("M12"),
-              ticktypes$dateformat == "%YQ%q" ~ list("M3"),
-              ticktypes$dateformat == "%m/%Y" ~ list("M1"),
-              ticktypes$dateformat == getOption("roboplot.locale")$date ~ list(86400000),
+    tdf <- ticktypes$dateformat %||% "%Y"
+    case_when(tdf == "%Y" ~ list("M12"),
+              tdf == "%YQ%q" ~ list("M3"),
+              tdf == "%m/%Y" ~ list("M1"),
+              tdf == getOption("roboplot.locale")$date ~ list(86400000),
               TRUE ~ list("M12")
     )[[1]]
     # switch(ticktypes$dateformat %||% "%Y","%Y" = "M12","%YQ%q" = "M3","%m/%Y" = "M1",#"%YW%V" = 604800000,

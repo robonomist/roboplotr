@@ -469,7 +469,7 @@ roboplotr_get_dateformat <- function(d, msg = T) {
                     str_detect(ts, "^quarter") ~ "Quarterly",
                     str_detect(ts, "^year") ~ "Annual",
                     TRUE ~ as.character(NA))
-    if(!is.na(ts)) { ts } else { NULL }
+    if(!is.na(ts)) { ts } else { "Annual" }
 
   }
   d_attrs <- attributes(d)
@@ -493,7 +493,7 @@ roboplotr_get_dateformat <- function(d, msg = T) {
     }
   }
   if(wrn == T & msg == T) {
-    wrn <- if(is.null(tf)) {"Resorting to default %Y-%m-%d" } else { str_c("Guessing frequency \"",names(dateformats[tf]),"\" for date format ",dateformats[[tf]]) }
+    wrn <- if(is.null(tf)) {"Resorting to default %Y" } else { str_c("Guessing frequency \"",names(dateformats[tf]),"\" for date format ",dateformats[[tf]]) }
     roboplotr_message(str_c("No frequency attribute was detected for hoverlabel from data 'd', and has not been provided as \"frequency\" in the argument 'hovertext'.\n", wrn,"."))
   }
   tf

@@ -79,7 +79,7 @@ set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", extra = NUL
   list(dateformat = frequency, rounding = rounding, unit = unit, extra = extra)
 }
 
-roboplotr_hovertemplate <- function(params, lab = "text",ticktypes) {
+roboplotr_hovertemplate <- function(params, lab = "text", ticktypes) {
   labstring <- str_c("%{",lab,"}")
   ystring <- case_when(ticktypes$yticktype == "character" ~ "",
                        ticktypes$yticktype == "numeric" ~ str_c("%{y:,.",params$rounding,"f}",params$unit),

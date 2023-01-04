@@ -1,6 +1,6 @@
 function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart, showfinal = false) {
-  if(height == false) {height = el.layout.height};
-	let elcontainer = height;
+  //if(height == false) {height = el.layout.height};
+	let elcontainer = $(el).find("svg.main-svg")[0].height.animVal.value;
 	let eltitle = $(el).find('g.g-gtitle')[0].getBBox();
 	let elslider = 0;
 	if ('rangeslider' in el.layout.xaxis) {
@@ -25,7 +25,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	};
 	let margin_bottom = ellegend.height + (elcaption*2+ elxticks + elxtitle);
 	// pie charts do not give correct height by measuring the plot, investigate
-	let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
+	let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.xlines-above.crisp');
 	if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	let images_sizey = (elcontainer * 0.05) / elplot;
 	el.layout.images[0].sizey = images_sizey
@@ -46,7 +46,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
 	};
 	  margin_bottom = ellegend.height + elcaption + elxticks + elxtitle;
-	  let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.cartesianlayer > .xy > .gridlayer > .x');
+	  let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.xlines-above.crisp');
 	  if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	  images_sizey = (elcontainer * 0.05) / elplot;
 	  legend_y = -((margin_bottom - elcaption) / elplot);
@@ -106,7 +106,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 
 function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart) {
 
-	if ('width' in eventdata) {
+	if ('width' in eventdata | 'autosize' in eventdata) {
 	  if ('rangeslider' in gd.layout.xaxis) {
 	  if (gd.layout.xaxis.rangeslider.visible == false) {
 	    gd.layout.xaxis.rangeslider.visible = true;
