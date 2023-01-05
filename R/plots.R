@@ -822,15 +822,15 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
                             x = as.formula(str_c("~",xaxis)), #!pie
                             y = as.formula(str_c("~",ifelse(!is.null(legend_maxwidth) & yaxis != "value", "roboplot.trunc", yaxis))) #!pie
     )
-    shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type","hoverinfo","legendgrouptitle")
+    shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type","hoverinfo","legendgrouptitle","customdata")
     plotting_params <- if(tracetype == "scatter" & str_detect(plot_mode,"line")) {
       plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
     } else if(tracetype == "scatter" & str_detect(plot_mode,"scatter")) {
       plotting_params[c(shared_params,"x","y","mode","name","color", "xhoverformat")]
     } else if (tracetype == "bar" & str_detect(plot_mode,"horizontal")) {
-      plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition","marker","customdata")]
+      plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition","marker")]
     } else if (tracetype == "bar") {
-      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker","customdata")]
+      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker")]
     } else if (tracetype == "pie") {
       plotting_params[c(shared_params,"labels","textposition","textinfo","insidetextfont","direction","rotation","sort","hoverlabel","marker", "values")]
     }

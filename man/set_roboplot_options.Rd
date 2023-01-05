@@ -121,7 +121,7 @@ p
 # "img_w"(ide), "img_n"(arrow) or "img_s"(mall).
 
 set_roboplot_options(
-  logo_file = system.file("images", "Rlogo.png", package = "roboplotr"),
+  logo_file = system.file("images", "robonomist.png", package = "roboplotr"),
   modebar = c("home","closest","compare","zoomin","zoomout",
               "img_w","img_n","img_s","data_dl"),
   verbose = "All")
