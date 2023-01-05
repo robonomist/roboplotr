@@ -15,7 +15,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
     p |> layout(
       showlegend = T,
       legend = list(font = getOption("roboplot.font.main")[c("color","family","size")],
-                    bgcolor = getOption("roboplot.colors.background") |> decode_colour() |> encode_colour(alpha = 0.7),
+                    bgcolor = getOption("roboplot.colors.background") |> decode_colour() |> encode_colour(alpha = 0.1),
                     x = x.pos, y = y.pos,
                     orientation = "h",
                     xanchor = "left",
@@ -31,7 +31,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
     p |> layout(
       showlegend = T,
       legend = list(font = getOption("roboplot.font.main")[c("color","family","size")],
-                    bgcolor = getOption("roboplot.colors.background") |> decode_colour() |> encode_colour(alpha = 0.7),
+                    bgcolor = getOption("roboplot.colors.background") |> decode_colour() |> encode_colour(alpha = 0.1),
                     x = x.pos, y = y.pos,
                     orientation = "h",
                     xanchor = "left",

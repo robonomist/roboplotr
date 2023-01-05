@@ -17,7 +17,7 @@
     roboplot.height = 550,
     roboplot.linewidth = 2,
     roboplot.locale = list(locale = "fi", separators = ", ", date = "%-d.%-m.%Y"),
-    roboplot.logo = system.file("images", "robonomist.png", package = "roboplotr"),
+    roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),
     roboplot.modebar.buttons = c("closest","compare","img_w","data_dl"),
     roboplot.imgdl.wide = list(x = 1280, y = 720, title = 31, main = 24, caption = 19, suffix = "_levea", type = "png"),
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea", type = "png"),

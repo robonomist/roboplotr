@@ -40,7 +40,7 @@ test_that("Roboplot options are reset", {
   expect_mapequal(getOption("roboplot.font.title"), list(size = 17, family = "Arial, sans-serif", path = NULL, color = "#696969", bold = T))
   expect_equal(getOption("roboplot.height"), 550)
   expect_equal(getOption("roboplot.linewidth"), 2)
-  expect_match(getOption("roboplot.logo"),system.file("images", "robonomist.png", package = "roboplotr"))
+  expect_match(getOption("roboplot.logo"),system.file("images", "robonomist_wide.png", package = "roboplotr"))
   expect_setequal(getOption("roboplot.modebar.buttons"), c("closest","compare","img_w","data_dl"))
   expect_setequal(getOption("roboplot.patterntypes"), c("","/","\\","x","-","|","+","." ))
   expect_mapequal(getOption("roboplot.imgdl.wide"), list(x = 1280, y = 720, title = 31, main = 24, caption = 19, suffix = "_levea", type = "png"))

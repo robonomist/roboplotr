@@ -68,7 +68,7 @@
 #' # "img_w"(ide), "img_n"(arrow) or "img_s"(mall).
 #'
 #' set_roboplot_options(
-#'   logo_file = system.file("images", "Rlogo.png", package = "roboplotr"),
+#'   logo_file = system.file("images", "robonomist.png", package = "roboplotr"),
 #'   modebar = c("home","closest","compare","zoomin","zoomout",
 #'               "img_w","img_n","img_s","data_dl"),
 #'   verbose = "All")
@@ -329,7 +329,7 @@ set_roboplot_options <- function(
 
 
 
-    if(!str_detect(getOption("roboplot.logo"),"robonomist.png") & !"robonomist" %in% getOption("roboplot.modebar.buttons")) {
+    if(!str_detect(getOption("roboplot.logo"),"robonomist") & !"robonomist" %in% getOption("roboplot.modebar.buttons")) {
       setOption("roboplot.modebar.buttons", c(getOption("roboplot.modebar.buttons"),"robonomist"))
     }
 
