@@ -123,8 +123,8 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	  let titlespace = pie_chart ? $(gd).find('.pielayer') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
 	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
 	  if(titlespace <= gdtitle) {
-	   	  console.log("space: " +  titlespace + "; width: " + gdtitle + "; fontsize: " + gd.layout.title.font.size)
-	  console.log(titlespace/gd.layout.title.font.size)
+//	   	  console.log("space: " +  titlespace + "; width: " + gdtitle + "; fontsize: " + gd.layout.title.font.size)
+//	  console.log(titlespace/gd.layout.title.font.size)
 	  title_text = "<span>" +
 	  (plot_title[2] ? "<b>" : "" ) +
 	  stringDivider(plot_title[0], Math.floor(titlespace/(gd.layout.title.font.size-8)), "<br>") +
