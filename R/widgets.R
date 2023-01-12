@@ -272,13 +272,11 @@ roboplotr_widget_deps <- function(filepath = NULL) {
                                c("fill", "fill-opacity"),
                                c(str_c("rgb(",rangeslider_mask,") !important"),"0.7 !important"))
 
-  modebar_css <- list(".modebar","height","21px")
-
   font_strings <- map2(font_strings, names(font_strings), ~ list('@font-face', c('font-family', 'src'), c(.y, str_c("url('",.x,"')")))) |>
     unname()
 
-  css_list <- map(c(font_strings,list(rangeslider_mask_css),list(modebar_css)), ~.x)
-  print(css_list)
+  css_list <- map(c(font_strings,list(rangeslider_mask_css)), ~.x)
+
   css_string <- roboplotr_get_css(css_list,
                                   file = if(!is.null(filepath)) { file.path(filepath,"css/style.css") } else NULL)
 
