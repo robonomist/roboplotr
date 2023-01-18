@@ -32,6 +32,10 @@ roboplotr_modebar <- function(p, title, subtitle) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
           delete gd.layout.xaxis.rangeslider;
           console.log("height: " + gd.layout.height + "; width: " + gd.layout.width)
+          let prev_ht = gd.layout.height
+          let prev_wt = gd.layout.width
+          console.log(prev_ht)
+          console.log(prev_wt)
           delete gd.layout.height
           delete gd.layout.width
           Plotly.relayout(gd, {height: ',layout$y,', width: ',layout$x,',
@@ -42,6 +46,9 @@ roboplotr_modebar <- function(p, title, subtitle) {
           setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'","',plot_title[[3]],'"], pie_plot = ',if(all(p$trace_types == "pie")) { "true" } else { "false" },')
           Plotly.downloadImage(gd, {scale: "1", format: "',layout$type,'", width: ',layout$x,', height: ',layout$y,', filename: "',ttl,layout$suffix,'"});
           Plotly.relayout(gd, oldlayout)
+          if(prev_wt === undefined) {
+            delete gd.layout.width
+          }
           console.log(gd.layout.height)
           delete oldlayout
           }
