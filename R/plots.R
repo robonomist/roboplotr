@@ -860,7 +860,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
   }
 
   # hoverlabel font is determined currently here, move to an appropriate place..
-  p |> layout(hoverlabel = list(font = getOption("roboplot.font.main")[c("family","size")])) |> config(responsive = T)
+  p |> layout(hoverlabel = list(font = getOption("roboplot.font.main")[c("family","size")])) |> config(responsive = ifelse(isRunning(),F,T))
 
 }
 
