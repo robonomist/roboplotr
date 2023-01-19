@@ -4,7 +4,7 @@
 #' @importFrom purrr pmap
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
 #' @importFrom tidyr drop_na
-roboplotr_modebar <- function(p, title, subtitle) {
+roboplotr_modebar <- function(p, title, subtitle, height, width) {
 
   if(is.null(title)) {
     dl_title <- "img"
@@ -17,27 +17,14 @@ roboplotr_modebar <- function(p, title, subtitle) {
     mf <- getOption("roboplot.font.main")
     cf <- getOption("roboplot.font.caption")
     plot_title <- list(title,subtitle,tf$bold)
-    # tf <- ifelse(!is.null(tf$fallback), str_c('"title.font.family": "',tf$fallback,'",'),'')
-    # mf <- ifelse(!is.null(mf$fallback), str_c(
-    #   '"xaxis.tickfont.family": "',mf$fallback,'",
-    #    "yaxis.tickfont.family": "',mf$fallback,'",
-    #    "legend.font.family": "',mf$fallback,'",
-    #   ')
-    #   ,'')
-    # cf <- ifelse(!is.null(cf$fallback), str_c('"annotations[0].font.family": "',cf$fallback,'",'),'')
-    # dl_fonts <- str_c(tf,mf,cf)
-    ## add this: ',dl_fonts,'
+    ht <- ifelse(is.null(height), 'null', as.character(height))
+    wt <- ifelse(is.null(width), 'null', as.character(width))
     str_c('
           function(gd, params) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
           delete gd.layout.xaxis.rangeslider;
-          console.log("height: " + gd.layout.height + "; width: " + gd.layout.width)
-          let prev_ht = gd.layout.height
-          let prev_wt = gd.layout.width
-          console.log(prev_ht)
-          console.log(prev_wt)
-          delete gd.layout.height
-          delete gd.layout.width
+          delete gd.layout.height;
+          delete gd.layout.width;
           Plotly.relayout(gd, {height: ',layout$y,', width: ',layout$x,',
           "annotations[0].font.size": ',layout$caption,',
           "xaxis.tickfont.size": ',layout$main,',
@@ -46,10 +33,6 @@ roboplotr_modebar <- function(p, title, subtitle) {
           setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'","',plot_title[[3]],'"], pie_plot = ',if(all(p$trace_types == "pie")) { "true" } else { "false" },')
           Plotly.downloadImage(gd, {scale: "1", format: "',layout$type,'", width: ',layout$x,', height: ',layout$y,', filename: "',ttl,layout$suffix,'"});
           Plotly.relayout(gd, oldlayout)
-          if(prev_wt === undefined) {
-            delete gd.layout.width
-          }
-          console.log(gd.layout.height)
           delete oldlayout
           }
    ')

@@ -27,6 +27,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	// pie charts do not give correct height by measuring the plot, investigate
 	let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.xlines-above.crisp');
 	if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
+	if (elplot == 0) { elplot = 1}
 	let images_sizey = (elcontainer * 0.05) / elplot;
 	el.layout.images[0].sizey = images_sizey
 	let legend_y = -((elxticks + 5 + (elslider*2) + elxtitle) / elplot)//((margin_bottom - elcaption + (elslider*2)) / elplot);
@@ -48,6 +49,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  margin_bottom = ellegend.height + elcaption + elxticks + elxtitle;
 	  let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.xlines-above.crisp');
 	  if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
+	  if (elplot == 0) { elplot = 1}
 	  images_sizey = (elcontainer * 0.05) / elplot;
 	  legend_y = -((margin_bottom - elcaption) / elplot);
 	}
@@ -72,6 +74,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	if(showfinal == true) {console.log('legend ht: ' + ellegend.height +
 	' slider ht: ' + elslider +
 	' plot area ht: ' + elplot +
+	' plot caption ht: ' + elcaption +
 	' bottom margin: ' + margin_bottom +
 	' container ht: ' + elcontainer,
 	' legend position: ' + legend_y,
@@ -250,7 +253,8 @@ yInside = yInside.concat(yStackInside.map(o => o.val));
 }
 
 function plotlyRelayoutEventFunction(eventdata, gd, legend_fontsize, plot_title, rangeslider_sums, pie_chart) {
-	timerId = 0;
-	setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart);
+  timerId = 0;
+//  if("autosize" in eventdata) { console.log("autosize") }
+  setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart);
 	yrangeRelayout(eventdata, gd, timerId, rangeslider_sums);
 };

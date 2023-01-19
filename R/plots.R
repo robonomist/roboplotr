@@ -6,6 +6,7 @@ roboplotr_config <- function(p,
                              title, subtitle = "", caption,
                              legend_position, legend_orientation, legend_order,
                              height,
+                             width,
                              margin = NA,
                              zeroline = F,
                              enable_rangeslider = list(rangeslider = F, max = as_date(today)),
@@ -37,7 +38,7 @@ roboplotr_config <- function(p,
     roboplotr_set_axis_ranges(ticktypes[c("xlim","ylim")]) |>
     roboplotr_set_grid() |>
     roboplotr_set_background() |>
-    roboplotr_modebar(title, p$subtitle) |>
+    roboplotr_modebar(title, subtitle, height, width) |>
     roboplotr_set_ticks(ticktypes) |>
     roboplotr_set_margin(margin) |>
     roboplotr_logo() |>
@@ -598,7 +599,6 @@ roboplot <- function(d,
 
   if(!isRunning()) { p$elementId <- str_c("widget_",roboplotr_string2filename(title),"_",str_pad(round(runif(1)*1000000),6,"left","0")) }
   p$title <- title
-  p$subtitle <- subtitle
   p$trace_types <- distinct(d, !!color, .data$roboplot.plot.type) |> pull(2,1)
   p$plot_mode <- plot_mode
 
@@ -613,6 +613,7 @@ roboplot <- function(d,
                      legend_position = legend_position, legend_orientation = legend_orientation, legend_order = legend_order,
                      margin = margin,
                      height = height,
+                     width = width,
                      zeroline = list(zeroline = zeroline, xrange = list(min = mintime, max = maxtime)),
                      enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
                      ticktypes = ticktypes)
