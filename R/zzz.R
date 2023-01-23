@@ -23,6 +23,7 @@
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea", type = "png"),
     roboplot.imgdl.small = list(x = 889, y = 500, title = 23, main = 18, caption = 14, suffix = "_pieni", type = "png"),
     roboplot.width = NULL,
+    roboplot.shinyapp = list(shinyapp = F, container = NULL),
     roboplot.xaxis.ceiling = "default",
     roboplot.verbose = "All"
   )

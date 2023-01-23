@@ -10,7 +10,8 @@ roboplotr_config <- function(p,
                              margin = NA,
                              zeroline = F,
                              enable_rangeslider = list(rangeslider = F, max = as_date(today)),
-                             ticktypes) {
+                             ticktypes,
+                             container) {
 
 
   if(!is.logical(enable_rangeslider$rangeslider) & !is.character(enable_rangeslider$rangeslider)) {
@@ -34,7 +35,7 @@ roboplotr_config <- function(p,
   }
 
   p |>
-    roboplotr_dependencies(title, subtitle) |>
+    roboplotr_dependencies(title, subtitle, container) |>
     roboplotr_set_axis_ranges(ticktypes[c("xlim","ylim")]) |>
     roboplotr_set_grid() |>
     roboplotr_set_background() |>
@@ -57,7 +58,7 @@ roboplotr_config <- function(p,
 #' @importFrom RCurl base64Encode
 #' @importFrom shiny addResourcePath isRunning
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_pad str_wrap
-roboplotr_dependencies <- function(p, title, subtitle) {
+roboplotr_dependencies <- function(p, title, subtitle, container) {
 
   plot_title <- list(title,subtitle,getOption("roboplot.font.title")$bold)
 
@@ -104,7 +105,7 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 
   # annotations are removed here due to plotly bug replicating annotations when font is provided as list of length > 1
   p |>
-    onRender(jsCode = str_c("
+    onRender(jsCode = "
                         function (gd, params, data){
                         let plot_title = data.plotTitle;
                         for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
@@ -115,17 +116,42 @@ roboplotr_dependencies <- function(p, title, subtitle) {
                         setVerticalLayout({'width': true}, gd, data.legendFontsize, plot_title, pie_plot = data.piePlot);
                         gd.on('plotly_relayout',function(eventdata) {
                         plotlyRelayoutEventFunction(eventdata, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot);
+                        })
+
+                        if(data.container !== undefined) {
+                        let el = gd.closest(data.container);
+
+                          var observer = new MutationObserver(function(mutation) {
+                          let nowactive = mutation[0].target.classList.contains('active')
+                          let lastactive = mutation[0].oldValue.includes('active')
+                          if(nowactive === true && lastactive === false) {
+                            console.log('state change, inactive to active!')
+                            plotlyRelayoutEventFunction({width: true}, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot);
+                            observer.disconnect();
+                          }
                         });
-                        }"), data = list(plotTitle = plot_title,
+
+                         observer.observe(el, {
+                          attributes: true,
+                          attributeFilter: ['class'],
+                          attributeOldValue: true,
+                        });
+
+                        }
+
+
+                            }", data = list(plotTitle = plot_title,
                                          rangesliderSums = rangeslider_sums,
                                          legendFontsize = getOption("roboplot.font.main")$size,
-                                         piePlot = pie_plot#,
+                                         piePlot = pie_plot,
+                                         container = container#,
                                          # dataString = desc_string,
                                          # titleString = ttl_string,
                                          # ariaID = ariaid
                         ))
 }
 
+#
 # clippath for onRender.. to-do
 # let thisclippath = $(gd).find('clipPath[id*=legend] > rect')[0]
 # let thiswidth = thisclippath.getAttribute('width')
@@ -167,7 +193,8 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' @param xaxis_ceiling Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.
 #' @param secondary_yaxis Expression. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 #' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.
-#' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned control instead. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [set_roboplot_options()].
+#' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned control. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [set_roboplot_options()].
+#' @param container Character. Experimental, might not work as intended. Use only with shiny apps. A css selector for the element in a shiny app where this [roboplot()] will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
 #' @param ... Placeholder for other parameters.
 #' @return A list of classes "plotly" and "html"
 #' @examples
@@ -376,6 +403,9 @@ roboplotr_dependencies <- function(p, title, subtitle) {
 #' # Further specifications for creating artefacts is defined under
 #' # roboplotr::set_roboplot_options(), roboplotr::roboplot_create_widgets() and
 #' # roboplotr::set_artefacts()
+#'
+#' # Using "container" is defined under roboplotr::set_roboplot_options() under
+#' # as its usage is tied to using the 'shinyapp' parameter therein.
 #' @export
 #' @importFrom dplyr coalesce distinct group_split pull
 #' @importFrom forcats fct_reorder
@@ -409,6 +439,7 @@ roboplot <- function(d,
                      width = getOption("roboplot.width"),
                      legend_title = F,
                      artefacts = getOption("roboplot.artefacts")$auto,
+                     container = getOption("roboplot.shinyapp")$container,
                      ...
 ){
 
@@ -616,7 +647,8 @@ roboplot <- function(d,
                      width = width,
                      zeroline = list(zeroline = zeroline, xrange = list(min = mintime, max = maxtime)),
                      enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
-                     ticktypes = ticktypes)
+                     ticktypes = ticktypes,
+                     container = container)
 
   ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.
   # if(!is.null(facet_split)) {

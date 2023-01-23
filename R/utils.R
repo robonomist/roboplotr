@@ -16,7 +16,7 @@
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
 #' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [set_imgdl_layout]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
 #' @param verbose Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
-#' @param shinyapp Logical. Makes fonts, css and javascript available for shiny apps.
+#' @param shinyapp Logical or list. Makes fonts, css and javascript available for shiny apps. If given as list, use a named list with the single character string named "container" describing the css selector for the element in a shiny app where most roboplots will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
 #' @param reset Logical. Ignores other options, resets options to defaults.
 #' @export
 #' @examples
@@ -179,6 +179,73 @@
 #'
 #' }
 #'
+#'# As roboplotr::roboplot() uses javascript to relayout the plot elements to
+#' # correct sizes and placements on render, there might be cases where the user
+#' # navigates between tabs too fast. This results in the plots rendering
+#' # incorrectly as the element heights are zero at render time. Giving the
+#' # parameter 'shinyapp' as a list with a character string named
+#' # 'container' describing the css selector of the container that controls plot
+#' # visibility allows roboplotr::roboplot() to detect if the container was
+#' # displayed on plot rendering, redoing the incorrect layouts.
+#'
+#' if(interactive()) {
+#'
+#'   ui <- bs4Dash::dashboardPage(
+#'     bs4Dash::dashboardHeader(
+#'       title = "Basic dashboard",
+#'       set_roboplot_options(
+#'         shinyapp = list(container = ".tab-pane.container-fluid"))
+#'     ),
+#'     bs4Dash::dashboardSidebar(
+#'       bs4Dash::sidebarMenu(
+#'         htmltools::tagList(
+#'           bs4Dash::menuItem(text = "Tab 1", tabName = "tab_1"),
+#'           bs4Dash::menuItem(text = "Tab 2", tabName = "tab_2")
+#'         )
+#'       )
+#'     ),
+#'     bs4Dash::dashboardBody(
+#'       # Boxes need to be put in a row (or column)
+#'       uiOutput("plots")
+#'     )
+#'   )
+#'
+#'   server <- function(input, output) {
+#'
+#'     output$plots <- renderUI({
+#'       bs4Dash::tabItems(
+#'         bs4Dash::tabItem(tabName = "tab_1", shiny::fluidRow(
+#'           bs4Dash::box(plotly::plotlyOutput("plot1", height = 550))
+#'         )),
+#'         bs4Dash::tabItem(tabName = "tab_2", shiny::fluidRow(
+#'           bs4Dash::box(plotly::plotlyOutput("plot2", height = 500))
+#'         ))
+#'       )
+#'     })
+#'
+#'     output$plot1 <- plotly::renderPlotly({
+#'       roboplot(
+#'         dplyr::filter(energiantuonti, Suunta == "Tuonti", Alue == "Kanada"),
+#'         Alue, "Energian tuonti Kanadasta",
+#'         "Milj. €",
+#'         "Tilastokeskus")
+#'     })
+#'     output$plot2 <- plotly::renderPlotly({
+#'       roboplot(
+#'         dplyr::filter(energiantuonti, Suunta == "Vienti", Alue == "Kanada"),
+#'         Alue, "Energian vienti Kanadaan",
+#'         "Milj. €",
+#'         "Tilastokeskus",
+#'         height = 500)
+#'     })
+#'
+#'
+#'   }
+#'
+#'   shiny::shinyApp(ui, server)
+#'
+#' }
+#'
 #' @importFrom htmltools singleton tagList tags
 #' @importFrom purrr iwalk
 #' @importFrom shiny addResourcePath
@@ -297,7 +364,16 @@ set_roboplot_options <- function(
     roboplotr_valid_colors(trace_colors)
     if(length(trace_colors) > 1 & length(trace_colors) < 5) { roboplotr_alert("Are you sure ",length(trace_colors)," color",ifelse(length(trace_colors)==1," is","s are")," enough?\n")}
 
-    roboplotr_check_param(shinyapp, "logical", allow_null = F)
+    roboplotr_check_param(shinyapp, c("logical","list"), allow_null = F)
+
+    if(!is.logical(shinyapp)) {
+      roboplotr_check_param(shinyapp, "list", c("container"))
+      shinyapp$shinyapp <- TRUE
+      `shinyapp$container` <- shinyapp$container
+      roboplotr_check_param(`shinyapp$container`, "character", allow_null = F)
+    } else {
+      shinyapp <- list(shinyapp = shinyapp, container = NULL)
+    }
 
     roboplotr_check_param(width, "numeric")
 
@@ -322,6 +398,7 @@ set_roboplot_options <- function(
     set_roboplot_option(imgdl_narrow,"imgdl.narrow")
     set_roboplot_option(imgdl_small,"imgdl.small")
     set_roboplot_option(patterns, "patterntypes")
+    set_roboplot_option(shinyapp)
     set_roboplot_option(tick_colors, "colors.ticks")
     set_roboplot_option(trace_colors, "colors.traces")
     set_roboplot_option(width)
@@ -333,9 +410,9 @@ set_roboplot_options <- function(
       setOption("roboplot.modebar.buttons", c(getOption("roboplot.modebar.buttons"),"robonomist"))
     }
 
-    if(shinyapp) {
+    if(shinyapp$shinyapp == T) {
 
-      roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header!")
+      roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header at runtime!")
       roboplotr_widget_deps(tempdir())
       addResourcePath("js", system.file("www","js", package = "roboplotr"))
       addResourcePath("fonts", file.path(tempdir(),"fonts"))

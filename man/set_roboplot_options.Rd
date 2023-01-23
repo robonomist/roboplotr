@@ -65,7 +65,7 @@ set_roboplot_options(
 
 \item{verbose}{Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".}
 
-\item{shinyapp}{Logical. Makes fonts, css and javascript available for shiny apps.}
+\item{shinyapp}{Logical or list. Makes fonts, css and javascript available for shiny apps. If given as list, use a named list with the single character string named "container" describing the css selector for the element in a shiny app where most roboplots will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.}
 
 \item{reset}{Logical. Ignores other options, resets options to defaults.}
 }
@@ -229,6 +229,73 @@ output$plot2 <- plotly::renderPlotly({
 }
 
 shiny::shinyApp(ui, server)
+
+}
+
+# As roboplotr::roboplot() uses javascript to relayout the plot elements to
+# correct sizes and placements on render, there might be cases where the user
+# navigates between tabs too fast. This results in the plots rendering
+# incorrectly as the element heights are zero at render time. Giving the
+# parameter 'shinyapp' as a list with a character string named
+# 'container' describing the css selector of the container that controls plot
+# visibility allows roboplotr::roboplot() to detect if the container was
+# displayed on plot rendering, redoing the incorrect layouts.
+
+if(interactive()) {
+
+  ui <- bs4Dash::dashboardPage(
+    bs4Dash::dashboardHeader(
+      title = "Basic dashboard",
+      set_roboplot_options(
+        shinyapp = list(container = ".tab-pane.container-fluid"))
+    ),
+    bs4Dash::dashboardSidebar(
+      bs4Dash::sidebarMenu(
+        htmltools::tagList(
+          bs4Dash::menuItem(text = "Tab 1", tabName = "tab_1"),
+          bs4Dash::menuItem(text = "Tab 2", tabName = "tab_2")
+        )
+      )
+    ),
+    bs4Dash::dashboardBody(
+      # Boxes need to be put in a row (or column)
+      uiOutput("plots")
+    )
+  )
+
+  server <- function(input, output) {
+
+    output$plots <- renderUI({
+      bs4Dash::tabItems(
+        bs4Dash::tabItem(tabName = "tab_1", shiny::fluidRow(
+          bs4Dash::box(plotly::plotlyOutput("plot1", height = 550))
+        )),
+        bs4Dash::tabItem(tabName = "tab_2", shiny::fluidRow(
+          bs4Dash::box(plotly::plotlyOutput("plot2", height = 500))
+        ))
+      )
+    })
+
+    output$plot1 <- plotly::renderPlotly({
+      roboplot(
+        dplyr::filter(energiantuonti, Suunta == "Tuonti", Alue == "Kanada"),
+        Alue, "Energian tuonti Kanadasta",
+        "Milj. €",
+        "Tilastokeskus")
+    })
+    output$plot2 <- plotly::renderPlotly({
+      roboplot(
+        dplyr::filter(energiantuonti, Suunta == "Vienti", Alue == "Kanada"),
+        Alue, "Energian vienti Kanadaan",
+        "Milj. €",
+        "Tilastokeskus",
+        height = 500)
+    })
+
+
+  }
+
+  shiny::shinyApp(ui, server)
 
 }
 

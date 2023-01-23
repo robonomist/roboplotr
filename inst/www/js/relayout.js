@@ -64,13 +64,13 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 
   let yaxis_layer = $(el).find('g.yaxislayer-above')
 
-  if(yaxis_layer.length > 0)
-	if( yaxis_layer[0].getBBox().height <= ( ($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )) {
+  if(yaxis_layer.length > 0) {
+   	if( yaxis_layer[0].getBBox().height <= ( ($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )) {
 	  yaxis_font_size = Math.floor(el.layout.yaxis.tickfont.size * 0.8)
 	} else {
-	  yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size/0.8), legend_fontsize)
+	  yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size*1.5), legend_fontsize)
 	}
-
+  }
 	if(showfinal == true) {console.log('legend ht: ' + ellegend.height +
 	' slider ht: ' + elslider +
 	' plot area ht: ' + elplot +
