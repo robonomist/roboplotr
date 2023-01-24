@@ -863,7 +863,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
     } else if (tracetype == "bar" & str_detect(plot_mode,"horizontal")) {
       plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition","marker")]
     } else if (tracetype == "bar") {
-      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker")]
+      plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker","xhoverformat")]
     } else if (tracetype == "pie") {
       plotting_params[c(shared_params,"labels","textposition","textinfo","insidetextfont","direction","rotation","sort","hoverlabel","marker", "values")]
     }
