@@ -826,9 +826,9 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
                             customdata = if(str_detect(plot_mode,"horizontal")) { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
                             data=g,
                             direction = "clockwise", #pie
-                            xhoverformat = roboplotr_hovertemplate_freq(hovertext$dateformat),
+                            xhoverformat = if(ticktypes$xticktype == "date") { hovertext$dateformat } else { NULL },
                             hoverlabel = list(bgcolor = ~ roboplot.bg.color, color = ~ roboplot.tx.color), #pie
-                            hovertemplate = hovertemplate,#if(length(unique(g$time))==1 & plot_mode != "horizontal") { ~ str_c(.data$roboplot.plot.text,"\n",format(round(.data$value,hovertext$rounding), scientific = F, big.mark = " ", decimal.mark = ","),hovertext$unit,"<extra></extra>") } else { hovertemplate },
+                            hovertemplate = hovertemplate,#if(length(unique(g$tFime))==1 & plot_mode != "horizontal") { ~ str_c(.data$roboplot.plot.text,"\n",format(round(.data$value,hovertext$rounding), scientific = F, big.mark = " ", decimal.mark = ","),hovertext$unit,"<extra></extra>") } else { hovertemplate },
                             insidetextfont = list(family = getOption("roboplot.font.main")$family, size = getOption("roboplot.font.main")$size, color = ~ roboplot.in.tx.color), #pie
                             labels = color, #pie
                             legendgroup = color,
