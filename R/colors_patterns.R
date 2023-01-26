@@ -208,22 +208,24 @@ roboplotr_get_bar_widths <- function(df, width_col) {
 
 #' @importFrom farver add_to_channel
 roboplotr_adjust_brightness <- function(val, color = "#FFFFFF") {
-  add_to_channel(color, "r", -val, space = "rgb") %>%
-    add_to_channel("g", -val, space = "rgb") %>%
+  add_to_channel(color, "r", -val, space = "rgb") |>
+    add_to_channel("g", -val, space = "rgb") |>
     add_to_channel("b", -val, space = "rgb")
 }
 
 roboplotr_get_shades <- function(color = "#FFFFFF") {
   shades <- reduce(map(c(seq(-255,255,5)), function(x) {
     roboplotr_adjust_brightness(x, color)
-    } ),c)
+  } ),c)
   tibble("color" = shades,
-         "luminance" = roboplotr_get_luminance(shades)) %>%
+         "luminance" = roboplotr_get_luminance(shades)) |>
     distinct()
 }
 
+#' @importFrom dplyr full_join
+#' @importFrom tidyr pivot_longer
 roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), background = "white",
-                                          chart = T, fontsize = 12, fontweight = 500, chart.lim = 3) {
+                                        chart = T, fontsize = 12, fontweight = 500, chart.lim = 3) {
 
   colors2alt <- parseCssColors(colors2alt)
 
@@ -231,9 +233,9 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
     if(o == 1) {
       c(seq(0, length.out = o))
     } else if (o == nrow(n)) {
-      c(seq(0,length.out = o) %>% rev())
+      c(seq(0,length.out = o) |> rev())
     } else {
-      c(seq(1,length.out = o-1) %>% rev(), 0, seq(1, nrow(n)-o))
+      c(seq(1,length.out = o-1) |> rev(), 0, seq(1, nrow(n)-o))
     }
   }
 
@@ -249,57 +251,39 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
         fontsize < 11 ~ 7,
         fontsize >= 18 || (fontsize >= 14 && fontweight >= 700) ~ 3,
         TRUE ~ 4.5)
-      comp_shades <- clr_shades %>%
-        # rowwise %>%
+      comp_shades <- clr_shades |>
         mutate(
-          # max_l = (max(clr_lmn,luminance) + 0.05),
           max_l = map_dbl(luminance, ~ max(clr_lmn,.x) + 0.05),
-          # min_l = (min(clr_lmn,luminance) + 0.05),
           min_l = map_dbl(luminance, ~ min(clr_lmn,.x) + 0.05),
-          ratio = max_l/min_l) %>%
-        ungroup()
-      comp_shades %>%
-        mutate("{{compared_color}}_ratio" := ifelse(ratio >= ratio_lim, T, F)) %>%
-        {
-          if(compared_color == background & length(compared.colors) > 1) {
-            filter(., ratio > ratio_lim)
-          } else { . }
-        } %>%
+          ratio = max_l/min_l) |>
+        ungroup() |>
+        mutate("{{compared_color}}_ratio" := ifelse(ratio >= ratio_lim, T, F))
+      {
+        if(compared_color == background & length(compared.colors) > 1) {
+          filter(comp_shades, ratio > ratio_lim)
+        } else { comp_shades }
+        } |>
         select(color,
                starts_with("ratio"), ends_with("ratio"))
-    }) %>%
-      reduce(full_join, by = "color") %>%
-      {
-        these_colors <- .$color
-        these_shades <- clr_shades$color %>% subset(. %in% these_colors)
-        mutate(., color = toupper(color), color = fct_relevel(color, these_shades))
-      } %>%
-      arrange(color) %>%
-      mutate(color = as.character(color), priority = get_priority(which(tolower(.$color) == tolower(color2alt)), .)) %>%
-      # tässä maksimoidaan kontrastin keskiarvo, mutta ei liene tarpeellinen vaihe
-      # mutate(totrat = rowMeans(select(.,starts_with('ratio')), na.rm = TRUE)) %>%
-      # filter(totrat > chart_lim) %>%
-      mutate(count = rowSums(across(ends_with(c("_ratio")), ~ as.numeric(.x)), na.rm = T)) %>%
-      # rowwise() %>%
-      # mutate(count = rowSums(across(ends_with(c("_ratio")), ~ as.numeric(.x)), na.rm = T)) %>%
-      # ungroup() %>%
-      filter(if_all(starts_with("ratio"), ~ !is.na(.x))) %>%
-      filter(count == max(count, na.rm = T))
-    # select_ratios <- color_ops %>% names() %>% str_subset("_ratio$") %>% subset(!str_detect(., tolower(background)))
-    # select_cols <- which(names(color_ops) %in% select_ratios)-1
-    # color_ops %>% mutate(rowmeans = rowMeans(select(color_ops, select_cols)), priority = ifelse(is.nan(rowmeans), 1, rowmeans) / priority) %>%
-    # slice_max(order_by = priority, n = 1, with_ties = F) %>%
-    color_ops %>% slice_min(order_by = priority, n = 1, with_ties = F) %>%
-      {
-        pulled <- .$color
-        failed <- select(., ends_with("_ratio")) %>% pivot_longer(everything()) %>% filter(value == F)
-        if(nrow(failed) > 0) {
-          failed$name %>% str_extract("(?<=\\\").{1,}(?=\\\")") %>% knitr::combine_words() %>% str_c("Color contrast fails with ",.," for ",pulled) %>% roboplotr_warning(severity = "warning")
+    }) |>
+      reduce(full_join, by = "color")
 
-        }
-        .
-      } %>%
-      pull(color)
+    these_colors <- color_ops$color
+    these_shades <- clr_shades$color |> subset(clr_shades$color %in% these_colors)
+    color_ops <- color_ops |> mutate(color = toupper(color), color = fct_relevel(color, these_shades)) |> arrange(color)
+    color_ops <- color_ops |> mutate(color = as.character(color), priority = get_priority(which(tolower(color_ops$color) == tolower(color2alt)), color_ops)) |>
+      mutate(count = rowSums(across(ends_with(c("_ratio")), ~ as.numeric(.x)), na.rm = T)) |>
+      filter(if_all(starts_with("ratio"), ~ !is.na(.x))) |>
+      filter(count == max(count, na.rm = T)) |>
+      slice_min(order_by = priority, n = 1, with_ties = F)
+    pulled <- color_ops$color
+    failed <- select(color_ops, ends_with("_ratio")) |> pivot_longer(everything()) |> filter(value == F)
+    if(nrow(failed) > 0) {
+      msg <- failed$name |> str_extract("(?<=\\\").{1,}(?=\\\")") |> knitr::combine_words() |>
+      str_c("Color contrast fails with ",msg," for ",pulled) |> roboplotr_warning(severity = "warning")
+
+    }
+    color_ops |> pull(color)
   }
 
   altered <- map(colors2alt, function(color2alt) {
@@ -307,7 +291,7 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
     d <- get_altered_color(color2alt, compared.colors = compared_colors, background = background)
 
     d
-  }) %>% unlist()
+  }) |> unlist()
 
   wrn <- map2(colors2alt, altered, ~ if(.x != .y) { str_c(.x, " was changed to ", .y) }) |>
     roboplotr_compact() |>
