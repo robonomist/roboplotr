@@ -118,7 +118,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
                         plotlyRelayoutEventFunction(eventdata, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot);
                         })
 
-                        if(data.container !== undefined) {
+                        if(data.container !== null) {
                         let el = gd.closest(data.container);
 
                           var observer = new MutationObserver(function(mutation) {

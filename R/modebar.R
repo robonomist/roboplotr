@@ -30,7 +30,7 @@ roboplotr_modebar <- function(p, title, subtitle, height, width) {
           "xaxis.tickfont.size": ',layout$main,',
           "yaxis.tickfont.size": ',layout$main,',
           "title.font.size": ',layout$title,'})
-          setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'","',plot_title[[3]],'"], pie_plot = ',if(all(p$trace_types == "pie")) { "true" } else { "false" },')
+          setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'",',tolower(plot_title[[3]]),'], pie_plot = ',if(all(p$trace_types == "pie")) { "true" } else { "false" },')
           Plotly.downloadImage(gd, {scale: "1", format: "',layout$type,'", width: ',layout$x,', height: ',layout$y,', filename: "',ttl,layout$suffix,'"});
           Plotly.relayout(gd, oldlayout)
           delete oldlayout

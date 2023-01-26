@@ -1,5 +1,6 @@
 #' Override the default options for colors, fonts etc. for any plot created with [roboplot()]
 #'
+#' @param accessible Logical. Forces trace colors accessible against plot background.
 #' @param artefacts Function. Control html and other file creation. Use [set_artefacts()].
 #' @param border_colors,grid_colors,tick_colors List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
 #' @param background_color Character. Plot background color. Must be a hexadecimal color or a valid css color.
@@ -252,6 +253,7 @@
 #' @importFrom stringr str_c str_detect str_extract str_subset
 #' @importFrom R.utils setOption
 set_roboplot_options <- function(
+    accessible = F,
     artefacts = NULL,
     border_colors = NULL,
     background_color = NULL,
@@ -400,7 +402,9 @@ set_roboplot_options <- function(
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(shinyapp)
     set_roboplot_option(tick_colors, "colors.ticks")
-    set_roboplot_option(trace_colors, "colors.traces")
+    if(accessible == TRUE) {
+      set_roboplot_option(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")), "colors.traces")
+    }
     set_roboplot_option(width)
     set_roboplot_option(xaxis_ceiling, "xaxis.ceiling")
 
@@ -412,7 +416,8 @@ set_roboplot_options <- function(
 
     if(shinyapp$shinyapp == T) {
 
-      roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header at runtime!")
+      roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header at runtime!\n",
+                      "Take care with roboplotr container css, all plotly plots will inherit some but not all css.")
       roboplotr_widget_deps(tempdir())
       addResourcePath("js", system.file("www","js", package = "roboplotr"))
       addResourcePath("fonts", file.path(tempdir(),"fonts"))

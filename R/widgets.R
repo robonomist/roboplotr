@@ -171,7 +171,6 @@ set_artefacts <- function(
 
 #' @importFrom chromote ChromoteSession
 #' @importFrom htmlwidgets onRender
-#' @importFrom knitr combine_words
 #' @importFrom lubridate now as_datetime seconds
 #' @importFrom purrr map map_chr
 #' @importFrom stringr str_c str_replace_all str_subset
@@ -219,7 +218,7 @@ roboplotr_automate_imgdl <- function(p, artefacts, dl_path = getwd()) {
   }) |> roboplotr_compact()
   recent_length <- length(recent_files)
   if(recent_length > 0) {
-    roboplotr_message(str_c("\nThe file",ifelse(recent_length > 1, "s",""),"\n", combine_words(recent_files,sep = ",\n", and = ", and\n"),"\n",
+    roboplotr_message(str_c("\nThe file",ifelse(recent_length > 1, "s",""),"\n", roboplotr_combine_words(recent_files,sep = ",\n", and = ", and\n"),"\n",
                             ifelse(recent_length > 1, "are","is")," in ",dl_path,"."))
   }
 
