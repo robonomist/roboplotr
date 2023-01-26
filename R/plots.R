@@ -139,6 +139,18 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 
                         }
 
+                        gd.on('plotly_afterplot', function() {
+                        let thisclippath = $(gd).find('clipPath[id*=legend] > rect')
+                        if(thisclippath.length > 0) {
+                          thisclippath = thisclippath[0];
+                          thiswidth = thisclippath.getAttribute('width');
+//                          console.log('init width: ' + thiswidth)
+                          thisclippath.setAttribute('width',Number(thiswidth)*1.05);
+                          thiswidth = thisclippath.getAttribute('width');
+ //                         console.log('recalc width: ' + thiswidth)
+                        };
+                        })
+
 
                             }", data = list(plotTitle = plot_title,
                                          rangesliderSums = rangeslider_sums,
