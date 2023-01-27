@@ -566,7 +566,7 @@ roboplot <- function(d,
   xaxis <- plot_axes$x
   yaxis <- plot_axes$y
 
-  ticktypes <- append(plot_axes,list(dateformat = hovertext$dateformat, reverse = str_detect(plot_type, "bar")))
+  ticktypes <- append(plot_axes,list(dateformat = hovertext$dateformat, reverse = str_detect(plot_type, "bar"), pie = str_detect(plot_type, "pie")))
   if((!plot_axes$yticktype %in% "numeric" | !plot_axes$xticktype %in% "date") & (zeroline != F | rangeslider != F)) {
     roboplotr_alert("Parameters 'zeroline' and 'rangeslider' are currently disabled when parameter 'plot_axis' xticktype is not date or yticktype is not numeric!")
     zeroline <- F
@@ -649,7 +649,7 @@ roboplot <- function(d,
   mintime <- if("time" %in% d_names) { min(d$time) } else { NULL }#ifelse(class(d$time) == "factor", min(levels(d$time)), min(d$time))
 
   # if only one group for color, remove legend as default
-  legend_order <- ifelse(!"bar" %in% plot_type, "reversed", "normal")
+  legend_order <- ifelse(!any(c("bar","pie") %in% plot_type), "reversed", "normal")
 
   p <- p |>
     roboplotr_config(title = title, subtitle = subtitle, caption = caption,

@@ -1,6 +1,7 @@
 .onLoad <- function(..., override = F) {
   op <- options()
   op.roboplot.options <- list(
+    roboplot.accessible = F,
     roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, artefacts = "html"),
     # roboplot.caption = list(prefix = "L\uE4hde: ", lineend = ".", updated = FALSE),
     roboplot.caption = list(prefix = "", lineend = "", updated = FALSE),

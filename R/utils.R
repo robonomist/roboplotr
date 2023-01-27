@@ -309,6 +309,8 @@ set_roboplot_options <- function(
       setOption(opt, NULL)
     }
 
+    roboplotr_check_param(shinyapp, c("logical"), allow_null = F)
+
     roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = first(substitute(artefacts)), check = "set_artefacts"))
 
     roboplotr_check_param(border_colors, "list", c("x","y"))
@@ -382,6 +384,7 @@ set_roboplot_options <- function(
     roboplotr_check_param(xaxis_ceiling, "character")
     roboplotr_valid_strings(xaxis_ceiling, c("default","days","months","weeks","quarters","years","guess"), any)
 
+    set_roboplot_option(accessible)
     set_roboplot_option(artefacts)
     set_roboplot_option(border_colors, "colors.border")
     set_roboplot_option(background_color, "colors.background")
@@ -402,7 +405,8 @@ set_roboplot_options <- function(
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(shinyapp)
     set_roboplot_option(tick_colors, "colors.ticks")
-    if(accessible == TRUE) {
+    set_roboplot_option(trace_colors, "colors.traces")
+    if(getOption("roboplot.accessible") == TRUE) {
       set_roboplot_option(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")), "colors.traces")
     }
     set_roboplot_option(width)
