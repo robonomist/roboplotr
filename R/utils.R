@@ -309,8 +309,6 @@ set_roboplot_options <- function(
       setOption(opt, NULL)
     }
 
-    roboplotr_check_param(shinyapp, c("logical"), allow_null = F)
-
     roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = first(substitute(artefacts)), check = "set_artefacts"))
 
     roboplotr_check_param(border_colors, "list", c("x","y"))
