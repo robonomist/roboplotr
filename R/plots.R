@@ -469,10 +469,10 @@ roboplot <- function(d,
       roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
       title <- title$robonomist_title
     } else if (!is.null(title$title) & length(title$title != 1)) {
-      roboplotr_alert("Using attribute \"title\" as plot title.")
+      roboplotr_alert("Using the attribute \"title\" as plot title.")
       title <- title$title
     } else {
-      roboplotr_alert("You might want to add a title.")
+      roboplotr_alert("Missing the title, using placeholder.")
       title <- "PLACEHOLDER"
     }
   }
@@ -540,10 +540,10 @@ roboplot <- function(d,
         roboplotr_message("Using the attribute \"source\" for plot caption.")
         caption <- set_caption(cpt,.data = d)
       } else if (!is.null(cpt[[getOption("roboplot.locale")$locale]])) {
-        roboplotr_message("Using attribute \"source\" as plot title.")
+        roboplotr_message("Using the attribute \"source\" as plot caption.")
         caption <- set_caption(cpt[[getOption("roboplot.locale")$locale]][1],.data = d)
       } else {
-        roboplotr_alert("You might want to add a title.")
+        roboplotr_alert("Missing the caption, using placeholder.")
         caption <- set_caption("PLACEHOLDER",.data = d)
       }
   }
