@@ -46,7 +46,7 @@ test_that("Roboplot options are reset", {
   expect_mapequal(getOption("roboplot.imgdl.wide"), list(x = 1280, y = 720, title = 31, main = 24, caption = 19, suffix = "_levea", type = "png"))
   expect_mapequal(getOption("roboplot.imgdl.narrow"), list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea", type = "png"))
   expect_mapequal(getOption("roboplot.imgdl.small"), list(x = 889, y = 500, title = 23, main = 18, caption = 14, suffix = "_pieni", type = "png"))
-  expect_match(getOption("roboplot.shinyapp"),list(shinyapp = TRUE, container = NULL))
+  expect_mapequal(getOption("roboplot.shinyapp"),list(shinyapp = FALSE, container = NULL))
   expect_match(getOption("roboplot.verbose"),"All")
   expect_match(getOption("roboplot.xaxis.ceiling"),"default")
 })

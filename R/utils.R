@@ -253,7 +253,7 @@
 #' @importFrom stringr str_c str_detect str_extract str_subset
 #' @importFrom R.utils setOption
 set_roboplot_options <- function(
-    accessible = F,
+    accessible = NULL,
     artefacts = NULL,
     border_colors = NULL,
     background_color = NULL,
@@ -277,7 +277,7 @@ set_roboplot_options <- function(
     xaxis_ceiling = NULL,
     verbose = NULL,
     width = NULL,
-    shinyapp = F,
+    shinyapp = NULL,
     reset = F
     ) {
 
@@ -309,7 +309,12 @@ set_roboplot_options <- function(
       setOption(opt, NULL)
     }
 
-    roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = first(substitute(artefacts)), check = "set_artefacts"))
+    # print(accessible)
+    roboplotr_check_param(accessible, "logical", NULL)
+
+    if(!is.null(artefacts)) {
+      roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = substitute(artefacts)[1], check = "set_artefacts"))
+    }
 
     roboplotr_check_param(border_colors, "list", c("x","y"))
     roboplotr_valid_colors(border_colors)
@@ -330,9 +335,15 @@ set_roboplot_options <- function(
     roboplotr_check_param(dashtypes, "character", NULL)
     roboplotr_valid_strings(dashtypes,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"))
 
-    roboplotr_check_param(font_main, "function", NULL, f.name = list(fun = first(substitute(font_main)), check = "set_font"))
-    roboplotr_check_param(font_title, "function", NULL, f.name = list(fun = first(substitute(font_title)), check = "set_font"))
-    roboplotr_check_param(font_caption, "function", NULL, f.name = list(fun = first(substitute(font_caption)), check = "set_font"))
+    if(!is.null(font_main)) {
+      roboplotr_check_param(font_main, "function", NULL, f.name = list(fun = substitute(font_main)[1], check = "set_font"))
+    }
+    if(!is.null(font_title)) {
+      roboplotr_check_param(font_title, "function", NULL, f.name = list(fun = substitute(font_title)[1], check = "set_font"))
+    }
+    if(!is.null(font_caption)) {
+      roboplotr_check_param(font_caption, "function", NULL, f.name = list(fun = substitute(font_caption)[1], check = "set_font"))
+    }
 
     roboplotr_check_param(grid_colors, "list", c("x","y"))
     roboplotr_valid_colors(grid_colors)
@@ -341,7 +352,9 @@ set_roboplot_options <- function(
 
     roboplotr_check_param(linewidth, "numeric")
 
-    roboplotr_check_param(locale, "function", NULL, f.name = list(fun = first(substitute(locale)), check = "set_locale"))
+    if(!is.null(locale)) {
+      roboplotr_check_param(locale, "function", NULL, f.name = list(fun = substitute(locale)[1], check = "set_locale"))
+    }
 
     roboplotr_check_param(logo_file, "character")
     if(!is.null(logo_file)) {
@@ -355,9 +368,9 @@ set_roboplot_options <- function(
     roboplotr_check_param(patterns, "character", NULL)
     roboplotr_valid_strings(patterns,c("","/","\\","x","-","|","+","."))
 
-    roboplotr_check_param(imgdl_wide, "function", NULL, f.name = list(fun = first(substitute(imgdl_wide)), check = "set_imgdl_layout"))
-    roboplotr_check_param(imgdl_narrow, "function", NULL, f.name = list(fun = first(substitute(imgdl_narrow)), check = "set_imgdl_layout"))
-    roboplotr_check_param(imgdl_small, "function", NULL, f.name = list(fun = first(substitute(imgdl_small)), check = "set_imgdl_layout"))
+    roboplotr_check_param(imgdl_wide, "function", NULL, f.name = list(fun = substitute(imgdl_wide)[1], check = "set_imgdl_layout"))
+    roboplotr_check_param(imgdl_narrow, "function", NULL, f.name = list(fun = substitute(imgdl_narrow)[1], check = "set_imgdl_layout"))
+    roboplotr_check_param(imgdl_small, "function", NULL, f.name = list(fun = substitute(imgdl_small)[1], check = "set_imgdl_layout"))
 
     roboplotr_check_param(tick_colors, "list", c("x","y"))
     roboplotr_valid_colors(tick_colors)
@@ -366,14 +379,14 @@ set_roboplot_options <- function(
     roboplotr_valid_colors(trace_colors)
     if(length(trace_colors) > 1 & length(trace_colors) < 5) { roboplotr_alert("Are you sure ",length(trace_colors)," color",ifelse(length(trace_colors)==1," is","s are")," enough?\n")}
 
-    roboplotr_check_param(shinyapp, c("logical","list"), allow_null = F)
+    roboplotr_check_param(shinyapp, c("logical","list"), allow_null = T)
 
-    if(!is.logical(shinyapp)) {
+    if(!is.logical(shinyapp) & !is.null(shinyapp)) {
       roboplotr_check_param(shinyapp, "list", c("container"))
       shinyapp$shinyapp <- TRUE
       `shinyapp$container` <- shinyapp$container
       roboplotr_check_param(`shinyapp$container`, "character", allow_null = F)
-    } else {
+    } else if (!is.null(shinyapp)) {
       shinyapp <- list(shinyapp = shinyapp, container = NULL)
     }
 
@@ -405,7 +418,9 @@ set_roboplot_options <- function(
     set_roboplot_option(tick_colors, "colors.ticks")
     set_roboplot_option(trace_colors, "colors.traces")
     if(getOption("roboplot.accessible") == TRUE) {
-      set_roboplot_option(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")), "colors.traces")
+      if(!identical(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")),getOption("roboplot.colors.traces"))) {
+        set_roboplot_option(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")), "colors.traces")
+      }
     }
     set_roboplot_option(width)
     set_roboplot_option(xaxis_ceiling, "xaxis.ceiling")
@@ -416,26 +431,28 @@ set_roboplot_options <- function(
       setOption("roboplot.modebar.buttons", c(getOption("roboplot.modebar.buttons"),"robonomist"))
     }
 
-    if(shinyapp$shinyapp == T) {
+    if(!is.null(shinyapp)) {
+      if(shinyapp$shinyapp == T) {
 
-      roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header at runtime!\n",
-                      "Take care with roboplotr container css, all plotly plots will inherit some but not all css.")
-      roboplotr_widget_deps(tempdir())
-      addResourcePath("js", system.file("www","js", package = "roboplotr"))
-      addResourcePath("fonts", file.path(tempdir(),"fonts"))
-      addResourcePath("css", file.path(tempdir(),"css"))
+        roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header at runtime!\n",
+                        "Take care with roboplotr container css, all plotly plots inherit some but not all css.")
+        roboplotr_widget_deps(tempdir())
+        addResourcePath("js", system.file("www","js", package = "roboplotr"))
+        addResourcePath("fonts", file.path(tempdir(),"fonts"))
+        addResourcePath("css", file.path(tempdir(),"css"))
 
-      tagList(
-        singleton(
-          tags$head(
-            tagList(
-              tags$script(type = "text/javascript", src = "js/relayout.js"),
-              tags$link(rel = "stylesheet", type = "text/css", src = "css/style.css")
-            ),
+        tagList(
+          singleton(
+            tags$head(
+              tagList(
+                tags$script(type = "text/javascript", src = "js/relayout.js"),
+                tags$link(rel = "stylesheet", type = "text/css", src = "css/style.css")
+              ),
+            )
           )
         )
-      )
 
+      }
     }
 
   }
@@ -508,20 +525,14 @@ set_locale <- function(locale = "fi-FI") {
 #' @importFrom stringr str_c str_replace str_replace_all
 #' @importFrom tidyr unite
 roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes) {
+
   if (!is.null(color)) {  color <- as_name(color) }
   if (!is.null(pattern)) {  pattern <- as_name(pattern) }
-  # d <- d |> rename(csv.data.tiedot = !! sym(quo_name(color)))
-  # if(!is.null(facet_split)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!facet_split, sep = ", ")}
-  # if(!is.null(pattern)) { if(quo_name(color) != quo_name(pattern)) { d <- unite(d, "csv.data.tiedot", .data$csv.data.tiedot, !!pattern, sep = ", ") }}
-  # if(str_detect(plot_mode,"horizontal")) {
-  #   if (quo_name(color) != quo_name(plot_yaxis)) {
-  #     d <- unite(d, "csv.data.tiedot", .data[[plot_yaxis]], .data$csv.data.tiedot, sep = ", ")
-  #   }
-  #   }
+
   d <- d |>
     select(matches(c(plot_axes$y, color, pattern, plot_axes$x)), -matches("roboplot.topic")) |>
     mutate(
-      across(!is.numeric, ~ as.character(.x) |> roboplotr_transform_string()), #note: semi-colon as colon for final csv
+      across(!is.numeric & !is.Date, ~ as.character(.x) |> roboplotr_transform_string()), #note: semi-colon as colon for final csv
       across(is.numeric, ~ as.character(.x) |> str_replace_all("\\.", ","))
     )
 
@@ -558,7 +569,7 @@ roboplotr_get_dateformat <- function(d, msg = T) {
   }
   d_attrs <- attributes(d)
   wrn <- F
-  datecol <- map(names(d), ~ if("Date" %in% class(d[[.x]])) { .x }) |> roboplotr_compact() |> first()
+  datecol <- map(names(d), ~ if(any(c("Date","POSIXct") %in% class(d[[.x]]))) { .x }) |> roboplotr_compact() |> first()
   if(length(datecol) == 0) {
     tf <- NULL
   } else {
@@ -576,9 +587,15 @@ roboplotr_get_dateformat <- function(d, msg = T) {
       as.character(d_attrs$frequency)
     }
   }
+
+  if(!tf %in% c("Daily","Weekly","Monthly","Quarterly","Annual")) {
+    wrn <- T
+    tf <- get_padr_frequency(d[[datecol]])
+  }
+
   if(wrn == T & msg == T) {
     wrn <- if(is.null(tf)) {"Resorting to default %Y" } else { str_c("Guessing frequency \"",names(dateformats[tf]),"\" for date format ",dateformats[[tf]]) }
-    roboplotr_message(str_c("No frequency attribute was detected for hoverlabel from data 'd', and has not been provided as \"frequency\" in the argument 'hovertext'.\n", wrn,"."))
+    roboplotr_message(str_c("No acceptable frequency attribute was detected for hoverlabel from data 'd', and has not been provided as \"frequency\" in the argument 'hovertext'.\n", wrn,"."))
   }
   tf
 }

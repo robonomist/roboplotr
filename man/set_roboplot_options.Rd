@@ -5,7 +5,7 @@
 \title{Override the default options for colors, fonts etc. for any plot created with \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_roboplot_options(
-  accessible = F,
+  accessible = NULL,
   artefacts = NULL,
   border_colors = NULL,
   background_color = NULL,
@@ -29,7 +29,7 @@ set_roboplot_options(
   xaxis_ceiling = NULL,
   verbose = NULL,
   width = NULL,
-  shinyapp = F,
+  shinyapp = NULL,
   reset = F
 )
 }

@@ -54,7 +54,7 @@ roboplotr_check_param <- function(var, type, size = 1, allow_null = T, allow_na 
       length <- str_c(" of length ",size)
     } else { length <- ""}
 
-    if(!is.null(f.name)) {
+    if(!is.null(f.name) & !is.null(var)) {
       type.ok <- all(any(map_lgl(type, ~ is(f.name$var, .x))), any(str_detect(as.character(f.name$fun),f.name$check)))
       if(!all(type %in% "OptionalFunction")) {
         type.ok <- any(type.ok, any(map_lgl(type, ~ is(var, .x))))

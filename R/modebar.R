@@ -1,10 +1,12 @@
+#' @importFrom dplyr mutate
 #' @importFrom fontawesome fa
 #' @importFrom htmlwidgets JS
+#' @importFrom lubridate as_date quarter
 #' @importFrom plotly config
 #' @importFrom purrr pmap
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
 #' @importFrom tidyr drop_na
-roboplotr_modebar <- function(p, title, subtitle, height, width) {
+roboplotr_modebar <- function(p, title, subtitle, height, width, dateformat) {
 
   if(is.null(title)) {
     dl_title <- "img"
@@ -45,10 +47,18 @@ roboplotr_modebar <- function(p, title, subtitle, height, width) {
   }
 
   dl_string <- (function() {
-    row.data <- p$data |> pmap(function(...) {
+    d <- p$data
+    if("time" %in% names(d) & !is.null(dateformat)) {
+      if(str_detect(dateformat,"Q")) {
+        d <- d |> mutate(time = str_c(format(as_date(.data$time), "%YQ"),lubridate::quarter(.data$time)))
+      } else {
+        d <- d |> mutate(time = format(as_date(.data$time), dateformat))
+      }
+    }
+    row.data <- d |> pmap(function(...) {
       as.character(list(...)) |> replace_na("NA") |> str_c(collapse = ";")
     }) |> unlist() |> str_c(collapse = "\\n")
-    col.names <- names(p$data) |>  str_c(collapse = ";")
+    col.names <- names(d) |>  str_c(collapse = ";")
     ti <- roboplotr_transform_string(title)
     su <- roboplotr_transform_string(subtitle)
     str_c(str_c(ti,", ",su),str_c(rep(";",length(names(p$data))-2),collapse = ""),"\\n",col.names,"\\n",row.data)

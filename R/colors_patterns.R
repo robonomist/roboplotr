@@ -121,7 +121,7 @@ roboplotr_alter_color <- function(color,modifier) {
 
 #' @importFrom dplyr case_when filter mutate pull rowwise slice_head slice_tail ungroup
 #' @importFrom purrr map_dbl
-roboplotr_text_color_picker <- function(picked_colors, fontsize = 12, fontweight = 500, draw_kunta = F, grey_shades = roboplotr_grey_shades()) {
+roboplotr_text_color_picker <- function(picked_colors, fontsize = 12, fontweight = 500, grey_shades = roboplotr_grey_shades()) {
 
   map(picked_colors, function(picked_color) {
     #font_color <- ifelse(rev == F, "#FFFFFF", "#000000")
@@ -136,8 +136,8 @@ roboplotr_text_color_picker <- function(picked_colors, fontsize = 12, fontweight
         min_l = map_dbl(.data$luminance, ~ min(clr_lmn,.x) + 0.05),
         ratio = .data$max_l/.data$min_l) |>
       filter(.data$ratio >= ratio_lim)
-    if(nrow(gs) == 0) {ifelse(draw_kunta == F, "#000000", "#FFFFFF")} else {
-      {if(draw_kunta == F) {slice_head(gs, n = 1)} else {slice_tail(gs, prop = 0.85) |> slice_head()}} |>
+    if(nrow(gs) == 0) { "#000000" } else {
+      { slice_head(gs, n = 1)} |>
         pull(.data$color)
     }
   }) |> unlist()
@@ -222,7 +222,7 @@ roboplotr_get_shades <- function(color = "#FFFFFF") {
     distinct()
 }
 
-#' @importFrom dplyr full_join
+#' @importFrom dplyr ends_with full_join if_all starts_with
 #' @importFrom tidyr pivot_longer
 roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), background = "white",
                                         chart = T, fontsize = 12, fontweight = 500, chart.lim = 3) {
@@ -253,37 +253,37 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
         TRUE ~ 4.5)
       comp_shades <- clr_shades |>
         mutate(
-          max_l = map_dbl(luminance, ~ max(clr_lmn,.x) + 0.05),
-          min_l = map_dbl(luminance, ~ min(clr_lmn,.x) + 0.05),
-          ratio = max_l/min_l) |>
+          max_l = map_dbl(.data$luminance, ~ max(clr_lmn,.x) + 0.05),
+          min_l = map_dbl(.data$luminance, ~ min(clr_lmn,.x) + 0.05),
+          ratio = .data$max_l/.data$min_l) |>
         ungroup() |>
-        mutate("{{compared_color}}_ratio" := ifelse(ratio >= ratio_lim, T, F))
+        mutate("{{compared_color}}_ratio" := ifelse(.data$ratio >= ratio_lim, T, F))
       {
         if(compared_color == background & length(compared.colors) > 1) {
-          filter(comp_shades, ratio > ratio_lim)
+          filter(comp_shades, .data$ratio > ratio_lim)
         } else { comp_shades }
         } |>
-        select(color,
+        select(.data$color,
                starts_with("ratio"), ends_with("ratio"))
     }) |>
       reduce(full_join, by = "color")
 
     these_colors <- color_ops$color
     these_shades <- clr_shades$color |> subset(clr_shades$color %in% these_colors)
-    color_ops <- color_ops |> mutate(color = toupper(color), color = fct_relevel(color, these_shades)) |> arrange(color)
-    color_ops <- color_ops |> mutate(color = as.character(color), priority = get_priority(which(tolower(color_ops$color) == tolower(color2alt)), color_ops)) |>
+    color_ops <- color_ops |> mutate(color = toupper(.data$color), color = fct_relevel(.data$color, these_shades)) |> arrange(.data$color)
+    color_ops <- color_ops |> mutate(color = as.character(.data$color), priority = get_priority(which(tolower(color_ops$color) == tolower(color2alt)), color_ops)) |>
       mutate(count = rowSums(across(ends_with(c("_ratio")), ~ as.numeric(.x)), na.rm = T)) |>
       filter(if_all(starts_with("ratio"), ~ !is.na(.x))) |>
-      filter(count == max(count, na.rm = T)) |>
-      slice_min(order_by = priority, n = 1, with_ties = F)
+      filter(.data$count == max(.data$count, na.rm = T)) |>
+      slice_min(order_by = .data$priority, n = 1, with_ties = F)
     pulled <- color_ops$color
-    failed <- select(color_ops, ends_with("_ratio")) |> pivot_longer(everything()) |> filter(value == F)
+    failed <- select(color_ops, ends_with("_ratio")) |> pivot_longer(everything()) |> filter(.data$value == F)
     if(nrow(failed) > 0) {
       msg <- failed$name |> str_extract("(?<=\\\").{1,}(?=\\\")") |> knitr::combine_words() |>
       str_c("Color contrast fails with ",msg," for ",pulled) |> roboplotr_warning(severity = "warning")
 
     }
-    color_ops |> pull(color)
+    color_ops |> pull(.data$color)
   }
 
   altered <- map(colors2alt, function(color2alt) {

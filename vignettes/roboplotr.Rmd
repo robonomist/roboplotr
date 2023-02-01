@@ -215,6 +215,7 @@ d <-
   ) |>
   filter(time == max(time)) |>
   rename(CPA = `Products by activity (CPA 2015, MIG)`) |>
+  drop_na(value) |>
   mutate(CPA = fct_reorder(str_replace(CPA, "[0-9]{2} ", ""), value))
 
 d_title <- str_c("Producer prices in Finland ",format(unique(d$time), "%m/%Y"))
@@ -357,17 +358,17 @@ bind_rows(list(
 d <-
   str_c("entsoe/dap_", c("FI","DE_LU","SE3","FR")) |>
   map(data_get, start_time = "2020-01-01") |>
-  bind_rows()
-
-d |>
+  bind_rows() |>
   arrange(time) |>
   group_by(Area) |>
   mutate(
     ma28 = slider::slide_index_dbl(value, time, mean, .before = days(28))
   ) |>
-  group_by(Area, time = lubridate::floor_date(time, "days")) |>
+  group_by(Area, time = floor_date(time, "days")) |>
   summarise(value = mean(ma28), .groups = "drop") |>
-  arrange(Area, time) |>
+  arrange(Area, time)
+
+d |>
   roboplot(Area,"Electricity prices, 28-day moving average","€/MWh","Entso-E"#,
            # plot_axes = set_axes(xformat = "%m/%Y")
            )

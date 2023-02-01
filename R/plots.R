@@ -39,7 +39,7 @@ roboplotr_config <- function(p,
     roboplotr_set_axis_ranges(ticktypes[c("xlim","ylim")]) |>
     roboplotr_set_grid() |>
     roboplotr_set_background() |>
-    roboplotr_modebar(title, subtitle, height, width) |>
+    roboplotr_modebar(title, subtitle, height, width, ticktypes$dateformat) |>
     roboplotr_set_ticks(ticktypes) |>
     roboplotr_set_margin(margin) |>
     roboplotr_logo() |>
@@ -463,9 +463,23 @@ roboplot <- function(d,
 
   roboplotr_check_param(d, "data.frame", NULL, allow_null = F)
 
+  if(is.null(title)) {
+    title <- attributes(d)[c("title","robonomist_title")]
+    if(!is.null(title$robonomist_title)) {
+      roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
+      title <- title$robonomist_title
+    } else if (!is.null(title$title) & length(title$title != 1)) {
+      roboplotr_alert("Using attribute \"title\" as plot title.")
+      title <- title$title
+    } else {
+      roboplotr_alert("You might want to add a title.")
+      title <- "PLACEHOLDER"
+    }
+  }
+
   d_names <- names(d)
 
-  roboplotr_check_param(plot_axes, "function", NULL, f.name = list(fun = first(substitute(plot_axes)), check = "set_axes"))
+  roboplotr_check_param(plot_axes, "function", NULL, f.name = list(fun = substitute(plot_axes)[1], check = "set_axes"))
 
   if(!all(plot_axes[c("x","y")] %in% d_names)) {
     stop(str_c("'d' must be a tibble with columns named \"",plot_axes$x,"\" and \"",plot_axes$y,"\"."), call. = F)
@@ -507,7 +521,7 @@ roboplot <- function(d,
     }
   }
 
-  roboplotr_check_param(hovertext, "function", NULL, f.name = list(fun = first(substitute(hovertext)), check = "set_hovertext"))
+  roboplotr_check_param(hovertext, "function", NULL, f.name = list(fun = substitute(hovertext)[1], check = "set_hovertext"))
 
   if(is.null(hovertext)) {
     hovertext <- set_hovertext(roboplotr_get_dateformat(d),unit = tolower(subtitle))
@@ -515,11 +529,23 @@ roboplot <- function(d,
     hovertext$dateformat <- roboplotr_hovertemplate_freq(roboplotr_get_dateformat(d))
   }
 
-  roboplotr_check_param(caption, c("character","function"),size = 1, f.name = list(fun = substitute(hovertext), check = "set_caption", var = substitute(caption)))
+  roboplotr_check_param(caption, c("character","function"),size = 1, f.name = list(fun = substitute(caption)[1], check = "set_caption"))
   if(!is.null(caption)) {
-    if(!is(substitute(caption), "call")) {
+    if(!is(substitute(caption)[1], "call")) {
       caption <- set_caption(caption,.data = d)
     }
+  } else {
+      cpt <- attributes(d)$source
+      if(length(cpt) == 1) {
+        roboplotr_message("Using the attribute \"source\" for plot caption.")
+        caption <- set_caption(cpt,.data = d)
+      } else if (!is.null(cpt[[getOption("roboplot.locale")$locale]])) {
+        roboplotr_message("Using attribute \"source\" as plot title.")
+        caption <- set_caption(cpt[[getOption("roboplot.locale")$locale]][1],.data = d)
+      } else {
+        roboplotr_alert("You might want to add a title.")
+        caption <- set_caption("PLACEHOLDER",.data = d)
+      }
   }
 
   roboplotr_check_param(xaxis_ceiling, "character", allow_null = F)
@@ -566,7 +592,7 @@ roboplot <- function(d,
   xaxis <- plot_axes$x
   yaxis <- plot_axes$y
 
-  ticktypes <- append(plot_axes,list(dateformat = hovertext$dateformat, reverse = str_detect(plot_type, "bar"), pie = str_detect(plot_type, "pie")))
+  ticktypes <- append(plot_axes,list(dateformat = hovertext$dateformat, reverse = any(str_detect(plot_type, "bar")), pie = any(str_detect(plot_type, "pie"))))
   if((!plot_axes$yticktype %in% "numeric" | !plot_axes$xticktype %in% "date") & (zeroline != F | rangeslider != F)) {
     roboplotr_alert("Parameters 'zeroline' and 'rangeslider' are currently disabled when parameter 'plot_axis' xticktype is not date or yticktype is not numeric!")
     zeroline <- F
@@ -638,7 +664,7 @@ roboplot <- function(d,
   p <- roboplotr_get_plot(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width, legend_title)
   # }
 
-  p$data <- roboplotr_transform_data_for_download(d, color, pattern, plot_axes)
+  p$data <- roboplotr_transform_data_for_download(d, color, pattern, ticktypes)
 
   if(!isRunning()) { p$elementId <- str_c("widget_",roboplotr_string2filename(title),"_",str_pad(round(runif(1)*1000000),6,"left","0")) }
   p$title <- title
@@ -682,7 +708,7 @@ roboplot <- function(d,
       roboplot_create_widget(p, NULL, params$filepath, params$render, params$self_contained, params$artefacts)
     } else { p }
   } else {
-    roboplotr_check_param(artefacts, c("function"), NULL, f.name = list(fun = first(substitute(artefacts)), check = "set_artefacts"))
+    roboplotr_check_param(artefacts, c("function"), NULL, f.name = list(fun = substitute(artefacts)[1], check = "set_artefacts"))
     roboplot_create_widget(p, artefacts$title, artefacts$filepath, artefacts$render, artefacts$self_contained, artefacts$artefacts)
   }
 
@@ -754,7 +780,7 @@ roboplot <- function(d,
 #' @importFrom stringr str_replace_all str_trunc
 roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, legend_maxwidth, secondary_yaxis, legend_position, ticktypes, width, legend_title) {
 
-  plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color))
+  plot_colors <- pull(distinct(d,.data$roboplot.trace.color, !!color),"roboplot.trace.color", name = !!color)
 
   trace_showlegend <- if(is.null(legend_position)) { T } else if (is.na(legend_position)) { F } else { T }
 
