@@ -194,7 +194,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' If function, it must return a logical and include named items "value" and ".fun", where .fun checks if given value will get a color or legend item.
 #' Will not currently work with multiple patterns.
 #' @param plot_type Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param plot_mode Character. Determines the barmode for bars and scatters. Can be "scatter" or "line" or lines, "dodge", "horizontal" or "stack" for bars, and "rotated" for pies.
+#' @param plot_mode Character. Determines the barmode for bars and scatters. Can be "scatter", "line", or "step" for 'plot_mode' "scatter", "dodge", "horizontal" or "stack" for 'plot_mode' "bar", and "rotated" for 'plot_mode' "pie".
 #' plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of the first item of the color variable as factor.
 #' @param plot_axes Function. Function. Use [set_axes()].
 #' @param trace_color Character vector, named if length > 1. Trace color for all trace. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
@@ -511,7 +511,7 @@ roboplot <- function(d,
       if (pull(d,{{secondary_yaxis}}) |> unique() |> length() > 2) {
         stop("No more than two unique observations can be in the variable provided for 'secondary_yaxis'.", call. = F)
       }
-      d <- d |> mutate({{secondary_yaxis}} := fct_reorder({{secondary_yaxis}}, .data$value, .desc = T))
+      d <- d |> mutate({{secondary_yaxis}} := fct_reorder({{secondary_yaxis}}, .data$value, .desc = T, na.rm = T))
       if(unique(pull(d, !!secondary_yaxis)) |> length() > 1) {
         zeroline <- F
         rmargin <- (max(str_length(filter(d, as.numeric(!!secondary_yaxis) == max(as.numeric({{secondary_yaxis}})))$value), na.rm = T) * getOption("roboplot.font.main")$size / 1.5) |> max(30)
@@ -786,8 +786,8 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
 
   p <- plot_ly(d, height = height, width = width, colors = plot_colors)
 
-  if("scatter" %in% plot_type & !str_detect(plot_mode, "line|scatter") | "bar" %in% plot_type & !str_detect(plot_mode, "dodge|stack|horizontal") ) {
-    stop("Plot mode must be \"dodge\", \"line\", \"scatter\", \"stack\" or \"horizontal\", or a combination of two separated by \"+\" for different plot types !", call. = F)
+  if("scatter" %in% plot_type & !str_detect(plot_mode, "line|scatter|step") | "bar" %in% plot_type & !str_detect(plot_mode, "dodge|stack|horizontal") ) {
+    stop("Plot mode must be \"dodge\", \"line\", \"scatter\", \"stack\" \"step\", or \"horizontal\", or a combination of two separated by \"+\" for different plot modes!", call. = F)
   } else {
     p_mode <- ifelse(str_detect(plot_mode, "dodge|horizontal"), "group","relative")
     p  <- layout(p, barmode = p_mode)
@@ -871,9 +871,9 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
                             labels = color, #pie
                             legendgroup = color,
                             legendrank = legend_rank,
-                            line = ~ list(width = roboplot.linewidth, dash = roboplot.dash), #scatter line
+                            line = ~ list(width = roboplot.linewidth, dash = roboplot.dash, shape = ifelse(str_detect(plot_mode,"step"),"hv","linear")), #scatter line
                             marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.pattern)), #pie
-                            mode = case_when(str_detect(plot_mode, "line") ~ "lines", TRUE ~ "markers") , #scatter
+                            mode = case_when(str_detect(plot_mode, "line|step") ~ "lines", TRUE ~ "markers") , #scatter
                             name = ~  if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
                             offset = ~roboplot.bar.offset, #horizontal bar
                             offsetgroup = ~str_c(roboplot.pattern, roboplot.trace.color), #bar ## onko ok?? mieti
@@ -894,7 +894,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
                             y = as.formula(str_c("~",ifelse(!is.null(legend_maxwidth) & yaxis != "value", "roboplot.trunc", yaxis))) #!pie
     )
     shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type","hoverinfo","legendgrouptitle","customdata")
-    plotting_params <- if(tracetype == "scatter" & str_detect(plot_mode,"line")) {
+    plotting_params <- if(tracetype %in% "scatter" & str_detect(plot_mode,"line|step")) {
       plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
     } else if(tracetype == "scatter" & str_detect(plot_mode,"scatter")) {
       plotting_params[c(shared_params,"x","y","mode","name","color", "xhoverformat")]
