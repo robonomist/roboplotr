@@ -530,7 +530,7 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes) 
   if (!is.null(pattern)) {  pattern <- as_name(pattern) }
 
   d <- d |>
-    select(matches(c(plot_axes$y, color, pattern, plot_axes$x)), -matches("roboplot.topic")) |>
+    select(matches(c(color, pattern, plot_axes$x, plot_axes$y)), -matches("roboplot.topic")) |>
     mutate(
       across(!is.numeric & !is.Date, ~ as.character(.x) |> roboplotr_transform_string()), #note: semi-colon as colon for final csv
       across(is.numeric, ~ as.character(.x) |> str_replace_all("\\.", ","))

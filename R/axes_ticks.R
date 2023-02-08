@@ -249,25 +249,25 @@ roboplotr_get_tick_layout <- function(ticktype,
                     list(
                       list(
                         dtickrange = list(NULL, 604800000),
-                        value = tickformat[1]
+                        value = tickformatstops[1]
                       ),
                       list(
                         dtickrange = list(604800000, "M1"),
-                        value = tickformat[2]
+                        value = tickformatstops[2]
                       ),
                       list(
                         dtickrange = list("M1", "M12"),
-                        value = tickformat[3]
+                        value = tickformatstops[3]
                       ),
                       list(
                         dtickrange = list("M12", NULL),
-                        value = tickformat[4]
+                        value = tickformatstops[4]
                       )
                     )
                   } else {
                     NULL
                   },
-                  tickformat = tickformat,
+                  # tickformat = tickformat,
                   tickcolor = tick_color[[axis]],
                   showline = background_color != border_color[[axis]])
     if(!is.null(dtick)) { append(dlist, list(dtick = dtick)) } else { dlist }

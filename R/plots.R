@@ -30,7 +30,7 @@ roboplotr_config <- function(p,
 
   if(!is.list(margin)) {
     if(is.na(margin)) {
-      margin <- list(t = 0, r = 30, b = 0, l = 20)
+      margin <- list(t = 0, r = 10, b = 0, l = 20)
     }
   }
 
@@ -600,7 +600,7 @@ roboplot <- function(d,
   }
 
   if(!is.factor(d[[as_name(color)]])) {
-    d <- mutate(d, {{color}} := fct_reorder({{color}}, .data$value, .fun = mean, na.rm = T) |> fct_rev())
+    d <- mutate(d, {{color}} := fct_reorder({{color}}, .data$value, .fun = mean, .na_rm = T) |> fct_rev())
   }
 
   d <- d |> group_by(!!color) |> filter(!all(is.na(.data$value))) |> ungroup() |> droplevels()
@@ -670,9 +670,8 @@ roboplot <- function(d,
   p$title <- title
   p$trace_types <- distinct(d, !!color, .data$roboplot.plot.type) |> pull(2,1)
   p$plot_mode <- plot_mode
-
-  maxtime <- if("time" %in% d_names) { max(d$time) } else { NULL }#ifelse(class(d$time) == "factor", max(levels(d$time)), max(d$time))
-  mintime <- if("time" %in% d_names) { min(d$time) } else { NULL }#ifelse(class(d$time) == "factor", min(levels(d$time)), min(d$time))
+  maxtime <- if("time" %in% d_names) { if(!is.na(plot_axes$xlim[2])) { plot_axes$xlim[2] } else { ceiling_date(max(d$time), roboplotr_guess_xaxis_ceiling(d, hovertext)) } } else { NULL }
+  mintime <- if("time" %in% d_names) { min(d$time) } else { NULL }
 
   # if only one group for color, remove legend as default
   legend_order <- ifelse(!any(c("bar","pie") %in% plot_type), "reversed", "normal")
@@ -804,7 +803,7 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
   if(str_detect(plot_mode,"horizontal")) {
     d <- roboplotr_get_bar_widths(d, yaxis) |> arrange(desc(!!sym(yaxis)))
     if(length(unique(d$roboplot.plot.text)) > 1) {
-      d <- mutate(d, roboplot.horizontal.label = str_c(as.character(!!sym(yaxis)),", ",as.character(.data$roboplot.plot.text)))
+      d <- mutate(d, roboplot.horizontal.label = str_c(as.character(.data$roboplot.plot.text)))
     } else {
       d <- mutate(d, roboplot.horizontal.label = as.character(!!sym(yaxis)))
     }
@@ -834,7 +833,9 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
   trace_params <- map(split_d, function(g) {
 
     tracetype <- unique(g$roboplot.plot.type)
-    hoverlab <- case_when(tracetype == "pie" ~ "label", str_detect(plot_mode, "horizontal") ~ "text", TRUE ~ "customdata")
+    hoverlab <- case_when(tracetype == "pie" ~ "label",
+                          str_detect(plot_mode, "horizontal") & is.null(pattern) ~ "text",
+                          TRUE ~ "customdata")
     hovertemplate <- roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
     marker_line_color <- NULL
     legend_rank <- mean(g$roboplot.legend.rank)
