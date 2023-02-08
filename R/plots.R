@@ -670,7 +670,8 @@ roboplot <- function(d,
   p$title <- title
   p$trace_types <- distinct(d, !!color, .data$roboplot.plot.type) |> pull(2,1)
   p$plot_mode <- plot_mode
-  maxtime <- if("time" %in% d_names) { if(!is.na(plot_axes$xlim[2])) { plot_axes$xlim[2] } else { ceiling_date(max(d$time), roboplotr_guess_xaxis_ceiling(d, hovertext)) } } else { NULL }
+
+  maxtime <- if("time" %in% d_names & !identical(rangeslider, F)) { if(!is.na(plot_axes$xlim[2])) { plot_axes$xlim[2] } else { ceiling_date(max(d$time), roboplotr_guess_xaxis_ceiling(d, hovertext, what = "rangeslider")) } } else { NULL }
   mintime <- if("time" %in% d_names) { min(d$time) } else { NULL }
 
   # if only one group for color, remove legend as default
@@ -824,17 +825,16 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
     -(group_by(d, !!color) |> summarize(value = sum(.data$value), .groups = "drop") |> mutate(value = .data$value / sum(.data$value)) |> slice_min(!!color) |> pull(.data$value) * 360 / 2)
   } else { 0 }
 
-  if(!is.null(height)) {
-    if(length(split_d) > height / 50) {
+  if(!is.null(height) & !is.null(legend_position)) {
+    if(length(split_d) > height / 50 & !is.na(legend_position)) {
       roboplotr_alert(str_c("This many legend items might make the legend too large to render for some widths, you might want to use 'height' of ",length(split_d) * 50,"."))
     }
   }
-
   trace_params <- map(split_d, function(g) {
 
     tracetype <- unique(g$roboplot.plot.type)
     hoverlab <- case_when(tracetype == "pie" ~ "label",
-                          str_detect(plot_mode, "horizontal") & is.null(pattern) ~ "text",
+                          str_detect(plot_mode, "horizontal") & is.null(pattern) & quo_name(color) != ticktypes$y ~ "text",
                           TRUE ~ "customdata")
     hovertemplate <- roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
     marker_line_color <- NULL
@@ -857,7 +857,6 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
     # } else {
     #       legendgrouptitle <- NULL
     #       }
-
     roboplotr_check_param(legend_title, c("logical","character"), allow_null = F)
     legendgrouptitle <- if (legend_title == F) { NULL } else if ( is.character(legend_title) ) { str_c("<b>",legend_title,"</b>") } else { str_c("<b>",as_name(color),"</b>") }
 

@@ -336,7 +336,7 @@ roboplotr_set_ticks <- function(p, ticktypes) {
 
 #' @importFrom dplyr case_when
 #' @importFrom lubridate month quarter wday week yday
-roboplotr_guess_xaxis_ceiling <- function(d, hovertext) {
+roboplotr_guess_xaxis_ceiling <- function(d, hovertext, what = "xaxis_ceiling") {
   attr_freq <- roboplotr_get_dateformat(d,msg = F)
   hovertext_freq <- hovertext$dateformat
 
@@ -369,8 +369,8 @@ roboplotr_guess_xaxis_ceiling <- function(d, hovertext) {
       TRUE ~ freq)
   }
 
-  if(is.null(freq)) { roboplotr_alert("Failed to guess the 'xaxis_ceiling', ne frequency information available.") } else {
-    roboplotr_message("Roboplotr guesses the xaxis_ceiling is rounded to \"",freq,"\".")
+  if(is.null(freq)) { roboplotr_alert("Failed to guess the '",what,"', ne frequency information available.") } else {
+    roboplotr_message("Roboplotr guesses the '",what,"' is rounded to \"",freq,"\".")
   }
   freq
 }

@@ -166,7 +166,7 @@ roboplotr_darken_white <- function(darken, white_hue = "#FFFFFF") {
 #' @importFrom dplyr tibble
 #' @importFrom purrr map reduce
 roboplotr_grey_shades <- function() {
-  grey_shades <- reduce(map(c(seq(0,255,5)), function(x) {roboplotr_darken_white(x)} ),c)
+  grey_shades <- reduce(map(c(seq(0,255,5)), function(x) { roboplotr_darken_white(x) } ),c)
   tibble("color" = grey_shades,
          "luminance" = roboplotr_get_luminance(grey_shades))
 }
