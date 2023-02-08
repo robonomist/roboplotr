@@ -547,10 +547,9 @@ roboplot <- function(d,
         caption <- set_caption("PLACEHOLDER",.data = d)
       }
   }
-
   roboplotr_check_param(xaxis_ceiling, "character", allow_null = F)
   if(!"date" %in% plot_axes$xticktype | !"time" %in% d_names) {
-    if("default" %in% xaxis_ceiling) {
+    if(!"default" %in% xaxis_ceiling) {
       roboplotr_alert("'xaxis_ceiling' is ignored if x-axis is not a date or a \"time\" column does not exist.")
     }
     xaxis_ceiling <- "default"
@@ -830,8 +829,8 @@ roboplotr_get_plot <- function(d, xaxis, yaxis, height, color, pattern, plot_typ
       roboplotr_alert(str_c("This many legend items might make the legend too large to render for some widths, you might want to use 'height' of ",length(split_d) * 50,"."))
     }
   }
-  trace_params <- map(split_d, function(g) {
 
+  trace_params <- map(split_d, function(g) {
     tracetype <- unique(g$roboplot.plot.type)
     hoverlab <- case_when(tracetype == "pie" ~ "label",
                           str_detect(plot_mode, "horizontal") & is.null(pattern) & quo_name(color) != ticktypes$y ~ "text",
