@@ -64,7 +64,7 @@ Will not currently work with multiple patterns.}
 
 \item{plot_type}{Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
 
-\item{plot_mode}{Character. Determines the barmode for bars and scatters. Can be "scatter" or "line" or lines, "dodge", "horizontal" or "stack" for bars, and "rotated" for pies.
+\item{plot_mode}{Character. Determines the barmode for bars and scatters. Can be "scatter", "line", or "step" for 'plot_mode' "scatter", "dodge", "horizontal" or "stack" for 'plot_mode' "bar", and "rotated" for 'plot_mode' "pie".
 plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of the first item of the color variable as factor.}
 
 \item{plot_axes}{Function. Function. Use \code{\link[=set_axes]{set_axes()}}.}

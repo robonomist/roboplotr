@@ -68,6 +68,7 @@
 #' @importFrom htmltools htmlDependency
 #' @importFrom htmlwidgets saveWidget
 #' @importFrom stringr str_extract_all str_replace_all str_c str_squish
+#' @importFrom widgetframe frameableWidget
 
 roboplot_create_widget <- function(
     p,
@@ -113,6 +114,7 @@ roboplot_create_widget <- function(
 
   if("html" %in% artefacts) {
     detached_p |>
+      frameableWidget() |>
       saveWidget(file.path(filepath,str_c(title,".html")), selfcontained = self_contained, libdir = if(self_contained) { NULL} else { "plot_dependencies" }, title = widget_title)
   }
 

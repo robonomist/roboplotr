@@ -29,7 +29,8 @@ Imports:
     chromote,
     stats,
     methods,
-    crayon
+    crayon,
+    widgetframe
 Suggests: 
     testthat (>= 3.0.0),
     glue,
