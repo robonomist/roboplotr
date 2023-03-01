@@ -25,7 +25,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	};
 	let margin_bottom = ellegend.height + (elcaption*2+ elxticks + elxtitle);
 	// pie charts do not give correct height by measuring the plot, investigate
-	let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.xlines-above.crisp');
+	let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.gridlayer');
 	if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	if (elplot == 0) { elplot = 1}
 	let images_sizey = (elcontainer * 0.05) / elplot;
@@ -47,7 +47,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	  ellegend.width =  $(el).find('g.legend')[0].getBBox().width
 	};
 	  margin_bottom = ellegend.height + elcaption + elxticks + elxtitle;
-	  let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.xlines-above.crisp');
+	  let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.gridlayer');
 	  if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
 	  if (elplot == 0) { elplot = 1}
 	  images_sizey = (elcontainer * 0.05) / elplot;
@@ -65,7 +65,9 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let yaxis_layer = $(el).find('g.yaxislayer-above')
 
   if(yaxis_layer.length > 0) {
-   	if( yaxis_layer[0].getBBox().height <= ( ($(el).find('g.ytick')).length * $(el).find('g.ytick')[0].getBBox().height )) {
+    let yticks = $(el).find('g.ytick');
+    let yspace = [...yticks].reduce((a,b) => a + b.getBBox().height, 0)
+  if( elplot <= yspace) {
 	  yaxis_font_size = Math.floor(el.layout.yaxis.tickfont.size * 0.8)
 	} else {
 	  yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size*1.5), legend_fontsize)
@@ -126,8 +128,6 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	  let titlespace = pie_chart ? $(gd).find('g.layer-above') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
 	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
 	  if(titlespace <= gdtitle) {
-//	   	  console.log("space: " +  titlespace + "; width: " + gdtitle + "; fontsize: " + gd.layout.title.font.size)
-//	  console.log(titlespace/gd.layout.title.font.size)
 	  title_text = "<span>" +
 	  (plot_title[2] ? "<b>" : "" ) +
 	  stringDivider(plot_title[0], Math.floor(titlespace/(gd.layout.title.font.size-8)), "<br>") +
@@ -135,6 +135,18 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	  "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
 	  Plotly.relayout(gd, {'title.text': title_text})
 	  }
+	  //	  let yaxis_layer = $(gd).find('g.yaxislayer-above')
+//	  if(yaxis_layer.length > 0 & (gd.layout.yaxis.tickmode == "linear" | gd.layout.yaxis.tickmode == "array")) {
+//	    let tickroom = yaxis_layer[0].getBBox().width
+//	    if(tickroom > titlespace*2) {
+//	      let tickwdth = Math.floor(tickroom / gd.layout.yaxis.tickfont.size)
+//	      console.log(tickwdth)
+//	      let cats = gd.layout.yaxis.categoryarray.map(a => stringDivider(a, tickwdth, "<br>") )
+//	      Plotly.relayout(gd, {"yaxis.tickvals": gd.layout.yaxis.categoryarray, "yaxis.ticktext": cats, "yaxis.tickmode": "array"})
+//	    } else if(tickroom < titlespace*3) {
+//	      Plotly.relayout(gd, {"yaxis.tickvals": "remove", "yaxis.ticktext": "remove", "yaxis.tickmode": "linear"})
+//	    }
+//	  }
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t','margin.b','legend.y','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'images[0].y','yaxis.tickfont.size'], pie_chart = pie_chart));

@@ -7,14 +7,14 @@
 set_roboplot_options(
   accessible = NULL,
   artefacts = NULL,
-  border_colors = NULL,
+  border = NULL,
   background_color = NULL,
   caption_defaults = NULL,
   dashtypes = NULL,
   font_main = NULL,
   font_title = NULL,
   font_caption = NULL,
-  grid_colors = NULL,
+  grid = NULL,
   height = NULL,
   imgdl_wide = NULL,
   imgdl_narrow = NULL,
@@ -38,7 +38,7 @@ set_roboplot_options(
 
 \item{artefacts}{Function. Control html and other file creation. Use \code{\link[=set_artefacts]{set_artefacts()}}.}
 
-\item{border_colors, grid_colors, tick_colors}{List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
+\item{border}{Function. Use \code{\link[=set_border]{set_border()}}.}
 
 \item{background_color}{Character. Plot background color. Must be a hexadecimal color or a valid css color.}
 
@@ -47,6 +47,8 @@ set_roboplot_options(
 \item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
 
 \item{font_main, font_title, font_caption}{Functions. Use \code{\link[=set_font]{set_font()}}.}
+
+\item{grid}{Function. Use \code{\link[=set_grid]{set_grid()}}.}
 
 \item{height, width}{Numerics. Height and width of roboplotr plots in pixels.}
 
@@ -61,6 +63,8 @@ set_roboplot_options(
 \item{modebar}{Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.}
 
 \item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
+
+\item{tick_colors}{List. Plot tick element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
 
 \item{trace_colors}{Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.}
 
@@ -83,15 +87,16 @@ Override the default options for colors, fonts etc. for any plot created with \c
 # Basic plot frame colors for ticks, grid and border must be defined by axis
 # with lists of color hex codes or valid css colors. Same with plot backround.
 # Height can be controlled by-plot or globally. You can also preconstruct
-# some defaults for captions.
+# some defaults for captions. Border control is further documented under
+# set_border() function documentation.
 
 d <- energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada","Norja"), Suunta == "Tuonti")
 
 set_roboplot_options(
-  border_colors = list(x = "#eed5d2", y = "#8b7d7b"),
+  border = set_border(xcolor = "#eed5d2", ycolor = "#8b7d7b"),
   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
-  grid_colors = list(x = "#9aff9a", y = "cornsilk"),
+  grid = set_grid(xcolor = "#9aff9a", ycolor = "cornsilk"),
   tick_colors = list(x = "darkgray", y = "dimgrey"),
   background_color = "ghostwhite",
   height = 700,

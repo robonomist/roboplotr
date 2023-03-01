@@ -2,7 +2,9 @@
 #'
 #' @param accessible Logical. Forces trace colors accessible against plot background.
 #' @param artefacts Function. Control html and other file creation. Use [set_artefacts()].
-#' @param border_colors,grid_colors,tick_colors List. Plot frame element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
+#' @param border Function. Use [set_border()].
+#' @param grid Function. Use [set_grid()].
+#' @param tick_colors List. Plot tick element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
 #' @param background_color Character. Plot background color. Must be a hexadecimal color or a valid css color.
 #' @param caption_defaults List. Used to parse caption. Values must be named "prefix", "lineend" and "updated". "prefix" is character, and added to caption text with ": ". "lineend" is character added to caption line ends. "updated" is logical that determines whether caption tries to guess latest update date from plot data.
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
@@ -28,15 +30,16 @@
 #' # Basic plot frame colors for ticks, grid and border must be defined by axis
 #' # with lists of color hex codes or valid css colors. Same with plot backround.
 #' # Height can be controlled by-plot or globally. You can also preconstruct
-#' # some defaults for captions.
+#' # some defaults for captions. Border control is further documented under
+#' # set_border() function documentation.
 #'
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada","Norja"), Suunta == "Tuonti")
 #'
 #' set_roboplot_options(
-#'   border_colors = list(x = "#eed5d2", y = "#8b7d7b"),
+#'   border = set_border(xcolor = "#eed5d2", ycolor = "#8b7d7b"),
 #'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
-#'   grid_colors = list(x = "#9aff9a", y = "cornsilk"),
+#'   grid = set_grid(xcolor = "#9aff9a", ycolor = "cornsilk"),
 #'   tick_colors = list(x = "darkgray", y = "dimgrey"),
 #'   background_color = "ghostwhite",
 #'   height = 700,
@@ -255,14 +258,14 @@
 set_roboplot_options <- function(
     accessible = NULL,
     artefacts = NULL,
-    border_colors = NULL,
+    border = NULL,
     background_color = NULL,
     caption_defaults = NULL,
     dashtypes = NULL,
     font_main = NULL,
     font_title = NULL,
     font_caption = NULL,
-    grid_colors = NULL,
+    grid = NULL,
     height = NULL,
     imgdl_wide = NULL,
     imgdl_narrow = NULL,
@@ -279,7 +282,7 @@ set_roboplot_options <- function(
     width = NULL,
     shinyapp = NULL,
     reset = F
-    ) {
+) {
 
   set_roboplot_option <- function(option, opt_name = NULL) {
     if(!is.null(option)) {
@@ -291,7 +294,7 @@ set_roboplot_options <- function(
       }
       setOption(opt_name, option)
       roboplotr_message(str_c("Roboplot option ",opt_name," set."))
-      }
+    }
   }
 
   roboplotr_check_param(verbose, "character", allow_null = T)
@@ -316,8 +319,7 @@ set_roboplot_options <- function(
       roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = substitute(artefacts)[1], check = "set_artefacts"))
     }
 
-    roboplotr_check_param(border_colors, "list", c("x","y"))
-    roboplotr_valid_colors(border_colors)
+    roboplotr_check_param(border, "function", NULL,  f.name = list(fun = substitute(border)[1], check = "set_border"))
     roboplotr_check_param(background_color, "character")
     roboplotr_valid_colors(background_color)
 
@@ -345,8 +347,7 @@ set_roboplot_options <- function(
       roboplotr_check_param(font_caption, "function", NULL, f.name = list(fun = substitute(font_caption)[1], check = "set_font"))
     }
 
-    roboplotr_check_param(grid_colors, "list", c("x","y"))
-    roboplotr_valid_colors(grid_colors)
+    roboplotr_check_param(grid, "function", NULL,  f.name = list(fun = substitute(grid)[1], check = "set_grid"))
 
     roboplotr_check_param(height, "numeric")
 
@@ -397,14 +398,14 @@ set_roboplot_options <- function(
 
     set_roboplot_option(accessible)
     set_roboplot_option(artefacts)
-    set_roboplot_option(border_colors, "colors.border")
+    set_roboplot_option(border)
     set_roboplot_option(background_color, "colors.background")
     set_roboplot_option(caption_defaults, "caption")
     set_roboplot_option(dashtypes)
     set_roboplot_option(font_main, "font.main")
     set_roboplot_option(font_title, "font.title")
     set_roboplot_option(font_caption, "font.caption")
-    set_roboplot_option(grid_colors, "colors.grid")
+    set_roboplot_option(grid)
     set_roboplot_option(height)
     set_roboplot_option(locale)
     set_roboplot_option(linewidth)
@@ -588,9 +589,11 @@ roboplotr_get_dateformat <- function(d, msg = T) {
     }
   }
 
-  if(!tf %in% c("Daily","Weekly","Monthly","Quarterly","Annual")) {
-    wrn <- T
-    tf <- get_padr_frequency(d[[datecol]])
+  if(!is.null(tf)) {
+    if(!tf %in% c("Daily","Weekly","Monthly","Quarterly","Annual")) {
+      wrn <- T
+      tf <- get_padr_frequency(d[[datecol]])
+    }
   }
 
   if(wrn == T & msg == T) {
@@ -688,7 +691,7 @@ roboplotr_get_css <- function(css_defs, file = NULL) {
 }
 
 roboplotr_combine_words <- function (..., sep = ", ", and = " and ", before = "", after = before,
-          oxford_comma = F)
+                                     oxford_comma = F)
 {
   words <- c(...)
   n = length(words)

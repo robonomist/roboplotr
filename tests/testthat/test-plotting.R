@@ -1,5 +1,5 @@
 test_that("Test for plot grid colors", {
-  expect_s3_class(roboplot_tester |> roboplotr_set_grid(list(x = "black", y = "black"),list(x = "darkgrey", y = "darkgrey")), "plotly")
+  expect_s3_class(roboplot_tester |> roboplotr_grid(list(x = "black", y = "black"),list(x = "darkgrey", y = "darkgrey")), "plotly")
 })
 
 test_that("Test for plot background color", {
@@ -30,8 +30,8 @@ test_that("Roboplot options are reset", {
   set_roboplot_options(reset = TRUE)
   expect_mapequal(getOption("roboplot.caption"), list(prefix = "",lineend = "",updated = FALSE))
   expect_match(getOption("roboplot.colors.background"),"white")
-  expect_mapequal(getOption("roboplot.colors.border"), list(x = "black",y = "black"))
-  expect_mapequal(getOption("roboplot.colors.grid"), list(x = "#E8E8E8",y = "#E8E8E8"))
+  expect_mapequal(getOption("roboplot.border"), list(xcolor = "black",ycolor = "black", xmirror = TRUE, ymirror = TRUE, xwidth = 1, ywidth = 1))
+  expect_mapequal(getOption("roboplot.grid"), list(xcolor = "#E8E8E8", ycolor = "#E8E8E8", xwidth = 1, ywidth = 1, xdash = "solid", ydash = "solid"))
   expect_mapequal(getOption("roboplot.colors.ticks"), list(x = "#E8E8E8",y = "#E8E8E8"))
   expect_setequal(getOption("roboplot.colors.traces"), c("#c1272d","#f15a24","#f7931e","#dcc48a","#118f9a","#951d46"))
   expect_setequal(getOption("roboplot.dashtypes"), c("solid","dash","dot","longdash","dashdot","longdashdot"))

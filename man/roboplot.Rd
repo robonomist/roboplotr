@@ -20,7 +20,7 @@ roboplot(
   line_width = getOption("roboplot.linewidth"),
   hovertext = NULL,
   plot_type = "scatter",
-  plot_mode = "line+dodge",
+  plot_mode = NULL,
   plot_axes = set_axes(),
   height = getOption("roboplot.height"),
   facet_split = NULL,
@@ -45,7 +45,7 @@ roboplot(
 
 \item{legend_position, legend_orientation}{Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.}
 
-\item{trace_color}{Character vector, named if length > 1. Trace color for all trace. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
+\item{trace_color}{Character vector, named if length > 1. Trace colors for all traces. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
 
 \item{highlight}{Double or list. Determines if a given trace is included in legend and assigned a color.
 If double, traces with max(value) < highlight will be give trace color matching the grid color, and removed from the legend.
@@ -64,8 +64,9 @@ Will not currently work with multiple patterns.}
 
 \item{plot_type}{Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
 
-\item{plot_mode}{Character. Determines the barmode for bars and scatters. Can be "scatter", "line", or "step" for 'plot_mode' "scatter", "dodge", "horizontal" or "stack" for 'plot_mode' "bar", and "rotated" for 'plot_mode' "pie".
-plot_mode "rotated" controls if the 0°-mark of a pie is centered on middle of the first item of the color variable as factor.}
+\item{plot_mode}{Character vector, named if length > 1. Controls plot specifics along with the parameter 'plot_type'. When 'plot_type' is "scatter", the available modes are "line" "scatter", "step" and "scatter+line".
+When 'plot_type' is "bar", the available modes are "dodge" "stack", "horizontal". When 'plot_type' is "pie", the available modes are "normal" and "rotated".
+You can give a single unnamed 'plot_mode' which is used as applicable, or name-value pairs, where names are items from parameter 'd' column described by parameter 'color', and values applicable plot modes listed above.}
 
 \item{plot_axes}{Function. Function. Use \code{\link[=set_axes]{set_axes()}}.}
 
@@ -156,13 +157,13 @@ d2 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
 
 # Scatter plots and bar plot may be combined, and colors determined by
 # trace by giving named character vectors as the appropriate arguments.
-# Barmode or scatter type is controlled by plot_mode, where you can
-# provide a character string combining the desired modes with "+". Plot mode
-# cannot currently be controlled per trace.
+# Barmode or scatter type is controlled by plot_mode.
 d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
-               trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
-               plot_mode = "scatter+stack",
-               plot_type = c("Norja" = "bar","Kanada" = "scatter",".other" = "bar"))
+             trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
+             plot_type = c("Norja" = "scatter","Kanada" = "bar",".other" = "scatter"),
+             plot_mode = c("Yhdistynyt kuningaskunta" = "scatter",
+                           "Norja" = "scatter+line"
+             ))
 
 
 # With single 'time' observation x-axis tickmarks lose tick labels and

@@ -235,13 +235,11 @@ roboplotr_get_tick_layout <- function(ticktype,
                                      reverse,
                                      title,
                                      background_color = getOption("roboplot.colors.background"),
-                                     border_color = getOption("roboplot.colors.border"),
                                      tick_color = getOption("roboplot.colors.ticks")) {
   font <- getOption("roboplot.font.main")[c("color","family","size")]
   if (ticktype == "date") {
     # print(ticktype)
     dlist <- list(tickfont = font,
-                  mirror = TRUE,
                   ticks = 'outside',
                   type = "date",
                   title = list(text = title, font = font),
@@ -268,18 +266,15 @@ roboplotr_get_tick_layout <- function(ticktype,
                     NULL
                   },
                   # tickformat = tickformat,
-                  tickcolor = tick_color[[axis]],
-                  showline = background_color != border_color[[axis]])
+                  tickcolor = tick_color[[axis]])
     if(!is.null(dtick)) { append(dlist, list(dtick = dtick)) } else { dlist }
   } else if (ticktype == "numeric") {
     list(tickfont = font,
          tickformat = if(is.null(tickformat)) { ",.3~f" } else { tickformat },
          ticksuffix = " ",
-         mirror = TRUE,
          ticks = 'outside',
          title = list(text = title, font = font),
-         tickcolor = tick_color[[axis]],
-         showline = background_color != border_color[[axis]])
+         tickcolor = tick_color[[axis]])
   } else if (ticktype == "character") {
     list(tickfont = font,
          ticksuffix = " ",
@@ -287,12 +282,10 @@ roboplotr_get_tick_layout <- function(ticktype,
          categoryorder = "trace",#ifelse(reverse, "trace", "trace"),
          tickmode = ifelse(axis == "y","linear","auto"),
          tickangle = "auto",
-         mirror = TRUE,
          type = "category",
          ticks = 'outside',
          title = list(text = title, font = font),
-         tickcolor = tick_color[[axis]],
-         showline = background_color != border_color[[axis]])
+         tickcolor = tick_color[[axis]])
   }
 
 }

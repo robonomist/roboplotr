@@ -89,7 +89,7 @@ roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = al
 roboplotr_valid_colors <- function(colors_to_validate) {
   if(!is.null(colors_to_validate)) {
     if(!all(roboplotr_are_colors(unlist(colors_to_validate)))) {
-      stop (str_c("'",substitute(colors_to_validate),"' must be hexadecimal colors or valid css colors!"), call. = F)
+      stop (str_c("'",deparse(substitute(colors_to_validate)),"' must be hexadecimal colors or valid css colors!"), call. = F)
     }
   }
 }

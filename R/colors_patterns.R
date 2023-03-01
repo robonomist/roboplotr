@@ -66,7 +66,7 @@ roboplotr_set_colors <- function(trace_color, unique_groups, highlight, d, color
     color_vector <- roboplotr_get_colors(length(un_groups)) |> setNames(un_groups)
     greyed_out <- subset(unique_groups, !unique_groups %in% un_groups)
     if(length(greyed_out) > 0) {
-      greyed_out <- rep(first(unique(unlist(getOption("roboplot.colors.grid")))), length(greyed_out)) |> setNames(greyed_out)
+      greyed_out <- rep(first(unique(unlist(getOption("roboplot.grid")[c("ycolor","xcolor")]))), length(greyed_out)) |> setNames(greyed_out)
       color_vector <- c(color_vector, greyed_out)
     }
     d[[as_name(color)]] <- fct_relevel(d[[as_name(color)]], levels(un_groups))
