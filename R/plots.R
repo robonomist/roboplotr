@@ -423,6 +423,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' @importFrom dplyr coalesce distinct group_split pull
 #' @importFrom forcats fct_reorder
 #' @importFrom lubridate as_date ceiling_date is.Date
+#' @importFrom plotly partial_bundle
 #' @importFrom purrr map2
 #' @importFrom rlang as_name enquo quo quo_get_env quo_name
 #' @importFrom stats median runif setNames
@@ -682,7 +683,8 @@ roboplot <- function(d,
                      zeroline = list(zeroline = zeroline, xrange = list(min = mintime, max = maxtime)),
                      enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
                      ticktypes = ticktypes,
-                     container = container)
+                     container = container) |>
+    partial_bundle("basic")
 
   ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.
   # if(!is.null(facet_split)) {
