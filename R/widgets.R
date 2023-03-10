@@ -82,7 +82,8 @@ roboplot_create_widget <- function(
   roboplotr_valid_strings(artefacts, c("html","img_w","img_s","img_n"), .fun = any)
 
   if (is.null(title)) {
-    title <- (p$x$layout |> unlist())[grep("^title.text", names((p$x$layout |> unlist())))] |>
+    title <- (p$x[c("layout","layoutAttrs")] |> unlist())[str_subset(names((p$x[c("layout","layoutAttrs")] |> unlist())),"(?<!axis)\\.title\\.text")] |>
+      first() |>
       str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_")
     roboplotr_message(str_c("Using \"",roboplotr_string2filename(title),"\" for htmlwidget filename.."))
   } else {

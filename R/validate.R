@@ -1,24 +1,18 @@
-#' @importFrom rlang empty_env get_env quo_is_null quo_name
-#' @importFrom stringr str_subset
-roboplotr_check_valid_var <- function(var = NULL, names = NULL, extra_msg = NULL) {
-
-  this_var <- substitute(var) |> as.character() |> str_subset("enquo", negate = T)
-
-  invalid <- all(identical(get_env(var),empty_env()), !quo_is_null(var))
-
-  if(invalid == T) { stop(str_c("The argument '",this_var,"' must be unquoted."), call. = F) } else {
-
-    if(quo_is_null(var)) { return(NULL) }
-
-    if(!is.null(names)) {
-      if (!quo_name(var) %in% names) {
-        stop("The argument '",this_var,"' must be a variable name in argument 'd'",ifelse(is.null(extra_msg), "",str_c(" ",extra_msg)),".", call. = F)
-      } else {
-        var
-      }
-    } else {
-      var
-    }
+#' @importFrom rlang parse_expr quo sym
+#' @importFrom stringr str_glue str_remove_all str_subset
+roboplotr_check_valid_var <- function(var,names,allow_null = T) {
+  if(var |> rlang::parse_expr() |> is.call()) {
+    var <- var |> rlang::parse_expr() |> eval() |> as.character()
+  }
+  if(allow_null == T & var == "NULL") {
+    NULL
+  } else if(length(var) != 1) {
+    stop("Try with length 1 variable!", .call = F)
+  } else if(str_remove_all(var,"^\\\"|\\\"$") %in% names) {
+    quo(!!sym(str_remove_all(var,"^\\\"|\\\"$")))
+  } else {
+    this_var <- as.character(substitute(var)) |> str_subset("quo_name", negate = T)
+    stop(str_glue("The variable {this_var} must be among the names of argument 'd'."), call. = F)
   }
 }
 

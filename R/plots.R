@@ -180,8 +180,8 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' Ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
 #'
 #' @param d Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric). Other columns could be specified instead with 'plot_axes', using [set_axes()].
-#' @param color Expression. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
-#' @param pattern Expression. Variable from argument 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.
+#' @param color Symbol or string. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
+#' @param pattern Symbol or string. Variable from argument 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.
 #' @param title,subtitle Characters. Labels for plot elements.
 #' @param caption Function or character. Use [set_caption()].
 #' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.
@@ -204,7 +204,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' @param facet_split Currently unused. Variable from argument 'd' to use for facet splits.
 #' @param legend_maxwidth Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).
 #' @param xaxis_ceiling Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.
-#' @param secondary_yaxis Expression. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
+#' @param secondary_yaxis Symbol or string. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 #' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.
 #' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned control. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [set_roboplot_options()].
 #' @param container Character. Experimental, might not work as intended. Use only with shiny apps. A css selector for the element in a shiny app where this [roboplot()] will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
@@ -425,7 +425,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' @importFrom lubridate as_date ceiling_date is.Date
 #' @importFrom plotly partial_bundle
 #' @importFrom purrr map2
-#' @importFrom rlang as_name enquo quo quo_get_env quo_name
+#' @importFrom rlang as_label as_name enquo quo quo_get_env quo_name
 #' @importFrom stats median runif setNames
 #' @importFrom stringr str_c str_detect str_length str_pad str_replace
 roboplot <- function(d,
@@ -493,20 +493,20 @@ roboplot <- function(d,
                ,"\"."), call. = F)
   }
 
-  if(missing(color)) {
-    color <- quo(!!sym("roboplot.topic"))
-  } else {
-    color <- roboplotr_check_valid_var(enquo(color), d_names)
-  }
+  color <- enquo(color)
+  color <- roboplotr_check_valid_var(quo_name(color), d_names)
+  if(is.null(color)) { color <- quo(!!sym("roboplot.topic"))}
 
   if(as_name(color) == "roboplot.topic"){
     roboplotr_alert("Without an unquoted arg 'color' the variable named \"roboplot.topic\" is added to data 'd', using the argument 'title' trunctated to 30 characters as value for the variable.")
     d <- mutate(d, roboplot.topic = str_trunc(title,30))
   }
 
-  pattern <- roboplotr_check_valid_var(enquo(pattern), d_names)
+  pattern <- enquo(pattern)
+  pattern <- roboplotr_check_valid_var(quo_name(pattern), d_names)
 
-  secondary_yaxis <- roboplotr_check_valid_var(enquo(secondary_yaxis), d_names)
+  secondary_yaxis <- enquo(secondary_yaxis)
+  secondary_yaxis <- roboplotr_check_valid_var(quo_name(secondary_yaxis), d_names)
 
   if(!is.null(secondary_yaxis)) {
     if(!is.factor(pull(d,{{secondary_yaxis}}))) {
@@ -571,7 +571,7 @@ roboplot <- function(d,
 
   if(!is.null(facet_split)) {
     stop("Facet split currently unavailable!", call. = F)
-    facet_split <- roboplotr_check_valid_var(enquo(facet_split), d_names)
+    facet_split <- roboplotr_check_valid_var(facet_split, d_names)
     if(rangeslider == T | zeroline == T | any(!is.na(plot_axes$ylim))) roboplotr_alert("Rangeslider, zeroline and y-axis range are not currently enabled for faceted plots.")
     rangeslider <- F
     zeroline <- F
@@ -683,8 +683,11 @@ roboplot <- function(d,
                      zeroline = list(zeroline = zeroline, xrange = list(min = mintime, max = maxtime)),
                      enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
                      ticktypes = ticktypes,
-                     container = container) |>
-    partial_bundle("basic")
+                     container = container)
+
+  if(getOption("roboplot.shinyapp")$shinyapp == F) {
+     p <- partial_bundle(p, "basic")
+  }
 
   ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.
   # if(!is.null(facet_split)) {
