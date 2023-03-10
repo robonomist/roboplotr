@@ -4,7 +4,9 @@ roboplotr_check_valid_var <- function(var,names,allow_null = T) {
   if(var |> rlang::parse_expr() |> is.call()) {
     var <- var |> rlang::parse_expr() |> eval() |> as.character()
   }
-  if(allow_null == T & var == "NULL") {
+  if(allow_null == T & length(var) == 0) {
+    NULL
+  } else if(allow_null == T & var == "NULL") {
     NULL
   } else if(length(var) != 1) {
     stop("Try with length 1 variable!", .call = F)
