@@ -1,21 +1,28 @@
-#' @importFrom rlang parse_expr quo sym
-#' @importFrom stringr str_glue str_remove_all str_subset
-roboplotr_check_valid_var <- function(var,names,allow_null = T) {
-  if(var |> rlang::parse_expr() |> is.call()) {
-    var <- var |> rlang::parse_expr() |> eval() |> as.character()
+#' @importFrom rlang as_name enquo eval_tidy quo quo_is_call quo_is_null sym
+#' @importFrom stringr str_glue
+roboplotr_check_valid_var <- function(var,names) {
+  this_var <- as_name(substitute(var))
+  wrn <- "The variable '{this_var}' must be a length 1 string or symbol, or a function resulting in length 1 string or symbol that is among the names of argument 'd'."
+  if(quo_is_null(var) == T) {
+    return(NULL)
   }
-  if(allow_null == T & length(var) == 0) {
-    NULL
-  } else if(allow_null == T & var == "NULL") {
-    NULL
-  } else if(length(var) != 1) {
-    stop("Try with length 1 variable!", .call = F)
-  } else if(str_remove_all(var,"^\\\"|\\\"$") %in% names) {
-    quo(!!sym(str_remove_all(var,"^\\\"|\\\"$")))
-  } else {
-    this_var <- as.character(substitute(var)) |> str_subset("quo_name", negate = T)
-    stop(str_glue("The variable {this_var} must be among the names of argument 'd'."), call. = F)
+
+  if(quo_is_call(var)) {
+    var <- var |> rlang::eval_tidy()
+    if(length(var) > 1) {
+      stop(str_glue(wrn), call. = F)
+    }
+    var <- enquo(var)
   }
+
+  var <- quo(!!sym(as_name(var)))
+
+  if(length(as_name(var)) > 1 | !as_name(var) %in% names) {
+    stop(str_glue(wrn), call. = F)
+  }
+
+  var
+
 }
 
 

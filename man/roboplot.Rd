@@ -37,7 +37,7 @@ roboplot(
 \arguments{
 \item{d}{Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric). Other columns could be specified instead with 'plot_axes', using \code{\link[=set_axes]{set_axes()}}.}
 
-\item{color}{Symbol or string. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.}
+\item{color}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.}
 
 \item{title, subtitle}{Characters. Labels for plot elements.}
 
@@ -56,7 +56,7 @@ Will not currently work with multiple patterns.}
 
 \item{rangeslider}{Logical or character in \%Y-\%m-\%d format. Determines rangeslider inclusion. TRUE includes the rangeslider, a character string includes the rangeslider with the given date as a start date.}
 
-\item{pattern}{Symbol or string. Variable from argument 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.}
+\item{pattern}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.}
 
 \item{line_width}{Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.}
 
@@ -78,7 +78,7 @@ You can give a single unnamed 'plot_mode' which is used as applicable, or name-v
 
 \item{xaxis_ceiling}{Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.}
 
-\item{secondary_yaxis}{Symbol or string. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
+\item{secondary_yaxis}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.}
 
 \item{legend_title}{Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Use a character string if you want to provide your own legend title.}

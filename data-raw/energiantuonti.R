@@ -5,10 +5,10 @@ energiantuonti <- robonomistClient::data_get("StatFin_Passiivi/ene/ehk/statfinpa
          `Tuonti/Vienti` %in% c("Tuonti","Vienti"),
          stringr::str_detect(Kausi, "^[0-9]\\.\\s"),
          Tuote == "ENERGIA YHTEENSÄ", value > 0) |>
-  dplyr::mutate(time = glue::glue("{Vuosi}Q{str_sub(Kausi,1,1)}") |>
+  dplyr::mutate(time = stringr::str_glue("{Vuosi}Q{stringr::str_sub(Kausi,1,1)}") |>
            lubridate::yq()) |>
   dplyr::select(Alue = Maa, Suunta = `Tuonti/Vienti`, time, value)
 
-attr(energiantuonti, "robonomist_title") <- "roboplotr-paketin testamiseen energian tuonti ja vienti alkuperämaittain (suurimmat maat), muuttujina Alue ja Suunta"
+attr(energiantuonti, "robonomist_title") <- "Roboplotr-paketin testaamiseen energian tuonti ja vienti alkuperämaittain (suurimmat maat), muuttujina Alue ja Suunta"
 
 usethis::use_data(energiantuonti, overwrite = TRUE)
