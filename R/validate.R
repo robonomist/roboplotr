@@ -8,7 +8,7 @@ roboplotr_check_valid_var <- function(var,names) {
   }
 
   if(quo_is_call(var)) {
-    var <- var |> rlang::eval_tidy()
+    var <- var |> eval_tidy()
     if(length(var) > 1) {
       stop(str_glue(wrn), call. = F)
     }

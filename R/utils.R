@@ -438,16 +438,15 @@ set_roboplot_options <- function(
         roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header at runtime!\n",
                         "Take care with roboplotr container css, all plotly plots inherit some but not all css.")
         roboplotr_widget_deps(tempdir())
-        addResourcePath("js", system.file("www","js", package = "roboplotr"))
-        addResourcePath("fonts", file.path(tempdir(),"fonts"))
-        addResourcePath("css", file.path(tempdir(),"css"))
+        addResourcePath("roboplotr_js", system.file("www","js", package = "roboplotr"))
+        addResourcePath("roboplotr_css", str_c(tempdir(),"/css"))
 
         tagList(
           singleton(
             tags$head(
               tagList(
-                tags$script(type = "text/javascript", src = "js/relayout.js"),
-                tags$link(rel = "stylesheet", type = "text/css", src = "css/style.css")
+                tags$script(type = "text/javascript", src = "roboplotr_js/relayout.js"),
+                tags$link(rel = "stylesheet", type = "text/css", href = "roboplotr_css/style.css")
               ),
             )
           )
