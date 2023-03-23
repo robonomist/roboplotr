@@ -180,6 +180,12 @@ set_artefacts <- function(
 
 roboplotr_automate_imgdl <- function(p, artefacts, dl_path = getwd()) {
 
+  on.exit({
+    if(b$is_active() == T) {
+      b$close()
+    }
+  },add = T)
+
   artefacts <- str_subset(artefacts, "img")
   mb_btns <- p$x$config$modeBarButtons |> unlist(recursive = F) |> map_chr(~ unlist(.x["name"])) |>
     str_replace_all(c("Lataa kuva \\(leve\u00e4\\)" = "img_w", "Lataa kuva \\(kapea\\)" = "img_n","Lataa kuva \\(pieni\\)" = "img_s")) |>
