@@ -827,7 +827,6 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
       roboplotr_alert(str_c("This many legend items might make the legend too large to render for some widths, you might want to use 'height' of ",length(split_d) * 50,"."))
     }
   }
-
   trace_params <- map(split_d, function(g) {
 
     tracetype <- unique(g$roboplot.plot.type)
@@ -869,9 +868,11 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
                             labels = color, #pie
                             legendgroup = color,
                             legendrank = legend_rank,
-                            line = ~ list(width = roboplot.linewidth, dash = roboplot.dash, shape = ifelse(roboplot.plot.mode == "step","hv","linear")), #scatter line
+                            line = ~ list(width = roboplot.linewidth, dash = roboplot.dash,
+                                          smoothing = 0.5,
+                                          shape = case_when(roboplot.plot.mode == "step" ~ "hv", roboplot.plot.mode == "smooth" ~ "spline", TRUE ~ "linear")), #scatter line
                             marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.pattern)), #pie
-                            mode = str_replace_all(unique(g$roboplot.plot.mode), c("^line$" = "lines", "^step$" = "lines", "^scatter$" = "markers", "scatter\\+line" = "markers+lines")), #scatter
+                            mode = str_replace_all(unique(g$roboplot.plot.mode), c("^smooth$" = "line", "^line$" = "lines", "^step$" = "lines", "^scatter$" = "markers", "scatter\\+line" = "markers+lines")), #scatter
                             name = ~ if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
                             offset = ~roboplot.bar.offset, #horizontal bar
                             offsetgroup = ~str_c(roboplot.pattern, roboplot.trace.color), #bar ## onko ok?? mieti
@@ -891,7 +892,7 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
                             y = as.formula(str_c("~",ifelse(!is.null(legend_maxwidth) & ticktypes$y != "value", "roboplot.trunc", ticktypes$y))) #!pie
     )
     shared_params <- c("data","text","texttemplate","hovertemplate","legendgroup","showlegend","type","hoverinfo","legendgrouptitle","customdata")
-    plotting_params <- if(tracetype %in% "scatter" & any(c("line","step") %in% g$roboplot.plot.mode)) {
+    plotting_params <- if(tracetype %in% "scatter" & any(c("line","step","smooth") %in% g$roboplot.plot.mode)) {
       plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
     } else if(tracetype == "scatter" & "scatter+line" %in% g$roboplot.plot.mode) {
       plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
@@ -946,7 +947,7 @@ roboplotr_add_trace <- function(...) {
 roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
 
   plot_modes <- list(
-    "scatter" = c("line","scatter","step","scatter+line"),
+    "scatter" = c("line","scatter","step","scatter+line","smooth"),
     "bar" = c("dodge","stack","horizontal"),
     "pie" = c("normal","rotated")
   )
