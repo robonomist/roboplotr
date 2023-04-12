@@ -121,8 +121,8 @@ roboplotr_set_margin <-function(p, margin) {
   } else if (any(!names(margin) %in% c("t","r","b","l","pad")) | any(!is.double(unlist(margin)))) {
     stop("All plot margins must be of double type, and named one or more of t, r, b, l or pad.\nNote that top and bottom margins will be currently ignored but programmatically set instead.", call. = F)
   } else {
-    drag_mode <- getOption("roboplot.modebar.buttons")
-    drag_mode <- if (any(c("zoom","zoomin2d","pan") %in% drag_mode)) { str_remove(drag_mode[drag_mode %in% c("zoom","zoomin2d","pan")][1],"in2d") } else { F }
+    # drag_mode <- getOption("roboplot.modebar.buttons")
+    drag_mode <- "zoom"#if (any(c("zoom","zoomin2d","pan") %in% drag_mode)) { str_remove(drag_mode[drag_mode %in% c("zoom","zoomin2d","pan")][1],"in2d") } else { "zoom" }
     p |>
       layout(
         margin = margin,
