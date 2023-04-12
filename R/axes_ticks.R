@@ -213,7 +213,7 @@ set_axes <- function(y = NULL, x = NULL,  yticktype = NULL, xticktype = NULL, yt
 
 #' @importFrom plotly layout config
 roboplotr_set_axis_ranges <- function(p, range) {
-  fixed_range <- F#if (any(c("zoom","zoomin2d","pan") %in% getOption("roboplot.modebar.buttons"))) { F } else { F }
+  fixed_range <- F#if (any(c("zoom","zoomin2d","pan") %in% getOption("roboplot.modebar.buttons"))) { F } else { T }
   if(!"xlim" %in% names(range)) { range$xlim <- c(NA,NA) }
   if(!"ylim" %in% names(range)) { range$ylim <- c(NA,NA) }
   if(!all(is.na(range$ylim)) & any(is.na(range$ylim)) || !all(is.na(range$xlim)) & any(is.na(range$xlim))) {
