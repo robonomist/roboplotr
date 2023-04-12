@@ -121,7 +121,10 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
                         if(data.container !== null) {
                         let el = gd.closest(data.container);
 
-                          var observer = new MutationObserver(function(mutation) {
+                        if(el === null) {
+                        console.log('roboplotr could not find the roboplot container!')
+                        } else {
+                        var observer = new MutationObserver(function(mutation) {
                           let nowactive = mutation[0].target.classList.contains('active')
                           let lastactive = mutation[0].oldValue.includes('active')
                           if(nowactive === true && lastactive === false) {
@@ -136,6 +139,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
                           attributeFilter: ['class'],
                           attributeOldValue: true,
                         });
+                        }
 
                         }
 
