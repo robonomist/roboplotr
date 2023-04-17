@@ -64,8 +64,8 @@ Will not currently work with multiple patterns.}
 
 \item{plot_type}{Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
 
-\item{plot_mode}{Character vector, named if length > 1. Controls plot specifics along with the parameter 'plot_type'. When 'plot_type' is "scatter", the available modes are "line" "scatter", "step" and "scatter+line".
-When 'plot_type' is "bar", the available modes are "dodge" "stack", "horizontal". When 'plot_type' is "pie", the available modes are "normal" and "rotated".
+\item{plot_mode}{Character vector, named if length > 1. Controls plot specifics along with the parameter 'plot_type'. When 'plot_type' is "scatter", the available modes are "line" "scatter", "smooth", "step" and "scatter+line".
+When 'plot_type' is "bar", the available modes are "dodge" "stack", "horizontal" and "horizontalfill". Mode of "horizontalfill" makes bars fill the space available is observations are missing. When 'plot_type' is "pie", the available modes are "normal" and "rotated".
 You can give a single unnamed 'plot_mode' which is used as applicable, or name-value pairs, where names are items from parameter 'd' column described by parameter 'color', and values applicable plot modes listed above.}
 
 \item{plot_axes}{Function. Function. Use \code{\link[=set_axes]{set_axes()}}.}
@@ -216,6 +216,23 @@ d3 |>
              xticktype = "numeric")
   )
 
+# If you want the bars to fill the available space in a horizontal bar chart,
+# use the plot_mode of "horizontalfill" instead of "horizontal".
+d3 |>
+  dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
+  roboplot(Suunta,
+           glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+           "Milj. \u20AC","Tilastokeskus",
+           plot_type = "bar",
+           legend_maxwidth = 12,
+           plot_mode = "horizontalfill",
+           plot_axes = set_axes(
+             y = "Alue",
+             yticktype = "character",
+             x = "value",
+             xticktype = "numeric")
+  )
+
 # Pie plots are possible too, but pattern is currently ignored by plotly library.
 d3 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
                pattern = Suunta,
@@ -268,16 +285,6 @@ d2 |>
            secondary_yaxis = sec_axis,
            zeroline = NA)
 
-# Finally, you may get html or other files from the plots you create either
-# by using roboplotr::roboplot_create_artefacts() or simply using the
-# parameter 'artefacts' here.
-d2 |>
-  dplyr::filter(Suunta == "Tuonti") |>
-  dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
-  roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
-           plot_type = c("Norja" = "bar", ".other" = "scatter"),
-           secondary_yaxis = sec_axis,
-           zeroline = NA)
 # Finally, you may get html or other files from the plots you create either
 # by using roboplotr::roboplot_create_artefacts() or simply using the
 # parameter 'artefacts' here. The global defaults or artefact creation are

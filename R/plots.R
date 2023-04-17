@@ -198,8 +198,8 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' If function, it must return a logical and include named items "value" and ".fun", where .fun checks if given value will get a color or legend item.
 #' Will not currently work with multiple patterns.
 #' @param plot_type Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param plot_mode Character vector, named if length > 1. Controls plot specifics along with the parameter 'plot_type'. When 'plot_type' is "scatter", the available modes are "line" "scatter", "step" and "scatter+line".
-#' When 'plot_type' is "bar", the available modes are "dodge" "stack", "horizontal". When 'plot_type' is "pie", the available modes are "normal" and "rotated".
+#' @param plot_mode Character vector, named if length > 1. Controls plot specifics along with the parameter 'plot_type'. When 'plot_type' is "scatter", the available modes are "line" "scatter", "smooth", "step" and "scatter+line".
+#' When 'plot_type' is "bar", the available modes are "dodge" "stack", "horizontal" and "horizontalfill". Mode of "horizontalfill" makes bars fill the space available is observations are missing. When 'plot_type' is "pie", the available modes are "normal" and "rotated".
 #' You can give a single unnamed 'plot_mode' which is used as applicable, or name-value pairs, where names are items from parameter 'd' column described by parameter 'color', and values applicable plot modes listed above.
 #' @param plot_axes Function. Function. Use [set_axes()].
 #' @param trace_color Character vector, named if length > 1. Trace colors for all traces. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
@@ -334,6 +334,23 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'              xticktype = "numeric")
 #'   )
 #'
+#' # If you want the bars to fill the available space in a horizontal bar chart,
+#' # use the plot_mode of "horizontalfill" instead of "horizontal".
+#' d3 |>
+#'   dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
+#'   roboplot(Suunta,
+#'            glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+#'            "Milj. \u20AC","Tilastokeskus",
+#'            plot_type = "bar",
+#'            legend_maxwidth = 12,
+#'            plot_mode = "horizontalfill",
+#'            plot_axes = set_axes(
+#'              y = "Alue",
+#'              yticktype = "character",
+#'              x = "value",
+#'              xticktype = "numeric")
+#'   )
+#'
 #' # Pie plots are possible too, but pattern is currently ignored by plotly library.
 #' d3 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
 #'                pattern = Suunta,
@@ -386,16 +403,6 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'            secondary_yaxis = sec_axis,
 #'            zeroline = NA)
 #'
-#' # Finally, you may get html or other files from the plots you create either
-#' # by using roboplotr::roboplot_create_artefacts() or simply using the
-#' # parameter 'artefacts' here.
-#' d2 |>
-#'   dplyr::filter(Suunta == "Tuonti") |>
-#'   dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
-#'   roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
-#'            plot_type = c("Norja" = "bar", ".other" = "scatter"),
-#'            secondary_yaxis = sec_axis,
-#'            zeroline = NA)
 #' # Finally, you may get html or other files from the plots you create either
 #' # by using roboplotr::roboplot_create_artefacts() or simply using the
 #' # parameter 'artefacts' here. The global defaults or artefact creation are
@@ -588,7 +595,7 @@ roboplot <- function(d,
   }
 
 
-  if("horizontal" %in% plot_mode) {
+  if(any(c("horizontal","horizontalfill") %in% plot_mode)) {
     if(plot_axes$y == "value") { roboplotr_alert("Did you want \"value\" to be x-axis? Use the parameter 'plot_axes'.") }
   } else if (plot_axes$y != "value" & "bar" %in% plot_mode) {
     roboplotr_alert("Did you want a horizontal bar chart? Use the parameter 'plot_mode'.")
@@ -802,8 +809,11 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
               } else {!!color},
               roboplot.legend.rank = ((as.numeric(!!color)-1) * 100) + ((as.numeric(.data$roboplot.dash)-1)*10))
 
-  if("horizontal" %in% d$roboplot.plot.mode) {
-    d <- roboplotr_get_bar_widths(d, ticktypes$y) |> arrange(desc(!!sym(ticktypes$y)))
+  if(any(c("horizontal","horizontalfill") %in% d$roboplot.plot.mode)) {
+    if("horizontalfill" %in% d$roboplot.plot.mode) {
+      d <- roboplotr_get_bar_widths(d, ticktypes$y)
+    }
+    d <-  d |> arrange(desc(!!sym(ticktypes$y)))
     if(length(unique(d$roboplot.plot.text)) > 1) {
       d <- mutate(d, roboplot.horizontal.label = str_c(as.character(.data$roboplot.plot.text)))
     } else {
@@ -835,7 +845,7 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
 
     tracetype <- unique(g$roboplot.plot.type)
     hoverlab <- case_when(tracetype == "pie" ~ "label",
-                          "horizontal" %in% g$roboplot.plot.type & is.null(pattern) & quo_name(color) != ticktypes$y ~ "text",
+                          any(c("horizontal","horizontalfill") %in% g$roboplot.plot.type) & is.null(pattern) & quo_name(color) != ticktypes$y ~ "text",
                           TRUE ~ "customdata")
     hovertemplate <- roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
     marker_line_color <- NULL
@@ -862,7 +872,7 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
     legendgrouptitle <- if (legend_title == F) { NULL } else if ( is.character(legend_title) ) { str_c("<b>",legend_title,"</b>") } else { str_c("<b>",as_name(color),"</b>") }
 
     plotting_params <- list(color = color, #!pie
-                            customdata = if("horizontal" %in% g$roboplot.plot.mode) { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
+                            customdata = if(any(c("horizontal","horizontalfill") %in% g$roboplot.plot.mode)) { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
                             data=g,
                             direction = "clockwise", #pie
                             xhoverformat = if(ticktypes$xticktype == "date") { hovertext$dateformat } else { NULL },
@@ -878,20 +888,20 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
                             marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.pattern)), #pie
                             mode = str_replace_all(unique(g$roboplot.plot.mode), c("^smooth$" = "line", "^line$" = "lines", "^step$" = "lines", "^scatter$" = "markers", "scatter\\+line" = "markers+lines")), #scatter
                             name = ~ if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
-                            offset = ~roboplot.bar.offset, #horizontal bar
+                            offset = if("horizontalfill" %in% g$roboplot.plot.mode) { ~roboplot.bar.offset } else { NULL }, #horizontal bar
                             offsetgroup = ~str_c(roboplot.pattern, roboplot.trace.color), #bar ## onko ok?? mieti
-                            orientation = ifelse("horizontal" %in% g$roboplot.plot.mode & "bar" %in% g$roboplot.plot.type,"h","v"),
+                            orientation = ifelse(any(c("horizontal","horizontalfill") %in% g$roboplot.plot.mode) & "bar" %in% g$roboplot.plot.type,"h","v"),
                             rotation = rotation, #pie
                             showlegend = show.legend,
                             sort = F, #pie
-                            text = if("horizontal" %in% g$roboplot.plot.mode) { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
+                            text = if(any(c("horizontal","horizontalfill") %in% g$roboplot.plot.mode)) { ~ roboplot.horizontal.label } else { ~ roboplot.plot.text },
                             textinfo = "percent", #pie
-                            textposition = ifelse(tracetype == "bar", "none", "inside"), #pie and bar
-                            texttemplate = if(tracetype == "pie") { NULL } else { NA },
+                            textposition = case_when("horizontal" %in% g$roboplot.plot.mode ~ "auto", tracetype == "pie" ~ "inside", TRUE ~ "none"), #pie and bar
+                            texttemplate = if(tracetype == "pie") { NULL } else if ("horizontal" %in% g$roboplot.plot.mode) { "%{x:,.1f}" } else { NA },
                             type = ~ tracetype,
                             legendgrouptitle = list(text = legendgrouptitle, font = getOption("roboplot.font.main")[c("color","family","size")]),
                             values = as.formula(str_c("~",ticktypes$y)), # pie
-                            width = ~roboplot.bar.width, #horizontal bar
+                            width = if("horizontalfill" %in% g$roboplot.plot.mode) { ~roboplot.bar.width } else { NULL }, #horizontal bar
                             x = as.formula(str_c("~",ticktypes$x)), #!pie
                             y = as.formula(str_c("~",ifelse(!is.null(legend_maxwidth) & ticktypes$y != "value", "roboplot.trunc", ticktypes$y))) #!pie
     )
@@ -902,7 +912,7 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
       plotting_params[c(shared_params,"x","y","line","mode","name","color", "xhoverformat")]
     } else if(tracetype == "scatter" & "scatter" %in% g$roboplot.plot.mode) {
       plotting_params[c(shared_params,"x","y","mode","name","color", "xhoverformat")]
-    } else if (tracetype == "bar" & "horizontal" %in% g$roboplot.plot.mode) {
+    } else if (tracetype == "bar" & any(c("horizontal","horizontalfill") %in% g$roboplot.plot.mode)) {
       plotting_params[c(shared_params,"x","y","offsetgroup","orientation","offset","width","color","name","textposition","marker")]
     } else if (tracetype == "bar") {
       plotting_params[c(shared_params,"x","y","offsetgroup","name","color", "textposition","marker","xhoverformat")]
@@ -952,7 +962,7 @@ roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
 
   plot_modes <- list(
     "scatter" = c("line","scatter","step","scatter+line","smooth"),
-    "bar" = c("dodge","stack","horizontal"),
+    "bar" = c("dodge","stack","horizontal","horizontalfill"),
     "pie" = c("normal","rotated")
   )
   if(is.null(plot_mode)) {

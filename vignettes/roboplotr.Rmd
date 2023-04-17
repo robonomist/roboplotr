@@ -623,7 +623,7 @@ list.files(str_c(tempdir(),"/plots")) |>
 ```
 
 Everything seems to be in order! Now you have an html-document with all the 
-plots needed for your report, and .png files or every plot stored, ready to be
+plots needed for your report, and .png files of every plot stored, ready to be
 used in another document. You can do a lot more fine-tuning with roboplotr, 
 and every function of the package has its own documentation that should give
 you a head start.
