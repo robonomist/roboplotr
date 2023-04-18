@@ -15,6 +15,7 @@
 #' @param logo_file Character. The filepath to the logo used in every plot.
 #' @param modebar Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
+#' @param trace_border List. Borders for bars and pies. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
 #' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [set_imgdl_layout]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
@@ -276,6 +277,7 @@ set_roboplot_options <- function(
     modebar = NULL,
     patterns = NULL,
     tick_colors = NULL,
+    trace_border = NULL,
     trace_colors = NULL,
     xaxis_ceiling = NULL,
     verbose = NULL,
@@ -376,6 +378,15 @@ set_roboplot_options <- function(
     roboplotr_check_param(tick_colors, "list", c("x","y"))
     roboplotr_valid_colors(tick_colors)
 
+    roboplotr_check_param(trace_border, "list", c("color","width"), allow_null = T)
+    if(!is.null(trace_border)) {
+      `trace_border$color` <- trace_border$color
+      `trace_border$width` <- trace_border$width
+      roboplotr_check_param(`trace_border$color`, "character")
+      roboplotr_valid_colors(`trace_border$color`)
+      roboplotr_check_param(`trace_border$width`, "numeric")
+    }
+
     roboplotr_check_param(trace_colors, "character", NULL)
     roboplotr_valid_colors(trace_colors)
     if(length(trace_colors) > 1 & length(trace_colors) < 5) { roboplotr_alert("Are you sure ",length(trace_colors)," color",ifelse(length(trace_colors)==1," is","s are")," enough?\n")}
@@ -417,6 +428,7 @@ set_roboplot_options <- function(
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(shinyapp)
     set_roboplot_option(tick_colors, "colors.ticks")
+    set_roboplot_option(trace_border, "trace.border")
     set_roboplot_option(trace_colors, "colors.traces")
     if(getOption("roboplot.accessible") == TRUE) {
       if(!identical(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")),getOption("roboplot.colors.traces"))) {

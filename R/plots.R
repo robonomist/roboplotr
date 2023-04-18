@@ -848,16 +848,11 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
                           any(c("horizontal","horizontalfill") %in% g$roboplot.plot.type) & is.null(pattern) & quo_name(color) != ticktypes$y ~ "text",
                           TRUE ~ "customdata")
     hovertemplate <- roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
-    marker_line_color <- NULL
     legend_rank <- mean(g$roboplot.legend.rank)
     if(tracetype == "pie") {
       g <- mutate(g, roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color,"dark"),
                   roboplot.tx.color = roboplotr_text_color_picker(roboplotr_alter_color(.data$roboplot.trace.color,"dark")),
                   roboplot.in.tx.color = roboplotr_text_color_picker(.data$roboplot.trace.color))
-      background_color <- getOption("roboplot.colors.background")
-      grid_color <- unique(getOption("roboplot.grid")[c("ycolor","xcolor")])[[1]]
-      marker_line_color <- first(grid_color[grid_color != background_color])
-      marker_line_color <- replace(marker_line_color, length(marker_line_color) == 0, roboplotr_alter_color(background_color,"darker"))
     }
 
     show.legend <- if(is.null(highlight)) { trace_showlegend } else { roboplotr_highlight_legend(highlight, g) }
@@ -885,7 +880,7 @@ roboplotr_get_plot <- function(d, height, color, pattern, plot_type, trace_color
                             line = ~ list(width = roboplot.linewidth, dash = roboplot.dash,
                                           smoothing = 0.5,
                                           shape = case_when(roboplot.plot.mode == "step" ~ "hv", roboplot.plot.mode == "smooth" ~ "spline", TRUE ~ "linear")), #scatter line
-                            marker = list(colors = ~ roboplot.trace.color, line = list(color = marker_line_color, width = 1), pattern = list(shape = ~ roboplot.pattern)), #pie
+                            marker = list(colors = ~ roboplot.trace.color, line = getOption("roboplot.trace.border"), pattern = list(shape = ~ roboplot.pattern)), #pie, bar
                             mode = str_replace_all(unique(g$roboplot.plot.mode), c("^smooth$" = "line", "^line$" = "lines", "^step$" = "lines", "^scatter$" = "markers", "scatter\\+line" = "markers+lines")), #scatter
                             name = ~ if(!is.null(legend_maxwidth)) { str_trunc(as.character(roboplot.plot.text), legend_maxwidth) } else { roboplot.plot.text }, #!pie
                             offset = if("horizontalfill" %in% g$roboplot.plot.mode) { ~roboplot.bar.offset } else { NULL }, #horizontal bar

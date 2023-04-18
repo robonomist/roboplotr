@@ -25,6 +25,7 @@ set_roboplot_options(
   modebar = NULL,
   patterns = NULL,
   tick_colors = NULL,
+  trace_border = NULL,
   trace_colors = NULL,
   xaxis_ceiling = NULL,
   verbose = NULL,
@@ -65,6 +66,8 @@ set_roboplot_options(
 \item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
 \item{tick_colors}{List. Plot tick element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
+
+\item{trace_border}{List. Borders for bars and pies. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.}
 
 \item{trace_colors}{Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.}
 
