@@ -5,7 +5,7 @@
     roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, artefacts = "html"),
     # roboplot.caption = list(prefix = "L\uE4hde: ", lineend = ".", updated = FALSE),
     roboplot.border = list(xcolor = "black", ycolor = "black", xmirror = TRUE, ymirror = TRUE, xwidth = 1, ywidth = 1),
-    roboplot.caption.template = "Lähde: {caption}.",
+    roboplot.caption.template = "Lähde: {text}.",
     roboplot.colors.background = "white",
     roboplot.colors.traces =  c("#c1272d","#f15a24","#f7931e","#dcc48a","#118f9a","#951d46"),
     roboplot.colors.ticks = list(x = "#E8E8E8", y = "#E8E8E8"),

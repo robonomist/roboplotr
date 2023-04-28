@@ -9,7 +9,7 @@ set_roboplot_options(
   artefacts = NULL,
   border = NULL,
   background_color = NULL,
-  caption_defaults = NULL,
+  caption_template = NULL,
   dashtypes = NULL,
   font_main = NULL,
   font_title = NULL,
@@ -43,7 +43,7 @@ set_roboplot_options(
 
 \item{background_color}{Character. Plot background color. Must be a hexadecimal color or a valid css color.}
 
-\item{caption_defaults}{List. Used to parse caption. Values must be named "prefix", "lineend" and "updated". "prefix" is character, and added to caption text with ": ". "lineend" is character added to caption line ends. "updated" is logical that determines whether caption tries to guess latest update date from plot data.}
+\item{caption_template}{Character. Template for \code{\link[=str_glue]{str_glue()}} used to parse captions.}
 
 \item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
 
@@ -151,16 +151,14 @@ p
 set_roboplot_options(imgdl_wide = set_imgdl_layout(width = 1600))
 
 
-# Captions are partly controlled by 'caption defaults', while you must
+# Captions are partly controlled by 'caption template', while you must
 # provide the basic text by-plot in roboplotr::roboplot().
 # roboplotr::set_caption() is used on by-plot basis for more
-# control, but you can provide global settings for some features. Provide a
-# named list with all of "prefix", "lineend" and "updated", and captions will
-# be changed accordingly. Use 'updated' = TRUE for roboplotr::roboplot() to
-# try and extract the latest update from the data used.
+# control, but you can provide global template string, used in
+# stringr::str_glue().
 
 set_roboplot_options(
-  caption_defaults = list(prefix = "Lähteenä", lineend = "", updated = TRUE)
+  caption_template = "Lähteenä: {text}."
 )
 
 p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")

@@ -92,16 +92,14 @@
 #' set_roboplot_options(imgdl_wide = set_imgdl_layout(width = 1600))
 #'
 #'
-#' # Captions are partly controlled by 'caption defaults', while you must
+#' # Captions are partly controlled by 'caption template', while you must
 #' # provide the basic text by-plot in roboplotr::roboplot().
 #' # roboplotr::set_caption() is used on by-plot basis for more
-#' # control, but you can provide global settings for some features. Provide a
-#' # named list with all of "prefix", "lineend" and "updated", and captions will
-#' # be changed accordingly. Use 'updated' = TRUE for roboplotr::roboplot() to
-#' # try and extract the latest update from the data used.
+#' # control, but you can provide global template string, used in
+#' # stringr::str_glue().
 #'
 #' set_roboplot_options(
-#'   caption_defaults = list(prefix = "Lähteenä", lineend = "", updated = TRUE)
+#'   caption_template = "Lähteenä: {text}."
 #' )
 #'
 #' p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")

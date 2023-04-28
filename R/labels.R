@@ -133,7 +133,7 @@ roboplotr_title <- function(p, title, subtitle) {
 #' # defaults to something more sensible.
 #'
 #' set_roboplot_options(
-#'   caption_template = "Source: {caption}.",
+#'   caption_template = "Source: {text}.",
 #'   )
 #'
 #' d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
@@ -141,7 +141,7 @@ roboplotr_title <- function(p, title, subtitle) {
 #' # Revert to defaults:
 #' set_roboplot_options(reset = TRUE)
 #'
-#' @importFrom str_glue
+#' @importFrom stringr str_glue
 #' @export
 
 set_caption <- function(text, ..., template = getOption("roboplot.caption.template")) {
