@@ -545,19 +545,19 @@ roboplot <- function(d,
   roboplotr_check_param(caption, c("character","function"),size = 1, f.name = list(fun = substitute(caption)[1], check = "set_caption"))
   if(!is.null(caption)) {
     if(!is(substitute(caption)[1], "call")) {
-      caption <- set_caption(caption,.data = d)
+      caption <- set_caption(caption = caption)
     }
   } else {
       cpt <- attributes(d)$source
       if(length(cpt) == 1) {
         roboplotr_message("Using the attribute \"source\" for plot caption.")
-        caption <- set_caption(unlist(cpt)[1],.data = d)
+        caption <- set_caption(caption = unlist(cpt)[1])
       } else if (!is.null(cpt[[getOption("roboplot.locale")$locale]])) {
         roboplotr_message("Using the attribute \"source\" as plot caption.")
-        caption <- set_caption(cpt[[getOption("roboplot.locale")$locale]][1],.data = d)
+        caption <- set_caption(caption = cpt[[getOption("roboplot.locale")$locale]][1])
       } else {
         roboplotr_alert("Missing the caption, using placeholder.")
-        caption <- set_caption("PLACEHOLDER",.data = d)
+        caption <- set_caption(caption = "PLACEHOLDER")
       }
   }
   roboplotr_check_param(xaxis_ceiling, "character", allow_null = F)

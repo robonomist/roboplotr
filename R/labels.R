@@ -93,19 +93,16 @@ roboplotr_title <- function(p, title, subtitle) {
 
 #' Get a string for [roboplot()] captions.
 #'
-#' @param text Character. The text for plot caption, probably data source name for argument 'd' of [roboplot()].
-#' @param prefix Character. Prefix inserted before the argument 'text'. The prefix will automatically separated from text by ": ".
-#' @param .data Data frame. The data frame the caption attempts to read the time of the last update from. Use the same data you are providing as argument 'd' of [roboplot()].
-#' @param updated Date or logical. If Date, will be inserted as the last update time in the caption. If TRUE, will try to get this information from argument '.data'.
-#' @param line.end Character. Character inserted to end of line. Default from roboplot.options.
-#' @param append,prepend Character vectors. Characters inserted after or before other caption text. Every item in vector will get a new line.
-#' @return A string.
+#' @param caption Character. Character. The text used in the template (make sure the template has the parameter).
+#' @param ... Other parameters to be passed to template.
+#' @param template Character. Character. Template for [str_glue()] used to parse the caption wit the given parameters.
+#' @return A string of classes 'glue' and 'character'.
 #' @examples
 #' # Used to define how captions are constructed inside roboplotr::roboplot()
-#' # Use 'text' as the caption text, and if only this is needed, you can
-#' # use simply write the string. roboplotr::roboplot() will provide the
-#' # prefix and end-of-line character from global options that can be altered
-#' # with roboplotr::set_roboplot_options().
+#' # The used parameters are used inside stringr::str_glue() to parse a caption
+#' # string. You can skip using set_caption() simply by giving a character string.
+#' # You can provide the template here, or use the one defined globally with
+#' # roboplotr::set_roboplot_options().
 #'
 #'
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
@@ -114,38 +111,29 @@ roboplotr_title <- function(p, title, subtitle) {
 #'                    caption = "Tilastokeskus")
 #'
 #'
-#' # Override the global options with function parameters.
+#' # Override the global template with function parameters and provide
+#' # parameters for it. The example is unnecessarily complicated, but gives the
+#' # idea how this could work.
 #'
 #' d |>
 #'   roboplot(Alue, "Energy import","Million euros",
-#'            caption = set_caption(
-#'              prepend = "(Canada)",
-#'              append = paste0("(Customs Finland, International trade ",
-#'                              "statistics;\nRadiation and Nuclear Safety ",
-#'                              "Authority; Gasum LLC)"),
-#'              text = "Statistics Finland",
-#'              prefix = "Source: ",
-#'              line.end = "")
+#'            caption =
+#'              set_caption(
+#'                prepend = "(Canada)",
+#'                append = paste0("(Customs Finland, International trade ",
+#'                                "statistics;<br>Radiation and Nuclear Safety ",
+#'                                "Authority; Gasum LLC)"),
+#'                caption = "Statistics Finland",
+#'                template = "{prepend}.<br>Source: {caption}.<br>{append}."
+#'                )
 #'   )
-#'
-#'
-#' # If 'updated' is set to TRUE, you need to provide the .data where
-#' # roboplotr::set_caption() will look for the update info, and if
-#' # found, it appears under the caption text.
-#' d |> roboplot(Alue,"Energian tuonti Kanadasta","Miljoonaa euroa",
-#'               caption = set_caption(
-#'                 text = "Tilastokeskus",
-#'                 updated = TRUE,
-#'                 .data = d
-#'               )
-#' )
 #'
 #' # If you need to make manual changes repeatedly, you are probably better off
 #' # using roboplotr::set_roboplot_options() (documented therein) to change the
 #' # defaults to something more sensible.
 #'
 #' set_roboplot_options(
-#'   caption_defaults = list(prefix = "Source: ", lineend = "", updated = FALSE)
+#'   caption_template = "Source: {caption}.",
 #'   )
 #'
 #' d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
@@ -153,48 +141,18 @@ roboplotr_title <- function(p, title, subtitle) {
 #' # Revert to defaults:
 #' set_roboplot_options(reset = TRUE)
 #'
-#' @importFrom lubridate as_date is.Date
-#' @importFrom stringr str_c
+#' @importFrom str_glue
 #' @export
 
-set_caption <- function(text = NULL, prefix = getOption("roboplot.caption")$prefix, updated = getOption("roboplot.caption")$updated, .data = NULL, line.end = getOption("roboplot.caption")$lineend, prepend = NULL,append = NULL) {
+set_caption <- function(text, ..., template = getOption("roboplot.caption.template")) {
 
-  roboplotr_check_param(prefix, type = "character")
-  roboplotr_check_param(.data, type = "data.frame", NULL, allow_null = T)
-  roboplotr_check_param(text, type = "character", allow_null = F)
-  roboplotr_check_param(updated, type = c("logical","Date"))
-  roboplotr_check_param(line.end, type = c("character"))
-  roboplotr_check_param(append, type = "character", NULL)
-  roboplotr_check_param(prepend, type = "character", NULL)
+  args <- list(...)
+  for (i in seq_along(args)) {
+    assign(names(args)[[i]], args[[i]])
+  }
+  str_glue(template)
 
-  if(!is.null(updated)) {
-    if(updated == T & !is.null(.data)) {
-      upd <- attributes(.data)$`last-updated`
-      if(!is.null(upd)) {
-        updated <- upd |> reduce(c) |> reduce(c) |> as_date() |> format("%-d.%-m.%Y")
-      } else {
-        updated <- NULL
-      }
-    } else if (updated == F) {
-        updated <- NULL
-        }
-  }
 
-  text <- str_c(text,line.end)
-  if (is.character(updated)) {
-    updated <- str_c("\nP\uE4ivitetty: ",updated,line.end)
-  }
-  if (is.character(prefix)) {
-    text <- str_c(prefix,text)
-  }
-
-  if (is.character(append)) {
-    append <- str_c("\n",str_c(append, collapse = str_c(line.end,"\n")),line.end)
-  }
-  if (is.character(prepend)) {
-    prepend <- str_c(str_c(prepend, collapse = str_c(line.end,"\n")),line.end,"\n")
-  }
-  str_c(prepend, text, updated, append)
 }
 
 roboplotr_highlight_legend <- function(highlight, df) {

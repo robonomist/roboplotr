@@ -54,7 +54,7 @@ set_roboplot_options(
   artefacts = set_artefacts(
     filepath = file.path(tempdir(), "plots"), auto = T, artefacts = "img_w"
     ),
-  caption_defaults = list(prefix = "Source: ", lineend = ".", updated = FALSE),
+  caption_template = "Source: {caption}.",
   height = 400,
   imgdl_wide = set_imgdl_layout(
     width = 650, height = 400, suffix = "", format = "png"),
@@ -187,10 +187,7 @@ inflation_us <-
 d <- bind_rows(inflation_us, inflation_eu)
 
 d |> roboplot(geo, "Consumer price inflation","Annual change of HICP, %",
-              caption = set_caption(
-                prefix = "Sources: ",
-                text = "Eurostat & US BLS")
-  )
+                  caption = set_caption(template = "Sources: Eurostat & US BLS."))
 ```
 
 The previous examples show how plotting with roboplotr is a lightweight task. As
@@ -340,7 +337,7 @@ data_get("tidy/ec_oil_bulletin") |>
 
 ```
 
-```{r crude}
+```{r crude, eval = F}
 bind_rows(list(
   Brent = data_get("eia/PET.RBRTE.W"),
   WTI = data_get("eia/PET.RWTC.W")
@@ -485,8 +482,7 @@ data_get("tidy/10yield") |>
     Maa,
     "Long-term government bond rates",
     "%, 10-year bond",
-    caption = set_caption(
-      prefix = "Sources: ", text = "Bank of Finland, Deutche Bundesbank & Fed"),
+    caption = set_caption(template = "Sources: Bank of Finland, Deutche Bundesbank & Fed."),
     zeroline = TRUE)
 ```
 
@@ -519,8 +515,7 @@ data_get("ecb/YC",
     "Yield curves for AAA euro area government bonds",
     "% interest rate vs. maturity",
     caption = set_caption(
-      "ECB",
-      prepend = "The curves show the yield curve at various points in time",
+      template = "The curves show the yield curve at various points in time.<br>Source: ECB."
     ),
     plot_axes = set_axes(x = "Maturity", xticktype = "numeric"),
     height = 440,

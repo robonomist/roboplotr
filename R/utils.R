@@ -6,7 +6,7 @@
 #' @param grid Function. Use [set_grid()].
 #' @param tick_colors List. Plot tick element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
 #' @param background_color Character. Plot background color. Must be a hexadecimal color or a valid css color.
-#' @param caption_defaults List. Used to parse caption. Values must be named "prefix", "lineend" and "updated". "prefix" is character, and added to caption text with ": ". "lineend" is character added to caption line ends. "updated" is logical that determines whether caption tries to guess latest update date from plot data.
+#' @param caption_template Character. Template for [str_glue()] used to parse captions.
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @param font_main,font_title,font_caption Functions. Use [set_font()].
 #' @param height,width Numerics. Height and width of roboplotr plots in pixels.
@@ -261,7 +261,7 @@ set_roboplot_options <- function(
     artefacts = NULL,
     border = NULL,
     background_color = NULL,
-    caption_defaults = NULL,
+    caption_template = NULL,
     dashtypes = NULL,
     font_main = NULL,
     font_title = NULL,
@@ -325,16 +325,7 @@ set_roboplot_options <- function(
     roboplotr_check_param(background_color, "character")
     roboplotr_valid_colors(background_color)
 
-    roboplotr_check_param(caption_defaults, "list", c("prefix","lineend","updated"))
-    if(!is.null(caption_defaults)) {
-      `caption_defaults$prefix` <- caption_defaults$prefix
-      `caption_defaults$lineend` <- caption_defaults$lineend
-      `caption_defaults$updated` <- caption_defaults$updated
-      roboplotr_check_param(`caption_defaults$prefix`, "character", allow_null = F)
-      roboplotr_check_param(`caption_defaults$lineend`, "character", allow_null = F)
-      roboplotr_check_param(`caption_defaults$updated`, "logical", allow_null = F)
-
-    }
+    roboplotr_check_param(caption_template, "character")
 
     roboplotr_check_param(dashtypes, "character", NULL)
     roboplotr_valid_strings(dashtypes,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"))
@@ -411,7 +402,7 @@ set_roboplot_options <- function(
     set_roboplot_option(artefacts)
     set_roboplot_option(border)
     set_roboplot_option(background_color, "colors.background")
-    set_roboplot_option(caption_defaults, "caption")
+    set_roboplot_option(caption_template, "caption.template")
     set_roboplot_option(dashtypes)
     set_roboplot_option(font_main, "font.main")
     set_roboplot_option(font_title, "font.title")
@@ -492,7 +483,7 @@ roboplotr_string2filename <- function(string) {
 #'
 #' set_roboplot_options(
 #'   locale = set_locale("en-GB"),
-#'   caption_defaults = list(prefix = "Source: ", lineend = ".", updated = FALSE)
+#'   caption_template = "Source: {caption}."
 #'   )
 #'
 #' d <- energiantuonti |>
