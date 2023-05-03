@@ -32,7 +32,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 	el.layout.images[0].sizey = images_sizey
 	let legend_y = -((elxticks + 5 + (elslider*2) + elxtitle) / elplot)//((margin_bottom - elcaption + (elslider*2)) / elplot);
 	if (legend_y < -2 || (ellegend.height > (elplot * 2))) {
-	  el.layout.showlegend = false
+//	  el.layout.showlegend = false
 	  Plotly.relayout(el, {"showlegend" : false})
 	  	if ('rangeslider' in el.layout.xaxis) {
 	      if(el.layout.xaxis.rangeslider.visible == true) {
@@ -115,15 +115,14 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	  if ('rangeslider' in gd.layout.xaxis) {
 	  if (gd.layout.xaxis.rangeslider.visible == false) {
 	    gd.layout.xaxis.rangeslider.visible = true;
-	    Plotly.react(gd,gd.data, gd.layout)
 	  }}
-	  gd.layout.showlegend = true; //show legend if hidden in previous vertical relayouts
+//	  gd.layout.showlegend = true; //show legend if hidden in previous vertical relayouts
 	  let title_text = "<span>" +
 	  (plot_title[2] ? "<b>" : "" ) +
 	  plot_title[0] +
 	  (plot_title[2] ? "</b>" : "" ) +
 	  "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
-	  Plotly.relayout(gd, {'title.text': title_text})
+	  Plotly.relayout(gd, {'title.text': title_text, "showlegend": true})
 	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox().width;
 	  let titlespace = pie_chart ? $(gd).find('g.layer-above') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
 	  if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
@@ -150,6 +149,9 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 //		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','legend.y','yaxis.tickfont.size'], pie_chart = pie_chart));
 		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'images[0].y','yaxis.tickfont.size'], pie_chart = pie_chart));
+		if (gd.layout.showlegend == false) {
+		  		Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','images[0].sizey', 'images[0].y','yaxis.tickfont.size'], pie_chart = pie_chart));
+		}
 		Plotly.relayout(gd,
 		  getVerticalLayout(gd, legend_fontsize, false,
 		  keys = ['images[0].y', 'annotations[0].y', 'legend.y',
