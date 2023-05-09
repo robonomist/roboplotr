@@ -1,10 +1,24 @@
 #' @importFrom plotly layout
 #' @importFrom dplyr case_when
 #' @importFrom plotly rangeslider
-roboplotr_rangeslider <- function(p, enable = F, slider_range = NULL, height = 0.1) {
+roboplotr_rangeslider <- function(p, enable_rangeslider, height = 0.1) {
+
+  `enable_rangeslider$rangeslider` <- enable_rangeslider$rangeslider
+  roboplotr_check_param(`enable_rangeslider$rangeslider`, c("date","Date","logical","character"))
+
+  if(is.logical(enable_rangeslider$rangeslider)) {
+    enable <- enable_rangeslider$rangeslider
+    slider_range <- NULL
+  } else {
+    `enable_rangeslider$max` <- enable_rangeslider$max
+    roboplotr_check_param(`enable_rangeslider$max`, c("date","Date","character","numeric"))
+    slider_range <- map(enable_rangeslider, ~ as_date(.x) |> as.character()) |> unname()
+    enable <- T
+  }
+
   if(enable == T) {
     height <- case_when(height > 0.5 ~ 0.5, height < 0.1 ~ 0.1, TRUE ~ height)
-    p |> rangeslider(slider_range[1], slider_range[2], thickness = height)
+    p |> rangeslider(start = slider_range[[1]], end = slider_range[[2]], thickness = height)
   } else { p }
 }
 
