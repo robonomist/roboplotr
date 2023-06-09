@@ -1,3 +1,7 @@
+# roboplotr 1.1.0
+
+* Added the possibility of using log scale on numeric axes.
+
 # roboplotr 1.0.0
 
 * Initialized versioning of roboplotr with the current stable version.

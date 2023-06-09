@@ -511,8 +511,8 @@ roboplot <- function(d,
       ),
       call. = F
     )
-  } else if (!all(class(d[[plot_axes$x]]) %in% plot_axes$xclass,
-                  class(d[[plot_axes$y]]) %in% plot_axes$yclass)) {
+  } else if (!all(class(d[[plot_axes$x]]) %in% str_replace(plot_axes$xclass,"log","numeric"),
+                  class(d[[plot_axes$y]]) %in% str_replace(plot_axes$yclass,"log","numeric"))) {
     stop(
       str_c(
         "Argument 'd' column \"",

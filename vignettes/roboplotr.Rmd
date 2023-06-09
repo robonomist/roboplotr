@@ -54,7 +54,7 @@ set_roboplot_options(
   artefacts = set_artefacts(
     filepath = file.path(tempdir(), "plots"), auto = T, artefacts = "img_w"
     ),
-  caption_template = "Source: {caption}.",
+  caption_template = "Source: {text}.",
   height = 400,
   imgdl_wide = set_imgdl_layout(
     width = 650, height = 400, suffix = "", format = "png"),
@@ -337,19 +337,6 @@ data_get("tidy/ec_oil_bulletin") |>
 
 ```
 
-```{r crude, eval = F}
-bind_rows(list(
-  Brent = data_get("eia/PET.RBRTE.W"),
-  WTI = data_get("eia/PET.RWTC.W")
-), .id = "Tiedot") |>
-  filter(time >= "2018-01-01") |>
-  roboplot(Tiedot,"Crude oil price","US Dollars per barrel","EIA",
-           height = 440,
-           width = 550,
-           plot_axes = set_axes(xformat = "%Y"),
-           artefacts = set_artefacts("img_n")
-           )
-```
 
 ```{r electricity}
 d <-
@@ -373,9 +360,7 @@ d |>
 
 We wanted to to ensure these x-axes are always displayed in years for the first
 two plot and month / year for the plot with daily data. Using years only for the
-last 
-We 
-provided 'xformat' in plot_axes. The formatting used is 
+last We provided 'xformat' in plot_axes. The formatting used is 
 {https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md}{d3 time format}. 
 You can control y-axis with 'yformat' {https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma}{d3 number format},
 or use the appropriate format if you use something other than date data for 
@@ -530,9 +515,6 @@ the type roboplotr() will use for tick formatting. Note that to ensure the
 traces are drawn correctly, you have to order the data yourself before using it
 it in roboplot().
 
-For this plot we also wanted to prepend an explanation about the plot to the 
-caption, which set_caption() can take as a parameter.
-
 ```{r unemployment, eval = F, include = F}
 data_get("eurostat/une_rt_m") |>
   filter(s_adj == "Seasonally adjusted data, not calendar adjusted data",
@@ -552,6 +534,8 @@ data_get("eurostat/une_rt_m") |>
 
 ```
 
+For this plot we also wanted to show the numeric y-axis with logarithmic scale.
+
 ```{r bitcoin, eval = F, include = F}
 #https://data.nasdaq.com/data/BCHAIN/MKTCP-bitcoin-market-capitalization
 Quandl::Quandl("BCHAIN/MKTCP") |>
@@ -565,7 +549,7 @@ Quandl::Quandl("BCHAIN/MKTCP") |>
     title = "Bitcoin Market Capitalization",
     subtitle = "Billion dollars",
     caption = "Nasdaq Data Link",
-    plot_axes = set_axes(xformat = "%Y")
+    plot_axes = set_axes(xformat = "%Y", yticktype = "log")
   )
 ```
 

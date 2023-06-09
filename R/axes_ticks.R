@@ -19,7 +19,7 @@
 #' # roboplotr::roboplot plot_axes control with plot_mode "horizontal".
 #'
 #' set_roboplot_options(
-#' caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
+#'   caption_template = "Lähde: {text}."
 #' )
 #'
 #' d <- energiantuonti |>
@@ -61,8 +61,16 @@
 #'              xlim = c("2015-01-01","2023-01-01"))
 #'   )
 #'
+#' # Additionally, you may use logartihmic axis for any numeric variable used in
+#' # plot axes.
+#' d |>
+#'   dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue,"Energian tuonti","Milj. €","Tilastokeskus",
+#'            plot_axes = set_axes(yticktype = "log")
+#'   )
+#'
 #' # roboplotr::set_axes also gives the user fine-grained control for
-#' # plots where there might not be data in a format that is directly transerable
+#' # plots where there might not be data in a format that is directly transferable
 #' # to date or numeric format.
 #'
 #' d2 <- dplyr::tribble(
@@ -211,7 +219,7 @@ set_axes <-
                           "character",
                           allow_null = F,
                           allow_na = F)
-    axis_types <- c("character", "date", "numeric")
+    axis_types <- c("character", "date", "numeric", "log")
     roboplotr_valid_strings(xticktype, axis_types, any)
     roboplotr_valid_strings(yticktype, axis_types, any)
     roboplotr_check_param(xformat, "character")
@@ -381,8 +389,8 @@ roboplotr_get_tick_layout <- function(ticktype,
     } else {
       dlist
     }
-  } else if (ticktype == "numeric") {
-    list(
+  } else if (ticktype %in% c("numeric","log")) {
+    ticklayout <- list(
       tickfont = font,
       tickformat = if (is.null(tickformat)) {
         ",.3~f"
@@ -392,8 +400,14 @@ roboplotr_get_tick_layout <- function(ticktype,
       ticksuffix = " ",
       ticks = 'outside',
       title = list(text = title, font = font),
-      tickcolor = tick_color[[axis]]
+      tickcolor = tick_color[[axis]],
+      type = ifelse(ticktype == "log","log","-")
     )
+    if(ticktype == "log") {
+      append(ticklayout, list(dtick = NULL))
+    } else {
+      ticklayout
+    }
   } else if (ticktype == "character") {
     list(
       tickfont = font,
