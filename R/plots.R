@@ -250,8 +250,19 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' # You can also use set_roboplot_options() to preconstruct some caption texts.
 #'
 #' set_roboplot_options(
-#'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
-#'   )
+#'   caption_template = "{prepend}.<br>Source: {caption}.<br>{append}.")
+#'
+#' d |>
+#'   roboplot(Alue, "Energy import","Million euros",
+#'            caption = set_caption(
+#'              prepend ="Canada",
+#'              caption = "Statistics Finland",
+#'              append = paste0("(Customs Finland, International trade ",
+#'                              "statistics;<br>Radiation and Nuclear Safety ",
+#'                              "Authority; Gasum LLC)")))
+#'
+#' # Reset to defaults
+#' set_roboplot_options(reset = TRUE)
 #'
 #' # Legend can also be omitted by giving a legend_position of NA. Height and
 #' # width can also be specified, while for most uses width specification is
@@ -628,6 +639,7 @@ roboplot <- function(d,
     size = 1,
     f.name = list(fun = substitute(caption)[1], check = "set_caption")
   )
+
   if (!is.null(caption)) {
     if (!is(substitute(caption)[1], "call")) {
       caption <- set_caption(text = caption)

@@ -1,3 +1,7 @@
+# roboplotr 1.1.1
+
+* Documentation fixes for plot caption.
+
 # roboplotr 1.1.0
 
 * Added the possibility of using log scale on numeric axes.
