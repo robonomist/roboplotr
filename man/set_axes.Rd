@@ -2,7 +2,7 @@
 % Please edit documentation in R/axes_ticks.R
 \name{set_axes}
 \alias{set_axes}
-\title{Define axis and axis tick formats for \code{\link[=roboplot]{roboplot()}} plots.}
+\title{Axis and tick control for \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_axes(
   y = NULL,

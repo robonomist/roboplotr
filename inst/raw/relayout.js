@@ -121,7 +121,8 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 	  (plot_title[2] ? "<b>" : "" ) +
 	  plot_title[0] +
 	  (plot_title[2] ? "</b>" : "" ) +
-	  "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
+	  (plot_title[0].length == 0 ? "" : "<br>") +
+	  "<span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
 	  Plotly.relayout(gd, {'title.text': title_text, "showlegend": true})
 	  let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox().width;
 	  let titlespace = pie_chart ? $(gd).find('g.layer-above') : $(gd).find('.cartesianlayer > .xy > .gridlayer');

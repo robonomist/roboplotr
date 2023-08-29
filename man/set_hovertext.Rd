@@ -2,8 +2,7 @@
 % Please edit documentation in R/hovertemplate.R
 \name{set_hovertext}
 \alias{set_hovertext}
-\title{Use in \code{\link[=roboplot]{roboplot()}} parameter 'hovertext' to get a list used for
-hovertemplate text formatting}
+\title{Hovertemplate specifications for \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_hovertext(frequency = NULL, rounding = 1, unit = "", extra = NULL)
 }

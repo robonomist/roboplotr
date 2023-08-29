@@ -64,25 +64,74 @@ roboplotr_caption <- function(p, caption) {
 
 }
 
+#' Titles for [roboplot()]
+#'
+#' Use in [roboplot()] parameter 'title' to get a list used for setting the title.
+#'
+#' @param title Character. Optional. Will try to determine a title based on
+#' attributes of  argument 'd' of [roboplot()]. Defaults to "PLACEHOLDER".
+#' @param include Logical. Determines whether the given title will be used in
+#' the plot. Will always inlcude it for downloaded png images.
+#' @examples
+#' # Used to set titles for plots created with roboplotr::roboplot. You can
+#' # simply give a charater string for plot titles.
+#'
+#'
+#' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+#'
+#' d |> roboplot(Alue,"Energian tuonti Kanadasta")
+#'
+#' # However, if you want to render the plot without the title included, you
+#' # can use roboplotr::set_title(include = F) to omit it from the plot. This
+#' # is for cases where you will insert the plot into environment where the
+#' # title is outside the plot element. When downloading the plot, you would
+#' # still want to have the title included, and roboplotr::set_plot() takes
+#' # care of this. If you include a subtitle, it will still be in the plot.
+#'
+#'
+#' d |>
+#' roboplot(Alue,
+#' title = set_title("Energian tuonti Kanadasta", include = FALSE),
+#' subtitle = "Milj. €")
+#'
+#'
+#' @returns A list
+#' @export
+set_title <- function(title = NULL, include = T) {
+  roboplotr_check_param(title, type = "character", allow_null = F)
+  list(title = title, include = include)
+}
+
+
 #' @importFrom plotly layout
 #' @importFrom htmltools tag HTML
 #' @importFrom stringr str_c
 roboplotr_title <- function(p, title, subtitle) {
 
-  roboplotr_check_param(title, type = "character", allow_null = F)
+  if(!is.null(title)) {
+    `title$title` <- title$title
+    `title$include` <- title$include
+    roboplotr_check_param(`title$title`, "character")
+    roboplotr_check_param(`title$include`, "logical")
+  }
+
   roboplotr_check_param(subtitle, type = "character", allow_null = F)
 
+  if(title$include == T) {
+    txt <- str_c(
+      "<span>",title$title,
+      as.character(tags$span(HTML(str_c("<br>",subtitle)), style = "font-size: 75%")),"</span>"
+    )
+  } else {
+    txt <- as.character(tags$span("",tags$span(HTML(str_c(subtitle)), style = "font-size: 75%")))
+  }
   p |>
       layout(
         title = list(
-          text = str_c(
-            "<span>",title,
-            as.character(tags$span(HTML(str_c("<br>",subtitle)), style = "font-size: 75%")),"</span>"
-          ),
+          text = txt,
           font = getOption("roboplot.font.title")[c("color","family","size")],
           xanchor = "left",
           yanchor = "bottom",
-          # y = 0.9325,
           y = 1,
           x = 0,
           yref = "container",
@@ -91,6 +140,8 @@ roboplotr_title <- function(p, title, subtitle) {
       )
 }
 
+#' Captions for [roboplot()]
+#'
 #' Get a string for [roboplot()] captions.
 #'
 #' @param caption Character. Character. The text used in the template (make sure the template has the parameter).

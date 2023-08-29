@@ -1,6 +1,13 @@
+# roboplotr 1.2.0
+
+* Added set_title for controlling for controlling if the plot title will be displayed on the plot. Plot title will still be on any png downloads.
+* Fixed plot axis limit bug introduced in 1.0.0.
+* Fixed border width control bug.
+* Initialized automated DT table creation
+
 # roboplotr 1.1.1
 
-* Documentation fixes for plot caption.
+* Documentation fixes for plot caption and roboplot options.
 
 # roboplotr 1.1.0
 
@@ -11,7 +18,6 @@
 * Initialized versioning of roboplotr with the current stable version.
 * Reworked how x-axis tickmarks are formatted for zoom levels for timeseries of different frequencies.
 * Disabled x-axis range control when rangeslider is used.
-
 
 # roboplotr 0.0.0.9000
 

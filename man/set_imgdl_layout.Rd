@@ -2,7 +2,7 @@
 % Please edit documentation in R/modebar.R
 \name{set_imgdl_layout}
 \alias{set_imgdl_layout}
-\title{Use in \code{\link[=set_roboplot_options]{set_roboplot_options()}} to get a list used for \code{\link[=roboplot]{roboplot()}} relayouts for downloaded image files when the appropriate modebar button is pressed}
+\title{Modebars in \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_imgdl_layout(
   width = 1280,

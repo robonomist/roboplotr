@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{set_locale}
 \alias{set_locale}
-\title{Used to set locale parameters for \code{\link[=roboplot]{roboplot()}} in \code{\link[=set_roboplot_options]{set_roboplot_options()}}}
+\title{Locales for \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_locale(locale = "fi-FI")
 }

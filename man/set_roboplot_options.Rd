@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{set_roboplot_options}
 \alias{set_roboplot_options}
-\title{Override the default options for colors, fonts etc. for any plot created with \code{\link[=roboplot]{roboplot()}}}
+\title{Set global options for \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_roboplot_options(
   accessible = NULL,
@@ -248,7 +248,9 @@ shiny::shinyApp(ui, server)
 # parameter 'shinyapp' as a list with a character string named
 # 'container' describing the css selector of the container that controls plot
 # visibility allows roboplotr::roboplot() to detect if the container was
-# displayed on plot rendering, redoing the incorrect layouts.
+# displayed on plot rendering, redoing the incorrect layouts. The example
+# below has one card starting as collapsed as an example of use case where
+# this does not work at all.
 
 if(interactive()) {
 
@@ -267,8 +269,7 @@ if(interactive()) {
       )
     ),
     bs4Dash::dashboardBody(
-      # Boxes need to be put in a row (or column)
-      uiOutput("plots")
+      shiny::uiOutput("plots")
     )
   )
 
@@ -277,25 +278,26 @@ if(interactive()) {
     output$plots <- renderUI({
       bs4Dash::tabItems(
         bs4Dash::tabItem(tabName = "tab_1", shiny::fluidRow(
-          bs4Dash::box(plotly::plotlyOutput("plot1", height = 550))
+          bs4Dash::box(plotly::plotlyOutput("plot1", height = 550), collapsed = T,
+                       container = ".card-body")
         )),
         bs4Dash::tabItem(tabName = "tab_2", shiny::fluidRow(
-          bs4Dash::box(plotly::plotlyOutput("plot2", height = 500))
+          bs4Dash::box(plotly::plotlyOutput("plot2", height = 500),collapsed = F)
         ))
       )
     })
 
     output$plot1 <- plotly::renderPlotly({
       roboplot(
-        dplyr::filter(energiantuonti, Suunta == "Tuonti", Alue == "Kanada"),
+        dplyr::filter(energiantuonti, Suunta == "Tuonti"),
         Alue, "Energian tuonti Kanadasta",
         "Milj. €",
         "Tilastokeskus")
     })
     output$plot2 <- plotly::renderPlotly({
       roboplot(
-        dplyr::filter(energiantuonti, Suunta == "Vienti", Alue == "Kanada"),
-        Alue, "Energian vienti Kanadaan",
+        dplyr::filter(energiantuonti, Suunta == "Vienti"),
+        Alue, "Energian vienti",
         "Milj. €",
         "Tilastokeskus",
         height = 500)
@@ -307,5 +309,6 @@ if(interactive()) {
   shiny::shinyApp(ui, server)
 
 }
+
 
 }

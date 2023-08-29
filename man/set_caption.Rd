@@ -2,7 +2,7 @@
 % Please edit documentation in R/labels.R
 \name{set_caption}
 \alias{set_caption}
-\title{Get a string for \code{\link[=roboplot]{roboplot()}} captions.}
+\title{Captions for \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_caption(text, ..., template = getOption("roboplot.caption.template"))
 }

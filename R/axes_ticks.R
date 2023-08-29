@@ -1,3 +1,5 @@
+#' Axis and tick control for [roboplot()]
+#'
 #' Define axis and axis tick formats for [roboplot()] plots.
 #'
 #' @param x,y Character. The name of the column from parameter 'd' of
@@ -282,14 +284,18 @@ roboplotr_set_axis_ranges <- function(p, range, rangeslider) {
     layout(hovermode = "compare")
 
   if (rangeslider == F) {
-    p |> layout(xaxis = if (all(is.na(range$xlim))) {
-      list(fixedrange = fixed_range)
-    } else {
-      list(fixedrange = fixed_range, range = range$xlim)
-    })
+    if (!all(is.na(range$xlim))) {
+      p <- p |> layout(xaxis = list(range = range$xlim))
+    }
+    if (!all(is.na(range$ylim))) {
+      p <- p |> layout(yaxis = list(range = range$ylim))
+    }
   } else {
-    p |> layout(yaxis = list(fixedrange = fixed_range, range = range$ylim))
+    p <- p |> layout(yaxis = list(range = range$ylim))
   }
+
+  p |> layout(xaxis = list(fixedrange = fixed_range),
+              yaxis = list(fixedrange = fixed_range))
 
 }
 

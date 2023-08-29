@@ -2,8 +2,7 @@
 % Please edit documentation in R/frame.R
 \name{set_grid}
 \alias{set_grid}
-\title{Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for plot grid
-of \code{\link[=roboplot]{roboplot()}} plots.}
+\title{Plot grid for \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_grid(
   xcolor = getOption("roboplot.grid")$xcolor,

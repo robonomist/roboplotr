@@ -2,8 +2,7 @@
 % Please edit documentation in R/widgets.R
 \name{set_artefacts}
 \alias{set_artefacts}
-\title{Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for artefact creation
-of \code{\link[=roboplot]{roboplot()}} plots.}
+\title{Artefact control for \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_artefacts(
   artefacts = getOption("roboplot.artefacts")$artefacts,

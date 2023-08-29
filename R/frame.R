@@ -17,12 +17,14 @@ roboplotr_grid <- function(p, grid = getOption("roboplot.grid"), border = getOpt
       gridwidth = grid$ywidth,
       griddash = grid$ydash,
       linecolor = border$ycolor,
-      linewidth = border$ycolor,
+      linewidth = border$ywidth,
       mirror = border$ymirror,
       showline = bg != border$ycolor)
   )
 }
 
+#' Plot border for [roboplot()]
+#'
 #' Set global parameters in [set_roboplot_options()] for plot borders
 #' of [roboplot()] plots.
 #'
@@ -64,6 +66,8 @@ set_border <- function(
   list(xcolor = xcolor, ycolor = ycolor, xmirror = xmirror, ymirror = ymirror, xwidth = xwidth, ywidth = ywidth)
 }
 
+#' Plot grid for [roboplot()]
+#'
 #' Set global parameters in [set_roboplot_options()] for plot grid
 #' of [roboplot()] plots.
 #'

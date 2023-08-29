@@ -11,7 +11,8 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
   }
 }
 
-
+#' Hovertemplate specifications for [roboplot()]
+#'
 #' Use in [roboplot()] parameter 'hovertext' to get a list used for
 #' hovertemplate text formatting
 #'
@@ -81,7 +82,6 @@ set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", extra = NUL
 
 roboplotr_hovertemplate <- function(params, lab = "text", ticktypes) {
   labstring <- str_c("%{",lab,"}")
-  # browser()
   ystring <- case_when(all(ticktypes$pie == TRUE,ticktypes$yticktype %in% c("numeric","log")) ~ str_c("%{value:,.",params$rounding,"f}",params$unit),
                        ticktypes$yticktype == "character" ~ "",
                        ticktypes$yticktype %in% c("numeric","log") ~ str_c("%{y:,.",params$rounding,"f}",params$unit),

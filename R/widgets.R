@@ -1,3 +1,5 @@
+#' File creation from [roboplot()]s
+#'
 #' Write html and and other files from [roboplot()] plots
 #'
 #' @param p A plotly object.
@@ -124,6 +126,8 @@ roboplot_create_widget <- function(
   } else { invisible(p) }
 }
 
+#' Artefact control for [roboplot()]
+#'
 #' Set global parameters in [set_roboplot_options()] for artefact creation
 #' of [roboplot()] plots.
 #'

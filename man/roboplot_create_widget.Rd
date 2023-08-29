@@ -2,7 +2,7 @@
 % Please edit documentation in R/widgets.R
 \name{roboplot_create_widget}
 \alias{roboplot_create_widget}
-\title{Write html and and other files from \code{\link[=roboplot]{roboplot()}} plots}
+\title{File creation from \code{\link[=roboplot]{roboplot()}}s}
 \usage{
 roboplot_create_widget(
   p,

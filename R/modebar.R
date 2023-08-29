@@ -11,14 +11,14 @@ roboplotr_modebar <- function(p, title, subtitle, height, width, dateformat) {
   if(is.null(title)) {
     dl_title <- "img"
   } else {
-    dl_title <- roboplotr_string2filename(title)
+    dl_title <- roboplotr_string2filename(title$title)
   }
 
   js_string <- function(layout, ttl = dl_title) {
     tf <- getOption("roboplot.font.title")
     mf <- getOption("roboplot.font.main")
     cf <- getOption("roboplot.font.caption")
-    plot_title <- list(title,subtitle,tf$bold)
+    plot_title <- list(title$title,subtitle,tf$bold)
     ht <- ifelse(is.null(height), 'null', as.character(height))
     wt <- ifelse(is.null(width), 'null', as.character(width))
     str_c('
@@ -59,7 +59,7 @@ roboplotr_modebar <- function(p, title, subtitle, height, width, dateformat) {
       as.character(list(...)) |> replace_na("NA") |> str_c(collapse = ";")
     }) |> unlist() |> str_c(collapse = "\\n")
     col.names <- names(d) |>  str_c(collapse = ";")
-    ti <- roboplotr_transform_string(title)
+    ti <- roboplotr_transform_string(title$title)
     su <- roboplotr_transform_string(subtitle)
     str_c(str_c(ti,", ",su),str_c(rep(";",length(names(p$data))-2),collapse = ""),"\\n",col.names,"\\n",row.data)
   })()
@@ -129,6 +129,8 @@ roboplotr_modebar <- function(p, title, subtitle, height, width, dateformat) {
 }
 
 
+#' Modebars in [roboplot()]
+#'
 #' Use in [set_roboplot_options()] to get a list used for [roboplot()] relayouts for downloaded image files when the appropriate modebar button is pressed
 #'
 #' @param height,width Doubles. The dimensions for the image file in pixels the modebar button will produce.

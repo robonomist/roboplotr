@@ -47,11 +47,17 @@ roboplotr_config <- function(p,
 #' @importFrom htmlwidgets appendContent onRender
 #' @importFrom R.utils setOption
 #' @importFrom RCurl base64Encode
-#' @importFrom shiny addResourcePath isRunning
+#' @importFrom shiny isRunning
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_pad str_wrap
 roboplotr_dependencies <- function(p, title, subtitle, container) {
-  plot_title <-
-    list(title, subtitle, getOption("roboplot.font.title")$bold)
+
+  if(title$include == T) {
+    plot_title <-
+      list(title$title, subtitle, getOption("roboplot.font.title")$bold)
+  } else {
+    plot_title <-
+      list("", subtitle, getOption("roboplot.font.title")$bold)
+  }
 
   if (!isRunning()) {
     if (is.null(getOption("roboplot.widget.deps.session"))) {
@@ -183,7 +189,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #   thisclippath.setAttribute('width',Number(thiswidth)*1.05)
 # })
 
-#' Get dynamically scaling plotly plots with legend and caption positioning and font manipulation for different sizes.
+#' Automated plotly plotting for properly scaling plots.
 #'
 #' Wrapper for [plotly::plot_ly] for shorthand declaration of many layout and trace arguments.
 #' Ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
@@ -494,14 +500,18 @@ roboplot <- function(d,
     title <- attributes(d)[c("title", "robonomist_title")]
     if (!is.null(title$robonomist_title)) {
       roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
-      title <- title$robonomist_title
+      title <- set_title(title$robonomist_title)
     } else if (!is.null(title$title) & length(title$title != 1)) {
       roboplotr_alert("Using the attribute \"title\" as plot title.")
-      title <- title$title
+      title <- set_title(title$title)
     } else {
       roboplotr_alert("Missing the title, using placeholder.")
-      title <- "PLACEHOLDER"
+      title <- set_title("PLACEHOLDER")
     }
+  } else if (is.character(title)) {
+    title <- set_title(title = title, include = T)
+  } else {
+    roboplotr_check_param(title, c("character,","function"), NULL,  f.name = list(fun = substitute(title)[1], check = "set_title"))
   }
 
   d_names <- names(d)
@@ -561,7 +571,7 @@ roboplot <- function(d,
     roboplotr_alert(
       "Without an unquoted arg 'color' the variable named \"roboplot.topic\" is added to data 'd', using the argument 'title' trunctated to 30 characters as value for the variable."
     )
-    d <- mutate(d, roboplot.topic = str_trunc(title, 30))
+    d <- mutate(d, roboplot.topic = str_trunc(title$title, 30))
   }
 
   pattern <- enquo(pattern)
@@ -864,12 +874,12 @@ roboplot <- function(d,
     p$elementId <-
       str_c(
         "widget_",
-        roboplotr_string2filename(title),
+        roboplotr_string2filename(title$title),
         "_",
         str_pad(round(runif(1) * 1000000), 6, "left", "0")
       )
   }
-  p$title <- title
+  p$title <- title$title
   p$trace_types <-
     distinct(d,!!color, .data$roboplot.plot.type) |> pull(2, 1)
   p$plot_mode <- plot_mode

@@ -2,8 +2,7 @@
 % Please edit documentation in R/frame.R
 \name{set_border}
 \alias{set_border}
-\title{Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for plot borders
-of \code{\link[=roboplot]{roboplot()}} plots.}
+\title{Plot border for \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_border(
   xcolor = getOption("roboplot.border")$xcolor,
