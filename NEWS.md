@@ -1,3 +1,7 @@
+# roboplotr 1.2.1
+
+* Commit fix for missing robotable files.
+
 # roboplotr 1.2.0
 
 * Added set_title for controlling for controlling if the plot title will be displayed on the plot. Plot title will still be on any png downloads.
