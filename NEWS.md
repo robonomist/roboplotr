@@ -1,3 +1,7 @@
+# roboplotr 1.2.2
+
+* Preliminary work for robotable plotly-like modebar, improved number formats, and logo support.
+
 # roboplotr 1.2.1
 
 * Commit fix for missing robotable files.
