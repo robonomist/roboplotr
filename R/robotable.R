@@ -120,34 +120,6 @@ roboplotr_set_specific_css <-
       unlist() |>
       str_c(collapse = ";")
     str_glue("{<css_target} {{<css_specs}}", .open = "{<")
-    # split_css <- css_target |> str_split(" ") |> unlist()
-    # hover <- str_detect(first(split_css), "hover$")
-    # if (hover) {
-    #   first_css <- first(split_css) |> str_remove(":hover$")
-    #   rest_css <- split_css[-1] |> str_c(collapse = " ")
-    #   old_css <- names(this_css) |> str_c(collapse = ",")
-    #   exit <- map2(exit, names(exit), ~ str_glue("'{.y}': '{.x}'")) |>
-    #     unlist() |>
-    #     str_c(collapse = ",")
-    #   str_glue(
-    #     "
-    #   $('{<first_css}').hover(
-    #     function() { // Mouse enter
-    #       let target = $(this).find('{<rest_css}');
-    #       target.css({{<css_specs} });
-    #     },
-    #     function() { // Mouse leave
-    #     let target = $(this).find('{<rest_css}');
-    #     target.css({{<exit} });
-    #     }
-    #   );
-    # ",
-    #     .open = "{<"
-    #   )
-    # } else {
-    #   str_glue("$('{<css_target}').css({{<css_specs}});", .open = "{<")
-    # }
-
   }
 
 #' @importFrom stringr str_glue
@@ -160,8 +132,6 @@ roboplotr_set_robotable_css <-
     title = ""
   ) {
     str_c(
-      # JS(
-      #   "function(settings, json) {",
       roboplotr_set_specific_css(
         str_glue('#{id}_wrapper .dt-buttons .dt-button span svg path'),
         'fill' = 'none',
@@ -280,6 +250,10 @@ roboplotr_set_robotable_css <-
         'font-weight' = 'normal',
         'margin-top' = str_glue('-{title_font$size-round(0.75*title_font$size)}px'),
         "text-align" = "left"
+      ),
+      roboplotr_set_specific_css(
+        str_glue("#{id}_filter label, #{id}_length label"),
+        "font-weight" = "normal"
       ),
       collapse = "\n")
   }
