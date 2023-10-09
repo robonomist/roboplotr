@@ -208,7 +208,7 @@ roboplotr_set_robotable_css <-
       ),
       roboplotr_set_specific_css(
         str_glue(
-          '#{id}_info,#{id}_paginate,#{id}_length select,#{id}_length select option'
+          '#{id}_info,#{id}_length label,#{id}_paginate,#{id}_length select,#{id}_length select option,#{id}_filter,#{id}_filter label'
         ),
         'background-color' = getOption('roboplot.colors.background'),
         'font-size' = str_glue('{font$size-1}px'),

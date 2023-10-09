@@ -1,3 +1,7 @@
+# roboplotr 1.2.5
+
+* Robotable navigation for length and filter css fix.
+
 # roboplotr 1.2.4
 
 * Robotable navigation for length and filter css fix.
