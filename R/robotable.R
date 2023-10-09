@@ -115,68 +115,73 @@ roboplotr_set_specific_css <-
            exit = NULL) {
     this_css <- list(...)
     css_specs <-
-      map2(this_css, names(this_css), ~ str_glue("'{.y}': '{.x}'")) |>
+      map2(this_css, names(this_css), ~ str_glue("\n{.y}: {.x}")) |>
+      # map2(this_css, names(this_css), ~ str_glue("'{.y}': '{.x}'")) |>
       unlist() |>
-      str_c(collapse = ",")
-    split_css <- css_target |> str_split(" ") |> unlist()
-    hover <- str_detect(first(split_css), "hover$")
-    if (hover) {
-      first_css <- first(split_css) |> str_remove(":hover$")
-      rest_css <- split_css[-1] |> str_c(collapse = " ")
-      old_css <- names(this_css) |> str_c(collapse = ",")
-      exit <- map2(exit, names(exit), ~ str_glue("'{.y}': '{.x}'")) |>
-        unlist() |>
-        str_c(collapse = ",")
-      str_glue(
-        "
-      $('{<first_css}').hover(
-        function() { // Mouse enter
-          let target = $(this).find('{<rest_css}');
-          target.css({{<css_specs} });
-        },
-        function() { // Mouse leave
-        let target = $(this).find('{<rest_css}');
-        target.css({{<exit} });
-        }
-      );
-    ",
-        .open = "{<"
-      )
-    } else {
-      str_glue("$('{<css_target}').css({{<css_specs}});", .open = "{<")
-    }
+      str_c(collapse = ";")
+    str_glue("{<css_target} {{<css_specs}}", .open = "{<")
+    # split_css <- css_target |> str_split(" ") |> unlist()
+    # hover <- str_detect(first(split_css), "hover$")
+    # if (hover) {
+    #   first_css <- first(split_css) |> str_remove(":hover$")
+    #   rest_css <- split_css[-1] |> str_c(collapse = " ")
+    #   old_css <- names(this_css) |> str_c(collapse = ",")
+    #   exit <- map2(exit, names(exit), ~ str_glue("'{.y}': '{.x}'")) |>
+    #     unlist() |>
+    #     str_c(collapse = ",")
+    #   str_glue(
+    #     "
+    #   $('{<first_css}').hover(
+    #     function() { // Mouse enter
+    #       let target = $(this).find('{<rest_css}');
+    #       target.css({{<css_specs} });
+    #     },
+    #     function() { // Mouse leave
+    #     let target = $(this).find('{<rest_css}');
+    #     target.css({{<exit} });
+    #     }
+    #   );
+    # ",
+    #     .open = "{<"
+    #   )
+    # } else {
+    #   str_glue("$('{<css_target}').css({{<css_specs}});", .open = "{<")
+    # }
 
   }
 
 #' @importFrom stringr str_glue
 roboplotr_set_robotable_css <-
-  function(font = getOption("roboplot.font.main"),
-           title_font = getOption("roboplot.font.title"),
-           caption_font = getOption("roboplot.font.caption"),
-           title = ""
-           ) {
-    JS(
-      "function(settings, json) {",
+  function(
+    id = "robotable-id",
+    font = getOption("roboplot.font.main"),
+    title_font = getOption("roboplot.font.title"),
+    caption_font = getOption("roboplot.font.caption"),
+    title = ""
+  ) {
+    str_c(
+      # JS(
+      #   "function(settings, json) {",
       roboplotr_set_specific_css(
-        '.dt-button > span > svg > path',
+        str_glue('#{id}_wrapper .dt-buttons .dt-button span svg path'),
         'fill' = 'none',
         'transition' =  'opacity 0.3s ease-in-out width 0.3s ease-in-out'
       ),
       roboplotr_set_specific_css(
-        '.dataTables_wrapper .dt-buttons',
+        str_glue('#{id}_wrapper .dt-buttons'),
         'position' = 'absolute',
         'top' = '0px',
         'right' = '0px',
         'z-index' = '2'
       ),
       if(str_length(title) == 0 & getOption("roboplot.shinyapp")$shinyapp == F) {
-        roboplotr_set_specific_css('.dataTables_wrapper',
+        roboplotr_set_specific_css(str_glue('#{id}_wrapper'),
                                    'padding-top' = '18px')
       } else {
         ""
       },
       roboplotr_set_specific_css(
-        ".dt-buttons .dt-button",
+        str_glue("#{id}_wrapper .dt-buttons .dt-button"),
         "border" = "none",
         "height" = "18px",
         "background" = "none",
@@ -190,64 +195,93 @@ roboplotr_set_robotable_css <-
       ),
 
       roboplotr_set_specific_css(
-        '.dataTables_wrapper:hover .dt-buttons .dt-button',
+        str_glue("#{id}_wrapper:hover .dt-buttons .dt-button"),
         "border" = "none",
         "height" = "18px",
         "background" = "none",
         "margin-right" = "2px",
         "opacity" = "1",
         "width" = "18px",
-        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out",
-        exit = c("opacity" = "0")
+        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
       ),
       roboplotr_set_specific_css(
-        ".dataTables_wrapper:hover > .dt-buttons > .dt-button > span > svg > path",
+        str_glue("#{id}_wrapper:hover .dt-buttons .dt-button span svg path"),
         "fill" = "rgba(68, 68, 68, 0.3)",
-        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out",
-        exit = c("fill" = "none")
+        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
       ),
       roboplotr_set_specific_css(
-        ".dt-button:hover > span > svg > path",
+        str_glue("#{id}_wrapper .dt-buttons .dt-button:hover span svg path"),
         "fill" = "rgba(68, 68, 68, 0.7)",
-        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out",
-        exit = c("fill" = "rgba(68, 68, 68, 0.3)")
+        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
       ),
-      "$(this.api().table().header()).css({",
-      str_glue(
-        "'background-color': '{getOption('roboplot.colors.background')}','font-size': '{font$size+2}px', 'font-family': '{font$family}', 'color': '{font$color}'"
+      roboplotr_set_specific_css(
+        str_glue("#{id}_wrapper .dataTables_scrollHead, #{id}_wrapper .thead"),
+        'background-color' = getOption('roboplot.colors.background'),
+        'font-size' = str_glue('{font$size+2}px'),
+        'font-family' = font$family,
+        'color' = font$color
       ),
-      "});",
-      "$('#DataTables_Table_0_length,.dataTables_filter,.dataTables_filter input').css({",
-      str_glue(
-        "'background-color': '{getOption('roboplot.colors.background')}','font-size': '{font$size}px', 'font-family': '{font$family}', 'color': '{font$color}'"
+      roboplotr_set_specific_css(
+        str_glue(
+          '#{id}_length,#{id}_filter,#{id}_filter input'
+        ),
+        'background-color' = getOption('roboplot.colors.background'),
+        'font-size' = str_glue('{font$size+2}px'),
+        'font-family' = font$family,
+        'color' = font$color
       ),
-      "});",
-      "$('.dataTables_info,#DataTables_Table_0_paginate,#DataTables_Table_0_length select,#DataTables_Table_0_length select option').css({",
-      str_glue(
-        "'background-color': '{getOption('roboplot.colors.background')}','font-size': '{font$size-1}px', 'font-family': '{font$family}', 'color': '{font$color}'"
+      roboplotr_set_specific_css(
+        str_glue("#{id}_info"),
+        "margin-right" = '5px',
+        "padding-top" = "6px",
+        "margin-bottom" = "6px"
       ),
-      "});",
-      roboplotr_set_specific_css(".dataTables_info", "margin-right" = '5px', "padding-top" = "6px", "margin-bottom" = "6px"),
-      roboplotr_set_specific_css(".dataTables_length", "margin-bottom" = '5px'),
-      roboplotr_set_specific_css(".dataTables_filter input", "padding" = '4px 5px 5px 5px'),
-      roboplotr_set_specific_css(".dataTables_paginate", "margin-top" = '-5px', 'margin-bottom' = '6px', "padding-top" = "0px"),
-      "$('.roboplot_table-footer').css({",
-      str_glue(
-        "'background-color': '{getOption('roboplot.colors.background')}','font-size': '{caption_font$size}px', 'font-family': '{caption_font$family}', 'color': '{caption_font$color}', 'font-weight': 'normal'"
+      roboplotr_set_specific_css(
+        str_glue(
+          '#{id}_info,#{id}_paginate,#{id}_length select,#{id}_length select option'
+        ),
+        'background-color' = getOption('roboplot.colors.background'),
+        'font-size' = str_glue('{font$size-1}px'),
+        'font-family' = font$family,
+        'color' = font$color
       ),
-      "});",
-      "$('.roboplot_table-title').css({",
-      str_glue(
-        "'background-color': '{getOption('roboplot.colors.background')}','font-size': '{title_font$size}px', 'font-family': '{title_font$family}', 'color': '{title_font$color}','margin-bottom': '-2px','text-align': 'left'"
+      roboplotr_set_specific_css(str_glue("#{id}_length"), "margin-bottom" = '5px'),
+      roboplotr_set_specific_css(str_glue("#{id}_filter input"), "padding" = '4px 5px 5px 5px'),
+      roboplotr_set_specific_css(
+        str_glue("#{id}_paginate"),
+        "margin-top" = '-5px',
+        'margin-bottom' = '6px',
+        "padding-top" = "0px"
       ),
-      "});",
-      "$('.roboplot_table-subtitle').css({",
-      str_glue(
-        "'background-color': '{getOption('roboplot.colors.background')}','font-size': '{round(0.75*title_font$size)}px', 'margin-top': '-{title_font$size-round(0.75*title_font$size)}px', 'font-family': '{title_font$family}', 'color': '{title_font$color}','text-align': 'left'"
+      roboplotr_set_specific_css(
+        str_glue("#{id}_footer"),
+        "vertical-align" = "top",
+        "background-color" = getOption('roboplot.colors.background'),
+        'font-size' = str_glue('{caption_font$size}px'),
+        'font-family' = caption_font$family,
+        'color' = caption_font$color,
+        'font-weight' = 'normal'
       ),
-      "});",
-      "}"
-    )
+      roboplotr_set_specific_css(
+        str_glue("#{id}_title"),
+        "background-color" = getOption('roboplot.colors.background'),
+        'font-size' = str_glue('{title_font$size}px'),
+        'font-family' = title_font$family,
+        'color' = title_font$color,
+        'margin-bottom' = "-2px",
+        "text-align" = "left"
+      ),
+      roboplotr_set_specific_css(
+        str_glue("#{id}_subtitle"),
+        "background-color" = getOption('roboplot.colors.background'),
+        'font-size' = str_glue('{round(0.75*title_font$size)}px'),
+        'font-family' = title_font$family,
+        'color' = title_font$color,
+        'font-weight' = 'normal',
+        'margin-top' = str_glue('-{title_font$size-round(0.75*title_font$size)}px'),
+        "text-align" = "left"
+      ),
+      collapse = "\n")
   }
 
 #' @importFrom DT formatStyle
@@ -330,26 +364,40 @@ robotable <-
     .bold <-
       ifelse(getOption("roboplot.font.title")$bold, tags$b, tags$span)
 
-    sketch <-
-      tagList(tags$table(
-        tags$caption(tags$span(.bold(title)),tags$br(),tags$span(subtitle, class = "roboplot_table-subtitle"), class = "roboplot_table-title"),
-        tags$thead(tags$tr(
-        map(names(d), ~ HTML(.x)) |> map(tags$th) |> tagList()
-      )),
-      tags$tfoot(tags$tr(
-        tags$th(style = "vertical-align: top",
-          class = "roboplot_table-footer",
-          colspan = names(d) |> stringr::str_subset("^.order", negate = T) |> length(),
-          tags$span(.footer),
-          robotable_logo()
-        ),
-      ))
-      )
-      )
+    robotable_id <- str_c("robotable-",str_remove(runif(1),"\\."))
+
     if (str_length(subtitle) > 0) {
       subtitle <-
-        tags$caption(HTML(str_c("<br>", subtitle)), class = "roboplot_table-subtitle")
+        tagList(tags$br(),
+                tags$span(subtitle, id = str_glue("{robotable_id}_subtitle")))
+    } else {
+      subtitle <- NULL
     }
+
+    sketch <-
+      tagList(tags$table(
+        tags$style(roboplotr_set_robotable_css(robotable_id)),
+        id = robotable_id,
+        # tags$style(my_css),
+        tags$caption(
+          id = str_glue("{robotable_id}_title"),
+          tags$span(.bold(title)),
+          subtitle
+        ),
+        tags$thead(tags$tr(
+          map(names(d), ~ HTML(.x)) |> map(tags$th) |> tagList()
+        )),
+        tags$tfoot(tags$tr(
+          tags$th(
+            #style = "vertical-align: top",
+            id = str_glue("{robotable_id}_footer"),
+            colspan = names(d) |> stringr::str_subset("^.order", negate = T) |> length(),
+            tags$span(.footer),
+            robotable_logo()
+          ),
+        ))
+      ))
+
     xportoptions <- (function() {
       the_cols <- seq(to = length(d)) - 1
       list(columns = subset(the_cols,!the_cols %in% as.numeric(names(
@@ -358,6 +406,7 @@ robotable <-
     })()
     # names(d |> select(where(is.numeric))) # tässä alkua columnien uudelleennimeämiselle.. pitäisi valita numeric
     # columnit csv:tä muodostaessa, ja antaa lukumuotoiltujen sarakkeiden nimet näille
+
     d |>
       datatable(
         width = width,
@@ -373,7 +422,7 @@ robotable <-
           columnDefs = column_defs,
           #tämä ei shinyn kanssa toimi oikein?
           # fillContainer = T,
-          initComplete = roboplotr_set_robotable_css(title = title),
+          # initComplete = roboplotr_set_robotable_css(title = title),
           language = set_robotable_labels(),
           dom = ifelse(nrow(d) > 10, "Btiprlf", "Bt"),
           buttons = list(

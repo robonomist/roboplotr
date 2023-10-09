@@ -1,3 +1,7 @@
+# roboplotr 1.2.3
+
+* Rewrite how robotables handle css.
+
 # roboplotr 1.2.2
 
 * Preliminary work for robotable plotly-like modebar, improved number formats, and logo support.
