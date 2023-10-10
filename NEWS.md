@@ -1,3 +1,7 @@
+# roboplotr 1.2.6
+
+* Robotable infobutton initial code, css fixes. Title omission possible for robotable.
+
 # roboplotr 1.2.5
 
 * Robotable navigation for length and filter css fix.

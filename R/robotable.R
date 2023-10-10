@@ -157,6 +157,7 @@ roboplotr_set_robotable_css <-
         "background" = "none",
         "display" = "inline-block",
         "margin-right" = "2px",
+        "color" = getOption("roboplot.colors.background"),
         "padding-left" = " 0px",
         "padding-top" = "0px",
         "opacity" = "0",
@@ -216,6 +217,7 @@ roboplotr_set_robotable_css <-
         'color' = font$color
       ),
       roboplotr_set_specific_css(str_glue("#{id}_length"), "margin-bottom" = '5px'),
+      roboplotr_set_specific_css(str_glue("#{id}_filter"), "margin-top" = '-4px'),
       roboplotr_set_specific_css(str_glue("#{id}_filter input"), "padding" = '4px 5px 5px 5px'),
       roboplotr_set_specific_css(
         str_glue("#{id}_paginate"),
@@ -252,9 +254,14 @@ roboplotr_set_robotable_css <-
         "text-align" = "left"
       ),
       roboplotr_set_specific_css(
-        str_glue("#{id}_filter label, #{id}_length label"),
-        "font-weight" = "normal"
+        str_glue("#{id}_length label"),
+        "font-weight" = "normal", "padding-top" = "2px"
       ),
+      roboplotr_set_specific_css(
+        str_glue("#{id}_filter label"),
+        "font-weight" = "normal"
+      )
+      ,
       collapse = "\n")
   }
 
@@ -278,14 +285,34 @@ roboplotr_set_robotable_fonts <-
 #' @export
 robotable <-
   function(d,
-           title = "",
+           title = NULL,
            subtitle = "",
            caption,
            rounding = 1,
            width = getOption("roboplot.width"),
            height = NULL,
            flag = "",
-           unit = "") {
+           unit = "",
+           info_text = NULL
+           ) {
+
+    if (is.null(title)) {
+      title <- attributes(d)[c("title", "robonomist_title")]
+      if (!is.null(title$robonomist_title)) {
+        roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
+        title <- set_title(title$robonomist_title)
+      } else if (!is.null(title$title) & length(title$title != 1)) {
+        roboplotr_alert("Using the attribute \"title\" as plot title.")
+        title <- set_title(title$title)
+      } else {
+        roboplotr_alert("Missing the title, using placeholder.")
+        title <- set_title("PLACEHOLDER")
+      }
+    } else if (is.character(title)) {
+      title <- set_title(title = title, include = T)
+    } else {
+      roboplotr_check_param(title, c("character,","function"), NULL,  f.name = list(fun = substitute(title)[1], check = "set_title"))
+    }
 
     d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit)
 
@@ -340,6 +367,34 @@ robotable <-
 
     robotable_id <- str_c("robotable-",str_remove(runif(1),"\\."))
 
+    if(!is.null(info_text)) {
+      main_font <- getOption("roboplot.font.main")
+      title_font <- getOption("roboplot.font.title")
+      modal_html <- tags$div(
+        id = str_glue("{robotable_id}_infomodal"),
+        style = "display: none; position: absolute; top: 20px; left: 5px; width: 50%;",
+        tags$div(style = str_glue(
+                   "position: absolute;
+               z-index: 9999;
+               background-color: {getOption('roboplot.trace.border')$color};
+               padding: 5px;
+               border: 1px solid {getOption('roboplot.border')[c('xcolor','ycolor')] |> unique() |> unlist() |> first()};
+               box-shadow: 0 4px 8px {getOption('roboplot.trace.border')$color};"),
+                 .bold(title$title,tags$br(),tags$span(subtitle, style = "font-size: 75%"),
+                       style = str_glue("font-family: {title_font$family};font-size: {title_font$size}px; color: {main_font$color};")
+                       ),
+                 tags$span(
+                   style = str_glue("font-family: {main_font$family}; font-size: {main_font$size}px; color: {main_font$color};"),
+                   tags$p(info_text),
+                   tags$p(str_glue(getOption("roboplot.caption.template"), text = caption))
+
+                 )
+                 )
+      )
+    } else {
+      modal_html <- NULL
+    }
+
     if (str_length(subtitle) > 0) {
       subtitle <-
         tagList(tags$br(),
@@ -349,28 +404,31 @@ robotable <-
     }
 
     sketch <-
-      tagList(tags$table(
-        tags$style(roboplotr_set_robotable_css(robotable_id)),
-        id = robotable_id,
-        # tags$style(my_css),
-        tags$caption(
-          id = str_glue("{robotable_id}_title"),
-          tags$span(.bold(title)),
-          subtitle
-        ),
-        tags$thead(tags$tr(
-          map(names(d), ~ HTML(.x)) |> map(tags$th) |> tagList()
-        )),
-        tags$tfoot(tags$tr(
-          tags$th(
-            #style = "vertical-align: top",
-            id = str_glue("{robotable_id}_footer"),
-            colspan = names(d) |> stringr::str_subset("^.order", negate = T) |> length(),
-            tags$span(.footer),
-            robotable_logo()
-          ),
+      tagList(
+        tags$div(class = "robotable-container", style = "position: relative",
+          tags$table(
+            tags$style(roboplotr_set_robotable_css(robotable_id)),
+            id = robotable_id,
+            modal_html,
+            tags$caption(
+              id = str_glue("{robotable_id}_title"),
+              if(title$include == T) tags$span(.bold(title$title)) else {NULL},
+              subtitle
+            ),
+            tags$thead(tags$tr(
+              map(names(d), ~ HTML(.x)) |> map(tags$th) |> tagList()
+            )),
+            tags$tfoot(tags$tr(
+              tags$th(
+                #style = "vertical-align: top",
+                id = str_glue("{robotable_id}_footer"),
+                colspan = names(d) |> stringr::str_subset("^.order", negate = T) |> length(),
+                tags$span(.footer),
+                robotable_logo()
+              ),
+            ))
+          )
         ))
-      ))
 
     xportoptions <- (function() {
       the_cols <- seq(to = length(d)) - 1
@@ -380,6 +438,34 @@ robotable <-
     })()
     # names(d |> select(where(is.numeric))) # tässä alkua columnien uudelleennimeämiselle.. pitäisi valita numeric
     # columnit csv:tä muodostaessa, ja antaa lukumuotoiltujen sarakkeiden nimet näille
+
+
+    modebar_buttons <- list(
+      "csv" = list(
+        filename = roboplotr_string2filename(title$title),
+        extend = 'csv',
+        text = fa("file-csv", height = "12pt"),
+        exportOptions = xportoptions
+
+      ),
+    "info" = list(
+      extend = "collection",
+      text = fa("circle-info", height = "12pt"),
+      # action = JS(str_glue("function(e, dt, node, config) {alert('{<info_text}');}", .open = "{<"))
+      action = JS(str_glue('function(e, dt, node, config) {$("#{<robotable_id}_infomodal").toggle();}', .open = "{<"))
+    ),
+    "robonomist" = list(
+      extend = "collection",
+      text = '<svg version="1.1" viewBox="0 0 71.447 32" width = "12pt" xmlns="http://www.w3.org/2000/svg"><path transform="scale(.31159)"  d="M 229.3 53.2 L 174.3 90.1 L 174.3 69.1 L 199.5 53.2 L 174.3 37.3 L 174.3 16.3 M112 0c14.2 0 23.3 1.8 30.7 7 6.3 4.4 10.3 10.8 10.3 20.5 0 11.3-6.4 22.8-22.3 26.5l18.4 32.5c5 8.7 7.7 9.7 12.5 9.7v6.5h-27.3l-23.7-45.8h-7v27.6c0 10.5 0.7 11.7 9.9 11.7v6.5h-43.2v-6.7c10.3 0 11.3-1.6 11.3-11.9v-65.7c0-10.2-1-11.7-11.3-11.7v-6.7zm-4.8 7.9c-3.3 0-3.6 1.5-3.6 8.6v32.3h6.4c15.8 0 20.2-8.7 20.2-21.3 0-6.3-1.7-11.5-5-15-2.9-3-7-4.6-13-4.6z M 0 53.2 L 55 16.3 L 55 37.3 L 29.8 53.2 L 55 69.1 L 55 90.1"/></svg>',
+      action = JS("function(e, dt, node, config) {window.open(\"https://robonomist.com\")  }")
+    ))
+
+    modebar_buttons <- modebar_buttons[c(
+      "csv",
+      ifelse(!is.null(info_text),"info",""),
+      ifelse(str_detect(getOption("roboplot.logo"),"robonomist"),"","robonomist"))] |>
+      roboplotr_compact() |>
+      unname()
 
     d |>
       datatable(
@@ -399,15 +485,7 @@ robotable <-
           # initComplete = roboplotr_set_robotable_css(title = title),
           language = set_robotable_labels(),
           dom = ifelse(nrow(d) > 10, "Btiprlf", "Bt"),
-          buttons = list(
-            list(
-              filename = roboplotr_string2filename(title),
-              extend = 'csv',
-              text = fa("file-csv", height = "12pt"),
-              exportOptions = xportoptions
-
-            )
-          )
+          buttons = modebar_buttons
         )
       ) |>
       roboplotr_set_robotable_fonts(seq(ncol(d)))
