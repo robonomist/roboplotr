@@ -128,8 +128,50 @@ roboplotr_modebar <- function(p, title, subtitle, height, width, dateformat) {
   )
 }
 
+#' @importFrom DT JS
+#' @importFrom fontawesome fa
+#' @importFrom stringr str_detect str_glue
+roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 
-#' Modebars in [roboplot()]
+  # xportoptionsiin pitää vielä lisätä otsikoinnit, optional infotekstit jne
+
+  xportoptions <- (function() {
+    the_cols <- seq(to = length(d)) - 1
+    list(columns = subset(the_cols,!the_cols %in% as.numeric(names(
+      attributes(d)$dt_orders
+    ))))
+  })()
+
+  modebar_buttons <- list(
+    "csv" = list(
+      filename = roboplotr_string2filename(title$title),
+      extend = 'csv',
+      text = fa("file-csv", height = "12pt"),
+      exportOptions = xportoptions
+
+    ),
+    "info" = list(
+      extend = "collection",
+      text = fa("circle-info", height = "12pt"),
+      # action = JS(str_glue("function(e, dt, node, config) {alert('{<info_text}');}", .open = "{<"))
+      action = JS(str_glue('function(e, dt, node, config) {$("#{<id}_infomodal").toggle();}', .open = "{<"))
+    ),
+    "robonomist" = list(
+      extend = "collection",
+      text = '<svg version="1.1" viewBox="0 0 71.447 32" style = "width: 12pt;padding-bottom: 2px" xmlns="http://www.w3.org/2000/svg"><path transform="scale(.31159)"  d="M 229.3 53.2 L 174.3 90.1 L 174.3 69.1 L 199.5 53.2 L 174.3 37.3 L 174.3 16.3 M112 0c14.2 0 23.3 1.8 30.7 7 6.3 4.4 10.3 10.8 10.3 20.5 0 11.3-6.4 22.8-22.3 26.5l18.4 32.5c5 8.7 7.7 9.7 12.5 9.7v6.5h-27.3l-23.7-45.8h-7v27.6c0 10.5 0.7 11.7 9.9 11.7v6.5h-43.2v-6.7c10.3 0 11.3-1.6 11.3-11.9v-65.7c0-10.2-1-11.7-11.3-11.7v-6.7zm-4.8 7.9c-3.3 0-3.6 1.5-3.6 8.6v32.3h6.4c15.8 0 20.2-8.7 20.2-21.3 0-6.3-1.7-11.5-5-15-2.9-3-7-4.6-13-4.6z M 0 53.2 L 55 16.3 L 55 37.3 L 29.8 53.2 L 55 69.1 L 55 90.1"/></svg>',
+      action = JS("function(e, dt, node, config) {window.open(\"https://robonomist.com\")  }")
+    ))
+
+  modebar_buttons[c(
+    "csv",
+    ifelse(!is.null(info_text),"info",""),
+    ifelse(str_detect(getOption("roboplot.logo"),"robonomist"),"","robonomist"))] |>
+    roboplotr_compact() |>
+    unname()
+}
+
+
+#' Png downloads in [roboplot()]
 #'
 #' Use in [set_roboplot_options()] to get a list used for [roboplot()] relayouts for downloaded image files when the appropriate modebar button is pressed
 #'

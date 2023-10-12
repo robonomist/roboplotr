@@ -39,7 +39,7 @@ roboplot(
 
 \item{color}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.}
 
-\item{title, subtitle}{Characters. Labels for plot elements.}
+\item{title, subtitle}{Characters. Labels for plot elements. Optionally, use \code{\link[=set_title]{set_title()}} for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.}
 
 \item{caption}{Function or character. Use \code{\link[=set_caption]{set_caption()}}.}
 
@@ -113,7 +113,7 @@ d1 |> roboplot(color = Alue,
 # Legend will automatically be omitted if only a single observation exists
 # for 'color' is unless legend_position is given (currently only "bottom"
 # works). Caption may be further specified with the helper function
-# roboplotr::set_caption (see documentation for mote control).
+# roboplotr::set_caption (see documentation for more control).
 d1 |>
   dplyr::filter(Alue == "Yhdistynyt kuningaskunta") |>
   roboplot(Alue,"Energian tuonti Yhdistyneest\uE4 kuningaskunnasta","Milj. \u20AC",
@@ -187,14 +187,7 @@ d3 |>
            glue::glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
            pattern = Suunta,
            plot_type = "bar",
-           caption = set_caption(text = "Tilastokeskus",
-                                          updated = TRUE,
-                                          .data = d1,
-                                          line.end = "!",
-                                          prepend = glue::glue(
-                                            "Tieto vuodelta {lubridate::year(max(d3$time))}"),
-                                          append = glue::glue(
-                                            "Toistan, vuonna {lubridate::year(max(d3$time))}")
+           caption = set_caption(text = "Tilastokeskus.\ņTieto vuodelta {lubridate::year(max(d3$time))}",
            ))
 
 # Plot axis can be controlled with roboplotr::set_axes (see

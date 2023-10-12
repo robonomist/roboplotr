@@ -31,7 +31,8 @@ Imports:
     methods,
     crayon,
     widgetframe,
-    DT
+    DT,
+    leaflet
 Suggests: 
     testthat (>= 3.0.0),
     glue,
@@ -43,6 +44,7 @@ Suggests:
     tidyverse
 Config/testthat/edition: 3
 Depends: 
+    sf,
     R (>= 2.10)
 LazyData: true
 VignetteBuilder: knitr

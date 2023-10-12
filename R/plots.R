@@ -197,7 +197,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' @param d Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric). Other columns could be specified instead with 'plot_axes', using [set_axes()].
 #' @param color Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
 #' @param pattern Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.
-#' @param title,subtitle Characters. Labels for plot elements.
+#' @param title,subtitle Characters. Labels for plot elements. Optionally, use [set_title()] for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.
 #' @param caption Function or character. Use [set_caption()].
 #' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.
 #' @param legend_title Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Use a character string if you want to provide your own legend title.
@@ -242,7 +242,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' # Legend will automatically be omitted if only a single observation exists
 #' # for 'color' is unless legend_position is given (currently only "bottom"
 #' # works). Caption may be further specified with the helper function
-#' # roboplotr::set_caption (see documentation for mote control).
+#' # roboplotr::set_caption (see documentation for more control).
 #' d1 |>
 #'   dplyr::filter(Alue == "Yhdistynyt kuningaskunta") |>
 #'   roboplot(Alue,"Energian tuonti Yhdistyneest\uE4 kuningaskunnasta","Milj. \u20AC",
@@ -316,14 +316,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'            glue::glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
 #'            pattern = Suunta,
 #'            plot_type = "bar",
-#'            caption = set_caption(text = "Tilastokeskus",
-#'                                           updated = TRUE,
-#'                                           .data = d1,
-#'                                           line.end = "!",
-#'                                           prepend = glue::glue(
-#'                                             "Tieto vuodelta {lubridate::year(max(d3$time))}"),
-#'                                           append = glue::glue(
-#'                                             "Toistan, vuonna {lubridate::year(max(d3$time))}")
+#'            caption = set_caption(text = "Tilastokeskus.\ņTieto vuodelta {lubridate::year(max(d3$time))}",
 #'            ))
 #'
 #' # Plot axis can be controlled with roboplotr::set_axes (see

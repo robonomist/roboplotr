@@ -88,11 +88,14 @@ roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = al
   }
 }
 
-#' @importFrom stringr str_c
-roboplotr_valid_colors <- function(colors_to_validate) {
+#' @importFrom stringr str_glue
+roboplotr_valid_colors <- function(colors_to_validate, message = NULL) {
   if(!is.null(colors_to_validate)) {
     if(!all(roboplotr_are_colors(unlist(colors_to_validate)))) {
-      stop (str_c("'",deparse(substitute(colors_to_validate)),"' must be hexadecimal colors or valid css colors!"), call. = F)
+      if(is.null(message)) {
+        message <- str_glue("'{deparse(substitute(colors_to_validate))'}")
+      }
+      stop (str_glue("{message} must be hexadecimal colors or valid css colors!"), call. = F)
     }
   }
 }

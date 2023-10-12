@@ -1,3 +1,7 @@
+# roboplotr 1.3.0
+
+* Initialized robomap, automated leaflet map creation. Robotable modebar and heatmap across numeric columns.
+
 # roboplotr 1.2.6
 
 * Robotable infobutton initial code, css fixes. Title omission possible for robotable.
@@ -33,7 +37,7 @@
 
 * Documentation fixes for plot caption and roboplot options.
 
-# roboplotr 1.1.0
+# roboplotr 1.1.0 
 
 * Added the possibility of using log scale on numeric axes.
 

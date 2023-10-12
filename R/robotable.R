@@ -124,13 +124,11 @@ roboplotr_set_specific_css <-
 
 #' @importFrom stringr str_glue
 roboplotr_set_robotable_css <-
-  function(
-    id = "robotable-id",
-    font = getOption("roboplot.font.main"),
-    title_font = getOption("roboplot.font.title"),
-    caption_font = getOption("roboplot.font.caption"),
-    title = ""
-  ) {
+  function(id = "robotable-id",
+           font = getOption("roboplot.font.main"),
+           title_font = getOption("roboplot.font.title"),
+           caption_font = getOption("roboplot.font.caption"),
+           title = "") {
     str_c(
       roboplotr_set_specific_css(
         str_glue('#{id}_wrapper .dt-buttons .dt-button span svg path'),
@@ -144,7 +142,8 @@ roboplotr_set_robotable_css <-
         'right' = '0px',
         'z-index' = '2'
       ),
-      if(str_length(title) == 0 & getOption("roboplot.shinyapp")$shinyapp == F) {
+      if (str_length(title) == 0 &
+          getOption("roboplot.shinyapp")$shinyapp == F) {
         roboplotr_set_specific_css(str_glue('#{id}_wrapper'),
                                    'padding-top' = '18px')
       } else {
@@ -186,16 +185,16 @@ roboplotr_set_robotable_css <-
         "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
       ),
       roboplotr_set_specific_css(
-        str_glue("#{id}_wrapper .dataTables_scrollHead, #{id}_wrapper .thead"),
+        str_glue(
+          "#{id}_wrapper .dataTables_scrollHead, #{id}_wrapper .thead, #{id}_wrapper thead"
+        ),
         'background-color' = getOption('roboplot.colors.background'),
         'font-size' = str_glue('{font$size+2}px'),
         'font-family' = font$family,
         'color' = font$color
       ),
       roboplotr_set_specific_css(
-        str_glue(
-          '#{id}_length,#{id}_filter,#{id}_filter input'
-        ),
+        str_glue('#{id}_length,#{id}_filter,#{id}_filter input'),
         'background-color' = getOption('roboplot.colors.background'),
         'font-size' = str_glue('{font$size+2}px'),
         'font-family' = font$family,
@@ -255,14 +254,14 @@ roboplotr_set_robotable_css <-
       ),
       roboplotr_set_specific_css(
         str_glue("#{id}_length label"),
-        "font-weight" = "normal", "padding-top" = "2px"
+        "font-weight" = "normal",
+        "padding-top" = "2px"
       ),
-      roboplotr_set_specific_css(
-        str_glue("#{id}_filter label"),
-        "font-weight" = "normal"
-      )
+      roboplotr_set_specific_css(str_glue("#{id}_filter label"),
+                                 "font-weight" = "normal")
       ,
-      collapse = "\n")
+      collapse = "\n"
+    )
   }
 
 #' @importFrom DT formatStyle
@@ -279,23 +278,66 @@ roboplotr_set_robotable_fonts <-
     )
   }
 
+#' Automated datatable tables.
+#'
+#' Wrapper for [DT::datatable] for shorthand declaration of many layout arguments.
+#' Automates many formatting options.
+#'
+#' @param d Data frame. Data to be created a table from.
+#' @param title,subtitle Characters. Labels for plot elements. Optionally, use [set_title()] for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.
+#' @param caption Function or character. Use [set_caption()].
+#' @param height,width Double. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.
+#' @param flag,unit Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.
+#' @param rounding Double. Controls the rounding of numeric columns.
+#' @param pagelength Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, [robotable()] automatically adds navigation.
+#' @param info_text Double. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.
+#' @param heatmap Function. Use [set_heatmap()]. Displays any numeric values as a heatmap.
+#' @return A list of classes "datatable" and "htmlwidget"
 #' @importFrom DT datatable tableFooter tableHeader
 #' @importFrom htmltools HTML tags withTags
 #' @importFrom stringr str_glue str_remove_all str_split str_width
 #' @export
+#' @examples
+#' # You can use roboplotr::robotable() to create html tables
+#' #
+#' energiantuonti |> robotable()
+#' #
+#' # No matter if you have any number date, character or numeric columns, robotable()
+#' # handles the formatting automatically.
+#' #
+#' d <- energiantuonti |>
+#'   dplyr::filter(Alue %in% c("Ruotsi","Kanada")) |>
+#'   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
+#'   dplyr::arrange(Tiedot, time) |>
+#'   tidyr::pivot_wider(names_from = Tiedot) |>
+#'   dplyr::mutate(dplyr::across(where(is.numeric), ~ tidyr::replace_na(.x, 0))) |>
+#'   dplyr::arrange(time)
+#
+#' d |> robotable()
+#' #
+#' # You can use the pagelength parameter to control how many rows are shown at once,
+#' # info_text to add any information you wish describe about the table, and
+#' # heatmap parameter if you want to color-code any numeric values across the
+#' # table. See [set_heatmap()] documentation for further examples.
+#' #
+#' d |>
+#'  robotable(heatmap = set_heatmap(),
+#'            pagelength = 50,
+#'            info_text = "Testing the info button.")
+#'
 robotable <-
   function(d,
            title = NULL,
            subtitle = "",
-           caption,
+           caption = NULL,
            rounding = 1,
            width = getOption("roboplot.width"),
            height = NULL,
            flag = "",
            unit = "",
-           info_text = NULL
-           ) {
-
+           pagelength = 10,
+           info_text = NULL,
+           heatmap = NULL) {
     if (is.null(title)) {
       title <- attributes(d)[c("title", "robonomist_title")]
       if (!is.null(title$robonomist_title)) {
@@ -311,39 +353,46 @@ robotable <-
     } else if (is.character(title)) {
       title <- set_title(title = title, include = T)
     } else {
-      roboplotr_check_param(title, c("character,","function"), NULL,  f.name = list(fun = substitute(title)[1], check = "set_title"))
+      roboplotr_check_param(
+        title,
+        c("character,", "function"),
+        NULL,
+        f.name = list(fun = substitute(title)[1], check = "set_title")
+      )
     }
 
+    roboplotr_check_param(
+      caption,
+      c("character", "function"),
+      size = 1,
+      f.name = list(fun = substitute(caption)[1], check = "set_caption")
+    )
+
+    if (!is.null(caption)) {
+      if (!is(substitute(caption)[1], "call")) {
+        caption <- set_caption(text = caption)
+      }
+    } else {
+      cpt <- attributes(d)$source
+      if (length(cpt) == 1) {
+        roboplotr_message("Using the attribute \"source\" for plot caption.")
+        caption <- set_caption(text = unlist(cpt)[1])
+      } else if (!is.null(cpt[[getOption("roboplot.locale")$locale]])) {
+        roboplotr_message("Using the attribute \"source\" as plot caption.")
+        caption <-
+          set_caption(text = cpt[[getOption("roboplot.locale")$locale]][1])
+      } else {
+        roboplotr_alert("Missing the caption, using placeholder.")
+        caption <- set_caption(text = "PLACEHOLDER")
+      }
+    }
+
+    roboplotr_check_param(heatmap,
+                          c("function"),
+                          NULL,
+                          f.name = list(fun = substitute(heatmap)[1], check = "set_heatmap"))
+
     d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit)
-
-    # d <- setNames(d, txt_hyphenate(names(d)))
-    # joku tässä ei nyt täsmää leveyden määrittelyssä
-    # col_widths <- map2(d, names(d), ~ {
-    #   if (any(is.na(.x))) {
-    #     # roboplotr:::roboplotr_alert(
-    #     #   str_glue(
-    #     #     "Some NA values exist in column {.y}! This might cause issues with fitting the column widths. You might want to consider replacing them with \" \" or NA-strings."
-    #     #   )
-    #     # )
-    #   }
-    #   if(str_detect(.y, "^\\.order")) { 0 } else {
-    #     c(unlist(str_split(.y, " |\\&shy;|-")), unlist(str_split(
-    #       str_remove_all(.x, "\\<[^\\<]*\\>"),
-    #       "(?<![0-9]) (?![0-9])"
-    #     ))) |> str_width() |> max()
-    #   }
-    # }) |> unlist()
-    #
-    # col_widths <- round(col_widths / sum(col_widths) * 100)
-
-    # tämä skulaa osittain autowidthin kanssa, mutta ei nyt tee mitään,
-    # autowidth pitää fiksata
-    # width_defs <-
-    #   lapply(names(col_widths), function(name, widths) {
-    #     list(targets = which(names(widths) == name) - 1,
-    #          # Convert 1-based R index to 0-based JavaScript index
-    #          width = str_c(widths[[name]], "%"))
-    #   }, widths = col_widths)
 
     order_defs <-
       map2(
@@ -359,37 +408,66 @@ robotable <-
     # column_defs <- append(width_defs, order_defs)
     column_defs <- order_defs
 
-    .footer <-
-      str_glue(getOption("roboplot.caption.template"), text = caption)
+    .footer <- caption
 
     .bold <-
       ifelse(getOption("roboplot.font.title")$bold, tags$b, tags$span)
 
-    robotable_id <- str_c("robotable-",str_remove(runif(1),"\\."))
+    robotable_id <- str_c("robotable-", str_remove(runif(1), "\\."))
 
-    if(!is.null(info_text)) {
+    if (!is.null(info_text)) {
+      jsCode <-  str_glue(
+        "$(document).ready(function() {
+        $('#{<robotable_id}_infomodal-close').on('click', function() {
+          $('#{<robotable_id}_infomodal').hide();
+        });
+      });
+      ",
+        .open = "{<"
+      )
       main_font <- getOption("roboplot.font.main")
       title_font <- getOption("roboplot.font.title")
+      modal_color <- getOption('roboplot.trace.border')$color
       modal_html <- tags$div(
+        tags$script(HTML(jsCode)),
         id = str_glue("{robotable_id}_infomodal"),
         style = "display: none; position: absolute; top: 20px; left: 5px; width: 50%;",
-        tags$div(style = str_glue(
-                   "position: absolute;
+        tags$div(
+          style = str_glue(
+            "position: absolute;
                z-index: 9999;
-               background-color: {getOption('roboplot.trace.border')$color};
+               background-color: {modal_color};
+               color: {roboplotr_text_color_picker(modal_color)};
                padding: 5px;
                border: 1px solid {getOption('roboplot.border')[c('xcolor','ycolor')] |> unique() |> unlist() |> first()};
-               box-shadow: 0 4px 8px {getOption('roboplot.trace.border')$color};"),
-                 .bold(title$title,tags$br(),tags$span(subtitle, style = "font-size: 75%"),
-                       style = str_glue("font-family: {title_font$family};font-size: {title_font$size}px; color: {main_font$color};")
-                       ),
-                 tags$span(
-                   style = str_glue("font-family: {main_font$family}; font-size: {main_font$size}px; color: {main_font$color};"),
-                   tags$p(info_text),
-                   tags$p(str_glue(getOption("roboplot.caption.template"), text = caption))
+               box-shadow: 0 4px 8px {modal_color};"
+          ),
+          tags$span(
+            id = str_glue("{robotable_id}_infomodal-close"),
+            fa(
+              "times-circle",
+              fill = main_font$color,
+              height = str_glue("{title_font$size}px")
+            ),
+            style = "top: 5px; right: 10px; font-size: 24px; cursor: pointer; float: right;"
+          ),
+          .bold(
+            title$title,
+            tags$br(),
+            tags$span(subtitle, style = "font-size: 75%"),
+            style = str_glue(
+              "font-family: {title_font$family};font-size: {title_font$size}px;"
+            )
+          ),
+          tags$span(
+            style = str_glue(
+              "font-family: {main_font$family}; font-size: {main_font$size}px;"
+            ),
+            tags$p(info_text),
+            tags$p(caption)
 
-                 )
-                 )
+          )
+        )
       )
     } else {
       modal_html <- NULL
@@ -404,70 +482,41 @@ robotable <-
     }
 
     sketch <-
-      tagList(
-        tags$div(class = "robotable-container", style = "position: relative",
-          tags$table(
-            tags$style(roboplotr_set_robotable_css(robotable_id)),
-            id = robotable_id,
-            modal_html,
-            tags$caption(
-              id = str_glue("{robotable_id}_title"),
-              if(title$include == T) tags$span(.bold(title$title)) else {NULL},
-              subtitle
+      tagList(tags$div(
+        class = "robotable-container",
+        style = "position: relative",
+        tags$table(
+          tags$style(roboplotr_set_robotable_css(robotable_id)),
+          id = robotable_id,
+          modal_html,
+          tags$caption(
+            id = str_glue("{robotable_id}_title"),
+            if (title$include == T)
+              tags$span(.bold(title$title))
+            else {
+              NULL
+            },
+            subtitle
+          ),
+          tags$thead(tags$tr(
+            map(names(d), ~ HTML(.x)) |> map(tags$th) |> tagList()
+          )),
+          tags$tfoot(tags$tr(
+            tags$th(
+              #style = "vertical-align: top",
+              id = str_glue("{robotable_id}_footer"),
+              colspan = names(d) |> stringr::str_subset("^.order", negate = T) |> length(),
+              tags$span(.footer),
+              robotable_logo()
             ),
-            tags$thead(tags$tr(
-              map(names(d), ~ HTML(.x)) |> map(tags$th) |> tagList()
-            )),
-            tags$tfoot(tags$tr(
-              tags$th(
-                #style = "vertical-align: top",
-                id = str_glue("{robotable_id}_footer"),
-                colspan = names(d) |> stringr::str_subset("^.order", negate = T) |> length(),
-                tags$span(.footer),
-                robotable_logo()
-              ),
-            ))
-          )
-        ))
+          ))
+        )
+      ))
 
-    xportoptions <- (function() {
-      the_cols <- seq(to = length(d)) - 1
-      list(columns = subset(the_cols,!the_cols %in% as.numeric(names(
-        attributes(d)$dt_orders
-      ))))
-    })()
-    # names(d |> select(where(is.numeric))) # tässä alkua columnien uudelleennimeämiselle.. pitäisi valita numeric
-    # columnit csv:tä muodostaessa, ja antaa lukumuotoiltujen sarakkeiden nimet näille
+    robotable_buttons <-
+      roboplotr_robotable_modebar(d, robotable_id, title, info_text)
 
-
-    modebar_buttons <- list(
-      "csv" = list(
-        filename = roboplotr_string2filename(title$title),
-        extend = 'csv',
-        text = fa("file-csv", height = "12pt"),
-        exportOptions = xportoptions
-
-      ),
-    "info" = list(
-      extend = "collection",
-      text = fa("circle-info", height = "12pt"),
-      # action = JS(str_glue("function(e, dt, node, config) {alert('{<info_text}');}", .open = "{<"))
-      action = JS(str_glue('function(e, dt, node, config) {$("#{<robotable_id}_infomodal").toggle();}', .open = "{<"))
-    ),
-    "robonomist" = list(
-      extend = "collection",
-      text = '<svg version="1.1" viewBox="0 0 71.447 32" width = "12pt" xmlns="http://www.w3.org/2000/svg"><path transform="scale(.31159)"  d="M 229.3 53.2 L 174.3 90.1 L 174.3 69.1 L 199.5 53.2 L 174.3 37.3 L 174.3 16.3 M112 0c14.2 0 23.3 1.8 30.7 7 6.3 4.4 10.3 10.8 10.3 20.5 0 11.3-6.4 22.8-22.3 26.5l18.4 32.5c5 8.7 7.7 9.7 12.5 9.7v6.5h-27.3l-23.7-45.8h-7v27.6c0 10.5 0.7 11.7 9.9 11.7v6.5h-43.2v-6.7c10.3 0 11.3-1.6 11.3-11.9v-65.7c0-10.2-1-11.7-11.3-11.7v-6.7zm-4.8 7.9c-3.3 0-3.6 1.5-3.6 8.6v32.3h6.4c15.8 0 20.2-8.7 20.2-21.3 0-6.3-1.7-11.5-5-15-2.9-3-7-4.6-13-4.6z M 0 53.2 L 55 16.3 L 55 37.3 L 29.8 53.2 L 55 69.1 L 55 90.1"/></svg>',
-      action = JS("function(e, dt, node, config) {window.open(\"https://robonomist.com\")  }")
-    ))
-
-    modebar_buttons <- modebar_buttons[c(
-      "csv",
-      ifelse(!is.null(info_text),"info",""),
-      ifelse(str_detect(getOption("roboplot.logo"),"robonomist"),"","robonomist"))] |>
-      roboplotr_compact() |>
-      unname()
-
-    d |>
+    dt <- d |>
       datatable(
         width = width,
         height = height,
@@ -476,19 +525,17 @@ robotable <-
         escape = F,
         extensions = "Buttons",
         options = list(
-          # tämä pitää speksata TRUE, että column width manuaalinen määritys toimii,
-          # mutta otsikkorivin asettelussa menee jotain pieleen
-          # autoWidth = TRUE,
           columnDefs = column_defs,
-          #tämä ei shinyn kanssa toimi oikein?
-          # fillContainer = T,
-          # initComplete = roboplotr_set_robotable_css(title = title),
           language = set_robotable_labels(),
-          dom = ifelse(nrow(d) > 10, "Btiprlf", "Bt"),
-          buttons = modebar_buttons
+          pageLength = pagelength,
+          dom = ifelse(nrow(d) > pagelength, "Btiprlf", "Bt"),
+          buttons = robotable_buttons
         )
       ) |>
       roboplotr_set_robotable_fonts(seq(ncol(d)))
 
+    dt <- roboplotr_heatmap(d, dt, heatmap)
+
+    dt
 
   }

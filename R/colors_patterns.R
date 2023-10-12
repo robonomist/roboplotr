@@ -306,3 +306,142 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
 
 }
 
+#' @importFrom grDevices colorRamp rgb
+#' @importFrom purrr map_chr
+roboplotr_heatmap_colorfun <- function(d, cols = NULL,
+                              hmin = first(getOption("roboplot.colors.traces")),
+                              hmid = getOption("roboplot.colors.background"),
+                              hmax = last(getOption("roboplot.colors.traces"))) {
+
+  if(is.null(cols)) {
+    numeric_columns <- d |> select(where(is.numeric))
+  } else {
+    numeric_columns <- d |> select(any_of(cols)) |> select(where(is.numeric))
+  }
+  vals <- numeric_columns |> unlist()
+
+  if(is.numeric(hmin)) {
+    anchor_min <- hmin
+  } else {
+    anchor_min <- min(vals, na.rm = T) |> setNames(hmin)
+  }
+
+  if(is.numeric(hmax)) {
+    anchor_max <- hmax
+  } else {
+    anchor_max <- max(vals, na.rm = T) |> setNames(hmax)
+  }
+
+  if(is.numeric(hmid)) {
+    anchor_mid <- hmid
+  } else {
+    anchor_mid <- mean(c(anchor_min, anchor_max), na.rm = T) |> setNames(hmid)
+  }
+
+  if(any(anchor_mid >= anchor_max, anchor_min >= anchor_mid)) {
+    stop("Heatmap ranges are not usable! Ensure 'minvalue' is smaller than 'midvalue', and 'maxvalue' is larger than 'midvalue'!", call. = F)
+  }
+
+  .color_mapping <- function(values) {
+    map_chr(values, function(value) {
+      if(value < anchor_min) {
+        names(anchor_min)
+      } else if (value > anchor_max) {
+        names(anchor_max)
+      } else if (value <= anchor_mid) {
+        col <- colorRamp(names(c(anchor_min, anchor_mid)))( (value - anchor_min) / (anchor_mid - anchor_min) )
+        rgb(col[, 1L], col[, 2L], col[, 3L], maxColorValue = 255)
+      } else {
+        col <- colorRamp(names(c(anchor_mid, anchor_max)))( (value - anchor_mid) / (anchor_max - anchor_mid) )
+        rgb(col[, 1L], col[, 2L], col[, 3L], maxColorValue = 255)
+      }
+
+    })
+  }
+  .color_mapping
+}
+
+#' interal function for adding heatmap styling [roboplotr::robotable]
+#' @importFrom DT formatStyle styleEqual
+roboplotr_heatmap <- function(d, dt, heatmap) {
+
+  if(is.null(heatmap)) {
+    dt
+  } else {
+
+    heatmap_fun <- roboplotr_heatmap_colorfun(d,hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max)
+
+    .orders <- attributes(d)$dt_orders
+
+    for(col in seq_len(length(.orders))) {
+      order_col <- (.orders[col] |> names() |> as.numeric()) + 1
+      col <- as.numeric(.orders[col])+1
+      color_bg <- heatmap_fun(d[[order_col]])
+      color_tx <- roboplotr_text_color_picker(color_bg)
+      dt <- dt |> formatStyle(
+        col,
+        backgroundColor = styleEqual(d[[col]], color_bg),
+        color = styleEqual(d[[col]], color_tx)
+      )
+    }
+
+    dt
+  }
+
+}
+
+#' Heatmap specifications for [robotable()]
+#'
+#' Use in [robotable()] parameter 'heatmap' to get a list used for setting the title.
+#'
+#' @param maxcolor,midcolor,mincolor Characters. Colors used hor heatmap color range. Must be a hexadecimal color strings or a valid css color strings.
+#' @param maxvalue,midvalue,minvalue Numerics. Optional. Numeric breakpoints where the 'maxcolor', 'midcolor' and 'mincolor' colors are set at.
+#' Any values falling outside of this range will have the nearest corresponding color. If not provided, [robotable()] calculates the values from the data.
+#' Currently only support heatmaps across all numeric columns in the [robotable()].
+#' @examples
+#' # Use [set_heatmap()] to specify any the colors are value breaks used in heatmaps.
+#' d <- energiantuonti |>
+#'   dplyr::filter(Alue %in% c("Ruotsi","Kanada")) |>
+#'   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
+#'   dplyr::arrange(Tiedot, time) |>
+#'   tidyr::pivot_wider(names_from = Tiedot) |>
+#'   dplyr::mutate(dplyr::across(where(is.numeric), ~ tidyr::replace_na(.x, 0))) |>
+#'   dplyr::arrange(time)
+#' # No specifications uses the ends of the default trace colors set with
+#' [set_roboplot_options()] and bases the numeric breakpoints on the data.
+#'
+#' d |> robotable(heatmap = set_heatmap())
+#' #You can specify any of the parameters separately, and [robotable()] fills in the rest.
+#' d |>
+#'   robotable(heatmap = set_heatmap(
+#'     midcolor = "white",
+#'     mincolor = "lightblue",
+#'     midvalue = 75
+#'   ))
+
+#' @returns A list
+#' @importFrom stats setNames
+#' @export
+set_heatmap <-
+  function(maxcolor = last(getOption("roboplot.colors.traces")),
+           midcolor = getOption("roboplot.colors.background"),
+           mincolor = first(getOption("roboplot.colors.traces")),
+           maxvalue = NULL,
+           midvalue = NULL,
+           minvalue = NULL) {
+
+    roboplotr_check_param(maxcolor, "character", allow_null = F)
+    roboplotr_check_param(midcolor, "character", allow_null = F)
+    roboplotr_check_param(mincolor, "character", allow_null = F)
+    roboplotr:::roboplotr_valid_colors(c(maxcolor, midcolor, mincolor),"Any colors set with set_heatmap()")
+    roboplotr_check_param(maxvalue, "numeric", allow_null = T)
+    roboplotr_check_param(midvalue, "numeric", allow_null = T)
+    roboplotr_check_param(minvalue, "numeric", allow_null = T)
+
+    min <- if(is.null(minvalue)) {mincolor} else {setNames(minvalue, mincolor)}
+    mid <- if(is.null(midvalue)) {midcolor} else {setNames(midvalue, midcolor)}
+    max <- if(is.null(maxvalue)) {maxcolor} else {setNames(maxvalue, maxcolor)}
+
+    list(min = min, mid = mid, max = max)
+
+  }

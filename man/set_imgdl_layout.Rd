@@ -2,7 +2,7 @@
 % Please edit documentation in R/modebar.R
 \name{set_imgdl_layout}
 \alias{set_imgdl_layout}
-\title{Modebars in \code{\link[=roboplot]{roboplot()}}}
+\title{Png downloads in \code{\link[=roboplot]{roboplot()}}}
 \usage{
 set_imgdl_layout(
   width = 1280,
