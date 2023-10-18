@@ -28,7 +28,6 @@ roboplotr_check_valid_var <- function(var,names) {
 
 #' @importFrom methods is
 #' @importFrom purrr map_lgl
-#' @importFrom rlang as_string
 #' @importFrom stringr str_c str_replace str_remove
 roboplotr_check_param <- function(var, type, size = 1, allow_null = T, allow_na = F, f.name = NULL, extra = NULL) {
 
@@ -80,10 +79,13 @@ roboplotr_check_param <- function(var, type, size = 1, allow_null = T, allow_na 
 }
 
 #' @importFrom stringr str_c
-roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = all) {
+roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = all, msg = NULL) {
   if(!is.null(strings_to_validate)) {
     if(!.fun(valid_values %in% strings_to_validate)) {
-      stop (str_c("'",deparse(substitute(strings_to_validate)),"' must be among ",roboplotr_combine_words(str_replace_all(valid_values,"\\\\", "\\\\\\\\")),"!"), call. = F)
+      if(is.null(msg)) {
+        msg <- str_glue("'{deparse(substitute(strings_to_validate))}'")
+      }
+      stop (str_c(msg," must be among ",roboplotr_combine_words(str_replace_all(valid_values,"\\\\", "\\\\\\\\")),"!"), call. = F)
     }
   }
 }

@@ -17,6 +17,7 @@ roboplot(
   zeroline = F,
   rangeslider = FALSE,
   pattern = NULL,
+  pattern_types = NULL,
   line_width = getOption("roboplot.linewidth"),
   hovertext = NULL,
   plot_type = "scatter",
@@ -57,6 +58,8 @@ Will not currently work with multiple patterns.}
 \item{rangeslider}{Logical or character in \%Y-\%m-\%d format. Determines rangeslider inclusion. TRUE includes the rangeslider, a character string includes the rangeslider with the given date as a start date.}
 
 \item{pattern}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.}
+
+\item{pattern_types}{Character vector, named. Pattern types for all traces. See \code{\link[=set_roboplot_options]{set_roboplot_options()}} parameter 'dashtypes' and 'patterns' for options, or use ".other" if all traces are of the same 'plot_type'.}
 
 \item{line_width}{Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.}
 

@@ -16,7 +16,8 @@ robotable(
   unit = "",
   pagelength = 10,
   info_text = NULL,
-  heatmap = NULL
+  heatmap = NULL,
+  na_value = ""
 )
 }
 \arguments{

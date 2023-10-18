@@ -3,7 +3,6 @@
   op.roboplot.options <- list(
     roboplot.accessible = F,
     roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, artefacts = "html"),
-    # roboplot.caption = list(prefix = "L\uE4hde: ", lineend = ".", updated = FALSE),
     roboplot.border = list(xcolor = "black", ycolor = "black", xmirror = TRUE, ymirror = TRUE, xwidth = 1, ywidth = 1),
     roboplot.caption.template = "Lähde: {text}.",
     roboplot.colors.background = "white",
@@ -36,6 +35,9 @@
     toset <- !(names(op.roboplot.options) %in% names(op))
     if(any(toset)) options(op.roboplot.options[toset])
   }
+
+  # for the sample dataset "vaesto_postinumeroittain"
+  requireNamespace("sf", quietly = TRUE)
 
   invisible()
 }

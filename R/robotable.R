@@ -38,20 +38,24 @@ roboplotr_format_robotable_date <- function(date_col, dateformat) {
   }
 }
 
+#' @importFrom dplyr if_else
 #' @importFrom stringr str_glue
 roboplotr_format_robotable_numeric <-
   function(num,
            rounding,
            flag = "",
-           unit = "") {
-    str_glue(
-      '{formatC(round(as.numeric(num), rounding),big.mark = " ", decimal.mark = ",", format = "fg", flag = flag)}{unit}'
-    )
+           unit = "",
+           na_value = ""
+           ) {
+      dplyr::if_else(is.na(num), na_value,
+              str_glue(
+                '{formatC(round(num, rounding),big.mark = " ", decimal.mark = ",", format = "fg", flag = flag)}{unit}'
+              ))
   }
 
 #' @importFrom dplyr across bind_cols cur_column mutate rename_with
 roboplotr_robotable_cellformat <-
-  function(d, rounding, flag, unit) {
+  function(d, rounding, flag, unit, na_value) {
     if (!is.null(names(unit))) {
       if (!all(names(d) %in% c(names(unit))) &
           !".default" %in% names(unit)) {
@@ -88,7 +92,7 @@ roboplotr_robotable_cellformat <-
     d <- d |>
       mutate(across(
         where(is.numeric),
-        ~ roboplotr_format_robotable_numeric(., rounding, flag[[cur_column()]], unit[[cur_column()]])
+        ~ roboplotr_format_robotable_numeric(., rounding, flag[[cur_column()]], unit[[cur_column()]], na_value)
       )) |>
       bind_cols(order_cols)
 
@@ -337,7 +341,9 @@ robotable <-
            unit = "",
            pagelength = 10,
            info_text = NULL,
-           heatmap = NULL) {
+           heatmap = NULL,
+           na_value = ""
+           ) {
     if (is.null(title)) {
       title <- attributes(d)[c("title", "robonomist_title")]
       if (!is.null(title$robonomist_title)) {
@@ -392,7 +398,7 @@ robotable <-
                           NULL,
                           f.name = list(fun = substitute(heatmap)[1], check = "set_heatmap"))
 
-    d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit)
+    d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value)
 
     order_defs <-
       map2(

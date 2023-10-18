@@ -1,3 +1,7 @@
+# roboplotr 1.3.1
+
+* Added experimental plot-specific pattern control. NA-control for numerics in robotable. Robomap visualization improvements.
+
 # roboplotr 1.3.0
 
 * Initialized robomap, automated leaflet map creation. Robotable modebar and heatmap across numeric columns.

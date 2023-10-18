@@ -214,6 +214,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' You can give a single unnamed 'plot_mode' which is used as applicable, or name-value pairs, where names are items from parameter 'd' column described by parameter 'color', and values applicable plot modes listed above.
 #' @param plot_axes Function. Function. Use [set_axes()].
 #' @param trace_color Character vector, named if length > 1. Trace colors for all traces. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
+#' @param pattern_types Character vector, named. Pattern types for all traces. See [set_roboplot_options()] parameter 'dashtypes' and 'patterns' for options, or use ".other" if all traces are of the same 'plot_type'.
 #' @param line_width Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.
 #' @param height,width Double. Height and width of the plot. Default width is NULL for responsive plots, give a value for static plot width.
 #' @param facet_split Currently unused. Variable from argument 'd' to use for facet splits.
@@ -466,6 +467,7 @@ roboplot <- function(d,
                      zeroline = F,
                      rangeslider = FALSE,
                      pattern = NULL,
+                     pattern_types = NULL,
                      line_width = getOption("roboplot.linewidth"),
                      hovertext = NULL,
                      plot_type = "scatter",
@@ -831,7 +833,7 @@ roboplot <- function(d,
 
 
   d <-
-    d |> roboplotr_get_pattern(pattern) |> mutate(roboplot.trace.color = color_vector[!!color])
+    d |> roboplotr_get_pattern(pattern, pattern_types) |> mutate(roboplot.trace.color = color_vector[!!color])
 
   if (is.null(legend_position) &
       length(unique_groups) < 2) {

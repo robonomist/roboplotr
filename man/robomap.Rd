@@ -9,7 +9,9 @@ robomap(
   area,
   title = NULL,
   caption = NULL,
-  hovertemplate = list(flag = "", unit = "")
+  hovertemplate = list(flag = "", unit = ""),
+  map_opacity = 0.7,
+  map_colors = getOption("roboplot.colors.traces")
 )
 }
 \arguments{
@@ -18,6 +20,10 @@ robomap(
 \item{area}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use to identify the areas described by the map. This must be of class sfc_MULTIPOLYGON.}
 
 \item{title, subtitle}{Characters. Labels for plot elements. Optionally, use \code{\link[=set_title]{set_title()}} for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.}
+
+\item{map_opacity}{Double. Value from 0 to 1, defining how opaque the underlying map tiles are. 0 removes the map layer.}
+
+\item{map_colors}{Character vector. Colors used for map tiles, from highest to lowest values. \code{\link[=robomap]{robomap()}} will extrapolate as many colors as necessary. Must be a hexadecimal color strings or a valid css color strings.}
 }
 \value{
 A list of classes "leaflet" and "htmlwidget"
