@@ -47,7 +47,7 @@ roboplotr_format_robotable_numeric <-
            unit = "",
            na_value = ""
            ) {
-      dplyr::if_else(is.na(num), na_value,
+    dplyr::if_else(is.na(num), na_value,
               str_glue(
                 '{formatC(round(num, rounding),big.mark = " ", decimal.mark = ",", format = "fg", flag = flag)}{unit}'
               ))
@@ -540,7 +540,7 @@ robotable <-
       ) |>
       roboplotr_set_robotable_fonts(seq(ncol(d)))
 
-    dt <- roboplotr_heatmap(d, dt, heatmap)
+    dt <- roboplotr_tbl_heatmap(d, dt, heatmap)
 
     dt
 

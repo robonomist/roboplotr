@@ -1,6 +1,10 @@
+# roboplotr 1.3.2
+
+* Initial work for robotable data contour maps. This provides a smoother transition and helps in visualizing general trends across regions.
+
 # roboplotr 1.3.1
 
-* Added experimental plot-specific pattern control. NA-control for numerics in robotable. Robomap visualization improvements.
+* Added plot-specific pattern control. NA-control for numerics in robotable. Robomap visualization improvements.
 
 # roboplotr 1.3.0
 

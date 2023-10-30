@@ -57,9 +57,12 @@ roboplotr_check_param <- function(var, type, size = 1, allow_null = T, allow_na 
     } else { length <- ""}
 
     if(!is.null(f.name) & !is.null(var)) {
-      type.ok <- all(any(map_lgl(type, ~ is(f.name$var, .x))), any(str_detect(as.character(f.name$fun),f.name$check)))
+      proper.fun <- any(str_detect(as.character(f.name$fun),f.name$check))
+      if(proper.fun) {length.ok <- T}
+      type.ok <- all(any(map_lgl(type, ~ is(f.name$var, .x))), proper.fun)
       if(!all(type %in% "OptionalFunction")) {
         type.ok <- any(type.ok, any(map_lgl(type, ~ is(var, .x))))
+      } else {
       }
     } else {
         if(!"any type" %in% type) {
@@ -72,7 +75,7 @@ roboplotr_check_param <- function(var, type, size = 1, allow_null = T, allow_na 
       type <- str_replace(type, "OptionalFunction","function")
       err <- substitute(var) |> as.character() |> first()
       final.string <- ifelse(!is.null(f.name), str_c(" call of ",f.name$check,"()"), length)
-      type <- ifelse(length(type) == 1, type, str_c(" either ",roboplotr_combine_words(type, and = " or ")))
+      type <- ifelse(length(type) == 1, type, str_c(" either ",ifelse(!is.null(f.name), str_glue("{length} "),""),roboplotr_combine_words(type, and = ", or ")))
       stop(paste0(extra,"'",err,"' must be a ",type,final.string,itemnames,allow.null,"."), call. = F)
     }
   }
@@ -95,7 +98,7 @@ roboplotr_valid_colors <- function(colors_to_validate, message = NULL) {
   if(!is.null(colors_to_validate)) {
     if(!all(roboplotr_are_colors(unlist(colors_to_validate)))) {
       if(is.null(message)) {
-        message <- str_glue("'{deparse(substitute(colors_to_validate))'}")
+        message <- str_glue("\'{deparse(substitute(colors_to_validate))}\'")
       }
       stop (str_glue("{message} must be hexadecimal colors or valid css colors!"), call. = F)
     }

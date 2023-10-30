@@ -8,10 +8,18 @@ robomap(
   d,
   area,
   title = NULL,
+  subtitle = "",
   caption = NULL,
-  hovertemplate = list(flag = "", unit = ""),
-  map_opacity = 0.7,
-  map_colors = getOption("roboplot.colors.traces")
+  hovertext = list(flag = "", unit = ""),
+  map_opacity = 0.9,
+  tile_opacity = 0.7,
+  map_palette = NULL,
+  border_width = getOption("roboplot.trace.border")$width,
+  legend_cap = 5,
+  data_contour = F,
+  markers = F,
+  log_colors = NULL,
+  rounding = 1
 )
 }
 \arguments{
@@ -21,9 +29,24 @@ robomap(
 
 \item{title, subtitle}{Characters. Labels for plot elements. Optionally, use \code{\link[=set_title]{set_title()}} for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.}
 
-\item{map_opacity}{Double. Value from 0 to 1, defining how opaque the underlying map tiles are. 0 removes the map layer.}
+\item{caption}{Function or character. Use a string, or \code{\link[=set_caption]{set_caption()}}.}
 
-\item{map_colors}{Character vector. Colors used for map tiles, from highest to lowest values. \code{\link[=robomap]{robomap()}} will extrapolate as many colors as necessary. Must be a hexadecimal color strings or a valid css color strings.}
+\item{hovertext}{List. Use a list with named items flag and unit.}
+
+\item{tile_opacity}{Double. Use a value between 0 and 1 to set the opacity of the map tiles under the map polygons.}
+
+\item{map_palette}{Character. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.}
+
+\item{border_width}{Integer. The width of polygon borders. Default is the trace border width set with \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
+
+\item{legend_cap}{Integer. The intended legend length. The actual length might vary.}
+
+\item{data_contour}{Logical. Experimental. If TRUE, \code{\link[=robomap]{robomap()}} will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
+This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.}
+
+\item{markers}{Logical. Experimental. Whether markers will be added on the map based on the columns "lat" and "lon". Default is FALSE.}
+
+\item{opacity, tile_opacity}{Double. Value from 0 to 1, defining how opaque the map polygon fill color or underlying map tiles are. 0 removes the tile layer, but retains the polygon borders if any.}
 }
 \value{
 A list of classes "leaflet" and "htmlwidget"
@@ -34,7 +57,7 @@ Automates many formatting options.
 }
 \examples{
 # You can use roboplotr::robomap() to create html maps. Note that very large
-# number of geoms makes for slow rendering maps.
+# number of map polygons makes for slow rendering maps.
 
 vaesto_postinumeroittain |> robomap(Postinumeroalue)
 
@@ -43,13 +66,57 @@ vaesto_postinumeroittain |>
   dplyr::filter(Alue == "Espoo") |>
   robomap(Postinumeroalue, title = "Väestö Espoossa", caption = "Tilastokeskus")
 
-# robomap() adjusts legend item rounding based on the largest value in the "value"
-# column of data 'd'. Control trace colors currently with global colors only.
-
-set_roboplot_options(trace_colors = c("lightgreen","darkred"), trace_border = list(width = 2, color = "black"))
+# Default polygon colors are picked from trace colors set with set_roboplot_options, based on luminosity.
+# Control polygon colors with map_palette. robomap() expands upon this as necessary.
 
 vaesto_postinumeroittain |>
-  dplyr::slice_min(value, n = 30) |>
-  robomap(Postinumeroalue, title = "Vähäväkilukuiset postinumerot", caption = "Tilastokeskus")
+  robomap(
+    Postinumeroalue,
+    title = "Väestö postinumeroittain",
+    subtitle = "Otanta",
+    caption = "Tilastokeskus",
+    map_palette = c("lightgreen", "darkred")
+  )
+
+# robomap() automatically scales the values to differentiate large differences in maximum and minimum values.
+# Control this with log_colors
+
+vaesto_postinumeroittain |>
+  robomap(
+    Postinumeroalue,
+    title = "Väestö postinumeroittain",
+    caption = "Tilastokeskus",
+    map_palette = c("lightgreen", "darkred"),
+    log_colors = F
+  )
+
+# Control background tile opacity with 'tile_opacity', polygon opacity with 'map_opacity' and borders with 'border_width'.
+
+vaesto_postinumeroittain |>
+  robomap(
+    Postinumeroalue,
+    title = "Väestö postinumeroittain",
+    caption = "Tilastokeskus",
+    map_palette = c("lightgreen", "darkred"),
+    border_width = 2,
+    tile_opacity = 0.2,
+    map_opacity = 0.5
+  )
+
+# Control the story you want to tell by giving an uneven palette.
+biased_palette <- colorRampPalette(c("lightgreen", "darkred"))(12)[c(1,3,5,7:12)]
+# This is how this biased palette looks like, more red colors than green.
+scales::show_col(biased_palette)
+# use the biased palette
+vaesto_postinumeroittain |>
+  robomap(
+    Postinumeroalue,
+    title = "Väestö postinumeroittain",
+    caption = "Tilastokeskus",
+    map_palette = biased_palette,
+    map_opacity = 1,
+    data_contour = T,
+    border_width = 0
+  )
 
 }

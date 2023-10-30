@@ -155,7 +155,7 @@ set_artefacts <- function(
     render = getOption("roboplot.artefacts")$render,
     self_contained = getOption("roboplot.artefacts")$self_contained,
     auto = getOption("roboplot.artefacts")$auto
-    ) {
+) {
   roboplotr_check_param(filepath, "character", allow_null = F)
   roboplotr_check_param(render, "logical", allow_null = F)
   roboplotr_check_param(self_contained, "logical", allow_null = F)

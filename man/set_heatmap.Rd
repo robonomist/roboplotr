@@ -14,17 +14,17 @@ set_heatmap(
 )
 }
 \arguments{
-\item{maxcolor, midcolor, mincolor}{Characters. Colors used hor heatmap color range. Must be a hexadecimal color strings or a valid css color strings.}
+\item{maxcolor, midcolor, mincolor}{Characters. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.}
 
 \item{maxvalue, midvalue, minvalue}{Numerics. Optional. Numeric breakpoints where the 'maxcolor', 'midcolor' and 'mincolor' colors are set at.
 Any values falling outside of this range will have the nearest corresponding color. If not provided, \code{\link[=robotable]{robotable()}} calculates the values from the data.
-Currently only support heatmaps across all numeric columns in the \code{\link[=robotable]{robotable()}}.}
+Currently only support heatmaps across all numeric columns in the given \code{\link[=robotable]{robotable()}}.}
 }
 \value{
 A list
 }
 \description{
-Use in \code{\link[=robotable]{robotable()}} parameter 'heatmap' to get a list used for setting the title.
+Use in \code{\link[=robotable]{robotable()}} parameter 'heatmap' to get a list used for setting up the heatmap colors and value breaks.
 }
 \examples{
 # Use [set_heatmap()] to specify any the colors are value breaks used in heatmaps.

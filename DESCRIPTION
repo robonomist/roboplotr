@@ -1,6 +1,6 @@
 Package: roboplotr
 Title: Robonomist Automated Plotly Plotter
-Version: 1.3.1
+Version: 1.3.2
 Authors@R: 
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
 Description: Automates creation of dynamic plotly plots.
@@ -20,6 +20,7 @@ Imports:
     lubridate,
     padr,
     plotly,
+    progress,
     purrr,
     R.utils,
     rlang,
@@ -33,7 +34,9 @@ Imports:
     widgetframe,
     DT,
     leaflet,
-    sf
+    sf,
+    sp,
+    gstat
 Suggests: 
     testthat (>= 3.0.0),
     glue,

@@ -181,7 +181,7 @@ roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
     defined_patterns <- roboplotr_set_pattern(d, pattern, pattern_type)
     if (!is.null(defined_patterns)) {
       d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",defined_patterns[!!pattern],dashtypes[1]),
-                  roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",defined_patterns[!!pattern],patterntypes[1]))
+                       roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",defined_patterns[!!pattern],patterntypes[1]))
     } else {
       d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",dashtypes[!!pattern],dashtypes[1]),
                        roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",patterntypes[!!pattern],patterntypes[1])
@@ -284,7 +284,7 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
     failed <- select(color_ops, ends_with("_ratio")) |> pivot_longer(everything()) |> filter(.data$value == F)
     if(nrow(failed) > 0) {
       msg <- failed$name |> str_extract("(?<=\\\").{1,}(?=\\\")") |> knitr::combine_words() |>
-      str_c("Color contrast fails with ",msg," for ",pulled) |> roboplotr_warning(severity = "warning")
+        str_c("Color contrast fails with ",msg," for ",pulled) |> roboplotr_warning(severity = "warning")
 
     }
     color_ops |> pull(.data$color)
@@ -312,10 +312,10 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
 
 #' @importFrom grDevices colorRamp rgb
 #' @importFrom purrr map_chr
-roboplotr_heatmap_colorfun <- function(d, cols = NULL,
-                              hmin = first(getOption("roboplot.colors.traces")),
-                              hmid = getOption("roboplot.colors.background"),
-                              hmax = last(getOption("roboplot.colors.traces"))) {
+roboplotr_tbl_heatmap_colorfun <- function(d, cols = NULL,
+                                           hmin = first(getOption("roboplot.colors.traces")),
+                                           hmid = getOption("roboplot.colors.background"),
+                                           hmax = last(getOption("roboplot.colors.traces"))) {
 
   if(is.null(cols)) {
     numeric_columns <- d |> select(where(is.numeric))
@@ -367,13 +367,13 @@ roboplotr_heatmap_colorfun <- function(d, cols = NULL,
 
 #' interal function for adding heatmap styling [roboplotr::robotable]
 #' @importFrom DT formatStyle styleEqual
-roboplotr_heatmap <- function(d, dt, heatmap) {
+roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
 
   if(is.null(heatmap)) {
     dt
   } else {
 
-    heatmap_fun <- roboplotr_heatmap_colorfun(d,hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max)
+    heatmap_fun <- roboplotr_tbl_heatmap_colorfun(d,hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max)
 
     .orders <- attributes(d)$dt_orders
 
@@ -396,12 +396,12 @@ roboplotr_heatmap <- function(d, dt, heatmap) {
 
 #' Heatmap specifications for [robotable()]
 #'
-#' Use in [robotable()] parameter 'heatmap' to get a list used for setting the title.
+#' Use in [robotable()] parameter 'heatmap' to get a list used for setting up the heatmap colors and value breaks.
 #'
-#' @param maxcolor,midcolor,mincolor Characters. Colors used hor heatmap color range. Must be a hexadecimal color strings or a valid css color strings.
+#' @param maxcolor,midcolor,mincolor Characters. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.
 #' @param maxvalue,midvalue,minvalue Numerics. Optional. Numeric breakpoints where the 'maxcolor', 'midcolor' and 'mincolor' colors are set at.
 #' Any values falling outside of this range will have the nearest corresponding color. If not provided, [robotable()] calculates the values from the data.
-#' Currently only support heatmaps across all numeric columns in the [robotable()].
+#' Currently only support heatmaps across all numeric columns in the given [robotable()].
 #' @examples
 #' # Use [set_heatmap()] to specify any the colors are value breaks used in heatmaps.
 #' d <- energiantuonti |>
@@ -483,3 +483,101 @@ roboplotr_set_pattern <- function(d, pattern, pattern_type) {
     NULL
   }
 }
+
+#' @importFrom leaflet colorBin colorNumeric
+roboplotr_get_map_palette <- function(d, map_colors, data_contour, bins) {
+
+  if (data_contour == T) {
+    map_palette <- colorNumeric(
+      # colorRampPalette(map_colors)(legend_cap * 5),
+      map_colors,
+      # n = 5*legend_cap,
+      domain = d$robomap.value,
+      reverse = T,
+      na.color = "#00000000"
+    )
+
+  } else if (length(bins) == 1) {
+    map_palette <-
+      colorNumeric(map_colors,
+                   domain = d$robomap.value,
+                   reverse = T,
+                   na.color = "#00000000"
+      )
+  } else {
+    map_palette <- colorBin(
+      map_colors,
+      bins = bins,
+      domain = d$robomap.value,
+      reverse = T,
+      na.color = "#00000000"
+    )
+  }
+}
+
+#' #' Map palette specifications for [robomap()]
+#' #'
+#' #' Use in [robomap()] parameter 'map_colors' to get a list used for setting map colors
+#' #'
+#' #' @param maxcolor,midcolor,mincolor Characters. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.
+#' #' @param n_colors Integer. The number of colors created. This is also approximate of the number of legend items.
+#' #' @param weight Numeric. Minimum of -1 and maximum of 1. A positive weight weights the created range toward the upper end of the color scale, and a negative toward the lower end.
+#' #'
+#' set_map_palette <-
+#'   function(max_color = NULL,
+#'            mid_color = NULL,
+#'            min_color = NULL,
+#'            n_colors = 5,
+#'            weight = 0) {
+#'
+#'     list(max_color = max_color, mid_color = mid_color, min_color = min_color, n_colors = n_colors, weight = 0)
+#'
+#'   }
+#'
+#' roboplotr_robomap_palette <-
+#'   function(max_color = NULL,
+#'            mid_color = NULL,
+#'            min_color = NULL,
+#'            n_colors = 5,
+#'            weight = 0) {
+#'
+#'     if(any(is.null(max_color),is.null(min_color))) {
+#'       roboplotr_colors <- getOption("roboplot.colors.traces")
+#'       roboplotr.luminance <- getOption("roboplot.colors.traces") %>% roboplotr_get_luminance()
+#'       if(is.null(min_color)) {
+#'         min_color <- roboplotr_colors[which(roboplotr.luminance == min(roboplotr.luminance))]
+#'       }
+#'       if(is.null(max_color)) {
+#'         max_color <- roboplotr_colors[which(roboplotr.luminance == max(roboplotr.luminance))]
+#'       }
+#'     }
+#'
+#'     if(weight == 0) {
+#'       colorRampPalette(c(max_color, mid_color, min_color))(n_colors)
+#'     } else {
+#'       calculate_partition <- function(n, weight) {
+#'         # Ensure weight is within bounds
+#'         if (weight < -1 || weight > 1) {
+#'           stop("Weight must be between -1 and 1.")
+#'         }
+#'
+#'         # Calculate partition sizes
+#'         first_partition = round((1 + weight) / 2 * n)
+#'         second_partition = n - first_partition
+#'
+#'         return(c(first_partition, second_partition))
+#'       }
+#'
+#'       if(is.null(mid_color)) {
+#'         mid_color <- colorRampPalette(c(max_color, min_color))(3)[2]
+#'       }
+#'
+#'       partitions <- calculate_partition(n_colors + 1, weight)
+#'       first_colors <-
+#'         colorRampPalette(c(max_color, mid_color))(partitions[1])
+#'       second_colors <-
+#'         colorRampPalette(c(mid_color, min_color))(partitions[2])
+#'       c(first_colors, second_colors) %>% unique()
+#'     }
+#'
+#'   }
