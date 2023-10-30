@@ -1,6 +1,10 @@
+# roboplotr 1.3.21
+
+* Robomap dependency fix.
+
 # roboplotr 1.3.2
 
-* Initial work for robotable data contour maps. This provides a smoother transition and helps in visualizing general trends across regions.
+* Initial work for robomap data contour maps. This provides a smoother transition and helps in visualizing general trends across regions.
 
 # roboplotr 1.3.1
 

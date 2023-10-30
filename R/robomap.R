@@ -10,9 +10,9 @@
 roboplotr_map_rasterlayer <- function(map, d, data_contour = F, opacity, robomap_palette) {
   if(data_contour == T) {
 
-    d <- d %>% mutate(area = as.numeric(st_area(.)))
+    d <- d |> mutate(area = as.numeric(st_area(.)))
 
-    d <- d %>% mutate(area = area / sum(area),
+    d <- d |> mutate(area = area / sum(area),
                       num_points = round(rescale(area, c(1,sqrt(sqrt(sqrt(max(d$area))))))))
 
     show.pb <- getOption("roboplot.verbose") == "All"
@@ -21,20 +21,20 @@ roboplotr_map_rasterlayer <- function(map, d, data_contour = F, opacity, robomap
       bpb <- progress::progress_bar$new(total = (2*nrow(d))+3, format = ":info for contour map.. [:bar]")
     }
 
-    interior_df <- d %>%
+    interior_df <- d |>
       mutate(sampled_points_interior = map2(geom, num_points, ~ {
         if(show.pb) { bpb$tick(token = list(info = "Determining boundaries")) }
         st_sample(.x, size = .y)
-      })) %>%
-      unnest(sampled_points_interior) %>%
+      })) |>
+      unnest(sampled_points_interior) |>
       st_sf()
 
-    boundary_df <- d %>%
+    boundary_df <- d |>
       mutate(sampled_points_boundary = map2(geom, num_points, ~ {
         if(show.pb) { bpb$tick(token = list(info = "Determining boundaries")) }
         st_sample(.x, size = max(ceiling(.y * 0.2),1), type="regular")
-        })) %>%
-      unnest(sampled_points_boundary) %>%
+        })) |>
+      unnest(sampled_points_boundary) |>
       st_sf()
 
     sampled_df <- bind_rows(interior_df, boundary_df)
@@ -66,7 +66,7 @@ roboplotr_map_rasterlayer <- function(map, d, data_contour = F, opacity, robomap
     smoothed_raster <- focal(higher_res, w = matrix(1, 5, 5), fun = mean, na.rm = TRUE)
     smoothed_clipped <- mask(smoothed_raster, muni_mask)
 
-    map <- map %>%
+    map <- map |>
       addRasterImage(smoothed_clipped, colors = robomap_palette, opacity = opacity)
     if(show.pb) { bpb$terminate() }
     map
@@ -93,11 +93,11 @@ roboplotr_map_markerlayer <- function(map, d, markers, size_scale = c(1,12)) {
         lng = ~ lon,
         lat =  ~ lat,
         stroke = T,
-        color = unique(getOption("roboplot.grid")[c("xcolor","ycolor")]) %>% first(),
+        color = unique(getOption("roboplot.grid")[c("xcolor","ycolor")]) |> first(),
         fillColor = getOption("roboplot.colors.background"),
         fillOpacity = 1,
         radius = ~size_scale(robomap.value),
-        weight = unique(getOption("roboplot.grid")[c("xwidth","ywidth")]) %>% unlist() %>% max(),
+        weight = unique(getOption("roboplot.grid")[c("xwidth","ywidth")]) |> unlist() |> max(),
         label = ~ leafletlabel
       )
   }
@@ -120,7 +120,7 @@ roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_p
           "font-size" = str_glue('{getOption("roboplot.font.main")$size}px'),
           "font-family" = getOption("roboplot.font.main")$family,
           "color" = roboplotr_text_color_picker(getOption("roboplot.colors.background")),
-          "border" = str_glue('{max(getOption("roboplot.border")[c("xwidth","ywidth")] %>% unlist())}pt solid {first(unique(getOption("roboplot.border")[c("xcolor","ycolor")]))}')
+          "border" = str_glue('{max(getOption("roboplot.border")[c("xwidth","ywidth")] |> unlist())}pt solid {first(unique(getOption("roboplot.border")[c("xcolor","ycolor")]))}')
         )
       )
       # weight = getOption("roboplot.trace.border")$width
@@ -303,7 +303,7 @@ robomap <-
       }
     } else {
       roboplotr_colors <- getOption("roboplot.colors.traces")
-      roboplotr.luminance <- getOption("roboplot.colors.traces") %>% roboplotr_get_luminance()
+      roboplotr.luminance <- getOption("roboplot.colors.traces") |> roboplotr_get_luminance()
       map_palette <- c(
         roboplotr_colors[which(roboplotr.luminance == max(roboplotr.luminance))],
                          roboplotr_colors[which(roboplotr.luminance == min(roboplotr.luminance))]
@@ -457,7 +457,7 @@ robomap <-
           )
           ceiling(val / .round_magnitude) * .round_magnitude
         }
-      }) %>% unlist()
+      }) |> unlist()
 
     }
 
