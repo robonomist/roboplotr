@@ -164,6 +164,9 @@ roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F) {
 #' # You can use roboplotr::robomap() to create html maps. Note that very large
 #' # number of map polygons makes for slow rendering maps.
 #'
+#' # Call for the usage of sample dataset "vaesto_postinumeroittain".
+#' requireNamespace("sf", quietly = TRUE)
+#'
 #' vaesto_postinumeroittain |> robomap(Postinumeroalue)
 #'
 #' # Currently robomap() only supports very little customization.

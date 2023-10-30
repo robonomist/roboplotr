@@ -36,8 +36,5 @@
     if(any(toset)) options(op.roboplot.options[toset])
   }
 
-  # for the sample dataset "vaesto_postinumeroittain"
-  requireNamespace("sf", quietly = TRUE)
-
   invisible()
 }

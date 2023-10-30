@@ -1,6 +1,6 @@
-# roboplotr 1.3.21
+# roboplotr 1.3.2.1
 
-* Robomap dependency fix.
+* Robomap dependency fixes.
 
 # roboplotr 1.3.2
 
