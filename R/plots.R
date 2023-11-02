@@ -15,13 +15,15 @@ roboplotr_config <- function(p,
                              zeroline = F,
                              enable_rangeslider = list(rangeslider = F, max = as_date(today())),
                              ticktypes,
-                             container) {
+                             container,
+                             hovermode
+                             ) {
   if (!is.list(margin)) {
     if (is.na(margin)) {
       margin <- list(t = 0,
                      r = 10,
                      b = 0,
-                     l = 20)
+                     l = 5)
     }
   }
 
@@ -38,7 +40,7 @@ roboplotr_config <- function(p,
     roboplotr_caption(caption) |>
     roboplotr_zeroline(zeroline) |>
     roboplotr_rangeslider(enable_rangeslider) |>
-    roboplotr_set_axis_ranges(ticktypes[c("xlim", "ylim")], enable_rangeslider$rangeslider)
+    roboplotr_set_axis_ranges(ticktypes[c("xlim", "ylim")], enable_rangeslider$rangeslider, hovermode)
 }
 
 
@@ -901,6 +903,14 @@ roboplot <- function(d,
   legend_order <-
     ifelse(!any(c("bar", "pie") %in% plot_type), "reversed", "normal")
 
+  if(!"horizontal" %in% plot_mode & any(plot_type == "bar")) {
+    if (any(d[[ticktypes$y]] == 0)) {
+      hover.mode <- "x"
+    } else {
+      hover.mode <- "compare"
+    }
+  }
+
   p <- p |>
     roboplotr_config(
       title = title,
@@ -918,7 +928,8 @@ roboplot <- function(d,
       ),
       enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
       ticktypes = ticktypes,
-      container = container
+      container = container,
+      hovermode = hover.mode
     )
 
   if (getOption("roboplot.shinyapp")$shinyapp == F) {

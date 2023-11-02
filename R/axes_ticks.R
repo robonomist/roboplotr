@@ -265,7 +265,7 @@ set_axes <-
   }
 
 #' @importFrom plotly layout config
-roboplotr_set_axis_ranges <- function(p, range, rangeslider) {
+roboplotr_set_axis_ranges <- function(p, range, rangeslider, hovermode) {
   fixed_range <-
     F#if (any(c("zoom","zoomin2d","pan") %in% getOption("roboplot.modebar.buttons"))) { F } else { T }
   if (!"xlim" %in% names(range)) {
@@ -281,7 +281,7 @@ roboplotr_set_axis_ranges <- function(p, range, rangeslider) {
   }
   p <- config(p, locale = getOption("roboplot.locale")$locale) |>
     layout(separators = getOption("roboplot.locale")$separators) |>
-    layout(hovermode = "compare")
+    layout(hovermode = hovermode)
 
   if (rangeslider == F) {
     if (!all(is.na(range$xlim))) {

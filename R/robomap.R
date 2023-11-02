@@ -331,16 +331,18 @@ robomap <-
         minval <- round(min(d$value,na.rm = T)*1000)
         magnitude_range <- nchar(maxval) - nchar(minval)
         magnitude_range > 3
-      } else if(log_colors == T & any(d$value < 0)) {
-        roboplotr_message("Some values are less than 0, unable to use 'log_colors == TRUE'.")
-        F
+      } else if(!is.null(log_colors)) {
+        if(log_colors == T & any(d$value < 0)) {
+          roboplotr_message("Some values are less than 0, unable to use 'log_colors == TRUE'.")
+          F
+        } else { log_colors }
       } else {
-        log_colors
+        F
       }
 
     })()
 
-    if(log_colors == T) {
+if(log_colors == T) {
       if(min(d$value) == 0) {
         d <- d |> mutate(robomap.value = log(value+1))
       } else {
