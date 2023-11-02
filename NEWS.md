@@ -1,3 +1,7 @@
+# roboplotr 1.3.2.4
+
+* Hovermode fix.
+
 # roboplotr 1.3.2.3
 
 * Dependency fix.

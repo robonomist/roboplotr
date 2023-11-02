@@ -903,11 +903,10 @@ roboplot <- function(d,
   legend_order <-
     ifelse(!any(c("bar", "pie") %in% plot_type), "reversed", "normal")
 
+  hover.mode <- "compare"
   if(!"horizontal" %in% plot_mode & any(plot_type == "bar")) {
     if (any(d[[ticktypes$y]] == 0)) {
       hover.mode <- "x"
-    } else {
-      hover.mode <- "compare"
     }
   }
 
