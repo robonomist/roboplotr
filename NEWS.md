@@ -1,4 +1,8 @@
-# roboplotr 1.3.2.2
+# roboplotr 1.3.2.3
+
+* Dependency fix.
+
+# roboplotr 1.3.2.3
 
 * Robomap log scale fix, roboplot default left margin change. Relating to a plotly bug, a change to default hovermode on some bar charts to show hovertemplate on undrawn bars.
 
