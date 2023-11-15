@@ -168,11 +168,14 @@ roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F) {
 }
 
 roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
-
   map(vals, function(val) {
     num_digits <- nchar(abs(round(val,0)))
     if(num_digits == 1 | all(val < 1, val > -1)) {
-      round(val, rounding)
+      if (str_detect(deparse(.fun), "round")) {
+        .fun(val, rounding)
+      } else {
+        .fun(val)
+      }
     } else {
       .round_magnitude <- case_when(
         num_digits %in% c(1,2) ~ 1,
@@ -182,7 +185,11 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
         num_digits == 6 ~ 10000,
         TRUE ~ 100000
       )
-      .fun(val / .round_magnitude) * .round_magnitude
+      if (str_detect(deparse(.fun), "round")) {
+        .fun(val / .round_magnitude, rounding) * .round_magnitude
+      } else {
+        .fun(val / .round_magnitude) * .round_magnitude
+      }
     }
   }) |> unlist()
 
@@ -377,14 +384,14 @@ robomap <-
         leafletlabel = map(leafletlabel, HTML)
       )
     log_colors <- (function() {
-      if(is.null(log_colors) & all(d$value >= 0)) {
+      if(is.null(log_colors) & all(d$value >= 1)) {
         maxval <- round(max(d$value,na.rm = T)*1000)
         minval <- round(min(d$value,na.rm = T)*1000)
         magnitude_range <- nchar(maxval) - nchar(minval)
         magnitude_range > 3
       } else if(!is.null(log_colors)) {
-        if(log_colors == T & any(d$value < 0)) {
-          roboplotr_message("Some values are less than 0, unable to use 'log_colors == TRUE'.")
+        if(log_colors == T & any(d$value < 1)) {
+          roboplotr_message("Some values are less than 1, unable to currently use 'log_colors == TRUE'.")
           F
         } else { log_colors }
       } else {
@@ -393,40 +400,42 @@ robomap <-
 
     })()
 
-if(log_colors == T) {
-      if(min(d$value) == 0) {
-        d <- d |> mutate(robomap.value = log(value+1))
-      } else {
-        d <- d |> mutate(robomap.value = log(value))
-      }
-    } else {
-      d <- d |> mutate(robomap.value = value)
-    }
-
     get_bins <- function() {
       bins <- rev(seq(
-        min(d$robomap.value),
-        max(d$robomap.value),
+        min(d$value),
+        max(d$value),
         length.out = min(round(length(
           d$value |> unique()
         )), legend_cap)
       ))
       if(length(bins) == 1) {
-        bins <- roboplotr_round_magnitude(bins,rounding)
+        bins <- roboplotr_round_magnitude(bins,rounding, round)
       } else {
-        .first <- roboplotr_round_magnitude(bins[1], rounding)
+        .first <- roboplotr_round_magnitude(bins[1], rounding, ceiling)
         .last <- roboplotr_round_magnitude(last(bins), rounding, .fun = floor)
-        bins <- roboplotr_round_magnitude(bins,rounding)
+        if(.first < max(bins)) { .first <- max(bins) }
+        bins <- roboplotr_round_magnitude(bins,rounding,round)
         bins[1] <- .first
         bins[length(bins)] <- .last
 
       }
 
-      bins
+      bins |> unique()
     }
 
-
     bins <- get_bins()
+
+    if(log_colors == T) {
+      if(min(d$value) == 0) {
+        d <- d |> mutate(robomap.value = log(value+1))
+        bins <- log(bins+1)
+      } else {
+        d <- d |> mutate(robomap.value = log(value))
+        bins <- log(bins)
+      }
+    } else {
+      d <- d |> mutate(robomap.value = value)
+    }
 
     robomap_palette <- roboplotr_get_map_palette(d, map_palette, data_contour, bins)
 
@@ -523,7 +532,7 @@ if(log_colors == T) {
               cuts <- exp(cuts)
             }
           }
-          cuts <- roboplotr_round_magnitude(cuts, rounding)
+          cuts <- roboplotr_round_magnitude(cuts, rounding,round)
           .mag <- round(max(cuts)) |> nchar()
           .rounding <- ifelse(.mag > 2, max(rounding-.mag, 0), rounding)
           labs <- roboplotr_format_robotable_numeric(cuts, .rounding)
@@ -541,7 +550,7 @@ if(log_colors == T) {
           opacity = 0.9,
           position = "bottomright",
           labels = roboplotr_format_robotable_numeric(unique(d$value), rounding),
-          colors = robomap_palette(d$value),
+          colors = unique(robomap_palette(d$value)),
           values = ~ value,
           title = legend_title
         )
@@ -552,6 +561,7 @@ if(log_colors == T) {
           na.label = "",
           opacity = 0.9,
           labFormat = function(type, cuts) {
+            # browser()
             if(log_colors) {
               if(min(d$value) == 0) {
                 cuts <- exp(cuts)-1
@@ -559,15 +569,26 @@ if(log_colors == T) {
                 cuts <- exp(cuts)
               }
             }
+            cuts <- cuts |> roboplotr_round_magnitude(rounding, round)
+            .magnitude <- NA
+            if(any(round(cuts) != cuts)) {
+              .magnitude <- (cuts |> str_remove("^[^\\.]*") |> nchar() |> max())-1
+              cuts <- cuts * 10^.magnitude
+            }
             lo_end <- (tail(cuts,-1) - c(
               rep(-1, length(cuts) - 2), 0
-            )) |> roboplotr_round_magnitude(rounding) |> roboplotr_format_robotable_numeric(rounding)
-            hi_end <- head(cuts,-1) |> roboplotr_round_magnitude(rounding)
-            max_val <- max(d$value,na.rm = T) |> roboplotr_round_magnitude(rounding)
-            if(max_val < max(hi_end)) {
-              hi_end[1] <- max_val
+            ))
+            hi_end <- head(cuts,-1)
+            # max_val <- (max(d$value,na.rm = T) * 10^.magnitude) |> roboplotr_round_magnitude(rounding)
+            # if(max_val < max(hi_end)) {
+            #   hi_end[1] <- max_val
+            # }
+            if(!is.na(.magnitude)) {
+              hi_end <- (hi_end / 10^.magnitude)
+              lo_end <- (lo_end / 10^.magnitude)
             }
-            hi_end <- hi_end |> roboplotr_format_robotable_numeric()
+            hi_end <- roboplotr_format_robotable_numeric(hi_end, rounding)
+            lo_end <- roboplotr_format_robotable_numeric(lo_end, rounding)
             str_glue("{lo_end} – {hi_end}") |>
               map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
               reduce(c)
