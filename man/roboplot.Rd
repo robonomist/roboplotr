@@ -32,6 +32,7 @@ roboplot(
   legend_title = F,
   artefacts = getOption("roboplot.artefacts")$auto,
   container = getOption("roboplot.shinyapp")$container,
+  info_text = NULL,
   ...
 )
 }
@@ -89,6 +90,8 @@ Parameter 'zeroline' will be ignored. Cannot currently differentiate between the
 \item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned control. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
 \item{container}{Character. Experimental, might not work as intended. Use only with shiny apps. A css selector for the element in a shiny app where this \code{\link[=roboplot]{roboplot()}} will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.}
+
+\item{info_text}{Character. Experimental, might not work as intended. If provided, an info button is appended to the modebar or the \code{\link[=roboplot]{roboplot()}} which brings about a popup with this parameter as the text content.}
 
 \item{...}{Placeholder for other parameters.}
 }

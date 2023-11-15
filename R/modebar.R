@@ -6,7 +6,7 @@
 #' @importFrom purrr pmap
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
 #' @importFrom tidyr drop_na
-roboplotr_modebar <- function(p, title, subtitle, height, width, dateformat) {
+roboplotr_modebar <- function(p, title, subtitle, caption, height, width, dateformat, info_text = NULL) {
 
   if(is.null(title)) {
     dl_title <- "img"
@@ -65,6 +65,7 @@ roboplotr_modebar <- function(p, title, subtitle, height, width, dateformat) {
   })()
 
 
+
   btn_list <- list(
     "home" = "resetViews",
     "zoom" = "zoom2d",
@@ -121,7 +122,84 @@ roboplotr_modebar <- function(p, title, subtitle, height, width, dateformat) {
     )
   )
 
+
   btn_list <- btn_list[getOption("roboplot.modebar.buttons")]
+
+  if(!is.null(info_text)) {
+    modal_id <- str_c("roboplot-info-", str_remove(runif(1), "\\."))
+    main_font <- getOption("roboplot.font.main")
+    title_font <- getOption("roboplot.font.title")
+    modal_color <- getOption('roboplot.trace.border')$color
+    .bold <- ifelse(title_font$bold, tags$b, tags$span)
+    modal_html <- tags$div(
+      id = str_glue("{modal_id}_infomodal"),
+      style = "position: absolute; top: 20px; left: 5px; width: 50%;",
+      tags$div(
+        style = str_glue(
+          "position: absolute;
+               z-index: 9999;
+               background-color: {modal_color};
+               color: {roboplotr_text_color_picker(modal_color)};
+               padding: 5px;
+               border: 1px solid {getOption('roboplot.border')[c('xcolor','ycolor')] |> unique() |> unlist() |> first()};
+               box-shadow: 0 4px 8px {modal_color};"
+        ),
+        tags$span(
+          id = str_glue("{modal_id}_infomodal-close"),
+          fa(
+            "times-circle",
+            fill = main_font$color,
+            height = str_glue("{title_font$size}px")
+          ),
+          style = "top: 5px; right: 10px; font-size: 24px; cursor: pointer; float: right;"
+        ),
+        .bold(
+          title$title,
+          tags$br(),
+          tags$span(subtitle, style = "font-size: 75%"),
+          style = str_glue(
+            "font-family: {title_font$family};font-size: {title_font$size}px;"
+          )
+        ),
+        tags$span(
+          style = str_glue(
+            "font-family: {main_font$family}; font-size: {main_font$size}px;"
+          ),
+          tags$p(HTML(info_text)),
+          tags$p(caption)
+
+        )
+      )
+    )
+
+
+    info_btn <- list("info" = list(
+      name = "Info",
+      icon = dl_icon("circle-info"),
+      click = JS(str_glue("
+      function(gd) {
+      var existingModal = document.getElementById('{<modal_id}_infomodal_container');
+      if (existingModal) {
+        existingModal.style.display = existingModal.style.display === 'none' ? 'block' : 'none';
+      } else {
+        var modal = document.createElement('div');
+        modal.id = '{<modal_id}_infomodal_container';
+        modal.innerHTML = `{<modal_html}`;
+        modal.style.display = 'block'; // Show the modal
+        gd.appendChild(modal);
+        document.getElementById('{<modal_id}_infomodal-close').addEventListener('click', function() {
+          modal.style.display = 'none';
+        });
+      }
+}", .open = "{<")
+      )
+    ))
+
+    append_location <- ifelse("robonomist" %in% names(btn_list), length(btn_list)-1, length(btn_list))
+    btn_list <- append(btn_list,info_btn,after = append_location)
+
+  }
+
   p |> config(
     displaylogo = FALSE,
     modeBarButtons = list(unname(btn_list))

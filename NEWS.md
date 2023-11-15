@@ -1,3 +1,7 @@
+# roboplotr 1.3.3
+
+* Roboplot gets info_text parameter to be shown with the modebar info button. Robomap legend fix, data_contour fix, legend fix, rounding fix. Robotable labeling change, alignment change and infopop to allow HTML tags. Roboplot left margin change, named plot modes bug fix, modebar label right margin fix.
+
 # roboplotr 1.3.2.4
 
 * Hovermode fix.

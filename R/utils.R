@@ -622,9 +622,22 @@ roboplotr_messages <- function(string, type = c("message","alert","warning")) {
   }
 }
 
-roboplotr_message <- function(...) { if(getOption("roboplot.verbose") == "All") { roboplotr_messages(str_c(...), "message") } }
-roboplotr_alert <- function(...) { if(getOption("roboplot.verbose") %in% c("All","Alert")) { roboplotr_messages(str_c(...), "alert") } }
-roboplotr_warning <- function(...) { roboplotr_messages(str_c(...), "warning") }
+roboplotr_message <-
+  function(...) {
+    if (getOption("roboplot.verbose") == "All") {
+      roboplotr_messages(str_c(...), "message")
+    }
+  }
+roboplotr_alert <-
+  function(...) {
+    if (getOption("roboplot.verbose") %in% c("All", "Alert")) {
+      roboplotr_messages(str_c(...), "alert")
+    }
+  }
+roboplotr_warning <-
+  function(...) {
+    roboplotr_messages(str_c(...), "warning")
+  }
 
 # Create a css file or string
 # @param css_defs css style definitions. Each object you provide must be a list of three elements.

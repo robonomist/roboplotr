@@ -35,7 +35,7 @@ robotable(
 
 \item{pagelength}{Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, \code{\link[=robotable]{robotable()}} automatically adds navigation.}
 
-\item{info_text}{Double. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.}
+\item{info_text}{Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.}
 
 \item{heatmap}{Function. Use \code{\link[=set_heatmap]{set_heatmap()}}. Displays any numeric values as a heatmap.}
 }

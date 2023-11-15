@@ -10,7 +10,7 @@
 roboplotr_map_rasterlayer <- function(map, d, data_contour = F, opacity, robomap_palette) {
   if(data_contour == T) {
 
-    d <- d |> mutate(area = as.numeric(st_area(.)))
+    d <- d |> mutate(area = as.numeric(st_area(d)))
 
     d <- d |> mutate(area = area / sum(area),
                       num_points = round(rescale(area, c(1,sqrt(sqrt(sqrt(max(d$area))))))))
@@ -105,6 +105,39 @@ roboplotr_map_markerlayer <- function(map, d, markers, size_scale = c(1,12)) {
 
 #' @importFrom leaflet addPolygons labelOptions
 roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_palette, border_width) {
+# browser()
+# for timeslider maps, doesn't really work
+#   map_data2 <- map_data2 |> mutate(robomap.value = log(value+1))
+#
+#   map_data2 <- map_data2 |>
+#     mutate(
+#       leafletlabel = str_c(Kunta, "<br>", roboplotr_format_robotable_numeric(value), " ")
+#     )
+#   map_data2 <- arrange(map_data2, Kunta, time)
+#   map |>
+#     addPolygons(
+#       color = getOption("roboplot.trace.border")$color,
+#       weight = border_width,
+#       fillColor = ~ robomap_palette(robomap.value),#~ if (data_contour) { NULL } else { robomap.value },
+#       fillOpacity = ifelse(data_contour, 0, map_opacity),
+#       label = ~ leafletlabel,
+#       group = ~ time,
+#       ) |>
+#     leaflet.extras2::addTimeslider(
+#     data = map_data2,
+#     color = getOption("roboplot.trace.border")$color,
+#     weight = border_width,
+#     fillColor = ~ robomap_palette(robomap.value),#~ if (data_contour) { NULL } else { robomap.value },
+#     fillOpacity = ifelse(data_contour, 0, map_opacity),
+#     label = ~ as.character(leafletlabel),
+#     ordertime = TRUE,
+#     options = leaflet.extras2::timesliderOptions(
+#       alwaysShowDate = T,timeAttribute = "time",
+#       sameDate = T,
+#       range = T,
+#       timeStrLength = 10,
+#     )
+#   )
 
   map |>
     addPolygons(
@@ -112,7 +145,6 @@ roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_p
       weight = border_width,
       fillColor = ~ robomap_palette(robomap.value),#~ if (data_contour) { NULL } else { robomap.value },
       fillOpacity = ifelse(data_contour, 0, map_opacity),
-      smoothFactor = 0.5,
       label = ~ leafletlabel,
       labelOptions = leaflet::labelOptions(
         style = list(
@@ -123,7 +155,6 @@ roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_p
           "border" = str_glue('{max(getOption("roboplot.border")[c("xwidth","ywidth")] |> unlist())}pt solid {first(unique(getOption("roboplot.border")[c("xcolor","ycolor")]))}')
         )
       )
-      # weight = getOption("roboplot.trace.border")$width
     )
 }
 
@@ -134,6 +165,27 @@ roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F) {
   } else {
     map
   }
+}
+
+roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
+
+  map(vals, function(val) {
+    num_digits <- nchar(abs(round(val,0)))
+    if(num_digits == 1 | all(val < 1, val > -1)) {
+      round(val, rounding)
+    } else {
+      .round_magnitude <- case_when(
+        num_digits %in% c(1,2) ~ 1,
+        num_digits == 3 ~ 10,
+        num_digits == 4 ~ 100,
+        num_digits == 5 ~ 1000,
+        num_digits == 6 ~ 10000,
+        TRUE ~ 100000
+      )
+      .fun(val / .round_magnitude) * .round_magnitude
+    }
+  }) |> unlist()
+
 }
 
 #' Automated leaflet maps.
@@ -324,7 +376,6 @@ robomap <-
         }),
         leafletlabel = map(leafletlabel, HTML)
       )
-
     log_colors <- (function() {
       if(is.null(log_colors) & all(d$value >= 0)) {
         maxval <- round(max(d$value,na.rm = T)*1000)
@@ -353,7 +404,7 @@ if(log_colors == T) {
     }
 
     get_bins <- function() {
-      bins <-rev(seq(
+      bins <- rev(seq(
         min(d$robomap.value),
         max(d$robomap.value),
         length.out = min(round(length(
@@ -361,11 +412,11 @@ if(log_colors == T) {
         )), legend_cap)
       ))
       if(length(bins) == 1) {
-        bins <- ceiling(bins)
+        bins <- roboplotr_round_magnitude(bins,rounding)
       } else {
-        .first <- ceiling(bins[1])
-        .last <- floor(last(bins))
-        bins <- round(bins)
+        .first <- roboplotr_round_magnitude(bins[1], rounding)
+        .last <- roboplotr_round_magnitude(last(bins), rounding, .fun = floor)
+        bins <- roboplotr_round_magnitude(bins,rounding)
         bins[1] <- .first
         bins[length(bins)] <- .last
 
@@ -391,7 +442,7 @@ if(log_colors == T) {
       style = str_glue(
         'opacity: 1; font-size: {getOption("roboplot.font.caption")$size}px;'
       ),
-      caption
+      htmltools::HTML(caption)
     )
 
     mainfontsize <- getOption("roboplot.font.main")$size
@@ -445,27 +496,6 @@ if(log_colors == T) {
       )
 
 
-    round_magnitude <- function(vals, rounding) {
-
-      map(vals, function(val) {
-        num_digits <- nchar(abs(round(val,0)))
-        if(num_digits == 1 | all(val < 1, val > -1)) {
-          round(val, rounding)
-        } else {
-          .round_magnitude <- case_when(
-            num_digits %in% c(1,2) ~ 1,
-            num_digits == 3 ~ 10,
-            num_digits == 4 ~ 100,
-            num_digits == 5 ~ 1000,
-            num_digits == 6 ~ 10000,
-            TRUE ~ 100000
-          )
-          ceiling(val / .round_magnitude) * .round_magnitude
-        }
-      }) |> unlist()
-
-    }
-
     legend_title <-
       ifelse(
         subtitle == "",
@@ -493,7 +523,7 @@ if(log_colors == T) {
               cuts <- exp(cuts)
             }
           }
-          cuts <- round_magnitude(cuts, rounding)
+          cuts <- roboplotr_round_magnitude(cuts, rounding)
           .mag <- round(max(cuts)) |> nchar()
           .rounding <- ifelse(.mag > 2, max(rounding-.mag, 0), rounding)
           labs <- roboplotr_format_robotable_numeric(cuts, .rounding)
@@ -531,8 +561,13 @@ if(log_colors == T) {
             }
             lo_end <- (tail(cuts,-1) - c(
               rep(-1, length(cuts) - 2), 0
-            )) |> round_magnitude(rounding) |> roboplotr_format_robotable_numeric(rounding)
-            hi_end <- head(cuts,-1) |> round_magnitude(rounding) |> roboplotr_format_robotable_numeric(rounding)
+            )) |> roboplotr_round_magnitude(rounding) |> roboplotr_format_robotable_numeric(rounding)
+            hi_end <- head(cuts,-1) |> roboplotr_round_magnitude(rounding)
+            max_val <- max(d$value,na.rm = T) |> roboplotr_round_magnitude(rounding)
+            if(max_val < max(hi_end)) {
+              hi_end[1] <- max_val
+            }
+            hi_end <- hi_end |> roboplotr_format_robotable_numeric()
             str_glue("{lo_end} – {hi_end}") |>
               map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
               reduce(c)

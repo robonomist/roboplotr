@@ -16,14 +16,15 @@ roboplotr_config <- function(p,
                              enable_rangeslider = list(rangeslider = F, max = as_date(today())),
                              ticktypes,
                              container,
-                             hovermode
+                             hovermode,
+                             info_text
                              ) {
   if (!is.list(margin)) {
     if (is.na(margin)) {
       margin <- list(t = 0,
-                     r = 10,
+                     r = 5,
                      b = 0,
-                     l = 5)
+                     l = 0)
     }
   }
 
@@ -31,7 +32,7 @@ roboplotr_config <- function(p,
     roboplotr_dependencies(title, subtitle, container) |>
     roboplotr_grid() |>
     roboplotr_set_background() |>
-    roboplotr_modebar(title, subtitle, height, width, ticktypes$dateformat) |>
+    roboplotr_modebar(title, subtitle, caption, height, width, ticktypes$dateformat, info_text) |>
     roboplotr_set_ticks(ticktypes) |>
     roboplotr_set_margin(margin) |>
     roboplotr_logo() |>
@@ -226,6 +227,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.
 #' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned control. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [set_roboplot_options()].
 #' @param container Character. Experimental, might not work as intended. Use only with shiny apps. A css selector for the element in a shiny app where this [roboplot()] will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
+#' @param info_text Character. Experimental, might not work as intended. If provided, an info button is appended to the modebar or the [roboplot()] which brings about a popup with this parameter as the text content.
 #' @param ... Placeholder for other parameters.
 #' @return A list of classes "plotly" and "html"
 #' @examples
@@ -484,6 +486,7 @@ roboplot <- function(d,
                      legend_title = F,
                      artefacts = getOption("roboplot.artefacts")$auto,
                      container = getOption("roboplot.shinyapp")$container,
+                     info_text = NULL,
                      ...) {
   margin <- NA # will this be used at all? Probably not.
 
@@ -928,7 +931,8 @@ roboplot <- function(d,
       enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
       ticktypes = ticktypes,
       container = container,
-      hovermode = hover.mode
+      hovermode = hover.mode,
+      info_text = info_text
     )
 
   if (getOption("roboplot.shinyapp")$shinyapp == F) {
@@ -1479,8 +1483,9 @@ roboplotr_add_trace <- function(...) {
 
 #' @importFrom dplyr group_by mutate summarize
 #' @importFrom purrr map_chr map2_chr map2_lgl
-#' @importFrom rlang := as_name
-#' @importFrom stringr str_glue str_replace_all
+#' @importFrom rlang := as_name quo_name
+#' @importFrom stringr str_glue str_replace str_replace_all
+#' @importFrom tibble tibble
 roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
   plot_modes <- list(
     "scatter" = c("line", "scatter", "step", "scatter+line", "smooth"),
@@ -1495,16 +1500,12 @@ roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
     if (length(plot_mode) == 1 & is.null(names(plot_mode))) {
       d <- d |> mutate(roboplot.plot.mode = plot_mode)
     } else {
-      d <-
-        d |> mutate(roboplot.plot.mode = map2_chr(
-          .data$roboplot.plot.type,
-          !!color,
-          ~ ifelse(
-            .y %in% names(plot_mode),
-            str_replace_all(.y, plot_mode),
-            plot_modes[[.x]][[1]]
-          )
-        ))
+      themodes <- tibble(.roboclr = names(plot_mode), roboplot.plot.mode = as.character(plot_mode)) |>
+        rename_with(~ str_replace(.x, ".roboclr", quo_name(color)))
+      themodes[[quo_name(color)]] <- factor(themodes[[quo_name(color)]], levels = levels(d[[quo_name(color)]]))
+      d <- d |>
+        left_join(themodes, by = as_name(color)) |>
+        mutate(roboplot.plot.mode = map2_chr(roboplot.plot.mode, roboplot.plot.type, ~ replace_na(.x, plot_modes[[.y]][[1]])))
     }
   }
 

@@ -287,7 +287,32 @@ roboplotr_widget_deps <- function(filepath = NULL) {
   font_strings <- map2(font_strings, names(font_strings), ~ list('@font-face', c('font-family', 'src'), c(.y, str_c("url('",.x,"')")))) |>
     unname()
 
-  css_list <- map(c(font_strings,list(rangeslider_mask_css)), ~.x)
+  modebar_labcolor <- unlist(unique(getOption("roboplot.grid")[c("xcolor","ycolor")]))
+  modebar_lab <-
+    list(
+      ".js-plotly-plot .plotly [data-title]::after",
+      c("margin-right", "background", "color", "font-family"),
+      c(
+        "-13px !important",
+        str_glue("{modebar_labcolor} !important"),
+        str_glue("{roboplotr:::roboplotr_text_color_picker(modebar_labcolor)} !important"),
+        str_glue("{getOption('roboplot.font.caption')$family} !important")
+      )
+    )
+
+  modebar_labpointer <-
+    list(".js-plotly-plot .plotly [data-title]::before",
+         "border-color",
+          str_glue("transparent transparent {modebar_labcolor} !important"))
+
+
+  css_list <-
+    map(c(
+      font_strings,
+      list(rangeslider_mask_css),
+      list(modebar_lab),
+      list(modebar_labpointer)
+    ), ~ .x)
 
   css_string <- roboplotr_get_css(css_list,
                                   file = if(!is.null(filepath)) { file.path(filepath,"css/style.css") } else NULL)

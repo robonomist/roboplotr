@@ -3,6 +3,7 @@ set_robotable_labels <-
   function(search = "Etsi:",
            info = "Näytetään rivit _START_-_END_ / _TOTAL_",
            lengthMenu = "Näytä _MENU_ riviä per sivu",
+           emptyTable = "Tietoja ei saatavilla",
            first = "Ensimmäinen",
            last = "Viimeinen",
            decimal = ",",
@@ -49,7 +50,7 @@ roboplotr_format_robotable_numeric <-
            ) {
     dplyr::if_else(is.na(num), na_value,
               str_glue(
-                '{formatC(round(num, rounding),big.mark = " ", decimal.mark = ",", format = "fg", flag = flag)}{unit}'
+                '{formatC(round(num, rounding), big.mark = " ", decimal.mark = ",", format = "fg", flag = flag)}{unit}'
               ))
   }
 
@@ -100,7 +101,7 @@ roboplotr_robotable_cellformat <-
 
     if ("Date" %in% unlist(map(d, class))) {
       dateformat <-
-        roboplotr:::roboplotr_get_dateformat(d) |> roboplotr:::roboplotr_hovertemplate_freq()
+        roboplotr_get_dateformat(d) |> roboplotr_hovertemplate_freq()
       d <- d |>
         mutate(across(
           where(is.Date),
@@ -231,6 +232,7 @@ roboplotr_set_robotable_css <-
       roboplotr_set_specific_css(
         str_glue("#{id}_footer"),
         "vertical-align" = "top",
+        "text-align" = "left",
         "background-color" = getOption('roboplot.colors.background'),
         'font-size' = str_glue('{caption_font$size}px'),
         'font-family' = caption_font$family,
@@ -294,7 +296,7 @@ roboplotr_set_robotable_fonts <-
 #' @param flag,unit Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.
 #' @param rounding Double. Controls the rounding of numeric columns.
 #' @param pagelength Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, [robotable()] automatically adds navigation.
-#' @param info_text Double. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.
+#' @param info_text Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.
 #' @param heatmap Function. Use [set_heatmap()]. Displays any numeric values as a heatmap.
 #' @return A list of classes "datatable" and "htmlwidget"
 #' @importFrom DT datatable tableFooter tableHeader
@@ -411,8 +413,13 @@ robotable <-
         visible = F, targets = as.numeric(names(attributes(d)$dt_orders))
       )))
 
-    # column_defs <- append(width_defs, order_defs)
-    column_defs <- order_defs
+    center_defs <- (function() {
+      dnames <- names(d)
+      center_defs <- (which(subset(dnames, !str_detect(dnames, "^\\.")) %in% dnames)[-1])-1
+      list(list(className = "dt-right", targets = center_defs))
+    })()
+
+    column_defs <- append(order_defs, center_defs)
 
     .footer <- caption
 
@@ -469,7 +476,7 @@ robotable <-
             style = str_glue(
               "font-family: {main_font$family}; font-size: {main_font$size}px;"
             ),
-            tags$p(info_text),
+            tags$p(HTML(info_text)),
             tags$p(caption)
 
           )
