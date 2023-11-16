@@ -287,7 +287,7 @@ roboplotr_widget_deps <- function(filepath = NULL) {
   font_strings <- map2(font_strings, names(font_strings), ~ list('@font-face', c('font-family', 'src'), c(.y, str_c("url('",.x,"')")))) |>
     unname()
 
-  modebar_labcolor <- unlist(unique(getOption("roboplot.grid")[c("xcolor","ycolor")]))
+  modebar_labcolor <- unlist(unique(getOption("roboplot.grid")[c("xcolor","ycolor")]))[1]
   modebar_lab <-
     list(
       ".js-plotly-plot .plotly [data-title]::after",
