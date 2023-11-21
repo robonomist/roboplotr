@@ -129,7 +129,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     modal_id <- str_c("roboplot-info-", str_remove(runif(1), "\\."))
     main_font <- getOption("roboplot.font.main")
     title_font <- getOption("roboplot.font.title")
-    modal_color <- getOption('roboplot.trace.border')$color
+    m.specs <- getOption("roboplot.infobox")
     .bold <- ifelse(title_font$bold, tags$b, tags$span)
     modal_html <- tags$div(
       id = str_glue("{modal_id}_infomodal"),
@@ -138,17 +138,17 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
         style = str_glue(
           "position: absolute;
                z-index: 9999;
-               background-color: {modal_color};
-               color: {roboplotr_text_color_picker(modal_color)};
+               background-color: {m.specs$background};
+               color: {m.specs$font};
                padding: 5px;
-               border: 1px solid {getOption('roboplot.border')[c('xcolor','ycolor')] |> unique() |> unlist() |> first()};
-               box-shadow: 0 4px 8px {modal_color};"
+               border: {m.specs$border_width}px solid {m.specs$border};
+               box-shadow: 0 4px 8px {m.specs$background};"
         ),
         tags$span(
           id = str_glue("{modal_id}_infomodal-close"),
           fa(
             "times-circle",
-            fill = main_font$color,
+            fill = m.specs$font,
             height = str_glue("{title_font$size}px")
           ),
           style = "top: 5px; right: 10px; font-size: 24px; cursor: pointer; float: right;"
@@ -349,3 +349,30 @@ set_imgdl_layout <- function(
   roboplotr_valid_strings(format, c("png","svg","jpeg", "webp"), any)
   list(x = width, y = height, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix, type = format)
 }
+
+#' Infobox appearance control for [roboplot()] or [robotable()]
+#'
+#' Set global parameters in [set_roboplot_options()] for plot borders
+#' of [roboplot()] plots and [robotable()] tables.
+#'
+#' @importFrom dplyr first
+#' @param background,border Characters. Colors used for the corresponding element of the infopopup of [robotable()]s and [roboplot()]s. Must be a hexadecimal color strings or a valid css color strings.
+#' @param border_width Integer. The border width of modal color.
+#' @returns A list.
+#' @export
+set_infobox <-
+  function(background = first(unlist(unique(getOption('roboplot.grid')[c('xcolor', 'ycolor')]))),
+           border = first(unlist(unique(getOption('roboplot.border')[c('xcolor', 'ycolor')]))),
+           border_width = 1) {
+    roboplotr_valid_colors(background)
+    font <- roboplotr_text_color_picker(background)
+    roboplotr_valid_colors(border)
+    roboplotr_valid_colors(font)
+    roboplotr_check_param(border_width, "numeric", allow_null = F)
+    list(
+      background = background,
+      border = border,
+      font = font,
+      border_width = round(border_width)
+    )
+  }

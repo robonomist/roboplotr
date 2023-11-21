@@ -15,6 +15,7 @@
     roboplot.font.main = list(size = 14, family = "Arial, sans-serif", path = NULL, color = "#696969"),
     roboplot.font.title = list(size = 17, family = "Arial, sans-serif", path = NULL, color = "#696969", bold = T),
     roboplot.height = 550,
+    roboplot.infobox = list(background = "#E8E8E8", border = "black", font = "#646464", border_width = 1),
     roboplot.linewidth = 2,
     roboplot.locale = list(locale = "fi", separators = ", ", date = "%-d.%-m.%Y"),
     roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),

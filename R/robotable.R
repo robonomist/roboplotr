@@ -440,7 +440,7 @@ robotable <-
       )
       main_font <- getOption("roboplot.font.main")
       title_font <- getOption("roboplot.font.title")
-      modal_color <- getOption('roboplot.trace.border')$color
+      m.specs <- getOption("roboplot.infobox")
       modal_html <- tags$div(
         tags$script(HTML(jsCode)),
         id = str_glue("{robotable_id}_infomodal"),
@@ -449,17 +449,17 @@ robotable <-
           style = str_glue(
             "position: absolute;
                z-index: 9999;
-               background-color: {modal_color};
-               color: {roboplotr_text_color_picker(modal_color)};
+               background-color: {m.specs$background};
+               color: {m.specs$font};
                padding: 5px;
-               border: 1px solid {getOption('roboplot.border')[c('xcolor','ycolor')] |> unique() |> unlist() |> first()};
-               box-shadow: 0 4px 8px {modal_color};"
+               border: {m.specs$border_width}px solid {m.specs$border};
+               box-shadow: 0 4px 8px {m.specs$background};"
           ),
           tags$span(
             id = str_glue("{robotable_id}_infomodal-close"),
             fa(
               "times-circle",
-              fill = main_font$color,
+              fill = m.specs$font,
               height = str_glue("{title_font$size}px")
             ),
             style = "top: 5px; right: 10px; font-size: 24px; cursor: pointer; float: right;"

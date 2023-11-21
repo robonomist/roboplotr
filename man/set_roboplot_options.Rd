@@ -19,6 +19,7 @@ set_roboplot_options(
   imgdl_wide = NULL,
   imgdl_narrow = NULL,
   imgdl_small = NULL,
+  infobox = NULL,
   linewidth = NULL,
   locale = NULL,
   logo_file = NULL,
@@ -55,9 +56,11 @@ set_roboplot_options(
 
 \item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{set_imgdl_layout}. Controls the dimensions and fonts of image files downloaded through modebar buttons.}
 
+\item{infobox}{Function. Defines the appearance of the infobox available from modebar when 'info_text' is provided for \code{\link[=roboplot]{roboplot()}} or \code{\link[=robotable]{robotable()}}. Use \code{\link[=set_infobox]{set_infobox()}}.}
+
 \item{linewidth}{Numeric. The default roboplotr line trace width.}
 
-\item{locale}{Function. Defines locale parameters as \code{\link[=roboplot]{roboplot()}} needs them. Use \code{\link[=set_artefacts]{set_artefacts()}}.}
+\item{locale}{Function. Defines locale parameters as \code{\link[=roboplot]{roboplot()}} needs them. Use \code{\link[=set_locale]{set_locale()}}.}
 
 \item{logo_file}{Character. The filepath to the logo used in every plot.}
 

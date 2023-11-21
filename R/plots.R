@@ -516,6 +516,8 @@ roboplot <- function(d,
 
   d_names <- names(d)
 
+  d <- d |> mutate(across(where(is.numeric), as.numeric))
+
   roboplotr_check_param(plot_axes,
                         "function",
                         NULL,

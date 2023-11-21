@@ -1,3 +1,7 @@
+# roboplotr 1.3.4
+
+* roboplot_set_options control for infobox appearance. Roboplot fix to accept integer columns for numeric axes.
+
 # roboplotr 1.3.3.3
 
 * Roboplot pattern and dashtype control fix. Roboplot and robotable infobutton popup fixes.

@@ -12,8 +12,9 @@
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @param font_main,font_title,font_caption Functions. Use [set_font()].
 #' @param height,width Numerics. Height and width of roboplotr plots in pixels.
+#' @param infobox Function. Defines the appearance of the infobox available from modebar when 'info_text' is provided for [roboplot()] or [robotable()]. Use [set_infobox()].
 #' @param linewidth Numeric. The default roboplotr line trace width.
-#' @param locale Function. Defines locale parameters as [roboplot()] needs them. Use [set_artefacts()].
+#' @param locale Function. Defines locale parameters as [roboplot()] needs them. Use [set_locale()].
 #' @param logo_file Character. The filepath to the logo used in every plot.
 #' @param modebar Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
@@ -274,6 +275,7 @@ set_roboplot_options <- function(
     imgdl_wide = NULL,
     imgdl_narrow = NULL,
     imgdl_small = NULL,
+    infobox = NULL,
     linewidth = NULL,
     locale = NULL,
     logo_file = NULL,
@@ -347,6 +349,10 @@ set_roboplot_options <- function(
 
     roboplotr_check_param(height, "numeric")
 
+    if(!is.null(infobox)) {
+      roboplotr_check_param(locale, "function", NULL, f.name = list(fun = substitute(infobox)[1], check = "set_infobox"))
+    }
+
     roboplotr_check_param(linewidth, "numeric")
 
     if(!is.null(locale)) {
@@ -412,6 +418,7 @@ set_roboplot_options <- function(
     set_roboplot_option(font_caption, "font.caption")
     set_roboplot_option(grid)
     set_roboplot_option(height)
+    set_roboplot_option(infobox)
     set_roboplot_option(locale)
     set_roboplot_option(linewidth)
     set_roboplot_option(logo_file, "logo")
