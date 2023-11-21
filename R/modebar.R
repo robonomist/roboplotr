@@ -133,7 +133,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     .bold <- ifelse(title_font$bold, tags$b, tags$span)
     modal_html <- tags$div(
       id = str_glue("{modal_id}_infomodal"),
-      style = "position: absolute; top: 20px; left: 5px; width: 50%;",
+      style = "position: absolute; top: 4%; left: 6%; width: 50%;",
       tags$div(
         style = str_glue(
           "position: absolute;
@@ -154,9 +154,9 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
           style = "top: 5px; right: 10px; font-size: 24px; cursor: pointer; float: right;"
         ),
         .bold(
-          title$title,
+          HTML(title$title),
           tags$br(),
-          tags$span(subtitle, style = "font-size: 75%"),
+          tags$span(HTML(subtitle), style = "font-size: 75%"),
           style = str_glue(
             "font-family: {title_font$family};font-size: {title_font$size}px;"
           )
@@ -166,7 +166,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
             "font-family: {main_font$family}; font-size: {main_font$size}px;"
           ),
           tags$p(HTML(info_text)),
-          tags$p(caption)
+          tags$p(HTML(caption))
 
         )
       )
@@ -185,7 +185,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
         var modal = document.createElement('div');
         modal.id = '{<modal_id}_infomodal_container';
         modal.innerHTML = `{<modal_html}`;
-        modal.style.display = 'block'; // Show the modal
+        modalparent = gd.querySelector('.plot-container');
         gd.appendChild(modal);
         document.getElementById('{<modal_id}_infomodal-close').addEventListener('click', function() {
           modal.style.display = 'none';

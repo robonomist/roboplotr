@@ -1,3 +1,7 @@
+# roboplotr 1.3.3.3
+
+* Roboplot pattern and dashtype control fix. Roboplot and robotable infobutton popup fixes.
+
 # roboplotr 1.3.3.2
 
 * Roboplot modebar color fix.

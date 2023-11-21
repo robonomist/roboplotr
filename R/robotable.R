@@ -465,9 +465,9 @@ robotable <-
             style = "top: 5px; right: 10px; font-size: 24px; cursor: pointer; float: right;"
           ),
           .bold(
-            title$title,
+            HTML(title$title),
             tags$br(),
-            tags$span(subtitle, style = "font-size: 75%"),
+            tags$span(HTML(subtitle), style = "font-size: 75%"),
             style = str_glue(
               "font-family: {title_font$family};font-size: {title_font$size}px;"
             )
@@ -477,7 +477,7 @@ robotable <-
               "font-family: {main_font$family}; font-size: {main_font$size}px;"
             ),
             tags$p(HTML(info_text)),
-            tags$p(caption)
+            tags$p(HTML(caption))
 
           )
         )
@@ -489,7 +489,7 @@ robotable <-
     if (str_length(subtitle) > 0) {
       subtitle <-
         tagList(tags$br(),
-                tags$span(subtitle, id = str_glue("{robotable_id}_subtitle")))
+                tags$span(HTML(subtitle), id = str_glue("{robotable_id}_subtitle")))
     } else {
       subtitle <- NULL
     }
@@ -519,7 +519,7 @@ robotable <-
               #style = "vertical-align: top",
               id = str_glue("{robotable_id}_footer"),
               colspan = names(d) |> stringr::str_subset("^.order", negate = T) |> length(),
-              tags$span(.footer),
+              tags$span(HTML(.footer)),
               robotable_logo()
             ),
           ))

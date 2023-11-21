@@ -170,7 +170,10 @@ roboplotr_grey_shades <- function() {
          "luminance" = roboplotr_get_luminance(grey_shades))
 }
 
+#' @importFrom dplyr mutate
 #' @importFrom forcats fct_inorder fct_relevel fct_rev
+#' @importFrom purrr map2_chr
+#' @importFrom rlang as_name
 roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
   dashtypes <- getOption("roboplot.dashtypes")
   patterntypes <- getOption("roboplot.patterntypes")
@@ -178,13 +181,29 @@ roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
     if(!is.factor(d[[as_name(pattern)]])) {
       d[[as_name(pattern)]] <- fct_inorder(d[[as_name(pattern)]])
     }
+    if(!".other" %in% names(pattern_type)) {
+      .default <- c("dash" = dashtypes[1], "bar" = patterntypes[1])
+    } else if (pattern_type[".other"] %in% dashtypes) {
+      .default <- c("dash" = unname(pattern_type[".other"]), "bar" = patterntypes[1])
+    } else if (pattern_type[".other"] %in% patterntypes) {
+      .default <- c("dash" = dashtypes[1], "bar" = unname(pattern_type[".other"]))
+    } else {
+      .default <- c("dash" = dashtypes[1], "bar" = patterntypes[1])
+    }
     defined_patterns <- roboplotr_set_pattern(d, pattern, pattern_type)
     if (!is.null(defined_patterns)) {
-      d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",defined_patterns[!!pattern],dashtypes[1]),
-                       roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",defined_patterns[!!pattern],patterntypes[1]))
+      d <- d |>
+        mutate(
+          roboplot.dash = map2_chr(roboplot.plot.type, !!pattern, ~ {
+        ifelse(.x == "scatter",defined_patterns[as.character(.y)],.default["dash"])
+      }),
+      roboplot.pattern = map2_chr(roboplot.plot.type, !!pattern, ~ {
+        ifelse(.x != "scatter",defined_patterns[as.character(.y)],.default["bar"])
+      })
+      )
     } else {
-      d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",dashtypes[!!pattern],dashtypes[1]),
-                       roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",patterntypes[!!pattern],patterntypes[1])
+      d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",dashtypes[!!pattern],.default["dash"]),
+                       roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",patterntypes[!!pattern],.default["bar"])
       )
     }
   } else { d <- mutate(d, roboplot.dash = dashtypes[1], roboplot.pattern = patterntypes[1]) }
@@ -451,7 +470,7 @@ set_heatmap <-
   }
 
 #' Internal function for handling named patterns for traces
-#' @importFrom dplyr distinct select
+#' @importFrom dplyr distinct mutate select
 #' @importFrom purrr pmap reduce
 #' @importFrom rlang quo_name
 #' @importFrom stats setNames
@@ -464,6 +483,7 @@ roboplotr_set_pattern <- function(d, pattern, pattern_type) {
     d |>
       select({{pattern}}, roboplot.plot.type) |>
       distinct() |>
+      mutate({{pattern}} := as.character({{pattern}})) |>
       pmap(function(...) {
         this <- list(...)
         this_name <- as.character(this[[quo_name(pattern)]])
