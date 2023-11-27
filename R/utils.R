@@ -530,7 +530,7 @@ set_locale <- function(locale = "fi-FI") {
   roboplotr_check_param(locale, "character", allow_null = F)
   roboplotr_valid_strings(locale, c("en-GB","en-US","sv-SE","fi-FI"), any)
   loc <- case_when(locale == "en-GB" ~ "en", locale == "en-US" ~ "en-US", locale == "sv-SE" ~ "sv", TRUE ~ "fi")
-  sep <- case_when(loc %in% c("en", "en-US") ~ ",.", TRUE ~ ", ")
+  sep <- case_when(loc %in% c("en", "en-US") ~ ".,", TRUE ~ ", ")
   dat <- case_when(loc == "en" ~ "%-d/%-m/%Y", loc == "en-US" ~ "%-m/%-d/%Y", TRUE ~ "%-d.%-m.%Y")
   list(locale = loc, separators = sep, date = dat)
 }

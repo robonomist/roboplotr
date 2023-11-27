@@ -1,3 +1,7 @@
+# roboplotr 1.3.4.1
+
+* set_locale fix.
+
 # roboplotr 1.3.4
 
 * roboplot_set_options control for infobox appearance. Roboplot fix to accept integer columns for numeric axes.
