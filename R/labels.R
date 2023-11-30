@@ -247,7 +247,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'
 #'
 #' set_roboplot_options(
-#'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
+#'   caption_template = "Lähde: {text}!!",
 #'   font_title = set_font(size = 17, font = "Tahoma", bold = TRUE),
 #'   font_main =  set_font(
 #'     size = 11,
@@ -261,6 +261,9 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 #'
 #' d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
+
+#' # Valid Google Fonts work as well.
+#' set_roboplot_options(font_caption = set_font(font = "Exo"))
 #'
 #' # Note that plotly's own downloadImage does not support external fonts.
 #'
@@ -276,30 +279,61 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' # revert to defaults:
 #' set_roboplot_options(reset = TRUE)
 #' @export
-set_font <- function(font = "Arial", fallback = NULL, size = 12, color = "black", bold_title = T, type = NULL) {
+set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL, bold_title = T, type = NULL) {
 
+  if(is.null(font)) {
+    font <- getOption(str_glue("roboplot.font.{type}"))$.font
+  }
+  if(is.null(fallback)) {
+    fallback <- getOption(str_glue("roboplot.font.{type}"))$.fallback
+  }
+  if(is.null(size)) {
+    size <- getOption(str_glue("roboplot.font.{type}"))$size
+  }
+  if(is.null(color)) {
+    color <- getOption(str_glue("roboplot.font.{type}"))$color
+  }
   websafe <- c("Arial","Verdana","Tahoma","Trebuchet","Times New Roman","Georgia","Garamond","Courier New","Brush Script MT")
 
   roboplotr_check_param(font, "character", allow_null = F)
 
-  if(!font %in% websafe) {
+  google_font <- NULL
+  if (!font %in% websafe & !str_detect(tolower(font), "(ttf|otf)$")) {
+    google_font <- (function(font_name = font) {
+
+      font_name <- str_replace_all(font_name, ' ','+')
+      font_url <- str_glue("https://fonts.googleapis.com/css2?family={font_name}")
+      resp <- httr::GET(font_url)
+
+      if(httr::status_code(resp) == 200) {
+       google_font <- httr::content(resp)
+       google_font <- list(url = str_extract(google_font, "(?<=url\\()[^\\)]*(?=\\))"), format = str_extract(google_font, "(?<=format\\()[^\\)]*(?=\\))"))
+      } else {
+          NULL
+        }
+    })()
+  }
+
+  if(!font %in% websafe & is.null(google_font)) {
     if (!file.exists(font) | !str_extract(font, "[^\\.]*$") %in% c("otf","ttf","OTF","TTF")) {
       stop(str_c("The give 'font' does not seem to exist or the font file is not in file format .otf or .ttf. Is the file path correct?\n",
                  "Try using a call of system.file() (eg. system.file(\"www\",\"fonts\",\"Roboto-Regular.ttf\", package = \"roboplotr\"))\n",
-                 "You can use any of ",roboplotr_combine_words(str_c("\"",websafe,"\""), and = " or ")," instead."), call. = F)
+                 "You can use any of ",roboplotr_combine_words(str_c("\"",websafe,"\""), and = " or ")," instead, or try using a valid Google Font."), call. = F)
     }
   }
 
+
+  .font <- font
   roboplotr_check_param(size, "numeric", allow_null = F)
   roboplotr_check_param(color, "character", allow_null = F)
   roboplotr_valid_colors(color)
   roboplotr_check_param(bold_title, "logical", allow_null = F)
 
-  if(!font %in% websafe) {
+  if(!font %in% websafe & is.null(google_font)) {
     roboplotr_check_param(type, "character", allow_null = F)
     type <- tolower(type)
     if(!type %in% c("main","title","caption")) {
-      stop("Any font 'type' must be one of \"main\", \"title\" or \"caption\".", call. = F)
+      stop("When the font is a file, the parameter 'type' must be one of \"main\", \"title\" or \"caption\".", call. = F)
     }
   }
 
@@ -312,13 +346,23 @@ set_font <- function(font = "Arial", fallback = NULL, size = 12, color = "black"
     fallback <- str_replace_all(font, fallbacks)
     family <- str_c(font,", ",fallback)
     font <- NULL
-    fallback <- NULL
+    font_face <- NULL
+  } else if (!is.null(google_font)) {
+    roboplotr_check_param(fallback, "character", allow_null = F)
+    roboplotr_valid_strings(fallback, websafe, any)
+    .fallback <- fallback
+    fallback <- str_c(fallback," , ",str_replace_all(fallback, fallbacks))
+    font_face <- font
+    family <- str_glue("{font}, {fallback}")
+    font <- NULL
   } else {
     roboplotr_check_param(fallback, "character", allow_null = F)
     roboplotr_valid_strings(fallback, websafe, any)
+    .fallback <- fallback
     fallback <- str_c(fallback," , ",str_replace_all(fallback, fallbacks))
-    family <- str_c("roboplot-",type)
+    font_face <- str_glue("roboplot-{type}")
+    family <- str_glue("roboplot-{type}, {fallback}")
   }
 
-  list(path = font, family = family, fallback = fallback, size = size, color = color, bold = bold_title)
+  list(path = font, family = family, font_face = font_face, size = size, color = color, bold = bold_title, google_font = google_font, .fallback = .fallback, .font = .font)
 }

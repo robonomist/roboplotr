@@ -335,14 +335,26 @@ set_roboplot_options <- function(
     roboplotr_check_param(dashtypes, "character", NULL)
     roboplotr_valid_strings(dashtypes,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"))
 
+
+    font_main <- substitute(font_main)
     if(!is.null(font_main)) {
-      roboplotr_check_param(font_main, "function", NULL, f.name = list(fun = substitute(font_main)[1], check = "set_font"))
+      if(font_main[1] != "set_font()") { stop("Use 'roboplotr::set_font()' for font_main!", call. = F)}
+      if(is.null(font_main$type)) { font_main$type <- "main" }
+      font_main <- eval(font_main)
     }
+
+    font_title <- substitute(font_title)
     if(!is.null(font_title)) {
-      roboplotr_check_param(font_title, "function", NULL, f.name = list(fun = substitute(font_title)[1], check = "set_font"))
+      if(font_title[1] != "set_font()") { stop("Use 'roboplotr::set_font()' for font_title!", call. = F)}
+      if(is.null(font_title$type)) { font_title$type <- "title" }
+      font_title <- eval(font_title)
     }
+
+    font_caption <- substitute(font_caption)
     if(!is.null(font_caption)) {
-      roboplotr_check_param(font_caption, "function", NULL, f.name = list(fun = substitute(font_caption)[1], check = "set_font"))
+      if(font_caption[1] != "set_font()") { stop("Use 'roboplotr::set_font()' for font_caption!", call. = F)}
+      if(is.null(font_caption$type)) { font_caption$type <- "caption" }
+      font_caption <- eval(font_caption)
     }
 
     roboplotr_check_param(grid, "function", NULL,  f.name = list(fun = substitute(grid)[1], check = "set_grid"))

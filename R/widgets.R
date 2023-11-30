@@ -237,11 +237,26 @@ roboplotr_automate_imgdl <- function(p, artefacts, dl_path = getwd()) {
 
 }
 
+
+#' @importFrom RCurl base64Encode
+#' @importFrom stats setNames
+#' @importFrom stringr str_extract
+roboplotr_set_font_string <- function(this_opt, filepath) {
+  if(!is.null(filepath)) {
+    invisible(file.copy(this_opt$path, file.path(filepath,"fonts",str_extract(this_opt$path,"[^/]*$"))))
+    font_string <- list(file.path("..","fonts",str_extract(this_opt$path,"[^/]*$"))) |> setNames(this_opt$font_face)
+    font_string
+  # } else if (!is.null(this_opt$google_font)) {
+  } else {
+    base_font <- base64Encode(readBin(this_opt$path, "raw", file.info(this_opt$path)[1, "size"]), "txt")
+    font_string <- list(str_c('data:vnd.ms-opentype;base64', base_font, sep=',')) |> setNames(this_opt$font_face)
+    font_string
+  }}
+
 #' @importFrom farver decode_colour
 #' @importFrom RCurl base64Encode
-#' @importFrom stringr str_c
+#' @importFrom stringr str_c str_glue
 #' @importFrom stats setNames
-#'
 roboplotr_widget_deps <- function(filepath = NULL) {
 
   js_file <- system.file("www/js","relayout.js", package = "roboplotr")
@@ -256,17 +271,6 @@ roboplotr_widget_deps <- function(filepath = NULL) {
 
   font_strings <- NULL
 
-  set_font_strings <- function(this_opt, filepath) {
-    if(!is.null(filepath)) {
-      invisible(file.copy(this_opt$path, file.path(filepath,"fonts",str_extract(this_opt$path,"[^/]*$"))))
-      font_string <- list(file.path("..","fonts",str_extract(this_opt$path,"[^/]*$"))) |> setNames(this_opt$family)
-      font_string
-    } else {
-      base_font <- base64Encode(readBin(this_opt$path, "raw", file.info(this_opt$path)[1, "size"]), "txt")
-      font_string <- list(str_c('data:vnd.ms-opentype;base64', base_font, sep=',')) |> setNames(this_opt$family)
-      font_string
-    }}
-
   for(opt in c("main", "caption","title")) {
 
     opt_name <- str_c("roboplot.font.",opt)
@@ -274,10 +278,13 @@ roboplotr_widget_deps <- function(filepath = NULL) {
     this_opt <- getOption(opt_name)
 
     if(!is.null(this_opt$path)) {
-      font_strings <- append(font_strings, set_font_strings(this_opt, filepath))
+      font_strings <- append(font_strings, roboplotr_set_font_string(this_opt, filepath))
+    } else if(!is.null(this_opt$google_font)) {
+      font_strings <- append(font_strings, this_opt$google_font$url |> setNames(this_opt$font_face))
     }
 
   }
+
 
   rangeslider_mask <- decode_colour(getOption("roboplot.colors.background")) |> str_c(collapse = ", ")
   rangeslider_mask_css <- list(".rangeslider-mask-min, .rangeslider-mask-max",
@@ -285,7 +292,7 @@ roboplotr_widget_deps <- function(filepath = NULL) {
                                c(str_c("rgb(",rangeslider_mask,") !important"),"0.7 !important"))
 
   font_strings <- map2(font_strings, names(font_strings), ~ list('@font-face', c('font-family', 'src'), c(.y, str_c("url('",.x,"')")))) |>
-    unname()
+    unname() |> unique()
 
   modebar_labcolor <- unlist(unique(getOption("roboplot.grid")[c("xcolor","ycolor")]))[1]
   modebar_lab <-

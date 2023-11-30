@@ -7,8 +7,8 @@
 set_font(
   font = "Arial",
   fallback = NULL,
-  size = 12,
-  color = "black",
+  size = NULL,
+  color = NULL,
   bold_title = T,
   type = NULL
 )
@@ -45,7 +45,7 @@ Get a list for \code{\link[=set_roboplot_options]{set_roboplot_options()}} used 
 
 
 set_roboplot_options(
-  caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
+  caption_template = "Lähde: {text}!!",
   font_title = set_font(size = 17, font = "Tahoma", bold = TRUE),
   font_main =  set_font(
     size = 11,
@@ -59,6 +59,8 @@ set_roboplot_options(
 d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 
 d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
+# Valid Google Fonts work as well.
+set_roboplot_options(font_caption = set_font(font = "Exo"))
 
 # Note that plotly's own downloadImage does not support external fonts.
 
