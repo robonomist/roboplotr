@@ -1,3 +1,7 @@
+# roboplotr 1.3.4.3
+
+* Font fallback crash fix for websafe fonts.
+
 # roboplotr 1.3.4.2
 
 * Examples fit for set_caption(). Fix for multiple font css definitions. Added Google Font support for fonts. Still won't work with downloaded pngs (or svgs).

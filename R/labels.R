@@ -343,6 +343,7 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
                  "Brush Script MT" = "cursive")
 
   if(font %in% websafe) {
+    .fallback <- fallback
     fallback <- str_replace_all(font, fallbacks)
     family <- str_c(font,", ",fallback)
     font <- NULL
