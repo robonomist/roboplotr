@@ -1,3 +1,7 @@
+# roboplotr 1.3.4.4
+
+* Font fallback crash fix for websafe fonts.
+
 # roboplotr 1.3.4.3
 
 * Font fallback crash fix for websafe fonts.

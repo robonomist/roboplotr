@@ -307,7 +307,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'              trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
 #'              plot_type = c("Norja" = "scatter","Kanada" = "bar",".other" = "scatter"),
 #'              plot_mode = c("Yhdistynyt kuningaskunta" = "scatter",
-#'                            "Norja" = "scatter+line"
+#'                            "Norja" = "scatter+line", ".bar" = "dodge"
 #'              ))
 #'
 #'
@@ -1503,7 +1503,17 @@ roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
       d <- d |> mutate(roboplot.plot.mode = plot_mode)
     } else {
       themodes <- tibble(.roboclr = names(plot_mode), roboplot.plot.mode = as.character(plot_mode)) |>
-        rename_with(~ str_replace(.x, ".roboclr", quo_name(color)))
+        rename_with(~ str_replace(.x, ".roboclr", quo_name(color))) |>
+        full_join(d |> distinct({{color}}, roboplot.plot.type), by = as_name(color)) |>
+        mutate(roboplot.plot.mode = map2_chr(roboplot.plot.mode, roboplot.plot.type, ~ replace_na(.x,plot_mode[str_c(".",.y)]))) |>
+        filter(!is.na(roboplot.plot.type))
+      if(any(is.na(themodes$roboplot.plot.mode))) {
+        msg <- themodes %>% filter(is.na(roboplot.plot.mode))
+        def_modes <- roboplotr_combine_words(str_c('\".',unique(msg$roboplot.plot.type),'\"'))
+        col_modes <- roboplotr_combine_words(str_c('\"',pull(msg[as_name(color)]),'\"'))
+        stop(str_glue("Please provide plot_mode for {def_modes}, and / or specify plot_mode(s) for any or all of {col_modes}."), call. = F)
+      }
+      themodes <- themodes |> select(-roboplot.plot.type)
       themodes[[quo_name(color)]] <- factor(themodes[[quo_name(color)]], levels = levels(d[[quo_name(color)]]))
       d <- d |>
         left_join(themodes, by = as_name(color)) |>
