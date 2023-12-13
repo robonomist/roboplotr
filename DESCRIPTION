@@ -49,6 +49,7 @@ Suggests:
     Quandl,
     slider,
     tidyverse
+Remotes: robonomist/robonomistClient
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
