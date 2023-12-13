@@ -387,18 +387,16 @@ roboplotr_tbl_heatmap_colorfun <- function(d, cols = NULL,
 #' interal function for adding heatmap styling [roboplotr::robotable]
 #' @importFrom DT formatStyle styleEqual
 roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
-
-  if(is.null(heatmap)) {
+  if (is.null(heatmap)) {
     dt
   } else {
-
-    heatmap_fun <- roboplotr_tbl_heatmap_colorfun(d,hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max)
+    heatmap_fun <- roboplotr_tbl_heatmap_colorfun(d, hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max)
 
     .orders <- attributes(d)$dt_orders
 
-    for(col in seq_len(length(.orders))) {
+    for (col in seq_len(length(.orders))) {
       order_col <- (.orders[col] |> names() |> as.numeric()) + 1
-      col <- as.numeric(.orders[col])+1
+      col <- as.numeric(.orders[col]) + 1
       color_bg <- heatmap_fun(d[[order_col]])
       color_tx <- roboplotr_text_color_picker(color_bg)
       dt <- dt |> formatStyle(
@@ -410,7 +408,6 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
 
     dt
   }
-
 }
 
 #' Heatmap specifications for [robotable()]
@@ -422,8 +419,9 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
 #' Any values falling outside of this range will have the nearest corresponding color. If not provided, [robotable()] calculates the values from the data.
 #' Currently only support heatmaps across all numeric columns in the given [robotable()].
 #' @examples
+#' \dontrun{
 #' # Use [set_heatmap()] to specify any the colors are value breaks used in heatmaps.
-#' d <- energiantuonti |>
+#' d <- roboplotr::energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Ruotsi","Kanada")) |>
 #'   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
 #'   dplyr::arrange(Tiedot, time) |>
@@ -431,18 +429,18 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
 #'   dplyr::mutate(dplyr::across(where(is.numeric), ~ tidyr::replace_na(.x, 0))) |>
 #'   dplyr::arrange(time)
 #' # No specifications uses the ends of the default trace colors set with
-#' [set_roboplot_options()] and bases the numeric breakpoints on the data.
+#' # [set_roboplot_options()] and bases the numeric breakpoints on the data.
 #'
 #' d |> robotable(heatmap = set_heatmap())
-#' #You can specify any of the parameters separately, and [robotable()] fills in the rest.
+#' # You can specify any of the parameters separately, and [robotable()] fills in the rest.
 #' d |>
 #'   robotable(heatmap = set_heatmap(
 #'     midcolor = "white",
 #'     mincolor = "lightblue",
 #'     midvalue = 75
 #'   ))
-
-#' @returns A list
+#' }
+#' @return A list
 #' @importFrom stats setNames
 #' @export
 set_heatmap <-

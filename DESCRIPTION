@@ -36,7 +36,10 @@ Imports:
     leaflet,
     sf,
     sp,
-    gstat
+    gstat,
+    raster,
+    scales,
+    tibble
 Suggests: 
     testthat (>= 3.0.0),
     glue,

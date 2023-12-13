@@ -54,7 +54,7 @@ roboplotr_format_robotable_numeric <-
               ))
   }
 
-#' @importFrom dplyr across bind_cols cur_column mutate rename_with
+#' @importFrom dplyr across bind_cols cur_column mutate rename_with bind_rows
 roboplotr_robotable_cellformat <-
   function(d, rounding, flag, unit, na_value) {
     if (!is.null(names(unit))) {

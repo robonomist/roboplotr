@@ -27,8 +27,9 @@ A list
 Use in \code{\link[=robotable]{robotable()}} parameter 'heatmap' to get a list used for setting up the heatmap colors and value breaks.
 }
 \examples{
+\dontrun{
 # Use [set_heatmap()] to specify any the colors are value breaks used in heatmaps.
-d <- energiantuonti |>
+d <- roboplotr::energiantuonti |>
   dplyr::filter(Alue \%in\% c("Ruotsi","Kanada")) |>
   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
   dplyr::arrange(Tiedot, time) |>
@@ -36,14 +37,15 @@ d <- energiantuonti |>
   dplyr::mutate(dplyr::across(where(is.numeric), ~ tidyr::replace_na(.x, 0))) |>
   dplyr::arrange(time)
 # No specifications uses the ends of the default trace colors set with
-[set_roboplot_options()] and bases the numeric breakpoints on the data.
+# [set_roboplot_options()] and bases the numeric breakpoints on the data.
 
 d |> robotable(heatmap = set_heatmap())
-#You can specify any of the parameters separately, and [robotable()] fills in the rest.
+# You can specify any of the parameters separately, and [robotable()] fills in the rest.
 d |>
   robotable(heatmap = set_heatmap(
     midcolor = "white",
     mincolor = "lightblue",
     midvalue = 75
   ))
+}
 }
