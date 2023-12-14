@@ -60,11 +60,11 @@ set_roboplot_options(
     width = 650, height = 400, suffix = "", format = "png"),
   imgdl_narrow = set_imgdl_layout(
     width = 550, height = 440, suffix = "", format = "png"),
-  logo_file = system.file("image", "vtt-logo.png", package = "vtt"),
+  logo_file = system.file("images", "robonomist_wide.png", package = "roboplotr"),
   modebar = c(
     "home", "closest", "compare", "zoom", "img_n", "img_w", "data_dl"
     ),
-  trace_colors = c("#01205F", "#16AFED", "#0581BB", "#BF1115", "#93CF57"),
+  trace_colors = getOption("roboplot.colors.traces"),
   width = 650,
   xaxis_ceiling = "months",
   verbose = "Warning"
