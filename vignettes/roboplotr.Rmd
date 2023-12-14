@@ -22,6 +22,7 @@ knitr::opts_chunk$set(
 library(roboplotr)
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 ```
+
 ## Basics
 
 Plotly is especially challenging to use when the resulting plots are dynamically
@@ -29,7 +30,7 @@ sized, as elements external to the plot area, like titles, captions, legends and
 logos will not be located where they are expected to be after a resize. The 
 purpose of the roboplotr package is to reduce the workload of making dynamic 
 plotly plots, with many layout elements handled with parameters to the core 
-roboplotr function, roboplot(). Some more complicated things are handled with 
+roboplotr function, `roboplot()`. Some more complicated things are handled with 
 helper functions. Roboplotr has internal scripts to handle plot relayouts on a 
 resize, including dynamic title wraps and y-axis font resizing.
 
@@ -46,24 +47,26 @@ use in the function documentation.
 
 ## Setting the global options
 
-First off, we use set_roboplot_options() to set some global options to define 
+First off, we use `set_roboplot_options()` to set some global options to define 
 some visual and other specifications.
 
 ```{r roboplot_options}
 set_roboplot_options(
   artefacts = set_artefacts(
     filepath = file.path(tempdir(), "plots"), auto = T, artefacts = "img_w"
-    ),
+  ),
   caption_template = "Source: {text}.",
   height = 400,
   imgdl_wide = set_imgdl_layout(
-    width = 650, height = 400, suffix = "", format = "png"),
+    width = 650, height = 400, suffix = "", format = "png"
+  ),
   imgdl_narrow = set_imgdl_layout(
-    width = 550, height = 440, suffix = "", format = "png"),
+    width = 550, height = 440, suffix = "", format = "png"
+  ),
   logo_file = system.file("images", "robonomist_wide.png", package = "roboplotr"),
   modebar = c(
     "home", "closest", "compare", "zoom", "img_n", "img_w", "data_dl"
-    ),
+  ),
   trace_colors = getOption("roboplot.colors.traces"),
   width = 650,
   xaxis_ceiling = "months",
@@ -78,34 +81,34 @@ the external png files. We also defined the colors used by all plot traces in
 the order we want them to be used, as well as the plot dimensions, and the 
 x-axis ceiling handling. 
 
-When 'xaxis_ceiling' is provided, any scatter plots with date format are given
+When `xaxis_ceiling` is provided, any scatter plots with date format are given
 some breathing room to the upper end of the range by rounding the last date unit 
 to the next unit of the denomination given, ie. if the last date value is 
-"2022-10-07", the x-axis upper bound will be "2022-11-01".
+`"2022-10-07"`, the x-axis upper bound will be `"2022-11-01"`.
 
 Captions, height, width, xaxis_ceiling, trace colors and artefacts can be 
 controlled by-plot, too, but giving them here avoids writing repeatedly. As 
-roboplot() is written with dynamic plot widhts in mind, it's usually unnecessary
+`roboplot()` is written with dynamic plot widhts in mind, it's usually unnecessary
 to define it, but for demonstration purposes we provided a width, as we want our
 rendered plots to be the same width as the corresponding png files we are going
 to create.
 
-The specifications for image downloads are defined with imgdl_wide and 
-imgdl_narrow. Automating image downloads needs to have corresponding buttons in
-modebar, and these correspond to modebar buttons "img_w" and "img_n" 
+The specifications for image downloads are defined with `imgdl_wide` and 
+`imgdl_narrow`. Automating image downloads needs to have corresponding buttons in
+modebar, and these correspond to modebar buttons `"img_w"` and `"img_n"` 
 respectively. These parameters define the desired image dimensions for both 
 buttons, and provide a suffix for the created files, and define the file format.
 
 We also want to automate the artefact file creation. This can be controlled 
-by-plot with the parameter 'artefacts' of roboplot(), but we'll use 
-set_artefacts() here to set some global options. We set 'auto' to true
-(to make roboplot() create the files automatically when creating a plot), and 
-give 'filepath' where the files will be located. We have already decided that 
+by-plot with the parameter `artefacts` of `roboplot()`, but we'll use 
+`set_artefacts()` here to set some global options. We set `auto` to true
+(to make `roboplot()` create the files automatically when creating a plot), and 
+give `filepath` where the files will be located. We have already decided that 
 generally we'll use wide images (the dimensions of which we specified with 
-'imgdl_wide'), so we used set_artefacts() to set "img_w" as the default file 
+`imgdl_wide`), so we used `set_artefacts()` to set `"img_w"` as the default file 
 created and specify it separately when something else is needed.
 
-We also set 'verbose' to "Warning" that quiets most of the messages roboplotr
+We also set `verbose` to "Warning" that quiets most of the messages roboplotr
 gives.
 
 Next we call some libraries we need for the data we are going to plot, and 
@@ -145,14 +148,14 @@ roboplot(d,
 ```
 
 
-At the minimum, roboplot() needs some data to be plotted, a title, and a 
+At the minimum, `roboplot()` needs some data to be plotted, a title, and a 
 caption. Subtitle is optional, but most likely needed - it is the best place to
 show the y-axis unit. Caption is parsed from the given string and elements 
-defined in set_roboplot_options().
+defined in `set_roboplot_options()`.
 
 Data tranformation also stripped the data of the frequency attribute, which 
-roboplot() uses to parse date formats for several purposes, so we inserted that
-back. We could have skipped this, too, leaving it up to roboplot() to guess the 
+`roboplot()` uses to parse date formats for several purposes, so we inserted that
+back. We could have skipped this, too, leaving it up to `roboplot()` to guess the 
 frequency.
 
 ## Caption control
@@ -192,8 +195,8 @@ d |> roboplot(geo, "Consumer price inflation","Annual change of HICP, %",
 
 The previous examples show how plotting with roboplotr is a lightweight task. As
 the source notation is a bit different from the previous plot and we have
-predefined caption formatting previously with set_roboplot_options(), we must
-use set_caption() to override the prefix instead of just giving a single string.
+predefined caption formatting previously with `set_roboplot_options()`, we must
+use `set_caption()` to override the prefix instead of just giving a single string.
 
 ## Horizontal bar plots and x-axis string width, and omitted legends
 
@@ -229,30 +232,30 @@ d |> roboplot(
 ```
 
 As we wanted to present a horizontal bar plot, we used the parameters 
-'plot_type' and 'plot_mode' from roboplot() to define the plot as such.
+`plot_type` and `plot_mode` from `roboplot()` to define the plot as such.
 
 Before plotting, we reordered the column that would be y-axis as factor based
-on value, as roboplot() only does this independently for the column that defines 
-'color'.
+on value, as `roboplot()` only does this independently for the column that defines 
+`color`.
 
-We also used 'plot_axes' parameter of roboplot() and the function 
-set_axes() parameter 'y' to set the column "CPA" from the data to be the
+We also used `plot_axes` parameter of `roboplot()` and the function 
+`set_axes()` parameter `y` to set the column "CPA" from the data to be the
 yaxis of the plot. set_axes() can take further parameters (described in
 detail in function documentation), but for a horizontal bar plot where you have 
-a numeric column named "value", set_axes() can handle the ticktypes etc. for the
-plot by just providing y-axis data column name as parameter 'y'. For most cases
+a numeric column named `"value"`, `set_axes()` can handle the ticktypes etc. for the
+plot by just providing y-axis data column name as parameter `y`. For most cases
 this is enough.
 
 As we *didn't* want to color-code the bars, we skipped providing
-'color' for roboplot(). As there is now only a single trace color, roboplot() 
-omitted the legend. We could also have provided another column for 'color' that
+`color` for `roboplot()`. As there is now only a single trace color, `roboplot()` 
+omitted the legend. We could also have provided another column for `color` that
 only has a single observation, and the result would have been the same. We could
-have also included the legend with setting 'legend_position' to "bottom" 
+have also included the legend with setting `legend_position` to `"bottom"` 
 (currently the only option), or forced legend to be omitted by using
-'legend_position' = NA.
+`legend_position = NA`.
 
 As many of the tick labels would have been very long and would have made the 
-plot area are very narrow, we also provided 'legend_maxwidth'. This would 
+plot area are very narrow, we also provided `legend_maxwidth`. This would 
 normally cut legend items shorter, but with character strings in y-axis, it 
 shortens those too with an ellipsis to a maximum character length we provided. 
 Full texts can still be seen on hover.
@@ -282,19 +285,19 @@ data_get("tidy/thi") |>
 
 We needed to drop values of NA that appeared in data transformation, as
 otherwise the plot x-axis would have shown an unnecessary gap on the left side
-of the plot. roboplot() will omit rows from data where all values are NA, but
+of the plot. `roboplot()` will omit rows from data where all values are NA, but
 keeps them otherwise.
 
-We decided to provide a column name for the parameter 'color', but as the plot
+We decided to provide a column name for the parameter `color`, but as the plot
 takes the hovertemplate text from data, we had to translate the column text 
 manually into English to match the plot. We could have just not have provided 
-'color' just as well as there is only a single trace.
+`color` just as well as there is only a single trace.
 
 We also wanted a plot with different dimensions, and we give the the same 
 dimensions that we decided the narrow png images will have, so the html output
-and png files match. We also used the parameter 'artefacts' with set_artefacts()
+and png files match. We also used the parameter `artefacts` with `set_artefacts()`
 to get an image file with different dimensions than with earlier pictures. We
-defined the layout for these files earlier on with set_roboplot_options().
+defined the layout for these files earlier on with `set_roboplot_options()`.
 
 As you can see from the next few examples, all of this makes the workflow for
 createing dynamic plots very short and simple.
@@ -310,7 +313,7 @@ data_get("tidy/fao_food_price_index") |>
 
 ## Controlling x-axis format
 
-The next two plots are weekly and daily data, and roboplot() tries to guess
+The next two plots are weekly and daily data, and `roboplot()` tries to guess
 the correct date format from data frequency and zoom level. Sometimes you have
 a specific format in mind, and we'll cover these next.
 
@@ -360,17 +363,17 @@ d |>
 
 We wanted to to ensure these x-axes are always displayed in years for the first
 two plot and month / year for the plot with daily data. Using years only for the
-last We provided 'xformat' in plot_axes. The formatting used is 
+last We provided `xformat` in plot_axes. The formatting used is 
 {https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md}{d3 time format}. 
-You can control y-axis with 'yformat' {https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma}{d3 number format},
+You can control y-axis with `yformat` {https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma}{d3 number format},
 or use the appropriate format if you use something other than date data for 
 x-axis or numeric data for y-axis. Character formatting is not currenlty an
 option.
 
 ## Control trace order
 
-roboplot() uses the mean of column "value" if it exists to factorize the column
-used for 'color' if it's not factorized beforehand, and displays the trace and
+`roboplot()` uses the mean of column `value` if it exists to factorize the column
+used for `color` if it's not factorized beforehand, and displays the trace and
 legend in that order. If you want to specify another order you have to transform
 the data itself as in the examples that follow.
 
@@ -414,7 +417,7 @@ data_get("ec/esi_nace2") |>
     )
 ```
 
-Note that fct_relevel2() from forcats behaves differently than fct_relevel().
+Note that `forcats::fct_relevel2()` from forcats behaves differently than `forcats::fct_relevel()`.
 
 ```{r consumer_confidence}
 d <-
@@ -444,7 +447,7 @@ d |>
 ## Zeroline control
 
 For the next few plots we want to use a stronger zeroline than what the default 
-plotly plots have, so we will use the 'zeroline' parameter. Zeroline can also 
+plotly plots have, so we will use the `zeroline` parameter. Zeroline can also 
 take a numeric value which locates the zeroline at the given y-axis location.
 
 ```{r, short_term_interest}
@@ -509,11 +512,11 @@ data_get("ecb/YC",
   )
 ```
 
-We used 'plot_axes' in a similar way we used it with the previous horizontal bar
+We used `plot_axes` in a similar way we used it with the previous horizontal bar
 plot, but this time we defined the data column used for x-axis, and provided
-the type roboplotr() will use for tick formatting. Note that to ensure the 
+the type `roboplot()` will use for tick formatting. Note that to ensure the 
 traces are drawn correctly, you have to order the data yourself before using it
-it in roboplot().
+it in `roboplot()`.
 
 ```{r unemployment, eval = F, include = F}
 data_get("eurostat/une_rt_m") |>

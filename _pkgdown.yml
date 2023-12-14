@@ -1,4 +1,10 @@
 url: https://robonomist.github.io/roboplotr/
 template:
   bootstrap: 5
-
+  bootswatch: litera
+  # bslib:
+  #   primary: "#c1272d"
+  #   secondary: "#f7931e"
+  #   code-bg: "#dcc48a"
+  # navbar:
+  #   bg: primary
