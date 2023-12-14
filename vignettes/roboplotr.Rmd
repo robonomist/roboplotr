@@ -363,9 +363,9 @@ d |>
 
 We wanted to to ensure these x-axes are always displayed in years for the first
 two plot and month / year for the plot with daily data. Using years only for the
-last We provided `xformat` in plot_axes. The formatting used is 
-{https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md}{d3 time format}. 
-You can control y-axis with `yformat` {https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma}{d3 number format},
+last We provided `xformat` in `plot_axes`. The formatting used is 
+[d3 time format](https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md). 
+You can control y-axis with `yformat` [d3 number format](https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma),
 or use the appropriate format if you use something other than date data for 
 x-axis or numeric data for y-axis. Character formatting is not currenlty an
 option.
@@ -587,9 +587,9 @@ d |>
     )
 ```
 
-Finally, for the last plot we had a "time" column which was not in date format
+Finally, for the last plot we had a `time` column which was not in date format
 and we did not want to transform it into such, so we defined the ticktype for 
-x-axis as "character".
+x-axis as `"character"`.
 
 Now we only have to check if the png files are in the directory we wanted them 
 to be in.
