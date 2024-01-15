@@ -1,3 +1,7 @@
+# roboplotr 1.4.0.1
+
+* Added missing webshot2 dependency
+
 # roboplotr 1.4
 
 * Completely reworked static file automation, separating it from modebar. Allows for special fonts in static files.
