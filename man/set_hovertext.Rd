@@ -4,7 +4,13 @@
 \alias{set_hovertext}
 \title{Hovertemplate specifications for \code{\link[=roboplot]{roboplot()}}}
 \usage{
-set_hovertext(frequency = NULL, rounding = 1, unit = "", extra = NULL)
+set_hovertext(
+  frequency = NULL,
+  rounding = 1,
+  unit = "",
+  text_col = NULL,
+  extra = NULL
+)
 }
 \arguments{
 \item{frequency}{Character. Determines how hovertemplate dates are formatted.
@@ -16,6 +22,10 @@ NULL. With NULL roboplot will try to determine the format based on argument
 hovertemplate values. Defaults to 1.}
 
 \item{unit}{Character. Unit displayed for \code{\link[=roboplot]{roboplot()}} hovertemplate values.}
+
+\item{text_col}{Symbol, string, or function resulting in symbol or string.
+Column from param 'd' in roboplot() to use for labeling. If NULL, the column
+used for 'color' (and if given, 'pattern') is used for labels.}
 
 \item{extra}{Character vector. Extra text displayed under \code{\link[=roboplot]{roboplot()}}
 hovertemplate.}

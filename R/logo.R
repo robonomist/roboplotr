@@ -8,7 +8,7 @@ roboplotr_logo <- function(p){
     images = list(
       source = paste('data:image/png;base64', txt, sep=','),
       xref = "paper",
-      yref = "domain",
+      yref = "paper",
       x = 1,
       sizex = 1,
       sizey = 1,

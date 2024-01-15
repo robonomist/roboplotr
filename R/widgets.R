@@ -13,19 +13,25 @@
 #' saved in an adjacent directory "plot_dependencies" or contained within the
 #' file, increasing size.
 #' @param artefacts Character vector. Controls what artefacts are saved. One or
-#' more of "html", "img_w", "img_n" or "img_s". A matching button must be
-#' present in the modebar (control modebar buttons with
-#' [set_roboplot_options()].
+#' more of "html", "png", "jpg", "jpge", "webp", or "pdf".
+#' @param zoom Numeric. Controls the zoom level of static images if any are
+#' defined with 'artefacts'. Default 1.
+#' @param width,height Numeric. Sets the size of any static images created. Any
+#' artefacts created with [roboplot()]'s 'artefacts' parameter will use the given
+#' dimensions, if any, for that plot.
 #' @examples
-#' # Save roboplotr::roboplot() plots as files. Control location with
-#' # 'filepath'. Default 'filepath' will be the current working directory. If a
-#' # 'title' is not provided, it will be parsed from plot title.
+#' # Saving roboplotr::roboplot() plots as files can be controlled by setting
+#' # global options with roboplotr::set_roboplot_options() (see documentation),
+#' # and using roboplotr::set_artefacts() in roboplotr::roboplot() parameter
+#' # 'artefacts', but you can use this function as well. Control location of the
+#' # files with 'filepath'. Default 'filepath' will be the current working
+#' # directory. If a 'title' is not provided, it will be parsed from plot title.
 #'
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 #'
 #' d |>
 #'   roboplot(
-#'     Alue, "Energian tuonti Kanadasta", "Milj €", "Lähde: Tilastokeskus."
+#'     Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus"
 #'     ) |>
 #'   roboplot_create_widget(filepath = tempdir())
 #'
@@ -41,7 +47,7 @@
 #'
 #' d |>
 #'   roboplot(
-#'     Alue, "Kanadan energiantuonti", "Milj €", "Lähde: Tilastokeskus."
+#'     Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus"
 #'     ) |>
 #'   roboplot_create_widget(
 #'     title = "Energian tuonti - Kanada",
@@ -52,17 +58,29 @@
 #'
 #' file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
 #'
-#' # If you want to create image files, use a character vector in 'artefacts' to
-#' # control this. Exclude "html" if you want to create image files only. Image
-#' # size must be provided in the strings (possible options are "img_w",
-#' # "img_n", and "img_s"). Download button for the selected size must exist
-#' # in the plot modebar, controlled with and documented within
-#' # roboplotr::set_roboplot_options() ("wide" exists as default").
+#' # If you want to create static plot files, use a character vector of file
+#' # types in 'artefacts'. Exclude "html" if you want to create static plots
+#' # only. Possible filetypes are "html","png","jpg","jpge","webp","pdf". The
+#' # static files created this way will respect the plot layout specifications
+#' # of the roboplotr::roboplot() plot, unlike the ones downloaded through
+#' # modebar (set those with roboplotr::set_roboplot_options()). Note that modebar
+#' # gives access to svg file format, while automating it the file creation with
+#' # roboplotr::roboplot_create_widget() or roboplotr::roboplot() allows for pdf
+#' # files.
 #'
 #' if(interactive()) {
-#'   p |> roboplot_create_widget(filepath = tempdir(), artefacts = "img_w")
+#'   d |>
+#'     roboplot(
+#'       color = Alue,
+#'       title = "Kanadan energiantuonti",
+#'       subtitle = "Milj €",
+#'       caption = "Tilastokeskus",
+#'       width = 400,
+#'       height = 800
+#'     ) |>
+#'     roboplot_create_widget(filepath = tempdir(), artefacts = "pdf")
 #'
-#'   file.exists(paste0(tempdir(),"/kanadan_energiantuonti_levea.png"))
+#'   utils::browseURL(paste0(tempdir(), "/kanadan_energiantuonti.pdf"))
 #' }
 #' @return A list of classes "plotly" and "html"
 #' @export
@@ -78,10 +96,20 @@ roboplot_create_widget <- function(
     filepath = getOption("roboplot.artefacts")$filepath,
     render = getOption("roboplot.artefacts")$render,
     self_contained = getOption("roboplot.artefacts")$self_contained,
-    artefacts = getOption("roboplot.artefacts")$artefacts) {
+    zoom = getOption("roboplot.artefacts")$zoom,
+    artefacts = getOption("roboplot.artefacts")$artefacts,
+    width = getOption("roboplot.artefacts")$width,
+    height = getOption("roboplot.artefacts")$height
+    ) {
 
   roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F, allow_na = F)
-  roboplotr_valid_strings(artefacts, c("html","img_w","img_s","img_n"), .fun = any)
+  roboplotr_valid_strings(artefacts, c("html","png","jpg","jpge","webp","pdf"), .fun = any)
+  roboplotr_check_param(zoom, "numeric", allow_null = F, allow_na = F)
+  roboplotr_check_param(width, "numeric", allow_null = T, allow_na = F)
+  roboplotr_check_param(height, "numeric", allow_null = T, allow_na = F)
+
+  if(is.null(width)) { width <- getOption("roboplot.artefacts")$width }
+  if(is.null(height)) { height <- getOption("roboplot.artefacts")$height }
 
   if (is.null(title)) {
     title <- (p$x[c("layout","layoutAttrs")] |> unlist())[str_subset(names((p$x[c("layout","layoutAttrs")] |> unlist())),"(?<!axis)\\.title\\.text")] |>
@@ -95,13 +123,6 @@ roboplot_create_widget <- function(
   widget_title <- title
   title <- roboplotr_string2filename(title)
 
-  # filepath <- if(missing(filepath)) {
-  #   if(isTRUE(getOption('knitr.in.progress'))) {
-  #     tempdir()
-  #   } else {
-  #     getwd() }
-  # } else  { filepath }
-
   if("html" %in% artefacts) {
     roboplotr_widget_deps(filepath = file.path(filepath,"plot_dependencies"))
     css_dep <- htmlDependency("style", "0.1", src = c(href= "plot_dependencies/css"),  stylesheet = "style.css")
@@ -112,7 +133,8 @@ roboplot_create_widget <- function(
   detached_p$append <- NULL
 
   if(any(artefacts != "html")) {
-    detached_p |> roboplotr_automate_imgdl(artefacts, filepath)
+    .images <- subset(artefacts, artefacts != "html")
+    detached_p |> roboplotr_static_image(.images, title, zoom, filepath, width, height)
   }
 
   if("html" %in% artefacts) {
@@ -136,16 +158,15 @@ roboplot_create_widget <- function(
 #' @examples
 #' # Used to set global defaults for widget or other artefact creation. Any of
 #' # these can be overridden by roboplotr::roboplot(). Only supposed to be
-#' # called inside roboplotr::set_roboplot_options(). Use 'filepath' to control
-#' # which directory the artefacts are created to, 'render' to control if the
-#' # roboplot() plot will be rendered on artefact creation, 'self_contained' to
-#' # control if html plot dependencies are placed in an adjacent directory or
-#' # contained within the html file, and 'artefacts' (one of "html",
-#' # "img_w","img_s", or "img_n") to control what artefacts are created.
+#' # called inside roboplotr::set_roboplot_options() or roboplotr::roboplot().
+#' # Use 'filepath' to control which directory the artefacts are created to,
+#' # 'render' to control if the roboplot() plot will be rendered on artefact
+#' # creation, 'self_contained' to control if html plot dependencies are placed
+#' # in an adjacent directory or contained within the html file, 'artefacts'
+#' # (one of "html", "png","jpg", "jpge", "jpge", "webp" or "pdf) to control
+#' # what artefacts are created, and 'zoom' to set static artefact zoom level.
 #'
-#' # roboplot_create_widget() shows how the parameters are used. Further
-#' # controls for other than "html" artefacts are are under
-#' # set_imgdl_layout().
+#' # roboplot_create_widget() shows how the parameters are used.
 #' @return A list.
 #' @export
 set_artefacts <- function(
@@ -154,16 +175,20 @@ set_artefacts <- function(
     filepath = getOption("roboplot.artefacts")$filepath,
     render = getOption("roboplot.artefacts")$render,
     self_contained = getOption("roboplot.artefacts")$self_contained,
-    auto = getOption("roboplot.artefacts")$auto
+    zoom = getOption("roboplot.artefacts")$zoom,
+    auto = getOption("roboplot.artefacts")$auto,
+    width = getOption("roboplot.artefacts")$width,
+    height = getOption("roboplot.artefacts")$height
 ) {
   roboplotr_check_param(filepath, "character", allow_null = F)
   roboplotr_check_param(render, "logical", allow_null = F)
   roboplotr_check_param(self_contained, "logical", allow_null = F)
   roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F)
-  roboplotr_valid_strings(
-    artefacts, c("html","img_w","img_s","img_n"), .fun = any
-  )
+  roboplotr_valid_strings(artefacts, c("html","png","jpg","jpge","webp","pdf"), .fun = any)
   roboplotr_check_param(title, "character", allow_null = T)
+  roboplotr_check_param(zoom, "numeric", allow_null = F, allow_na = F)
+  roboplotr_check_param(width, "numeric", allow_null = F, allow_na = F)
+  roboplotr_check_param(height, "numeric", allow_null = F, allow_na = F)
 
   list(
     auto = auto,
@@ -171,71 +196,52 @@ set_artefacts <- function(
     render = render,
     self_contained = self_contained,
     artefacts = artefacts,
-    title = title
+    zoom = zoom,
+    title = title,
+    width = round(width),
+    height = round(height)
   )
 }
 
 
-#' @importFrom chromote ChromoteSession
-#' @importFrom htmlwidgets onRender
-#' @importFrom lubridate now as_datetime seconds
-#' @importFrom purrr map map_chr
-#' @importFrom stringr str_c str_replace_all str_subset
+#' @importFrom plotly config
+#' @importFrom webshot2 webshot
+roboplotr_static_image <-
+  function(p,
+           artefacts,
+           title,
+           zoom,
+           dl_path = getwd(),
+           width = getOption("roboplot.artefacts")$width,
+           height = getOption("roboplot.artefacts")$height) {
 
-roboplotr_automate_imgdl <- function(p, artefacts, dl_path = getwd()) {
+    .static_images <-
+      str_c(dl_path, str_c(title, artefacts, sep = "."), sep = "/")
 
-  on.exit({
-    if(b$is_active() == T) {
-      b$close()
+    p |>
+      config(displayModeBar = F) |>
+      roboplot_create_widget(
+        title = "imgdl",
+        filepath = tempdir(),
+        self_contained = F,
+        render = F,
+        artefacts = "html"
+      )
+
+    for (.img in .static_images) {
+      webshot(
+        file.path(tempdir(), "imgdl.html"),
+        file = .img,
+        vwidth = width,
+        vheight = height,
+        zoom = zoom,
+        quiet = T
+      )
     }
-  },add = T)
 
-  artefacts <- str_subset(artefacts, "img")
-  mb_btns <- p$x$config$modeBarButtons |> unlist(recursive = F) |> map_chr(~ unlist(.x["name"])) |>
-    str_replace_all(c("Lataa kuva \\(leve\u00e4\\)" = "img_w", "Lataa kuva \\(kapea\\)" = "img_n","Lataa kuva \\(pieni\\)" = "img_s")) |>
-    str_subset("img")
+    invisible(file.remove(file.path(tempdir(), "imgdl.html")))
 
-  extra_artefacts <- subset(artefacts, !artefacts %in% mb_btns)
-
-  if(length(extra_artefacts) > 0) {
-    roboplotr_alert(roboplotr_combine_words(extra_artefacts), if(length(extra_artefacts) == 1) { " is " } else { " are " }, "not available through the modebar!")
   }
-
-
-  artefacts <- as.list(artefacts)
-  p |> onRender(jsCode = str_c("function(gd,params,data) {
-            if(data.includes('img_w')) {
-              dlBtn = $(gd).find('[data-title=\"Lataa kuva (leve\u00e4)\"]')[0];
-              dlBtn.click();
-            };
-            if(data.includes('img_n')) {
-              dlBtn = $(gd).find('[data-title=\"Lataa kuva (kapea)\"]')[0];
-              dlBtn.click();
-            };
-            if(data.includes('img_s')) {
-              dlBtn = $(gd).find('[data-title=\"Lataa kuva (pieni)\"]')[0];
-              dlBtn.click();
-            };
-    }"),  data = artefacts) |>
-    roboplot_create_widget(title = "imgdl", filepath = tempdir(), self_contained = F, render = F, artefacts = "html")
-  b <- ChromoteSession$new()
-  b$Browser$setDownloadBehavior(behavior = "allow", downloadPath = dl_path)
-  b$Page$navigate(str_c("file://",file.path(tempdir(),"imgdl.html")))
-  Sys.sleep(2)
-  b$close()
-
-  invisible(file.remove(file.path(tempdir(),"imgdl.html")))
-
-  recent_files <- list.files(dl_path, full.names = T) |> str_subset("(png|svg|webp|jpeg)$") |> map(~ {
-    if (file.info(.x)$ctime |> as_datetime(tz = "UTC") >= now(tz = "UTC") - seconds(5)) { .x }
-  }) |> roboplotr_compact()
-  recent_length <- length(recent_files)
-  if(recent_length > 0) {
-    roboplotr_message(str_c("\nThe file",ifelse(recent_length > 1, "s",""),"\n", roboplotr_combine_words(recent_files,sep = ",\n", and = ", and\n"),"\n",
-                            ifelse(recent_length > 1, "are","is")," in ",dl_path,"."))
-  }
-
-}
 
 
 #' @importFrom RCurl base64Encode

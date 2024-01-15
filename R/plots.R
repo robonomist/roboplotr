@@ -1,6 +1,7 @@
 #' @importFrom dplyr case_when
 #' @importFrom stringr str_length
 #' @importFrom plotly plot_ly
+#' @importFrom purrr imap
 #' @importFrom lubridate as_date today
 roboplotr_config <- function(p,
                              title,
@@ -13,6 +14,7 @@ roboplotr_config <- function(p,
                              width,
                              margin = NA,
                              zeroline = F,
+                             shadearea = NULL,
                              enable_rangeslider = list(rangeslider = F, max = as_date(today())),
                              ticktypes,
                              container,
@@ -39,7 +41,7 @@ roboplotr_config <- function(p,
     roboplotr_legend(legend_position, legend_orientation, legend_order) |>
     roboplotr_title(title, subtitle) |>
     roboplotr_caption(caption) |>
-    roboplotr_zeroline(zeroline) |>
+    roboplotr_add_shapes(zeroline, shadearea) |>
     roboplotr_rangeslider(enable_rangeslider) |>
     roboplotr_set_axis_ranges(ticktypes[c("xlim", "ylim")], enable_rangeslider$rangeslider, hovermode)
 }
@@ -116,17 +118,19 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
   # annotations are removed here due to plotly bug replicating annotations when font is provided as list of length > 1
   p |>
     onRender(
-      jsCode = "
-                        function (gd, params, data){
+      jsCode = "function (gd, params, data){
                         let plot_title = data.plotTitle;
                         for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
         if(gd.layout.annotations[i].text == gd.layout.annotations[0].text && i > 0 ) {
           Plotly.relayout(gd, 'annotations[' + i + ']', 'remove');
         }
                         }
-                        setVerticalLayout({'width': true}, gd, data.legendFontsize, plot_title, pie_plot = data.piePlot);
+                        let roboplot_logo = new Image();
+                        roboplot_logo.src = gd.layout.images[0].source;
+                        roboplot_logo = roboplot_logo.width / roboplot_logo.height
+                        setVerticalLayout({'width': true}, gd, data.legendFontsize, plot_title, pie_plot = data.piePlot, logo = roboplot_logo);
                         gd.on('plotly_relayout',function(eventdata) {
-                        plotlyRelayoutEventFunction(eventdata, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot);
+                        plotlyRelayoutEventFunction(eventdata, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
                         })
 
                         if(data.container !== null) {
@@ -139,8 +143,8 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
                           let nowactive = mutation[0].target.classList.contains('active')
                           let lastactive = mutation[0].oldValue.includes('active')
                           if(nowactive === true && lastactive === false) {
-                            console.log('state change, inactive to active!')
-                            plotlyRelayoutEventFunction({width: true}, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot);
+                            //console.log('state change, inactive to active!')
+                            plotlyRelayoutEventFunction({width: true}, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
                             observer.disconnect();
                           }
                         });
@@ -198,8 +202,8 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' Ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
 #'
 #' @param d Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric). Other columns could be specified instead with 'plot_axes', using [set_axes()].
-#' @param color Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
-#' @param pattern Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.
+#' @param color Symbol, string, or function resulting in symbol or string. Column from param 'd' to use for trace color. If NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
+#' @param pattern Symbol, string, or function resulting in symbol or string. Optionally, use [set_pattern()] for more fine-tuned control. See documentation of that function. Column from param 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.
 #' @param title,subtitle Characters. Labels for plot elements. Optionally, use [set_title()] for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.
 #' @param caption Function or character. Use [set_caption()].
 #' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.
@@ -217,12 +221,12 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' You can give a single unnamed 'plot_mode' which is used as applicable, or name-value pairs, where names are items from parameter 'd' column described by parameter 'color', and values applicable plot modes listed above.
 #' @param plot_axes Function. Function. Use [set_axes()].
 #' @param trace_color Character vector, named if length > 1. Trace colors for all traces. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param pattern_types Character vector, named. Pattern types for all traces. See [set_roboplot_options()] parameter 'dashtypes' and 'patterns' for options, or use ".other" if all traces are of the same 'plot_type'.
 #' @param line_width Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param height,width Double. Height and width of the plot. Default width is NULL for responsive plots, give a value for static plot width.
+#' @param height,width Double. Height and width of the plot. Default width is NA for responsive plots, give a value for static plot width.
 #' @param facet_split Currently unused. Variable from argument 'd' to use for facet splits.
-#' @param legend_maxwidth Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).
-#' @param xaxis_ceiling Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.
+#' @param shadearea Use if you want to have a highlighted area on the [roboplot()]. Use [set_shadearea()] for fine-tuned control (see that function for documentation), or provide a single value that corresponds with the x-axis of the plot. Currently only useful when x-axis is numeric or date, and y-axis is numeric.
+#' @param legend_maxwidth Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis.
+#' @param xaxis_ceiling Character or date. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). Set, or round, the upper bound of plot x-axis for other than bar plots if no axis limits are given.
 #' @param secondary_yaxis Symbol, string, or function resulting in symbol or string. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 #' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.
 #' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned control. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [set_roboplot_options()].
@@ -295,11 +299,15 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'                pattern = Suunta,
 #'                xaxis_ceiling = "guess")
 #'
-#' # Bar plots use a pattern too
+#' # Bar plots use a pattern too.
 #' d2 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
 #'                pattern = Suunta,
 #'                plot_type = "bar")
-#'
+#' # Use set_pattern() if you want more options. See documentation for a more
+#' # detailed explanation.
+#' d2 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
+#'                               pattern = set_pattern(pattern = Suunta, sep = " - "),
+#'                               xaxis_ceiling = "guess")
 #' # Scatter plots and bar plot may be combined, and colors determined by
 #' # trace by giving named character vectors as the appropriate arguments.
 #' # Barmode or scatter type is controlled by plot_mode.
@@ -307,7 +315,8 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'              trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
 #'              plot_type = c("Norja" = "scatter","Kanada" = "bar",".other" = "scatter"),
 #'              plot_mode = c("Yhdistynyt kuningaskunta" = "scatter",
-#'                            "Norja" = "scatter+line", ".bar" = "dodge"
+#'                            "Norja" = "scatter+line", ".bar" = "dodge",
+#'                            ".scatter" = "line"
 #'              ))
 #'
 #'
@@ -411,6 +420,27 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'            rangeslider = "2014-01-01",
 #'            zeroline = 128)
 #'
+#' # Shadearea can be used to draw attention to specific area of the plot.
+#' d2 |> dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
+#'            shadearea = "2019-01-01")
+#' # Use set_shadearea() for more fine-tuned control.
+#' d2 |> dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
+#'            shadearea = set_shadearea(
+#'              xmin = "2010-06-10",
+#'              xmax = "2016-01-01",
+#'              color = "green",
+#'              border = "gray",
+#'              layer = "below"
+#'            ))
+#' # roboplotr() can't currently validate your xmin and xmax inputs for shade areas,
+#' # and wrong input will probably just fail to produce the area.
+#' d2 |> dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
+#'            shadearea = set_shadearea(
+#'              xmin = "182625",
+#'            ))
 #' # Secondary yaxis can be added to line plots when the corresponding variable
 #' # only has two unique observations that is a subset of the variable 'color'.
 #' # There is currently no way of differentiating between the axes in legend.
@@ -456,7 +486,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' @importFrom lubridate as_date ceiling_date is.Date
 #' @importFrom plotly partial_bundle
 #' @importFrom purrr map2
-#' @importFrom rlang as_label as_name enquo quo quo_get_env
+#' @importFrom rlang as_label as_name enquo eval_tidy get_expr quo quo_get_env
 #' @importFrom stats median runif setNames
 #' @importFrom stringr str_c str_detect str_length str_pad str_replace
 roboplot <- function(d,
@@ -471,7 +501,6 @@ roboplot <- function(d,
                      zeroline = F,
                      rangeslider = FALSE,
                      pattern = NULL,
-                     pattern_types = NULL,
                      line_width = getOption("roboplot.linewidth"),
                      hovertext = NULL,
                      plot_type = "scatter",
@@ -484,6 +513,7 @@ roboplot <- function(d,
                      secondary_yaxis = NULL,
                      width = getOption("roboplot.width"),
                      legend_title = F,
+                     shadearea = NULL,
                      artefacts = getOption("roboplot.artefacts")$auto,
                      container = getOption("roboplot.shinyapp")$container,
                      info_text = NULL,
@@ -524,41 +554,17 @@ roboplot <- function(d,
                         f.name = list(fun = substitute(plot_axes)[1], check = "set_axes"))
 
   if (!all(plot_axes[c("x", "y")] %in% d_names)) {
-    stop(
-      str_c(
-        "'d' must be a tibble with columns named \"",
-        plot_axes$x,
-        "\" and \"",
-        plot_axes$y,
-        "\"."
-      ),
+    stop(str_glue("'d' must be a data frame with columns named \"{plot_axes$x}\"\"{plot_axes$y}\"!"),
       call. = F
     )
   } else if (!all(class(d[[plot_axes$x]]) %in% str_replace(plot_axes$xclass,"log","numeric"),
                   class(d[[plot_axes$y]]) %in% str_replace(plot_axes$yclass,"log","numeric"))) {
+    xclasses <-
+      roboplotr_combine_words(plot_axes$xclass, sep = '", "', and = '", or "')
+    yclasses <-
+      roboplotr_combine_words(plot_axes$yclass, sep = '", "', and = '", or "')
     stop(
-      str_c(
-        "Argument 'd' column \"",
-        plot_axes$x,
-        "\" must be \"",
-        roboplotr_combine_words(
-          plot_axes$xclass,
-          sep = "\", \"",
-          and = "\", or \"",
-          oxford_comma = F
-        ),
-        "\", and the column \"",
-        plot_axes$y,
-        "\" must be \"",
-        roboplotr_combine_words(
-          plot_axes$yclass,
-          sep = "\", \"",
-          and = "\", or \"",
-          oxford_comma = F
-        )
-        ,
-        "\"."
-      ),
+      str_glue("The data frame 'd' column {plot_axes$x} must be {xclasses} and column {plot_axes$y} must be {yclasses}"),
       call. = F
     )
   }
@@ -577,7 +583,31 @@ roboplot <- function(d,
   }
 
   pattern <- enquo(pattern)
+  if(quo_is_call(pattern)) {
+    if(!as.character(get_expr(pattern)[1]) %in% c("roboplotr::set_pattern", "set_pattern")) {
+      stop("'pattern' must be a column name from 'd', or function call of set_pattern(), or NULL", call. = F)
+    }
+    pattern <- eval_tidy(pattern)
+    pattern_types <- pattern$pattern_types
+    pattern_along <- pattern$pattern_along
+    roboplotr_check_valid_var(pattern_along, d_names)
+    pattern_showlegend <- pattern$show_legend
+    pattern_sep <- pattern$pattern_sep
+    pattern <- pattern$pattern
+  } else {
+    pattern_types <- NULL
+    pattern_along <- NULL
+    pattern_along <- enquo(pattern_along)
+    pattern_showlegend <- NULL
+    pattern_sep <- ", "
+  }
+
   pattern <- roboplotr_check_valid_var(pattern, d_names)
+
+  roboplotr_check_param(width, "numeric", allow_null = T, allow_na = T)
+  roboplotr_check_param(height, "numeric", allow_null = T, allow_na = T)
+  if(!is.null(width)) { if(is.na(width)) { width <- NULL} }
+  if(!is.null(height)) { if(is.na(height)) { height <- NULL} }
 
   secondary_yaxis <- enquo(secondary_yaxis)
   secondary_yaxis <-
@@ -599,16 +629,8 @@ roboplot <- function(d,
           call. = F
         )
       }
-      d <-
-        d |> mutate({
-          {
-            secondary_yaxis
-          }
-        } := fct_reorder({
-          {
-            secondary_yaxis
-          }
-        }, .data$value, .desc = T, na.rm = T))
+      d <- d |>
+        mutate({{secondary_yaxis}} := fct_reorder({{secondary_yaxis}}, .data$value, .desc = T, na.rm = T))
       if (unique(pull(d,!!secondary_yaxis)) |> length() > 1) {
         zeroline <- F
         rmargin <-
@@ -670,7 +692,8 @@ roboplot <- function(d,
       caption <- set_caption(text = "PLACEHOLDER")
     }
   }
-  roboplotr_check_param(xaxis_ceiling, "character", allow_null = F)
+
+  roboplotr_check_param(xaxis_ceiling, c("character","Date"), allow_null = F)
   if (!"date" %in% plot_axes$xticktype | !"time" %in% d_names) {
     if (!"default" %in% xaxis_ceiling) {
       roboplotr_alert(
@@ -678,30 +701,30 @@ roboplot <- function(d,
       )
     }
     xaxis_ceiling <- "default"
+  } else if (suppressWarnings(is.na(as_date(xaxis_ceiling)))) {
+    roboplotr_valid_strings(
+      xaxis_ceiling,
+      c(
+        "default",
+        "days",
+        "months",
+        "weeks",
+        "quarters",
+        "years",
+        "guess"
+      ),
+      .fun = any
+    )
   } else {
-    xaxis_ceiling <-
-      match.arg(
-        xaxis_ceiling,
-        c(
-          "default",
-          "days",
-          "months",
-          "weeks",
-          "quarters",
-          "years",
-          "guess"
-        )
-      )
+    xaxis_ceiling <- as.character(xaxis_ceiling)
   }
+
   if (xaxis_ceiling != "default" &
       all(is.na(plot_axes$xlim)) &
       !"bar" %in% plot_type & !"horizontal" %in% plot_mode) {
-    if (xaxis_ceiling == "guess") {
-      xaxis_ceiling <- roboplotr_guess_xaxis_ceiling(d, hovertext)
-    }
     if (!is.null(xaxis_ceiling)) {
       plot_axes$xlim <-
-        c(min(d$time), as_date(ceiling_date(max(d$time), xaxis_ceiling)))
+        c(min(d$time), roboplotr_guess_xaxis_ceiling(d, hovertext, xaxis_ceiling))
     }
   } else if (xaxis_ceiling != "default" &
              (!any(is.na(plot_axes$xlim)) ||
@@ -756,16 +779,7 @@ roboplot <- function(d,
 
   if (!is.factor(d[[as_name(color)]])) {
     d <-
-      mutate(d,
-             {
-               {
-                 color
-               }
-             } := fct_reorder({
-               {
-                 color
-               }
-             }, .data$value, .fun = mean, .na_rm = T) |> fct_rev())
+      mutate(d,{{color}} := fct_reorder({{color}}, .data$value, .fun = mean, .na_rm = T) |> fct_rev())
   }
 
   d <-
@@ -778,11 +792,6 @@ roboplot <- function(d,
          call. = F)
   } else if (length(plot_type) == 1 & is.null(names(plot_type))) {
     d <- d |> mutate(roboplot.plot.type = plot_type)
-    # } else if (!all(unique_groups %in% names(plot_type))) {
-    #   stop(str_c("All variables in column \"",as_name(color),"\" must have a corresponding plot type!"), call. = F)
-    # } else {
-    #   d <- mutate(d, roboplot.plot.type = str_replace_all(!!color, plot_type))
-    # }
   } else if (!all(unique_groups %in% names(plot_type)) &
              !(".other" %in% names(plot_type))) {
     stop(
@@ -838,18 +847,30 @@ roboplot <- function(d,
   color_vector <-
     roboplotr_set_colors(trace_color, unique_groups, highlight, d, color)
 
-
   d <-
-    d |> roboplotr_get_pattern(pattern, pattern_types) |> mutate(roboplot.trace.color = color_vector[!!color])
+    d |>
+    roboplotr_get_pattern(pattern, pattern_types) |>
+    mutate(roboplot.trace.color = color_vector[as.character(!!color)])
+
+  if(!quo_is_null(pattern_along)) {
+    if(!all(unique(d$roboplot.plot.mode) == "line")) {
+      roboplotr_warning("'pattern_along' in set_pattern() is ignored, it currently only works with line traces only!")
+      pattern_showlegend <- NULL
+    } else {
+      roboplotr_message(str_glue("roboplotr attempts to make continous line with different patterns among '{as_name(pattern)}' over '{as_name(pattern_along)}."))
+      d <- roboplot_continuous_pattern(d, {{pattern_along}}, {{pattern}}, ticktypes$y)
+    }
+  }
 
   if (is.null(legend_position) &
       length(unique_groups) < 2) {
     legend_position <- NA
   }
 
-  # if(!is.null(facet_split)) {
-  #   p <- roboplotr_get_facet_plot(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, plot_axes)
-  # } else {
+  pattern_showlegend <- roboplotr_get_pattern_showlegend(
+    d, pattern, pattern_showlegend
+  )
+
   p <-
     roboplotr_get_plot(
       d,
@@ -865,7 +886,9 @@ roboplot <- function(d,
       legend_position,
       ticktypes,
       width,
-      legend_title
+      legend_title,
+      pattern_showlegend,
+      pattern_sep
     )
   # }
 
@@ -886,17 +909,14 @@ roboplot <- function(d,
     distinct(d,!!color, .data$roboplot.plot.type) |> pull(2, 1)
   p$plot_mode <- plot_mode
 
-  maxtime <- if ("time" %in% d_names & !identical(rangeslider, F)) {
+  if ("time" %in% d_names & !identical(rangeslider, F)) {
     if (!is.na(plot_axes$xlim[2])) {
-      as_date(plot_axes$xlim[2])
+      maxtime <- as_date(plot_axes$xlim[2])
     } else {
-      as_date(ceiling_date(
-        max(d$time),
-        roboplotr_guess_xaxis_ceiling(d, hovertext, what = "rangeslider")
-      ))
+      maxtime <- roboplotr_guess_xaxis_ceiling(d, hovertext, "guess", what = "rangeslider")
     }
   } else {
-    NULL
+    maxtime <- NULL
   }
   mintime <- if ("time" %in% d_names) {
     min(d$time)
@@ -914,6 +934,20 @@ roboplot <- function(d,
       hover.mode <- "x"
     }
   }
+  if(!is.null(shadearea)) {
+    if(ticktypes$xticktype == "date" & ticktypes$yticktype == "numeric") {
+      proper_shade <- c("Date","character")
+    } else if (ticktypes$xticktype == "numeric" & ticktypes$yticktype == "numeric") {
+      proper_shade <- "numeric"
+    } else {
+      stop("roboplotr::roboplot shadearea can't be used unless the x-axis is of type date or numeric and y-axis numeric.", call. = F)
+    }
+    roboplotr_check_param(shadearea, c(proper_shade, "function"), NULL, f.name = list(fun = substitute(shadearea)[1], check = "set_shadearea"))
+    if(!is.list(shadearea)) {
+      shadearea <- set_shadearea(xmin = shadearea)
+    }
+    shadearea <- roboplotr_shadearea(d, shadearea)
+  }
 
   p <- p |>
     roboplotr_config(
@@ -928,8 +962,9 @@ roboplot <- function(d,
       width = width,
       zeroline = list(
         zeroline = zeroline,
-        xrange = list(min = mintime, max = maxtime)
+        xrange = list(min = mintime, max = mintime)
       ),
+      shadearea = shadearea,
       enable_rangeslider = list(rangeslider = rangeslider, max = maxtime),
       ticktypes = ticktypes,
       container = container,
@@ -937,8 +972,28 @@ roboplot <- function(d,
       info_text = info_text
     )
 
+  # p <- p |>
+  #   layout(shapes = list(
+  #     list(
+  #       type = "rect",
+  #       fillcolor = "red",
+  #       line = list(color = "red"),
+  #       opacity = 0.2,
+  #       y0 = min(d$value),
+  #       y1 = max(d$value),
+  #       x0 = "2020-01-01",
+  #       x1 = max(d$time)
+  #     )
+  #   ))
+
   if (getOption("roboplot.shinyapp")$shinyapp == F) {
     p <- partial_bundle(p, "basic")
+    roboplotly_dep <- p$dependencies |>
+      imap(~ if(.x$name == "plotly-basic") { .y }) |>
+      roboplotr_compact() |>
+        unlist()
+    p$dependencies[[roboplotly_dep]]$version <- "2.28.0"
+    p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.28.0.min.js"
   }
 
   ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.
@@ -958,12 +1013,15 @@ roboplot <- function(d,
     if (artefacts == TRUE) {
       params <- getOption("roboplot.artefacts")
       roboplot_create_widget(
-        p,
-        NULL,
-        params$filepath,
-        params$render,
-        params$self_contained,
-        params$artefacts
+        p = p,
+        title = NULL,
+        filepath = params$filepath,
+        render = params$render,
+        self_contained = params$self_contained,
+        zoom = params$zoom,
+        artefacts = params$artefacts,
+        height = height,
+        width = width
       )
     } else {
       p
@@ -976,12 +1034,15 @@ roboplot <- function(d,
       f.name = list(fun = substitute(artefacts)[1], check = "set_artefacts")
     )
     roboplot_create_widget(
-      p,
-      artefacts$title,
-      artefacts$filepath,
-      artefacts$render,
-      artefacts$self_contained,
-      artefacts$artefacts
+      p = p,
+      title = artefacts$title,
+      filepath = artefacts$filepath,
+      render = artefacts$render,
+      self_contained = artefacts$self_contained,
+      zoom = artefacts$zoom,
+      artefacts = artefacts$artefacts,
+      height = height,
+      width = width
     )
   }
 
@@ -1048,7 +1109,7 @@ roboplot <- function(d,
 #' @importFrom dplyr arrange desc distinct first group_split mutate pull slice_min summarize
 #' @importFrom forcats fct_inorder
 #' @importFrom plotly plot_ly layout subplot
-#' @importFrom rlang := sym
+#' @importFrom rlang := quo_is_null sym
 #' @importFrom stats as.formula
 #' @importFrom stringr str_replace_all str_trunc
 roboplotr_get_plot <-
@@ -1065,7 +1126,10 @@ roboplotr_get_plot <-
            legend_position,
            ticktypes,
            width,
-           legend_title) {
+           legend_title,
+           pattern_showlegend,
+           pattern_sep
+           ) {
     plot_colors <-
       pull(
         distinct(d, .data$roboplot.trace.color,!!color),
@@ -1094,20 +1158,19 @@ roboplotr_get_plot <-
       )), "group", "relative")
     p  <- layout(p, barmode = p_mode)
 
-    d <- mutate(
-      d,
-      roboplot.plot.text = if (!is.null(pattern)) {
-        if (quo_name(color) != quo_name(pattern)) {
-          str_c(!!color, ", ", !!pattern) |> str_remove(", alkuper\uE4inen")
-        } else {
-          !!color
-        }
-      } else {
-        !!color
-      },
-      roboplot.legend.rank = ((as.numeric(!!color) - 1) * 100) + ((as.numeric(
-        .data$roboplot.dash
-      ) - 1) * 10)
+    d <- d |>
+      mutate(roboplot.plot.text =
+               if (!quo_is_null(hovertext$col)) {
+                 !!hovertext$col
+               } else if (is.na(pattern_sep)) {
+                 !!color
+               } else if (!is.null(pattern) &
+                          !all(quo_name(color) == quo_name(pattern))) {
+                 str_c(!!color,pattern_sep,!!pattern)
+               } else {
+                 !!color
+               },
+    roboplot.legend.rank = ((as.numeric(!!color) - 1) * 100) + ((as.numeric(.data$roboplot.dash) - 1) * 10)
     )
 
     if (any(c("horizontal", "horizontalfill") %in% d$roboplot.plot.mode)) {
@@ -1153,11 +1216,7 @@ roboplotr_get_plot <-
     if (!is.null(height) & !is.null(legend_position)) {
       if (length(split_d) > height / 50 & !is.na(legend_position)) {
         roboplotr_alert(
-          str_c(
-            "This many legend items might make the legend too large to render for some widths, you might want to use 'height' of ",
-            length(split_d) * 50,
-            "."
-          )
+          str_glue("You have many legend items, you might want to use 'height' of {length(split_d) * 50}.")
         )
       }
     }
@@ -1185,11 +1244,14 @@ roboplotr_get_plot <-
           )
       }
 
-      show.legend <-
         if (is.null(highlight)) {
-          trace_showlegend
+          if(!is.null(pattern_showlegend)) {
+            show.legend <- pattern_showlegend[unique(g[[as_name(pattern)]]) |> as.character()]
+          } else {
+            show.legend <- trace_showlegend
+          }
         } else {
-          roboplotr_highlight_legend(highlight, g)
+          show.legend <- roboplotr_highlight_legend(highlight, g)
         }
 
       # ei syyst\uE4 tai toisesta toimi plotlyss\uE4 t\uE4ll\uE4 hetkell\uE4 kunnolla legendgrouptitle, perehdy
@@ -1199,6 +1261,7 @@ roboplotr_get_plot <-
       #       legendgrouptitle <- NULL
       #       }
       roboplotr_check_param(legend_title, c("logical", "character"), allow_null = F)
+
       legendgrouptitle <-
         if (legend_title == F) {
           NULL
@@ -1221,11 +1284,11 @@ roboplotr_get_plot <-
         data = g,
         direction = "clockwise",
         #pie
-        xhoverformat = if (ticktypes$xticktype == "date") {
-          hovertext$dateformat
-        } else {
-          NULL
-        },
+        # xhoverformat = if (ticktypes$xticktype == "date") {
+        #   hovertext$dateformat
+        # } else {
+        #   NULL
+        # },
         hoverlabel = list(
           bgcolor = ~ roboplot.bg.color,
           color = ~ roboplot.tx.color
@@ -1257,7 +1320,11 @@ roboplotr_get_plot <-
         marker = list(
           colors = ~ roboplot.trace.color,
           line = getOption("roboplot.trace.border"),
-          pattern = list(shape = ~ roboplot.pattern)
+          pattern = if(is.null(pattern)) {
+            list(shape = ~ roboplot.pattern)
+          } else {
+            list(shape = arrange(g, as.character({{pattern}}))$roboplot.pattern)
+          }
         ),
         #pie, bar
         mode = str_replace_all(
@@ -1350,14 +1417,13 @@ roboplotr_get_plot <-
           "legendgroup",
           "showlegend",
           "type",
-          "hoverinfo",
           "legendgrouptitle",
           "customdata"
         )
-      plotting_params <-
+
         if (tracetype %in% "scatter" &
             any(c("line", "step", "smooth") %in% g$roboplot.plot.mode)) {
-          plotting_params[c(shared_params,
+          plotting_params <- plotting_params[c(shared_params,
                             "x",
                             "y",
                             "line",
@@ -1367,7 +1433,7 @@ roboplotr_get_plot <-
                             "xhoverformat")]
         } else if (tracetype == "scatter" &
                    "scatter+line" %in% g$roboplot.plot.mode) {
-          plotting_params[c(shared_params,
+          plotting_params <- plotting_params[c(shared_params,
                             "x",
                             "y",
                             "line",
@@ -1377,7 +1443,7 @@ roboplotr_get_plot <-
                             "xhoverformat")]
         } else if (tracetype == "scatter" &
                    "scatter" %in% g$roboplot.plot.mode) {
-          plotting_params[c(shared_params,
+          plotting_params <- plotting_params[c(shared_params,
                             "x",
                             "y",
                             "mode",
@@ -1386,7 +1452,7 @@ roboplotr_get_plot <-
                             "xhoverformat")]
         } else if (tracetype == "bar" &
                    any(c("horizontal", "horizontalfill") %in% g$roboplot.plot.mode)) {
-          plotting_params[c(
+          plotting_params <- plotting_params[c(
             shared_params,
             "x",
             "y",
@@ -1400,7 +1466,7 @@ roboplotr_get_plot <-
             "marker"
           )]
         } else if (tracetype == "bar") {
-          plotting_params[c(
+          plotting_params <- plotting_params[c(
             shared_params,
             "x",
             "y",
@@ -1412,7 +1478,7 @@ roboplotr_get_plot <-
             "xhoverformat"
           )]
         } else if (tracetype == "pie") {
-          plotting_params[c(
+          plotting_params <- plotting_params[c(
             shared_params,
             "labels",
             "textposition",

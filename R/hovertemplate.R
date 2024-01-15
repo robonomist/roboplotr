@@ -23,9 +23,13 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #' @param rounding Double. Determines the number of small digits of [roboplot()]
 #' hovertemplate values. Defaults to 1.
 #' @param unit Character. Unit displayed for [roboplot()] hovertemplate values.
+#' @param text_col Symbol, string, or function resulting in symbol or string.
+#' Column from param 'd' in roboplot() to use for labeling. If NULL, the column
+#' used for 'color' (and if given, 'pattern') is used for labels.
 #' @param extra Character vector. Extra text displayed under [roboplot()]
 #' hovertemplate.
 #' @importFrom stringr str_c
+#' @importFrom rlang enquo
 #' @examples
 #' # Use to give hovertemplate specifications for roboplotr::roboplot() plots,
 #' # assumed normally to be called within roboplotr::roboplot().
@@ -57,8 +61,9 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #'
 #' @returns A list
 #' @export
-set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", extra = NULL) {
+set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", text_col = NULL, extra = NULL) {
 
+  text_col <- enquo(text_col)
   roboplotr_check_param(frequency, "character", allow_null = T)
   if(!is.null(frequency)) { roboplotr_valid_strings(frequency,c("Annual","Quarterly","Monthly","Weekly","Daily"), .fun = any) }
   roboplotr_check_param(rounding, "numeric", allow_null = F)
@@ -77,7 +82,7 @@ set_hovertext <- function(frequency = NULL, rounding = 1, unit = "", extra = NUL
     extra <- str_c("\n",extra)
   }
 
-  list(dateformat = frequency, rounding = rounding, unit = unit, extra = extra)
+  list(dateformat = frequency, rounding = rounding, unit = unit, extra = extra, col = text_col)
 }
 
 roboplotr_hovertemplate <- function(params, lab = "text", ticktypes) {

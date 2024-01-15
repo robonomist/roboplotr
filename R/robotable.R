@@ -476,7 +476,7 @@ robotable <-
             style = str_glue(
               "font-family: {main_font$family}; font-size: {main_font$size}px;"
             ),
-            tags$p(HTML(info_text)),
+            tags$p(HTML(as.character(info_text))),
             tags$p(HTML(caption))
 
           )

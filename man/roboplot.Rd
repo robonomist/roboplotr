@@ -17,7 +17,6 @@ roboplot(
   zeroline = F,
   rangeslider = FALSE,
   pattern = NULL,
-  pattern_types = NULL,
   line_width = getOption("roboplot.linewidth"),
   hovertext = NULL,
   plot_type = "scatter",
@@ -30,6 +29,7 @@ roboplot(
   secondary_yaxis = NULL,
   width = getOption("roboplot.width"),
   legend_title = F,
+  shadearea = NULL,
   artefacts = getOption("roboplot.artefacts")$auto,
   container = getOption("roboplot.shinyapp")$container,
   info_text = NULL,
@@ -39,7 +39,7 @@ roboplot(
 \arguments{
 \item{d}{Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric). Other columns could be specified instead with 'plot_axes', using \code{\link[=set_axes]{set_axes()}}.}
 
-\item{color}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for trace color. If left NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.}
+\item{color}{Symbol, string, or function resulting in symbol or string. Column from param 'd' to use for trace color. If NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.}
 
 \item{title, subtitle}{Characters. Labels for plot elements. Optionally, use \code{\link[=set_title]{set_title()}} for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.}
 
@@ -58,9 +58,7 @@ Will not currently work with multiple patterns.}
 
 \item{rangeslider}{Logical or character in \%Y-\%m-\%d format. Determines rangeslider inclusion. TRUE includes the rangeslider, a character string includes the rangeslider with the given date as a start date.}
 
-\item{pattern}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.}
-
-\item{pattern_types}{Character vector, named. Pattern types for all traces. See \code{\link[=set_roboplot_options]{set_roboplot_options()}} parameter 'dashtypes' and 'patterns' for options, or use ".other" if all traces are of the same 'plot_type'.}
+\item{pattern}{Symbol, string, or function resulting in symbol or string. Optionally, use \code{\link[=set_pattern]{set_pattern()}} for more fine-tuned control. See documentation of that function. Column from param 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.}
 
 \item{line_width}{Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.}
 
@@ -74,18 +72,20 @@ You can give a single unnamed 'plot_mode' which is used as applicable, or name-v
 
 \item{plot_axes}{Function. Function. Use \code{\link[=set_axes]{set_axes()}}.}
 
-\item{height, width}{Double. Height and width of the plot. Default width is NULL for responsive plots, give a value for static plot width.}
+\item{height, width}{Double. Height and width of the plot. Default width is NA for responsive plots, give a value for static plot width.}
 
 \item{facet_split}{Currently unused. Variable from argument 'd' to use for facet splits.}
 
-\item{legend_maxwidth}{Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis (Double).}
+\item{legend_maxwidth}{Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis.}
 
-\item{xaxis_ceiling}{Character. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). How to round the upper bound of plot x-axis for other than bar plots if no axis limits are given.}
+\item{xaxis_ceiling}{Character or date. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). Set, or round, the upper bound of plot x-axis for other than bar plots if no axis limits are given.}
 
 \item{secondary_yaxis}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
 Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.}
 
 \item{legend_title}{Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Use a character string if you want to provide your own legend title.}
+
+\item{shadearea}{Use if you want to have a highlighted area on the \code{\link[=roboplot]{roboplot()}}. Use \code{\link[=set_shadearea]{set_shadearea()}} for fine-tuned control (see that function for documentation), or provide a single value that corresponds with the x-axis of the plot. Currently only useful when x-axis is numeric or date, and y-axis is numeric.}
 
 \item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned control. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
@@ -167,11 +167,15 @@ d2 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
                pattern = Suunta,
                xaxis_ceiling = "guess")
 
-# Bar plots use a pattern too
+# Bar plots use a pattern too.
 d2 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
                pattern = Suunta,
                plot_type = "bar")
-
+# Use set_pattern() if you want more options. See documentation for a more
+# detailed explanation.
+d2 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
+                              pattern = set_pattern(pattern = Suunta, sep = " - "),
+                              xaxis_ceiling = "guess")
 # Scatter plots and bar plot may be combined, and colors determined by
 # trace by giving named character vectors as the appropriate arguments.
 # Barmode or scatter type is controlled by plot_mode.
@@ -179,7 +183,8 @@ d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
              trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
              plot_type = c("Norja" = "scatter","Kanada" = "bar",".other" = "scatter"),
              plot_mode = c("Yhdistynyt kuningaskunta" = "scatter",
-                           "Norja" = "scatter+line"
+                           "Norja" = "scatter+line", ".bar" = "dodge",
+                           ".scatter" = "line"
              ))
 
 
@@ -283,6 +288,27 @@ d2 |> dplyr::filter(Suunta == "Tuonti") |>
            rangeslider = "2014-01-01",
            zeroline = 128)
 
+# Shadearea can be used to draw attention to specific area of the plot.
+d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
+           shadearea = "2019-01-01")
+# Use set_shadearea() for more fine-tuned control.
+d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
+           shadearea = set_shadearea(
+             xmin = "2010-06-10",
+             xmax = "2016-01-01",
+             color = "green",
+             border = "gray",
+             layer = "below"
+           ))
+# roboplotr() can't currently validate your xmin and xmax inputs for shade areas,
+# and wrong input will probably just fail to produce the area.
+d2 |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
+           shadearea = set_shadearea(
+             xmin = "182625",
+           ))
 # Secondary yaxis can be added to line plots when the corresponding variable
 # only has two unique observations that is a subset of the variable 'color'.
 # There is currently no way of differentiating between the axes in legend.

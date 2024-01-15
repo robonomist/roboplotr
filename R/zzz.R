@@ -2,7 +2,7 @@
   op <- options()
   op.roboplot.options <- list(
     roboplot.accessible = F,
-    roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, artefacts = "html"),
+    roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, zoom = 1, artefacts = "html", width = 992, height = 744),
     roboplot.border = list(xcolor = "black", ycolor = "black", xmirror = TRUE, ymirror = TRUE, xwidth = 1, ywidth = 1),
     roboplot.caption.template = "Lähde: {text}.",
     roboplot.colors.background = "white",
@@ -24,9 +24,10 @@
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea", type = "png"),
     roboplot.imgdl.small = list(x = 889, y = 500, title = 23, main = 18, caption = 14, suffix = "_pieni", type = "png"),
     roboplot.trace.border = list(color = "#E8E8E8", width = 1),
-    roboplot.width = NULL,
+    roboplot.width = NA,
     roboplot.shinyapp = list(shinyapp = FALSE, container = NULL),
     roboplot.xaxis.ceiling = "default",
+    roboplot.zeroline = list(color = "black", width = 2),
     roboplot.verbose = "All"
   )
 

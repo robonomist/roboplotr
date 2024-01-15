@@ -484,55 +484,59 @@ roboplotr_set_ticks <- function(p, ticktypes) {
 #' @importFrom dplyr case_when
 #' @importFrom lubridate month quarter wday week yday
 roboplotr_guess_xaxis_ceiling <-
-  function(d, hovertext, what = "xaxis_ceiling") {
-    attr_freq <- roboplotr_get_dateformat(d, msg = F)
-    hovertext_freq <- hovertext$dateformat
+  function(d, hovertext, ceiling = "guess", what = "xaxis_ceiling") {
 
-    freq <- if (any(!is.null(attr_freq),!is.null(hovertext_freq))) {
-      c(attr_freq, hovertext_freq) |> first()
+    this_time <- unique(d$time)
+    this_time <- subset(this_time, !is.na(this_time))
+
+    if(suppressWarnings(!is.na(as_date(ceiling)))) {
+      if(ceiling < max(this_time)) {
+        roboplotr_message(str_glue("Provided {what} is less than max time of parameter 'd' of roboplotr::roboplot()."))
+      }
+      this_ceiling <- ceiling
+    } else if(ceiling != "guess") {
+      this_ceiling <- ceiling_date(max(this_time), ceiling, week_start = 1)
     } else {
-      NULL
+      attr_freq <- roboplotr_get_dateformat(d, msg = F)
+      hovertext_freq <- hovertext$dateformat
+
+      if (any(!is.null(attr_freq),!is.null(hovertext_freq))) {
+        freq <- c(hovertext_freq, attr_freq) |> first()
+      } else {
+        freq <- NULL
+      }
+
+      if (!is.null(freq)) {
+        freq <- case_when(
+          freq %in% c("Annual", "%Y") ~ "years",
+          freq %in% c("Quarterly", "%YQ%q") ~ "quarters",
+          freq %in% c("Monthly", "%m/%Y") ~ "monthly",
+          freq %in% c("Weekly", "%YW%V") ~ "days",
+          freq %in% c("Daily", getOption("roboplot.locale")$date) ~ "days"
+        )
+
+        this_time <- unique(d$time)
+        this_time <- subset(this_time, !is.na(this_time))
+        this_ceiling <- ceiling(length(this_time) * 1.05) - length(this_time)
+        freqs <- c("years","quarters","months","weeks","days")
+        if (this_ceiling >= length(this_time) * 0.5) {
+          freq <- freqs[min(which(freqs == freq)+2,length(freqs))]
+        } else if (this_ceiling >= length(this_time) * 0.05) {
+          freq <- freqs[min(which(freqs == freq)+1,length(freqs))]
+        }
+        this_ceiling <-
+          seq.Date(max(this_time), length.out = this_ceiling + 1, by = freq) |>
+          max()
+      }
+
+      if(what != "rangeslider") {
+        if (is.null(freq)) {
+          roboplotr_alert(str_glue("Roboplotr failed to guess the {what}. Please provide frequency in parameter 'hovertext' with roboplotr::set_hovertext()."))
+        } else {
+          roboplotr_message(str_glue("Roboplotr guesses the {what} is \"{this_ceiling}\"."))
+        }
+      }
     }
 
-    if (!is.null(freq)) {
-      freq <- switch(
-        freq,
-        "Annual" = "years",
-        "Quarterly" = "quarters",
-        "Monthly" = "months",
-        "Weekly" = "weeks",
-        "Daily" = "days",
-        NULL
-      )
-      maxd <- max(d$time)
-      yd <- yday(maxd)
-      yq <- quarter(maxd)
-      ym <- month(maxd)
-      yw <- week(maxd)
-      wd <- wday(maxd, week_start = 1)
-      freq <- case_when(
-        freq == "years" ~ "quarters",
-        freq == "quarters" & yq == 4 ~ "years",
-        freq == "months" & ym >= 10 ~ "years",
-        freq == "weeks" & yw >= 40 ~ "quarters",
-        freq == "weeks" & yw >= 26 ~ "months",
-        freq == "days" & yd >= 240 ~ "years",
-        freq == "days" & yd >= 120 ~ "months",
-        freq == "days" ~ "weeks",
-        TRUE ~ freq
-      )
-    }
-
-    if (is.null(freq)) {
-      roboplotr_alert("Failed to guess the '",
-                      what,
-                      "', ne frequency information available.")
-    } else {
-      roboplotr_message("Roboplotr guesses the '",
-                        what,
-                        "' is rounded to \"",
-                        freq,
-                        "\".")
-    }
-    freq
+    this_ceiling
   }

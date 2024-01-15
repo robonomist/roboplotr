@@ -29,6 +29,7 @@ set_roboplot_options(
   trace_border = NULL,
   trace_colors = NULL,
   xaxis_ceiling = NULL,
+  zeroline = NULL,
   verbose = NULL,
   width = NULL,
   shinyapp = NULL,
@@ -40,7 +41,7 @@ set_roboplot_options(
 
 \item{artefacts}{Function. Control html and other file creation. Use \code{\link[=set_artefacts]{set_artefacts()}}.}
 
-\item{border}{Function. Use \code{\link[=set_border]{set_border()}}.}
+\item{border}{Function. Control plot borders. Use \code{\link[=set_border]{set_border()}}.}
 
 \item{background_color}{Character. Plot background color. Must be a hexadecimal color or a valid css color.}
 
@@ -50,9 +51,9 @@ set_roboplot_options(
 
 \item{font_main, font_title, font_caption}{Functions. Use \code{\link[=set_font]{set_font()}}.}
 
-\item{grid}{Function. Use \code{\link[=set_grid]{set_grid()}}.}
+\item{grid}{Function. Control the grid behind the traces. Use \code{\link[=set_grid]{set_grid()}}.}
 
-\item{height, width}{Numerics. Height and width of roboplotr plots in pixels.}
+\item{height, width}{Numerics. Height and width of roboplotr plots in pixels. Use NA for viewport size.}
 
 \item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{set_imgdl_layout}. Controls the dimensions and fonts of image files downloaded through modebar buttons.}
 
@@ -75,6 +76,8 @@ set_roboplot_options(
 \item{trace_colors}{Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.}
 
 \item{xaxis_ceiling}{Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".}
+
+\item{zeroline}{Function. Control the appearance of zeroline when set using \code{\link[=roboplot]{roboplot()}} parameter 'zeroline'. Use \code{\link[=set_zeroline]{set_zeroline()}}.}
 
 \item{verbose}{Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".}
 
@@ -144,10 +147,10 @@ p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 
 p
 
-# Images downloaded through plotly modebar require separate layout
-# specifications which roboplotr::roboplot automatically takes care of. Image
-# sizes and font sizes might require extra specifications. Set these globally
-# with 'img_wide', 'img_narrow', and / or 'img_small' using
+# Files downloaded through plotly modebar require separate layout
+# specifications which roboplotr::roboplot() automatically takes care of. Plot
+# dimensions and font sizes might require extra specifications. Set these
+# globally with 'img_wide', 'img_narrow', and / or 'img_small' using
 # roboplotr::set_imgdl_layout(), documented in detail in that
 # function.
 

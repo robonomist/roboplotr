@@ -1,7 +1,5 @@
 #' @importFrom grDevices colorRampPalette
-#' @importFrom plotly plot_ly
 #' @importFrom purrr map
-
 roboplotr_get_colors <- function(n_unique, robocolors = getOption("roboplot.colors.traces"), accessibility_params) {
   if(n_unique <= length(robocolors)) {
     cols <- robocolors[1:n_unique]
@@ -25,10 +23,10 @@ roboplotr_get_colors <- function(n_unique, robocolors = getOption("roboplot.colo
 #' @importFrom rlang as_name
 #' @importFrom stats setNames
 roboplotr_set_colors <- function(trace_color, unique_groups, highlight, d, color) {
-  if(!is.null(trace_color)) {
 
+  if(!is.null(trace_color)) {
     roboplotr_valid_colors(trace_color)
-    if (length(trace_color) == 1 & is.null(names(trace_color))){
+    if (length(trace_color) == 1 & is.null(names(trace_color))) {
       color_vector <- rep(trace_color, length(unique_groups)) |> setNames(unique_groups)
     } else if (!all(unique_groups %in% names(trace_color)) & !(".other" %in% names(trace_color)) ) {
       stop(str_c("Either trace color must be a single color string, or all variables in column \"",as_name(color),"\" must have a corresponding trace color, or key \".other\" must be included, or trace_color must be NULL!"), call. = F)
@@ -170,6 +168,112 @@ roboplotr_grey_shades <- function() {
          "luminance" = roboplotr_get_luminance(grey_shades))
 }
 
+#' Set [roboplot()] pattern definitions
+#' @param pattern Symbol, string, or function resulting in symbol or string.
+#' Column from param 'd' of [roboplot()] to use for scatter plot linetype or bar
+#' plot pattern. Not supported for pie charts.
+#' @param pattern_types Named character vector. Pattern types for all traces.
+#' Names must correspond to values in the column referenced by param 'pattern'
+#' in param 'd' of [roboplot()]. See [set_roboplot_options()] parameter
+#' 'dashtypes' and 'patterns' for options, or use ".other" if all traces are of
+#' the same 'plot_type'.
+#' @param show_legend Logical, named if vector. If any pattern(s) will have
+#' their own legend entries. If FALSE, only the first item in param 'pattern'
+#' will be in [roboplot()] legend. If named, the must correspond to values in
+#' the column referenced by param 'pattern' in param 'd' of [roboplot()]. See
+#' [set_roboplot_options()] parameter 'dashtypes' and 'patterns' for options, or
+#' use ".other" if all traces are of the same 'plot_type'.
+#' @param pattern_along Symbol, string, or function resulting in symbol or string.
+#' Column from param 'd' of [roboplot()] along which the series should be
+#' continuous along. If set, and the 'plot_mode' corresponding to all items in
+#' the given group as defined by 'pattern' is "line", [roboplot()] will try to
+#' fill the series in such a way as to create a continuous line.
+#' @param sep Character. The separator of color and pattern in legend text.
+#' Default is ", ". Use NA if you want to omit the pattern label from legend,
+#' resulting only the [roboplot()] param 'color' being the label.
+#' @examples
+#' # You can use [set_pattern()] to just give the column name, but in that case
+#' # you could just as well provide the column name by itself.
+#' # Compare this:
+#' energiantuonti |>
+#'   dplyr::filter(Alue %in% c("Belgia","Kanada")) |>
+#'   roboplot(
+#'     Alue,
+#'     pattern = Suunta
+#'   )
+#' #' # To this:
+#' energiantuonti |>
+#'   dplyr::filter(Alue %in% c("Belgia","Kanada")) |>
+#'   roboplot(
+#'     Alue,
+#'     pattern = set_pattern(Suunta)
+#'   )
+#' # Suppose you have a series where some values are predictions and some are
+#' # observations, you would have a gap in a line plot.
+#' d <- energiantuonti |>
+#'   dplyr::filter(Alue == "Belgia", Suunta == "Tuonti") |>
+#'   dplyr::mutate(Sarjatyyppi = ifelse(
+#'     lubridate::year(time) == max(lubridate::year(time)),
+#'     "Ennuste",
+#'     "Toteuma"
+#'   ))
+#'
+#' roboplot(d, Alue, pattern = Sarjatyyppi)
+#'
+#' # Use the parameter 'pattern_along' to provide the column along which the plot
+#' # should show a continous line.
+#' roboplot(d, Alue, pattern = set_pattern(Sarjatyyppi, pattern_along = time))
+#'
+#' # Use the parameter 'show_legend' to omit all patterns expect the first one
+#' # from the legend, and use the parameter 'sep' to control the separator
+#' # between the roboplotr::roboplot() param 'color' and 'pattern' in the legend.
+#' roboplot(d,
+#'          Alue,
+#'          pattern = set_pattern(
+#'            Sarjatyyppi,
+#'            pattern_along = time,
+#'            show_legend = F,
+#'            sep = " - "
+#'          ))
+#'
+#' # Or just use 'sep' = NA to omit the pattern from the legend labels.
+#' roboplot(d, Alue,
+#'            pattern =
+#'              set_pattern(
+#'                Sarjatyyppi,
+#'                pattern_along = time,
+#'                show_legend = F,
+#'                sep = NA
+#'              ))
+#'
+#' # Finally, control the patterns for linetypes and bars with the parameter
+#' # 'pattern_types', with a named vector containing either all the observations
+#' # in the column 'pattern', or ".other" as a catch-all category.
+#' energiantuonti |>
+#'   filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
+#'   roboplot(Alue, pattern = set_pattern(Alue, pattern_types = c(
+#'     "Kanada" = "dash", ".other" = "dot"
+#'   )))
+#' # Bar plots use the pattern_types too, but they are different from the ones
+#' # used by line plots. Don't worry if you don't give the corrent ones, roboplot()
+#' #informs you which you should be using.
+#' energiantuonti |>
+#'   filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
+#'   roboplot(Alue,
+#'            plot_type = "bar",
+#'            pattern = set_pattern(Alue, pattern_types = c(
+#'     "Ruotsi" = "", ".other" = "x"
+#'   )))
+#' @export
+set_pattern <- function(pattern = NULL, pattern_types = NULL, pattern_along = NULL, show_legend = T, sep = ", ") {
+  pattern <- enquo(pattern)
+  roboplotr_check_param(pattern_types, "character", size = NULL, extra = "set_pattern() parameter")
+  pattern_along <- enquo(pattern_along)
+  roboplotr_check_param(show_legend, "logical", NULL, F, extra = "set_pattern() parameter")
+  roboplotr_check_param(sep, "character", 1, F,allow_na = T, extra = "set_pattern() parameter")
+  list(pattern = pattern, pattern_types = pattern_types, pattern_along = pattern_along, show_legend = show_legend, pattern_sep = sep)
+}
+
 #' @importFrom dplyr mutate
 #' @importFrom forcats fct_inorder fct_relevel fct_rev
 #' @importFrom purrr map2_chr
@@ -190,17 +294,18 @@ roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
     } else {
       .default <- c("dash" = dashtypes[1], "bar" = patterntypes[1])
     }
+
     defined_patterns <- roboplotr_set_pattern(d, pattern, pattern_type)
     if (!is.null(defined_patterns)) {
       d <- d |>
         mutate(
           roboplot.dash = map2_chr(roboplot.plot.type, !!pattern, ~ {
-        ifelse(.x == "scatter",defined_patterns[as.character(.y)],.default["dash"])
-      }),
-      roboplot.pattern = map2_chr(roboplot.plot.type, !!pattern, ~ {
-        ifelse(.x != "scatter",defined_patterns[as.character(.y)],.default["bar"])
-      })
-      )
+            ifelse(.x == "scatter",defined_patterns[as.character(.y)],.default["dash"])
+          }),
+          roboplot.pattern = map2_chr(roboplot.plot.type, !!pattern, ~ {
+            ifelse(.x != "scatter",defined_patterns[as.character(.y)],.default["bar"])
+          })
+        )
     } else {
       d <- d |> mutate(roboplot.dash = ifelse(.data$roboplot.plot.type == "scatter",dashtypes[!!pattern],.default["dash"]),
                        roboplot.pattern = ifelse(.data$roboplot.plot.type != "scatter",patterntypes[!!pattern],.default["bar"])
@@ -456,7 +561,7 @@ set_heatmap <-
     roboplotr_check_param(maxcolor, "character", allow_null = F)
     roboplotr_check_param(midcolor, "character", allow_null = F)
     roboplotr_check_param(mincolor, "character", allow_null = F)
-    roboplotr:::roboplotr_valid_colors(c(maxcolor, midcolor, mincolor),"Any colors set with set_heatmap()")
+    roboplotr_valid_colors(c(maxcolor, midcolor, mincolor),"Any colors set with set_heatmap()")
     roboplotr_check_param(maxvalue, "numeric", allow_null = T)
     roboplotr_check_param(midvalue, "numeric", allow_null = T)
     roboplotr_check_param(minvalue, "numeric", allow_null = T)
@@ -468,6 +573,7 @@ set_heatmap <-
     list(min = min, mid = mid, max = max)
 
   }
+
 
 #' Internal function for handling named patterns for traces
 #' @importFrom dplyr distinct mutate select
@@ -534,6 +640,32 @@ roboplotr_get_map_palette <- function(d, map_colors, data_contour, bins) {
     )
   }
 }
+
+#' Determine if legend item for a given pattern is shown in [roboplot()]
+#' @importFrom rlang is_quosure
+#' @importFrom stats setNames
+roboplotr_get_pattern_showlegend <- function(d, pattern, pattern_showlegend) {
+  if(!rlang::is_quosure(pattern)) { pattern <- enquo(pattern) }
+  if((!quo_is_null(pattern) & !is.null(pattern_showlegend))) {
+  pattern_levels <- levels(d[[as_name(pattern)]]) |> as.character()
+  if(is.null(names(pattern_showlegend))) {
+    if(all(pattern_showlegend == T)) {
+      pattern_showlegend <- rep(T, length(pattern_levels)) |> setNames(pattern_levels)
+    } else {
+      pattern_showlegend <- c(T, rep(F, length(pattern_levels)-1)) |> setNames(pattern_levels)
+    }
+  } else {
+    roboplotr_valid_strings(names(pattern_showlegend), pattern_levels, any)
+    other_patterns <- pattern_levels[!pattern_levels %in% names(pattern_showlegend)]
+    other_patterns <- rep(F, length(other_patterns)) |> setNames(other_patterns)
+    pattern_showlegend <- c(pattern_showlegend, other_patterns)
+  }
+} else {
+  pattern_showlegend <- NULL
+}
+  pattern_showlegend
+}
+
 
 #' #' Map palette specifications for [robomap()]
 #' #'

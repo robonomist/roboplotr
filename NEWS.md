@@ -1,6 +1,17 @@
+# roboplotr 1.4
+
+* Completely reworked static file automation, separating it from modebar. Allows for special fonts in static files.
+* Added set_shadearea() (and roboplot(shadearea)) to add a highlight area to plots. 
+* Reworked zeroline handling somewhat, adding set_zeroline() to use with set_roboplot_options(zeroline) to control the appearance of zeroline.
+* Added param text_col to set_hovertext() that can be used to set what roboplot() uses for labeling (mainly the hoverlabels). 
+* Info texts improvement (may use HTML). 
+* Remove html tags from data when downloading the data from image.
+* Improved logo and caption positioning in relation to each other and the legend box.
+* Plotly partial bundle switched to 2.28.0 to allow for usage of dashtypes in gridlines (only when set_roboplot_options(shinyapp = F)).
+
 # roboplotr 1.3.4.4
 
-* Font fallback crash fix for websafe fonts.
+* Improved control for plot mode by trace.
 
 # roboplotr 1.3.4.3
 
@@ -8,7 +19,7 @@
 
 # roboplotr 1.3.4.2
 
-* Examples fit for set_caption(). Fix for multiple font css definitions. Added Google Font support for fonts. Still won't work with downloaded pngs (or svgs).
+* Examples fix for set_caption(). Fix for multiple font css definitions. Added Google Font support for fonts. Still won't work with downloaded pngs (or svgs).
 
 # roboplotr 1.3.4.1
 

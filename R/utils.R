@@ -4,14 +4,14 @@
 #'
 #' @param accessible Logical. Forces trace colors accessible against plot background.
 #' @param artefacts Function. Control html and other file creation. Use [set_artefacts()].
-#' @param border Function. Use [set_border()].
-#' @param grid Function. Use [set_grid()].
+#' @param border Function. Control plot borders. Use [set_border()].
+#' @param grid Function. Control the grid behind the traces. Use [set_grid()].
 #' @param tick_colors List. Plot tick element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
 #' @param background_color Character. Plot background color. Must be a hexadecimal color or a valid css color.
 #' @param caption_template Character. Template for [str_glue()] used to parse captions.
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @param font_main,font_title,font_caption Functions. Use [set_font()].
-#' @param height,width Numerics. Height and width of roboplotr plots in pixels.
+#' @param height,width Numerics. Height and width of roboplotr plots in pixels. Use NA for viewport size.
 #' @param infobox Function. Defines the appearance of the infobox available from modebar when 'info_text' is provided for [roboplot()] or [robotable()]. Use [set_infobox()].
 #' @param linewidth Numeric. The default roboplotr line trace width.
 #' @param locale Function. Defines locale parameters as [roboplot()] needs them. Use [set_locale()].
@@ -22,6 +22,7 @@
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
 #' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [set_imgdl_layout]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
+#' @param zeroline Function. Control the appearance of zeroline when set using [roboplot()] parameter 'zeroline'. Use [set_zeroline()].
 #' @param verbose Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
 #' @param shinyapp Logical or list. Makes fonts, css and javascript available for shiny apps. If given as list, use a named list with the single character string named "container" describing the css selector for the element in a shiny app where most roboplots will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
 #' @param reset Logical. Ignores other options, resets options to defaults.
@@ -85,10 +86,10 @@
 #'
 #' p
 #'
-#' # Images downloaded through plotly modebar require separate layout
-#' # specifications which roboplotr::roboplot automatically takes care of. Image
-#' # sizes and font sizes might require extra specifications. Set these globally
-#' # with 'img_wide', 'img_narrow', and / or 'img_small' using
+#' # Files downloaded through plotly modebar require separate layout
+#' # specifications which roboplotr::roboplot() automatically takes care of. Plot
+#' # dimensions and font sizes might require extra specifications. Set these
+#' # globally with 'img_wide', 'img_narrow', and / or 'img_small' using
 #' # roboplotr::set_imgdl_layout(), documented in detail in that
 #' # function.
 #'
@@ -285,6 +286,7 @@ set_roboplot_options <- function(
     trace_border = NULL,
     trace_colors = NULL,
     xaxis_ceiling = NULL,
+    zeroline = NULL,
     verbose = NULL,
     width = NULL,
     shinyapp = NULL,
@@ -335,31 +337,30 @@ set_roboplot_options <- function(
     roboplotr_check_param(dashtypes, "character", NULL)
     roboplotr_valid_strings(dashtypes,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"))
 
-
     font_main <- substitute(font_main)
     if(!is.null(font_main)) {
-      if(font_main[1] != "set_font()") { stop("Use 'roboplotr::set_font()' for font_main!", call. = F)}
+      if(font_main[1] != "set_font()" & font_main[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_main!", call. = F)}
       if(is.null(font_main$type)) { font_main$type <- "main" }
       font_main <- eval(font_main)
     }
 
     font_title <- substitute(font_title)
     if(!is.null(font_title)) {
-      if(font_title[1] != "set_font()") { stop("Use 'roboplotr::set_font()' for font_title!", call. = F)}
+      if(font_title[1] != "set_font()" & font_title[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_title!", call. = F)}
       if(is.null(font_title$type)) { font_title$type <- "title" }
       font_title <- eval(font_title)
     }
 
     font_caption <- substitute(font_caption)
     if(!is.null(font_caption)) {
-      if(font_caption[1] != "set_font()") { stop("Use 'roboplotr::set_font()' for font_caption!", call. = F)}
+      if(font_caption[1] != "set_font()" & font_caption[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_caption!", call. = F)}
       if(is.null(font_caption$type)) { font_caption$type <- "caption" }
       font_caption <- eval(font_caption)
     }
 
     roboplotr_check_param(grid, "function", NULL,  f.name = list(fun = substitute(grid)[1], check = "set_grid"))
 
-    roboplotr_check_param(height, "numeric")
+    roboplotr_check_param(height, "numeric", allow_na = T)
 
     if(!is.null(infobox)) {
       roboplotr_check_param(locale, "function", NULL, f.name = list(fun = substitute(infobox)[1], check = "set_infobox"))
@@ -376,6 +377,10 @@ set_roboplot_options <- function(
       if (!file.exists(logo_file)) {
         stop("Given logo file does not seem to exist. Is the file path correct?", call. = F)
       }}
+
+    if(!is.null(zeroline)) {
+      roboplotr_check_param(zeroline, "function", NULL, f.name = list(fun = substitute(zeroline)[1], check = "set_zeroline"))
+    }
 
     roboplotr_check_param(modebar, "character", NULL)
     roboplotr_valid_strings(modebar, c("home","closest","compare","zoomin","zoomout","img_w","img_n","img_s","data_dl","robonomist"), any)
@@ -414,7 +419,7 @@ set_roboplot_options <- function(
       shinyapp <- list(shinyapp = shinyapp, container = NULL)
     }
 
-    roboplotr_check_param(width, "numeric")
+    roboplotr_check_param(width, "numeric", allow_na = T)
 
     roboplotr_check_param(xaxis_ceiling, "character")
     roboplotr_valid_strings(xaxis_ceiling, c("default","days","months","weeks","quarters","years","guess"), any)
@@ -443,6 +448,7 @@ set_roboplot_options <- function(
     set_roboplot_option(tick_colors, "colors.ticks")
     set_roboplot_option(trace_border, "trace.border")
     set_roboplot_option(trace_colors, "colors.traces")
+    set_roboplot_option(zeroline)
     if(getOption("roboplot.accessible") == TRUE) {
       if(!identical(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")),getOption("roboplot.colors.traces"))) {
         set_roboplot_option(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")), "colors.traces")
@@ -569,7 +575,16 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes) 
 
 #' @importFrom stringr str_replace_all
 roboplotr_transform_string <- function(string) {
-  str_replace_all(string, c("[^[:alnum:]\\s\\,\\;\\',\\&,\\%,\\-]"= "_","'"="\u2019", "\\&" = "\u0026","\\%" = "\\u0025"))
+  str_replace_all(
+    string,
+    c(
+      "\\<[^\\>]*\\>" = " ",
+      "[^[:alnum:]\\s\\,\\;\\',\\&,\\%,\\-]" = "_",
+      "'" = "\u2019",
+      "\\&" = "\u0026",
+      "\\%" = "\\u0025"
+    )
+  )
 }
 
 #' @importFrom dplyr case_when
@@ -754,4 +769,30 @@ roboplotr_combine_words <- function (..., sep = ", ", and = " and ", before = ""
 roboplotr_compact <- function (l)
 {
   Filter(Negate(is.null), l)
+}
+
+#' [roboplot()] attempts to bind patterns for continuous line for certain plots
+#' @importFrom dplyr arrange bind_rows filter group_by group_split left_join mutate pull select
+#' @importFrom purrr imap_dfr
+#'
+roboplot_continuous_pattern <- function(d, along, pattern, series) {
+  series <- enquo(series)
+  split <- d |>
+    arrange({{pattern}}) |>
+    group_by({{pattern}}) |>
+    group_split()
+
+  imap_dfr(split, function(.group, i) {
+    if(i == 1) {
+      .group
+    } else {
+      prev <- split[[i-1]] |>
+        filter({{along}} == max({{along}})) |>
+        select(-starts_with("roboplot."), -{{pattern}},)
+      .first <- .group |> filter({{along}} == min({{along}})) |> select(-{{along}}, -{{series}})
+      dplyr::left_join(prev, .first, by = names(prev)[names(prev) %in% names(.first)]) |>
+        bind_rows(.group)
+    }
+  }) |>
+    arrange({{along}})
 }

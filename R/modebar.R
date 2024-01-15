@@ -32,7 +32,10 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
           "xaxis.tickfont.size": ',layout$main,',
           "yaxis.tickfont.size": ',layout$main,',
           "title.font.size": ',layout$title,'})
-          setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'",',tolower(plot_title[[3]]),'], pie_plot = ',if(all(p$trace_types == "pie")) { "true" } else { "false" },')
+          let roboplot_logo = new Image();
+          roboplot_logo.src = gd.layout.images[0].source;
+          roboplot_logo = roboplot_logo.width / roboplot_logo.height
+          setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'",',tolower(plot_title[[3]]),'], pie_plot = ',if(all(p$trace_types == "pie")) { "true" } else { "false" },', logo = roboplot_logo)
           Plotly.downloadImage(gd, {scale: "1", format: "',layout$type,'", width: ',layout$x,', height: ',layout$y,', filename: "',ttl,layout$suffix,'"});
           Plotly.relayout(gd, oldlayout)
           delete oldlayout
@@ -165,7 +168,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
           style = str_glue(
             "font-family: {main_font$family}; font-size: {main_font$size}px;"
           ),
-          tags$p(HTML(info_text)),
+          tags$p(HTML(as.character(info_text))),
           tags$p(HTML(caption))
 
         )
@@ -249,13 +252,15 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 }
 
 
-#' Png downloads in [roboplot()]
+#' Statis file downloads through [roboplot()] modebar
 #'
-#' Use in [set_roboplot_options()] to get a list used for [roboplot()] relayouts for downloaded image files when the appropriate modebar button is pressed
+#' Use in [set_roboplot_options()] to get a list of specifications used for
+#' [roboplot()] relayouts for downloaded static files when the appropriate modebar
+#' button is pressed
 #'
-#' @param height,width Doubles. The dimensions for the image file in pixels the modebar button will produce.
-#' @param mainfont,titlefont,captionfont Doubles. The font sizes used in the image file the modebar button will produce.
-#' @param suffix Character. Suffix attached after the name of the downloaded image file.
+#' @param height,width Integer. The dimensions for the image file in pixels the modebar button will produce.
+#' @param mainfont,titlefont,captionfont Integer. The font sizes used in the static file the modebar button will produce.
+#' @param suffix Character. Suffix attached after the name of the downloaded static file.
 #' @param format Character. One of "png", "svg", "jpg", or "webp". Defines the file format of the downloaded image file.
 #' @examples
 #' # Used inside roboplotr::set_roboplot_options() to control image download
@@ -267,7 +272,6 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #' # for the file format.
 #'
 #' set_roboplot_options(
-#'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
 #'   imgdl_wide =
 #'     set_imgdl_layout(
 #'       width = 1400,
@@ -280,16 +284,22 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #' )
 #'
 #' if(interactive()) {
-#'
-#'   p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-#'   p |> roboplot_create_widget(filepath = tempdir(),
-#'                               artefacts = c("img_w")
+#' # Create a roboplotr::roboplot and navigate to it, and download your static
+#' # image by clicking the appropriate button in the modebar.
+#' energiantuonti |>
+#'   dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(
+#'     color = Alue,
+#'     title = "Energian tuonti",
+#'     subtitle = "Milj. €",
+#'     caption = "Tilastokeskus",
+#'     artefacts = set_artefacts("html", filepath = tempdir())
 #'   )
-#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti.svg"))
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
 #' }
 #'
-#' # The plotly image downloads are controlled by the modebar, so if you use
-#' # other than 'img_wide' you need to use roboplotr::set_roboplot_options to
+#' # Static image downloads are controlled through the modebar, so if you use
+#' # other than 'img_wide' you need to use roboplotr::set_roboplot_options() to
 #' # control the modebar accordingly in addition to giving the downloaded image
 #' # specifications (roboplotr::roboplot() does have some defaults in place
 #' # for every size, so you can skip image specifications even if you do add
@@ -317,14 +327,18 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #' )
 #'
 #' if(interactive()) {
-#'
-#'   p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-#'   p |> roboplot_create_widget(filepath = tempdir(),
-#'                               artefacts = c("img_w","img_n","img_s")
-#'   )
-#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_narrow.png"))
-#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_pieni.png"))
-#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_wide.png"))
+#'   # Create a roboplotr::roboplot and navigate to it, and download any of the
+#'   # static images through the modebar.
+#'   energiantuonti |>
+#'     dplyr::filter(Suunta == "Tuonti") |>
+#'     roboplot(
+#'       color = Alue,
+#'       title = "Energian tuonti",
+#'       subtitle = "Milj. €",
+#'       caption = "Tilastokeskus",
+#'       artefacts = set_artefacts("html", filepath = tempdir())
+#'     )
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
 #' }
 #'
 #' # Revert to defaults:
@@ -356,8 +370,10 @@ set_imgdl_layout <- function(
 #' of [roboplot()] plots and [robotable()] tables.
 #'
 #' @importFrom dplyr first
-#' @param background,border Characters. Colors used for the corresponding element of the infopopup of [robotable()]s and [roboplot()]s. Must be a hexadecimal color strings or a valid css color strings.
-#' @param border_width Integer. The border width of modal color.
+#' @param background,border Characters. Colors used for the corresponding
+#' element of the infopopup of [robotable()]s and [roboplot()]s. Must be a
+#' hexadecimal color strings or a valid css color strings.
+#' @param border_width Integer. The border width of infomodal.
 #' @returns A list.
 #' @export
 set_infobox <-

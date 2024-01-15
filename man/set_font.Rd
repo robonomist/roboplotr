@@ -38,11 +38,8 @@ Get a list for \code{\link[=set_roboplot_options]{set_roboplot_options()}} used 
 # string "serif" or "sans-serif", if no specific font path will be provided.
 # This will change fonts according to the list output of
 # roboplotr::set_font(). You can designate font color, size, and
-# path, and (for title font only) whether it is bolded. You must also provide
-# one of "title", "main" or "caption" as 'type' and a web-safe fallback font
-# if an actual filepath is
-# provided for 'path'.
-
+# path, and (for title font only) whether it is bolded. You must provide a
+# web-safe fallback font if an actual filepath is provided for 'path'.
 
 set_roboplot_options(
   caption_template = "Lähde: {text}!!",
@@ -60,19 +57,31 @@ d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 
 d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
 # Valid Google Fonts work as well.
-set_roboplot_options(font_caption = set_font(font = "Exo"))
+set_roboplot_options(font_title = set_font(font = "Exo"))
 
-# Note that plotly's own downloadImage does not support external fonts.
+# Note that plotly's own downloadImage method does not support external fonts.
+# It can only use the fonts the browser has available. Use
+# roboplotr::set_artefacts() in roboplotr::roboplot() to automate their
+# creation if you need static images with external fonts.
 
 if(interactive()) {
-
+  # Create a html file with roboplotr::roboplot().
   d |>
-  roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus") |>
-  roboplot_create_widget(filepath = tempdir(), artefacts = "img_w")
+    roboplot(
+      color = Alue,
+      title = "Energian tuonti Kanadasta",
+      subtitle = "Milj. €",
+      caption = "Tilastokeskus",
+      artefacts = set_artefacts(artefacts = c("html", "png"), filepath = tempdir())
+    )
 
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta_levea.png"))
+  # The html file will have the proper fonts, but images downloaded through the
+  # modebar will not.
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
+  # The images automated with roboplotr::set_artefacts() will have the proper font.
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.png"))
 }
 
-# revert to defaults:
+# Revert to defaults:
 set_roboplot_options(reset = TRUE)
 }

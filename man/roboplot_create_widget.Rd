@@ -10,7 +10,10 @@ roboplot_create_widget(
   filepath = getOption("roboplot.artefacts")$filepath,
   render = getOption("roboplot.artefacts")$render,
   self_contained = getOption("roboplot.artefacts")$self_contained,
-  artefacts = getOption("roboplot.artefacts")$artefacts
+  zoom = getOption("roboplot.artefacts")$zoom,
+  artefacts = getOption("roboplot.artefacts")$artefacts,
+  width = getOption("roboplot.artefacts")$width,
+  height = getOption("roboplot.artefacts")$height
 )
 }
 \arguments{
@@ -29,10 +32,15 @@ viewer. Plot will be returned silently in either case.}
 saved in an adjacent directory "plot_dependencies" or contained within the
 file, increasing size.}
 
+\item{zoom}{Numeric. Controls the zoom level of static images if any are
+defined with 'artefacts'. Default 1.}
+
 \item{artefacts}{Character vector. Controls what artefacts are saved. One or
-more of "html", "img_w", "img_n" or "img_s". A matching button must be
-present in the modebar (control modebar buttons with
-\code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
+more of "html", "png", "jpg", "jpge", "webp", or "pdf".}
+
+\item{width, height}{Numeric. Sets the size of any static images created. Any
+artefacts created with \code{\link[=roboplot]{roboplot()}}'s 'artefacts' parameter will use the given
+dimensions, if any, for that plot.}
 }
 \value{
 A list of classes "plotly" and "html"
@@ -41,15 +49,18 @@ A list of classes "plotly" and "html"
 Write html and and other files from \code{\link[=roboplot]{roboplot()}} plots
 }
 \examples{
-# Save roboplotr::roboplot() plots as files. Control location with
-# 'filepath'. Default 'filepath' will be the current working directory. If a
-# 'title' is not provided, it will be parsed from plot title.
+# Saving roboplotr::roboplot() plots as files can be controlled by setting
+# global options with roboplotr::set_roboplot_options() (see documentation),
+# and using roboplotr::set_artefacts() in roboplotr::roboplot() parameter
+# 'artefacts', but you can use this function as well. Control location of the
+# files with 'filepath'. Default 'filepath' will be the current working
+# directory. If a 'title' is not provided, it will be parsed from plot title.
 
 d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 
 d |>
   roboplot(
-    Alue, "Energian tuonti Kanadasta", "Milj €", "Lähde: Tilastokeskus."
+    Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus"
     ) |>
   roboplot_create_widget(filepath = tempdir())
 
@@ -65,7 +76,7 @@ file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
 
 d |>
   roboplot(
-    Alue, "Kanadan energiantuonti", "Milj €", "Lähde: Tilastokeskus."
+    Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus"
     ) |>
   roboplot_create_widget(
     title = "Energian tuonti - Kanada",
@@ -76,16 +87,28 @@ d |>
 
 file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
 
-# If you want to create image files, use a character vector in 'artefacts' to
-# control this. Exclude "html" if you want to create image files only. Image
-# size must be provided in the strings (possible options are "img_w",
-# "img_n", and "img_s"). Download button for the selected size must exist
-# in the plot modebar, controlled with and documented within
-# roboplotr::set_roboplot_options() ("wide" exists as default").
+# If you want to create static plot files, use a character vector of file
+# types in 'artefacts'. Exclude "html" if you want to create static plots
+# only. Possible filetypes are "html","png","jpg","jpge","webp","pdf". The
+# static files created this way will respect the plot layout specifications
+# of the roboplotr::roboplot() plot, unlike the ones downloaded through
+# modebar (set those with roboplotr::set_roboplot_options()). Note that modebar
+# gives access to svg file format, while automating it the file creation with
+# roboplotr::roboplot_create_widget() or roboplotr::roboplot() allows for pdf
+# files.
 
 if(interactive()) {
-  p |> roboplot_create_widget(filepath = tempdir(), artefacts = "img_w")
+  d |>
+    roboplot(
+      color = Alue,
+      title = "Kanadan energiantuonti",
+      subtitle = "Milj €",
+      caption = "Tilastokeskus",
+      width = 400,
+      height = 800
+    ) |>
+    roboplot_create_widget(filepath = tempdir(), artefacts = "pdf")
 
-  file.exists(paste0(tempdir(),"/kanadan_energiantuonti_levea.png"))
+  utils::browseURL(paste0(tempdir(), "/kanadan_energiantuonti.pdf"))
 }
 }

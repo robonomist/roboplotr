@@ -2,7 +2,7 @@
 #' @importFrom stringr str_glue
 roboplotr_check_valid_var <- function(var,names) {
   this_var <- as_name(substitute(var))
-  wrn <- "The variable '{this_var}' must be a length 1 string or symbol, or a function resulting in length 1 string or symbol that is among the names of argument 'd'."
+  wrn <- "The variable '{this_var}' must be a length 1 string or symbol, or a function resulting in length 1 string or symbol that is among the names of argument 'd' of roboplotr::roboplot()."
   if(quo_is_null(var) == T) {
     return(NULL)
   }

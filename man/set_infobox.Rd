@@ -11,9 +11,11 @@ set_infobox(
 )
 }
 \arguments{
-\item{background, border}{Characters. Colors used for the corresponding element of the infopopup of \code{\link[=robotable]{robotable()}}s and \code{\link[=roboplot]{roboplot()}}s. Must be a hexadecimal color strings or a valid css color strings.}
+\item{background, border}{Characters. Colors used for the corresponding
+element of the infopopup of \code{\link[=robotable]{robotable()}}s and \code{\link[=roboplot]{roboplot()}}s. Must be a
+hexadecimal color strings or a valid css color strings.}
 
-\item{border_width}{Integer. The border width of modal color.}
+\item{border_width}{Integer. The border width of infomodal.}
 }
 \value{
 A list.

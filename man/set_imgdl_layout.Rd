@@ -2,7 +2,7 @@
 % Please edit documentation in R/modebar.R
 \name{set_imgdl_layout}
 \alias{set_imgdl_layout}
-\title{Png downloads in \code{\link[=roboplot]{roboplot()}}}
+\title{Statis file downloads through \code{\link[=roboplot]{roboplot()}} modebar}
 \usage{
 set_imgdl_layout(
   width = 1280,
@@ -15,11 +15,11 @@ set_imgdl_layout(
 )
 }
 \arguments{
-\item{height, width}{Doubles. The dimensions for the image file in pixels the modebar button will produce.}
+\item{height, width}{Integer. The dimensions for the image file in pixels the modebar button will produce.}
 
-\item{mainfont, titlefont, captionfont}{Doubles. The font sizes used in the image file the modebar button will produce.}
+\item{mainfont, titlefont, captionfont}{Integer. The font sizes used in the static file the modebar button will produce.}
 
-\item{suffix}{Character. Suffix attached after the name of the downloaded image file.}
+\item{suffix}{Character. Suffix attached after the name of the downloaded static file.}
 
 \item{format}{Character. One of "png", "svg", "jpg", or "webp". Defines the file format of the downloaded image file.}
 }
@@ -27,7 +27,9 @@ set_imgdl_layout(
 A list
 }
 \description{
-Use in \code{\link[=set_roboplot_options]{set_roboplot_options()}} to get a list used for \code{\link[=roboplot]{roboplot()}} relayouts for downloaded image files when the appropriate modebar button is pressed
+Use in \code{\link[=set_roboplot_options]{set_roboplot_options()}} to get a list of specifications used for
+\code{\link[=roboplot]{roboplot()}} relayouts for downloaded static files when the appropriate modebar
+button is pressed
 }
 \examples{
 # Used inside roboplotr::set_roboplot_options() to control image download
@@ -39,7 +41,6 @@ Use in \code{\link[=set_roboplot_options]{set_roboplot_options()}} to get a list
 # for the file format.
 
 set_roboplot_options(
-  caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
   imgdl_wide =
     set_imgdl_layout(
       width = 1400,
@@ -52,16 +53,22 @@ set_roboplot_options(
 )
 
 if(interactive()) {
-
-  p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-  p |> roboplot_create_widget(filepath = tempdir(),
-                              artefacts = c("img_w")
+# Create a roboplotr::roboplot and navigate to it, and download your static
+# image by clicking the appropriate button in the modebar.
+energiantuonti |>
+  dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(
+    color = Alue,
+    title = "Energian tuonti",
+    subtitle = "Milj. €",
+    caption = "Tilastokeskus",
+    artefacts = set_artefacts("html", filepath = tempdir())
   )
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti.svg"))
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
 }
 
-# The plotly image downloads are controlled by the modebar, so if you use
-# other than 'img_wide' you need to use roboplotr::set_roboplot_options to
+# Static image downloads are controlled through the modebar, so if you use
+# other than 'img_wide' you need to use roboplotr::set_roboplot_options() to
 # control the modebar accordingly in addition to giving the downloaded image
 # specifications (roboplotr::roboplot() does have some defaults in place
 # for every size, so you can skip image specifications even if you do add
@@ -89,14 +96,18 @@ set_roboplot_options(
 )
 
 if(interactive()) {
-
-  p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-  p |> roboplot_create_widget(filepath = tempdir(),
-                              artefacts = c("img_w","img_n","img_s")
-  )
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti_narrow.png"))
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti_pieni.png"))
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti_wide.png"))
+  # Create a roboplotr::roboplot and navigate to it, and download any of the
+  # static images through the modebar.
+  energiantuonti |>
+    dplyr::filter(Suunta == "Tuonti") |>
+    roboplot(
+      color = Alue,
+      title = "Energian tuonti",
+      subtitle = "Milj. €",
+      caption = "Tilastokeskus",
+      artefacts = set_artefacts("html", filepath = tempdir())
+    )
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
 }
 
 # Revert to defaults:
