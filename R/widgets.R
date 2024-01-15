@@ -108,6 +108,10 @@ roboplot_create_widget <- function(
   roboplotr_check_param(width, "numeric", allow_null = T, allow_na = F)
   roboplotr_check_param(height, "numeric", allow_null = T, allow_na = F)
 
+  if(!dir.exists(filepath)) {
+    stop(str_glue("Does the directory {filepath} exist?"), call. = T)
+  }
+
   if(is.null(width)) { width <- getOption("roboplot.artefacts")$width }
   if(is.null(height)) { height <- getOption("roboplot.artefacts")$height }
 
@@ -308,7 +312,7 @@ roboplotr_widget_deps <- function(filepath = NULL) {
       c(
         "-13px !important",
         str_glue("{modebar_labcolor} !important"),
-        str_glue("{roboplotr:::roboplotr_text_color_picker(modebar_labcolor)} !important"),
+        str_glue("{roboplotr_text_color_picker(modebar_labcolor)} !important"),
         str_glue("{getOption('roboplot.font.caption')$family} !important")
       )
     )

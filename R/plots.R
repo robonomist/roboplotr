@@ -235,11 +235,12 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' @param ... Placeholder for other parameters.
 #' @return A list of classes "plotly" and "html"
 #' @examples
+#' \dontrun{
 #' # The default use for roboplotr::roboplot is for line charts. Providing
 #' # a title is mandatory, subtitle and color is optional but  very likely
 #' # necessary.
 #'
-#' d <- energiantuonti |>
+#' d <- roboplotr::energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
 #' d1 <- d |> dplyr::filter(Suunta == "Tuonti")
 #' d1 |> roboplot(color = Alue,
@@ -330,7 +331,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'            glue::glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
 #'            pattern = Suunta,
 #'            plot_type = "bar",
-#'            caption = set_caption(text = "Tilastokeskus.\ņTieto vuodelta {lubridate::year(max(d3$time))}",
+#'            caption = set_caption(text = "Tilastokeskus. Tieto vuodelta {lubridate::year(max(d3$time))}",
 #'            ))
 #'
 #' # Plot axis can be controlled with roboplotr::set_axes (see
@@ -480,6 +481,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'
 #' # Using "container" is defined under roboplotr::set_roboplot_options() under
 #' # as its usage is tied to using the 'shinyapp' parameter therein.
+#' }
 #' @export
 #' @importFrom dplyr coalesce distinct group_split pull
 #' @importFrom forcats fct_reorder
@@ -498,7 +500,7 @@ roboplot <- function(d,
                      legend_position = NULL,
                      trace_color = NULL,
                      highlight = NULL,
-                     zeroline = F,
+                     zeroline = FALSE,
                      rangeslider = FALSE,
                      pattern = NULL,
                      line_width = getOption("roboplot.linewidth"),
@@ -1549,7 +1551,7 @@ roboplotr_add_trace <- function(...) {
   do.call(add_trace, list2(...))
 }
 
-#' @importFrom dplyr group_by mutate summarize
+#' @importFrom dplyr group_by mutate summarize left_join
 #' @importFrom purrr map_chr map2_chr map2_lgl
 #' @importFrom rlang := as_name quo_name
 #' @importFrom stringr str_glue str_replace str_replace_all

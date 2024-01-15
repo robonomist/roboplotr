@@ -1,0 +1,32 @@
+url: https://robonomist.github.io/roboplotr/
+template:
+  bootstrap: 5
+  bootswatch: litera
+  # bslib:
+  #   primary: "#c1272d"
+  #   secondary: "#f7931e"
+  #   code-bg: "#dcc48a"
+  # navbar:
+  #   bg: primary
+reference:
+- title: Main plot functions
+  desc: Build basic plots
+  contents:
+    - roboplot
+    - robotable
+    - robomap
+- title: Set plotting parameters
+  desc: Helper functions to change the appearance of plots
+  contents:
+    - set_roboplot_options
+    - starts_with("set_")
+- title: Utils
+  contents:
+    - roboplot_create_widget
+    - starts_with("roboplotr_")
+- title: Datasets
+  desc: Datasets used in examples
+  contents:
+    - energiantuonti
+    - vaesto_postinumeroittain
+

@@ -36,7 +36,10 @@ Imports:
     leaflet,
     sf,
     sp,
-    gstat
+    gstat,
+    raster,
+    scales,
+    tibble
 Suggests: 
     testthat (>= 3.0.0),
     glue,
@@ -46,8 +49,10 @@ Suggests:
     Quandl,
     slider,
     tidyverse
+Remotes: robonomist/robonomistClient
 Config/testthat/edition: 3
 Depends: 
     R (>= 2.10)
 LazyData: true
 VignetteBuilder: knitr
+URL: https://robonomist.github.io/roboplotr/, https://github.com/robonomist/roboplotr

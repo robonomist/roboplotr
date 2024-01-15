@@ -7,8 +7,9 @@
 #' @importFrom scales rescale
 #' @importFrom sf st_area st_bbox st_crs st_sample st_sf st_union
 #' @importFrom sp "coordinates<-" "gridded<-" proj4string "proj4string<-"
+#' @importFrom tidyr unnest
 roboplotr_map_rasterlayer <- function(map, d, data_contour = F, opacity, robomap_palette) {
-  if(data_contour == T) {
+  if(data_contour == TRUE) {
 
     d <- d |> mutate(area = as.numeric(st_area(d)))
 
@@ -18,7 +19,7 @@ roboplotr_map_rasterlayer <- function(map, d, data_contour = F, opacity, robomap
     show.pb <- getOption("roboplot.verbose") == "All"
 
     if(show.pb) {
-      bpb <- progress::progress_bar$new(total = (2*nrow(d))+3, format = ":info for contour map.. [:bar]")
+      bpb <- progress_bar$new(total = (2*nrow(d))+3, format = ":info for contour map.. [:bar]")
     }
 
     interior_df <- d |>
@@ -92,7 +93,7 @@ roboplotr_map_markerlayer <- function(map, d, markers, size_scale = c(1,12)) {
       addCircleMarkers(
         lng = ~ lon,
         lat =  ~ lat,
-        stroke = T,
+        stroke = TRUE,
         color = unique(getOption("roboplot.grid")[c("xcolor","ycolor")]) |> first(),
         fillColor = getOption("roboplot.colors.background"),
         fillOpacity = 1,
@@ -132,9 +133,9 @@ roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_p
 #     label = ~ as.character(leafletlabel),
 #     ordertime = TRUE,
 #     options = leaflet.extras2::timesliderOptions(
-#       alwaysShowDate = T,timeAttribute = "time",
-#       sameDate = T,
-#       range = T,
+#       alwaysShowDate = TRUE,timeAttribute = "time",
+#       sameDate = TRUE,
+#       range = TRUE,
 #       timeStrLength = 10,
 #     )
 #   )
@@ -146,7 +147,7 @@ roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_p
       fillColor = ~ robomap_palette(robomap.value),#~ if (data_contour) { NULL } else { robomap.value },
       fillOpacity = ifelse(data_contour, 0, map_opacity),
       label = ~ leafletlabel,
-      labelOptions = leaflet::labelOptions(
+      labelOptions = labelOptions(
         style = list(
           "background" = getOption("roboplot.colors.background"),
           "font-size" = str_glue('{getOption("roboplot.font.main")$size}px'),
@@ -254,7 +255,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'     title = "Väestö postinumeroittain",
 #'     caption = "Tilastokeskus",
 #'     map_palette = c("lightgreen", "darkred"),
-#'     log_colors = F
+#'     log_colors = FALSE
 #'   )
 #'
 #' # Control background tile opacity with 'tile_opacity', polygon opacity with 'map_opacity' and borders with 'border_width'.
@@ -282,7 +283,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'     caption = "Tilastokeskus",
 #'     map_palette = biased_palette,
 #'     map_opacity = 1,
-#'     data_contour = T,
+#'     data_contour = TRUE,
 #'     border_width = 0
 #'   )
 #'
@@ -298,8 +299,8 @@ robomap <-
            map_palette = NULL,
            border_width = getOption("roboplot.trace.border")$width,
            legend_cap = 5,
-           data_contour = F,
-           markers = F,
+           data_contour = FALSE,
+           markers = FALSE,
            log_colors = NULL,
            rounding = 1
            ) {
@@ -316,7 +317,7 @@ robomap <-
         title <- set_title("PLACEHOLDER")
       }
     } else if (is.character(title)) {
-      title <- set_title(title = title, include = T)
+      title <- set_title(title = title, include = TRUE)
     } else {
       roboplotr_check_param(
         title,
@@ -385,12 +386,12 @@ robomap <-
       )
     log_colors <- (function() {
       if(is.null(log_colors) & all(d$value >= 1)) {
-        maxval <- round(max(d$value,na.rm = T)*1000)
-        minval <- round(min(d$value,na.rm = T)*1000)
+        maxval <- round(max(d$value,na.rm = TRUE)*1000)
+        minval <- round(min(d$value,na.rm = TRUE)*1000)
         magnitude_range <- nchar(maxval) - nchar(minval)
         magnitude_range > 3
       } else if(!is.null(log_colors)) {
-        if(log_colors == T & any(d$value < 1)) {
+        if(log_colors == TRUE & any(d$value < 1)) {
           roboplotr_message("Some values are less than 1, unable to currently use 'log_colors == TRUE'.")
           F
         } else { log_colors }
@@ -425,7 +426,7 @@ robomap <-
 
     bins <- get_bins()
 
-    if(log_colors == T) {
+    if(log_colors == TRUE) {
       if(min(d$value) == 0) {
         d <- d |> mutate(robomap.value = log(value+1))
         bins <- log(bins+1)
@@ -514,7 +515,7 @@ robomap <-
         )
       )
 
-    if (data_contour == T) {
+    if (data_contour == TRUE) {
       this_map <- this_map |>
         addLegend(
         className = str_glue("{robomap_id}-info legend"),
@@ -537,7 +538,7 @@ robomap <-
           .rounding <- ifelse(.mag > 2, max(rounding-.mag, 0), rounding)
           labs <- roboplotr_format_robotable_numeric(cuts, .rounding)
           # print(labs)
-          # labs <- labs[!duplicated(labs,fromLast = T)]
+          # labs <- labs[!duplicated(labs,fromLast = TRUE)]
           labs
         },
         title = legend_title
@@ -579,7 +580,7 @@ robomap <-
               rep(-1, length(cuts) - 2), 0
             ))
             hi_end <- head(cuts,-1)
-            # max_val <- (max(d$value,na.rm = T) * 10^.magnitude) |> roboplotr_round_magnitude(rounding)
+            # max_val <- (max(d$value,na.rm = TRUE) * 10^.magnitude) |> roboplotr_round_magnitude(rounding)
             # if(max_val < max(hi_end)) {
             #   hi_end[1] <- max_val
             # }

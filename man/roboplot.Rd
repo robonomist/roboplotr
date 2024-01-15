@@ -14,7 +14,7 @@ roboplot(
   legend_position = NULL,
   trace_color = NULL,
   highlight = NULL,
-  zeroline = F,
+  zeroline = FALSE,
   rangeslider = FALSE,
   pattern = NULL,
   line_width = getOption("roboplot.linewidth"),
@@ -103,11 +103,12 @@ Wrapper for \link[plotly:plot_ly]{plotly::plot_ly} for shorthand declaration of 
 Ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
 }
 \examples{
+\dontrun{
 # The default use for roboplotr::roboplot is for line charts. Providing
 # a title is mandatory, subtitle and color is optional but  very likely
 # necessary.
 
-d <- energiantuonti |>
+d <- roboplotr::energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
 d1 <- d |> dplyr::filter(Suunta == "Tuonti")
 d1 |> roboplot(color = Alue,
@@ -198,7 +199,7 @@ d3 |>
            glue::glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
            pattern = Suunta,
            plot_type = "bar",
-           caption = set_caption(text = "Tilastokeskus.\ņTieto vuodelta {lubridate::year(max(d3$time))}",
+           caption = set_caption(text = "Tilastokeskus. Tieto vuodelta {lubridate::year(max(d3$time))}",
            ))
 
 # Plot axis can be controlled with roboplotr::set_axes (see
@@ -348,4 +349,5 @@ set_roboplot_options(reset = TRUE)
 
 # Using "container" is defined under roboplotr::set_roboplot_options() under
 # as its usage is tied to using the 'shinyapp' parameter therein.
+}
 }

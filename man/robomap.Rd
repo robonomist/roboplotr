@@ -16,8 +16,8 @@ robomap(
   map_palette = NULL,
   border_width = getOption("roboplot.trace.border")$width,
   legend_cap = 5,
-  data_contour = F,
-  markers = F,
+  data_contour = FALSE,
+  markers = FALSE,
   log_colors = NULL,
   rounding = 1
 )
@@ -90,7 +90,7 @@ vaesto_postinumeroittain |>
     title = "Väestö postinumeroittain",
     caption = "Tilastokeskus",
     map_palette = c("lightgreen", "darkred"),
-    log_colors = F
+    log_colors = FALSE
   )
 
 # Control background tile opacity with 'tile_opacity', polygon opacity with 'map_opacity' and borders with 'border_width'.
@@ -118,7 +118,7 @@ vaesto_postinumeroittain |>
     caption = "Tilastokeskus",
     map_palette = biased_palette,
     map_opacity = 1,
-    data_contour = T,
+    data_contour = TRUE,
     border_width = 0
   )
 

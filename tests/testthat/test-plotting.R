@@ -21,14 +21,14 @@ test_that("Test for hovertemplate time format", {
 })
 
 test_that("Test for hovertemplate templating list", {
-  expect_named(set_hovertext(NULL), c("dateformat","rounding","unit","extra"))
+  expect_named(set_hovertext(NULL), c("dateformat","rounding","unit","extra","col"))
   expect_equal(set_hovertext(rounding = 3)$rounding, 3)
   expect_match(set_hovertext(frequency = "Daily")$dateformat, "%-d\\.%-m\\.%Y")
 })
 
 test_that("Roboplot options are reset", {
   set_roboplot_options(reset = TRUE)
-  expect_mapequal(getOption("roboplot.caption"), list(prefix = "",lineend = "",updated = FALSE))
+  expect_match(getOption("roboplot.caption.template"), "Lähde: \\{text\\}.")
   expect_match(getOption("roboplot.colors.background"),"white")
   expect_mapequal(getOption("roboplot.border"), list(xcolor = "black",ycolor = "black", xmirror = TRUE, ymirror = TRUE, xwidth = 1, ywidth = 1))
   expect_mapequal(getOption("roboplot.grid"), list(xcolor = "#E8E8E8", ycolor = "#E8E8E8", xwidth = 1, ywidth = 1, xdash = "solid", ydash = "solid"))
@@ -59,9 +59,13 @@ test_that("Colors are valid", {
   expect_no_condition(roboplotr_valid_colors("black"))
 })
 
-test_that("Test for zeroline", {
-  expect_s3_class(roboplot_tester |> roboplotr_rangeslider(enable = FALSE), "plotly")
-  expect_s3_class(roboplot_tester |> roboplotr_rangeslider(enable = T), "plotly")
-  expect_s3_class(roboplot_tester |> roboplotr_rangeslider(enable = T, slider_range = c("2020-01-01","2022-01-01")), "plotly")
+test_that("Test for rangeslider", {
+  expect_s3_class(roboplot_tester |> roboplotr_rangeslider(enable_rangeslider = list(rangeslider = FALSE)), "plotly")
+  expect_s3_class(roboplot_tester |> roboplotr_rangeslider(enable_rangeslider = list(rangeslider = TRUE)), "plotly")
+  expect_s3_class(roboplot_tester |> roboplotr_rangeslider(enable_rangeslider = list(rangeslider = FALSE)), "plotly")
+  expect_s3_class(roboplot_tester |> roboplotr_rangeslider(enable_rangeslider = list(rangeslider = TRUE, max = c("2020-01-01","2022-01-01"))), "plotly")
 })
+
+# roboplotr_rangeslider ---------------------------------------------------
+
 
