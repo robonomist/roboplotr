@@ -7,11 +7,11 @@
 set_caption(text, ..., template = getOption("roboplot.caption.template"))
 }
 \arguments{
+\item{text}{Character. The text used in the template (make sure the template has the parameter 'text').}
+
 \item{...}{Other parameters to be passed to template.}
 
-\item{template}{Character. Character. Template for \code{\link[=str_glue]{str_glue()}} used to parse the caption wit the given parameters.}
-
-\item{caption}{Character. Character. The text used in the template (make sure the template has the parameter).}
+\item{template}{Character. Template for \code{\link[=str_glue]{str_glue()}} used to parse the caption with the given parameters.}
 }
 \value{
 A string of classes 'glue' and 'character'.

@@ -321,18 +321,19 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'              ))
 #'
 #'
-#' # With single 'time' observation x-axis tickmarks lose tick labels and
-#' # hovertemplate loses the time information. There are several places where
-#' # this information fits nicely.
+#' # With single 'time' observation x-axis tickmarks lose tick labels. There are
+#' several places where this information fits nicely.
 #' d3 <- d2 |> dplyr::filter(time == max(time))
 #' d3 |>
 #'   roboplot(Alue,
-#'            glue::glue("Energian tuonti ja vienti vuonna {lubridate::year(max(d3$time))}"),
-#'            glue::glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
+#'            stringr::str_glue("Energian tuonti ja vienti vuonna {lubridate::year(max(d3$time))}"),
+#'            stringr::str_glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
 #'            pattern = Suunta,
 #'            plot_type = "bar",
-#'            caption = set_caption(text = "Tilastokeskus. Tieto vuodelta {lubridate::year(max(d3$time))}",
-#'            ))
+#'            caption = set_caption(
+#'              template = "Tilastokeskus. Tieto vuodelta {lubridate::year(max(d3$time))}",
+#'            )
+#'            )
 #'
 #' # Plot axis can be controlled with roboplotr::set_axes (see
 #' # documentation for more examples).
@@ -352,7 +353,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' d3 |>
 #'   dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
 #'   roboplot(Suunta,
-#'            glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+#'            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
 #'            "Milj. \u20AC","Tilastokeskus",
 #'            plot_type = "bar",
 #'            legend_maxwidth = 12,
@@ -369,7 +370,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' d3 |>
 #'   dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
 #'   roboplot(Suunta,
-#'            glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+#'            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
 #'            "Milj. \u20AC","Tilastokeskus",
 #'            plot_type = "bar",
 #'            legend_maxwidth = 12,
@@ -476,8 +477,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' set_roboplot_options(reset = TRUE)
 #'
 #' # Further specifications for creating artefacts is defined under
-#' # roboplotr::set_roboplot_options(), roboplotr::roboplot_create_widgets() and
-#' # roboplotr::set_artefacts()
+#' # roboplotr::set_roboplot_options() and roboplotr::set_artefacts().
 #'
 #' # Using "container" is defined under roboplotr::set_roboplot_options() under
 #' # as its usage is tied to using the 'shinyapp' parameter therein.
@@ -587,7 +587,7 @@ roboplot <- function(d,
   pattern <- enquo(pattern)
   if(quo_is_call(pattern)) {
     if(!as.character(get_expr(pattern)[1]) %in% c("roboplotr::set_pattern", "set_pattern")) {
-      stop("'pattern' must be a column name from 'd', or function call of set_pattern(), or NULL", call. = F)
+      stop("'pattern' must be a column name from 'd', or function call of set_pattern(), or NULL", call. = FALSE)
     }
     pattern <- eval_tidy(pattern)
     pattern_types <- pattern$pattern_types
@@ -860,7 +860,7 @@ roboplot <- function(d,
       pattern_showlegend <- NULL
     } else {
       roboplotr_message(str_glue("roboplotr attempts to make continous line with different patterns among '{as_name(pattern)}' over '{as_name(pattern_along)}."))
-      d <- roboplot_continuous_pattern(d, {{pattern_along}}, {{pattern}}, ticktypes$y)
+      d <- roboplotr_continuous_pattern(d, {{pattern_along}}, {{pattern}}, ticktypes$y)
     }
   }
 
@@ -1014,7 +1014,7 @@ roboplot <- function(d,
     roboplotr_check_param(artefacts, c("logical"))
     if (artefacts == TRUE) {
       params <- getOption("roboplot.artefacts")
-      roboplot_create_widget(
+      create_widget(
         p = p,
         title = NULL,
         filepath = params$filepath,
@@ -1035,7 +1035,7 @@ roboplot <- function(d,
       NULL,
       f.name = list(fun = substitute(artefacts)[1], check = "set_artefacts")
     )
-    roboplot_create_widget(
+    create_widget(
       p = p,
       title = artefacts$title,
       filepath = artefacts$filepath,
@@ -1572,20 +1572,20 @@ roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
     } else {
       themodes <- tibble(.roboclr = names(plot_mode), roboplot.plot.mode = as.character(plot_mode)) |>
         rename_with(~ str_replace(.x, ".roboclr", quo_name(color))) |>
-        full_join(d |> distinct({{color}}, roboplot.plot.type), by = as_name(color)) |>
-        mutate(roboplot.plot.mode = map2_chr(roboplot.plot.mode, roboplot.plot.type, ~ replace_na(.x,plot_mode[str_c(".",.y)]))) |>
-        filter(!is.na(roboplot.plot.type))
+        full_join(d |> distinct({{color}}, .data$roboplot.plot.type), by = as_name(color)) |>
+        mutate(roboplot.plot.mode = map2_chr(.data$roboplot.plot.mode, .data$roboplot.plot.type, ~ replace_na(.x,plot_mode[str_c(".",.y)]))) |>
+        filter(!is.na(.data$roboplot.plot.type))
       if(any(is.na(themodes$roboplot.plot.mode))) {
-        msg <- themodes %>% filter(is.na(roboplot.plot.mode))
+        msg <- themodes |> filter(is.na(.data$roboplot.plot.mode))
         def_modes <- roboplotr_combine_words(str_c('\".',unique(msg$roboplot.plot.type),'\"'))
         col_modes <- roboplotr_combine_words(str_c('\"',pull(msg[as_name(color)]),'\"'))
         stop(str_glue("Please provide plot_mode for {def_modes}, and / or specify plot_mode(s) for any or all of {col_modes}."), call. = F)
       }
-      themodes <- themodes |> select(-roboplot.plot.type)
+      themodes <- themodes |> select(-.data$roboplot.plot.type)
       themodes[[quo_name(color)]] <- factor(themodes[[quo_name(color)]], levels = levels(d[[quo_name(color)]]))
       d <- d |>
         left_join(themodes, by = as_name(color)) |>
-        mutate(roboplot.plot.mode = map2_chr(roboplot.plot.mode, roboplot.plot.type, ~ replace_na(.x, plot_modes[[.y]][[1]])))
+        mutate(roboplot.plot.mode = map2_chr(.data$roboplot.plot.mode, .data$roboplot.plot.type, ~ replace_na(.x, plot_modes[[.y]][[1]])))
     }
   }
 

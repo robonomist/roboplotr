@@ -23,7 +23,6 @@ reference:
 - title: Utils
   contents:
     - roboplot_create_widget
-    - starts_with("roboplotr_")
 - title: Datasets
   desc: Datasets used in examples
   contents:

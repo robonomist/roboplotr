@@ -162,6 +162,7 @@ set_shadearea <-
 
 #' Set global defaults for [roboplot()] zerolines
 #' Only relevant when a zeroline is set with [roboplot()]
+#' @param position Numeric. Zeroline location.
 #' @param color Character. Zeroline color. Must be a hexadecimal color strings or a valid css color strings.
 #' @param width Numeric. Zeroline width.
 #' @examples

@@ -64,7 +64,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     Plotly.relayout(el, {"showlegend" : true})
   }
   let title_y = (elcontainer - (21+modebar_ht)) / elcontainer
-  let low_bound = -((margin_bottom+elslider) / elplot.height)//-Math.min((elcontainer - (elplot.height+margin_top)) / elplot.height,(margin_bottom / elplot.height))
+  let low_bound_adjust = elxticks == 0 ? -elcaption : 0
+  let low_bound = -((margin_bottom+elslider+low_bound_adjust) / elplot.height)//-Math.min((elcontainer - (elplot.height+margin_top)) / elplot.height,(margin_bottom / elplot.height))
   let annotations_y = low_bound
   let images_y = low_bound
   let legend_font_size = (ellegend.height > (elplot.height / 2)) ? legend_fontsize - 2 : legend_fontsize;

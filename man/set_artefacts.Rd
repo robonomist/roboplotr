@@ -60,5 +60,5 @@ of \code{\link[=roboplot]{roboplot()}} plots.
 # (one of "html", "png","jpg", "jpge", "jpge", "webp" or "pdf) to control
 # what artefacts are created, and 'zoom' to set static artefact zoom level.
 
-# roboplot_create_widget() shows how the parameters are used.
+# create_widget() shows how the parameters are used.
 }

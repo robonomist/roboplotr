@@ -38,6 +38,8 @@ robotable(
 \item{info_text}{Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.}
 
 \item{heatmap}{Function. Use \code{\link[=set_heatmap]{set_heatmap()}}. Displays any numeric values as a heatmap.}
+
+\item{na_value}{Character. How NA values are displayed.}
 }
 \value{
 A list of classes "datatable" and "htmlwidget"

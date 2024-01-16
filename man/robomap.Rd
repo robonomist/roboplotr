@@ -33,7 +33,7 @@ robomap(
 
 \item{hovertext}{List. Use a list with named items flag and unit.}
 
-\item{tile_opacity}{Double. Use a value between 0 and 1 to set the opacity of the map tiles under the map polygons.}
+\item{map_opacity, tile_opacity}{Double. Value from 0 to 1, defining how opaque the map polygon fill color or underlying map tiles are. 0 removes the tile layer, but retains the polygon borders if any.}
 
 \item{map_palette}{Character. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.}
 
@@ -46,7 +46,9 @@ This provides a smoother transition and helps in visualizing general trends acro
 
 \item{markers}{Logical. Experimental. Whether markers will be added on the map based on the columns "lat" and "lon". Default is FALSE.}
 
-\item{opacity, tile_opacity}{Double. Value from 0 to 1, defining how opaque the map polygon fill color or underlying map tiles are. 0 removes the tile layer, but retains the polygon borders if any.}
+\item{log_colors}{Logical. Whether the colors scales is log or not.}
+
+\item{rounding}{Numeric. How \code{\link[=robomap]{robomap()}} rounds numeric values.}
 }
 \value{
 A list of classes "leaflet" and "htmlwidget"
@@ -67,38 +69,40 @@ vaesto_postinumeroittain |> robomap(Postinumeroalue)
 # Currently robomap() only supports very little customization.
 vaesto_postinumeroittain |>
   dplyr::filter(Alue == "Espoo") |>
-  robomap(Postinumeroalue, title = "Väestö Espoossa", caption = "Tilastokeskus")
+  robomap(Postinumeroalue, title = "V\u00e4est\u00f6 Espoossa", caption = "Tilastokeskus")
 
-# Default polygon colors are picked from trace colors set with set_roboplot_options, based on luminosity.
-# Control polygon colors with map_palette. robomap() expands upon this as necessary.
+# Default polygon colors are picked from trace colors set with
+# set_roboplot_options(), based on luminosity. Control polygon colors with
+# map_palette. robomap() expands upon this as necessary.
 
 vaesto_postinumeroittain |>
   robomap(
     Postinumeroalue,
-    title = "Väestö postinumeroittain",
+    title = "V\u00e4est\u00f6 postinumeroittain",
     subtitle = "Otanta",
     caption = "Tilastokeskus",
     map_palette = c("lightgreen", "darkred")
   )
 
-# robomap() automatically scales the values to differentiate large differences in maximum and minimum values.
-# Control this with log_colors
+# robomap() automatically scales the values to differentiate large differences
+# in maximum and minimum values. Control this with log_colors
 
 vaesto_postinumeroittain |>
   robomap(
     Postinumeroalue,
-    title = "Väestö postinumeroittain",
+    title = "V\u00e4est\u00f6 postinumeroittain",
     caption = "Tilastokeskus",
     map_palette = c("lightgreen", "darkred"),
     log_colors = FALSE
   )
 
-# Control background tile opacity with 'tile_opacity', polygon opacity with 'map_opacity' and borders with 'border_width'.
+# Control background tile opacity with 'tile_opacity', polygon opacity with
+# 'map_opacity' and borders with 'border_width'.
 
 vaesto_postinumeroittain |>
   robomap(
     Postinumeroalue,
-    title = "Väestö postinumeroittain",
+    title = "V\u00e4est\u00f6 postinumeroittain",
     caption = "Tilastokeskus",
     map_palette = c("lightgreen", "darkred"),
     border_width = 2,
@@ -114,7 +118,7 @@ scales::show_col(biased_palette)
 vaesto_postinumeroittain |>
   robomap(
     Postinumeroalue,
-    title = "Väestö postinumeroittain",
+    title = "V\u00e4est\u00f6 postinumeroittain",
     caption = "Tilastokeskus",
     map_palette = biased_palette,
     map_opacity = 1,

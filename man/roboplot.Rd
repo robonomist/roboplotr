@@ -189,18 +189,19 @@ d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
              ))
 
 
-# With single 'time' observation x-axis tickmarks lose tick labels and
-# hovertemplate loses the time information. There are several places where
-# this information fits nicely.
+# With single 'time' observation x-axis tickmarks lose tick labels. There are
+several places where this information fits nicely.
 d3 <- d2 |> dplyr::filter(time == max(time))
 d3 |>
   roboplot(Alue,
-           glue::glue("Energian tuonti ja vienti vuonna {lubridate::year(max(d3$time))}"),
-           glue::glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
+           stringr::str_glue("Energian tuonti ja vienti vuonna {lubridate::year(max(d3$time))}"),
+           stringr::str_glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
            pattern = Suunta,
            plot_type = "bar",
-           caption = set_caption(text = "Tilastokeskus. Tieto vuodelta {lubridate::year(max(d3$time))}",
-           ))
+           caption = set_caption(
+             template = "Tilastokeskus. Tieto vuodelta {lubridate::year(max(d3$time))}",
+           )
+           )
 
 # Plot axis can be controlled with roboplotr::set_axes (see
 # documentation for more examples).
@@ -220,7 +221,7 @@ d2 |>
 d3 |>
   dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
   roboplot(Suunta,
-           glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+           stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
            "Milj. \u20AC","Tilastokeskus",
            plot_type = "bar",
            legend_maxwidth = 12,
@@ -237,7 +238,7 @@ d3 |>
 d3 |>
   dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
   roboplot(Suunta,
-           glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+           stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
            "Milj. \u20AC","Tilastokeskus",
            plot_type = "bar",
            legend_maxwidth = 12,
@@ -344,8 +345,7 @@ file.exists(paste0(tempdir(),"/energian_tuonti.html"))
 set_roboplot_options(reset = TRUE)
 
 # Further specifications for creating artefacts is defined under
-# roboplotr::set_roboplot_options(), roboplotr::roboplot_create_widgets() and
-# roboplotr::set_artefacts()
+# roboplotr::set_roboplot_options() and roboplotr::set_artefacts().
 
 # Using "container" is defined under roboplotr::set_roboplot_options() under
 # as its usage is tied to using the 'shinyapp' parameter therein.

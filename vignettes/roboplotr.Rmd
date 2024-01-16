@@ -85,7 +85,7 @@ set_roboplot_options(
     "data_dl"
   ),
   logo_file = system.file("images", "robonomist.png", package = "roboplotr"),
-  trace_colors = RColorBrewer::brewer.pal(6, "Set2"),
+  trace_colors = grDevices::palette.colors(6, "Set2"),
   width = 650,
   xaxis_ceiling = "guess",
   verbose = "Warning"

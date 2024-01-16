@@ -22,7 +22,7 @@ Used to set locale parameters for \code{\link[=roboplot]{roboplot()}} in \code{\
 
 set_roboplot_options(
   locale = set_locale("en-GB"),
-  caption_template = "Source: {caption}."
+  caption_template = "Source: {text}."
   )
 
 d <- energiantuonti |>

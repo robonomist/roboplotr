@@ -4,7 +4,6 @@
 # roboplotr
 
 <!-- badges: start -->
-
 <!-- badges: end -->
 
 The goal of roboplotr is to help experts build outstanding interactive
@@ -33,9 +32,13 @@ roboplotr::energiantuonti |>
     title = "Energian ulkomaankauppa",
     subtitle = "Milj. euroa",
     caption = "Tilastokeskus",
-    xaxis_ceiling = "year"
+    xaxis_ceiling = "years"
   )
 ```
 
-![roboplotr
-example](https://github.com/robonomist/roboplotr/blob/main/man/energian_ulkomaankauppa_levea.png?raw=true)
+<figure>
+<img
+src="https://github.com/robonomist/roboplotr/blob/main/man/figures/energian_ulkomaankauppa.png?raw=true"
+alt="roboplotr example" />
+<figcaption aria-hidden="true">roboplotr example</figcaption>
+</figure>

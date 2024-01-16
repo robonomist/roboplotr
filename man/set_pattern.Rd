@@ -8,7 +8,7 @@ set_pattern(
   pattern = NULL,
   pattern_types = NULL,
   pattern_along = NULL,
-  show_legend = T,
+  show_legend = TRUE,
   sep = ", "
 )
 }
@@ -84,7 +84,7 @@ roboplot(d,
          pattern = set_pattern(
            Sarjatyyppi,
            pattern_along = time,
-           show_legend = F,
+           show_legend = FALSE,
            sep = " - "
          ))
 
@@ -94,7 +94,7 @@ roboplot(d, Alue,
              set_pattern(
                Sarjatyyppi,
                pattern_along = time,
-               show_legend = F,
+               show_legend = FALSE,
                sep = NA
              ))
 
@@ -102,7 +102,7 @@ roboplot(d, Alue,
 # 'pattern_types', with a named vector containing either all the observations
 # in the column 'pattern', or ".other" as a catch-all category.
 energiantuonti |>
-  filter(Alue \%in\% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
+  dplyr::filter(Alue \%in\% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
   roboplot(Alue, pattern = set_pattern(Alue, pattern_types = c(
     "Kanada" = "dash", ".other" = "dot"
   )))
@@ -110,7 +110,7 @@ energiantuonti |>
 # used by line plots. Don't worry if you don't give the corrent ones, roboplot()
 #informs you which you should be using.
 energiantuonti |>
-  filter(Alue \%in\% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
+  dplyr::filter(Alue \%in\% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
   roboplot(Alue,
            plot_type = "bar",
            pattern = set_pattern(Alue, pattern_types = c(

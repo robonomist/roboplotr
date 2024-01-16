@@ -12,6 +12,8 @@ set_zeroline(
 )
 }
 \arguments{
+\item{position}{Numeric. Zeroline location.}
+
 \item{color}{Character. Zeroline color. Must be a hexadecimal color strings or a valid css color strings.}
 
 \item{width}{Numeric. Zeroline width.}

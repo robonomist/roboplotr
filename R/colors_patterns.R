@@ -232,7 +232,7 @@ roboplotr_grey_shades <- function() {
 #'          pattern = set_pattern(
 #'            Sarjatyyppi,
 #'            pattern_along = time,
-#'            show_legend = F,
+#'            show_legend = FALSE,
 #'            sep = " - "
 #'          ))
 #'
@@ -242,7 +242,7 @@ roboplotr_grey_shades <- function() {
 #'              set_pattern(
 #'                Sarjatyyppi,
 #'                pattern_along = time,
-#'                show_legend = F,
+#'                show_legend = FALSE,
 #'                sep = NA
 #'              ))
 #'
@@ -250,7 +250,7 @@ roboplotr_grey_shades <- function() {
 #' # 'pattern_types', with a named vector containing either all the observations
 #' # in the column 'pattern', or ".other" as a catch-all category.
 #' energiantuonti |>
-#'   filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
+#'   dplyr::filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
 #'   roboplot(Alue, pattern = set_pattern(Alue, pattern_types = c(
 #'     "Kanada" = "dash", ".other" = "dot"
 #'   )))
@@ -258,19 +258,19 @@ roboplotr_grey_shades <- function() {
 #' # used by line plots. Don't worry if you don't give the corrent ones, roboplot()
 #' #informs you which you should be using.
 #' energiantuonti |>
-#'   filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
+#'   dplyr::filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
 #'   roboplot(Alue,
 #'            plot_type = "bar",
 #'            pattern = set_pattern(Alue, pattern_types = c(
 #'     "Ruotsi" = "", ".other" = "x"
 #'   )))
 #' @export
-set_pattern <- function(pattern = NULL, pattern_types = NULL, pattern_along = NULL, show_legend = T, sep = ", ") {
+set_pattern <- function(pattern = NULL, pattern_types = NULL, pattern_along = NULL, show_legend = TRUE, sep = ", ") {
   pattern <- enquo(pattern)
   roboplotr_check_param(pattern_types, "character", size = NULL, extra = "set_pattern() parameter")
   pattern_along <- enquo(pattern_along)
-  roboplotr_check_param(show_legend, "logical", NULL, F, extra = "set_pattern() parameter")
-  roboplotr_check_param(sep, "character", 1, F,allow_na = T, extra = "set_pattern() parameter")
+  roboplotr_check_param(show_legend, "logical", NULL, FALSE, extra = "set_pattern() parameter")
+  roboplotr_check_param(sep, "character", 1, F,allow_na = TRUE, extra = "set_pattern() parameter")
   list(pattern = pattern, pattern_types = pattern_types, pattern_along = pattern_along, show_legend = show_legend, pattern_sep = sep)
 }
 
@@ -299,10 +299,10 @@ roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
     if (!is.null(defined_patterns)) {
       d <- d |>
         mutate(
-          roboplot.dash = map2_chr(roboplot.plot.type, !!pattern, ~ {
+          roboplot.dash = map2_chr(.data$roboplot.plot.type, !!pattern, ~ {
             ifelse(.x == "scatter",defined_patterns[as.character(.y)],.default["dash"])
           }),
-          roboplot.pattern = map2_chr(roboplot.plot.type, !!pattern, ~ {
+          roboplot.pattern = map2_chr(.data$roboplot.plot.type, !!pattern, ~ {
             ifelse(.x != "scatter",defined_patterns[as.character(.y)],.default["bar"])
           })
         )
@@ -407,7 +407,7 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
     pulled <- color_ops$color
     failed <- select(color_ops, ends_with("_ratio")) |> pivot_longer(everything()) |> filter(.data$value == F)
     if(nrow(failed) > 0) {
-      msg <- failed$name |> str_extract("(?<=\\\").{1,}(?=\\\")") |> knitr::combine_words() |>
+      msg <- failed$name |> str_extract("(?<=\\\").{1,}(?=\\\")") |> roboplotr_combine_words() |>
         str_c("Color contrast fails with ",msg," for ",pulled) |> roboplotr_warning(severity = "warning")
 
     }
@@ -434,8 +434,10 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
 
 }
 
+#' @importFrom dplyr any_of
 #' @importFrom grDevices colorRamp rgb
 #' @importFrom purrr map_chr
+#' @importFrom stats setNames
 roboplotr_tbl_heatmap_colorfun <- function(d, cols = NULL,
                                            hmin = first(getOption("roboplot.colors.traces")),
                                            hmid = getOption("roboplot.colors.background"),
@@ -491,6 +493,7 @@ roboplotr_tbl_heatmap_colorfun <- function(d, cols = NULL,
 
 #' interal function for adding heatmap styling [roboplotr::robotable]
 #' @importFrom DT formatStyle styleEqual
+#' @noRd
 roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
   if (is.null(heatmap)) {
     dt
@@ -578,6 +581,7 @@ set_heatmap <-
 #' @importFrom purrr pmap reduce
 #' @importFrom rlang quo_name
 #' @importFrom stats setNames
+#' @noRd
 roboplotr_set_pattern <- function(d, pattern, pattern_type) {
   if(!is.null(pattern_type)) {
     roboplotr_check_param(pattern_type, "character", NULL, allow_null = F)
@@ -585,7 +589,7 @@ roboplotr_set_pattern <- function(d, pattern, pattern_type) {
       stop(str_c("Either the parameter 'pattern_type' must be a named character vector with a name matching every variable in column \"",quo_name(pattern),"\", or name \".other\" must be included, or 'pattern_type' must be NULL!"), call. = F)
     }
     d |>
-      select({{pattern}}, roboplot.plot.type) |>
+      select({{pattern}}, .data$roboplot.plot.type) |>
       distinct() |>
       mutate({{pattern}} := as.character({{pattern}})) |>
       pmap(function(...) {
@@ -642,6 +646,7 @@ roboplotr_get_map_palette <- function(d, map_colors, data_contour, bins) {
 #' Determine if legend item for a given pattern is shown in [roboplot()]
 #' @importFrom rlang is_quosure
 #' @importFrom stats setNames
+#' @noRd
 roboplotr_get_pattern_showlegend <- function(d, pattern, pattern_showlegend) {
   if(!rlang::is_quosure(pattern)) { pattern <- enquo(pattern) }
   if((!quo_is_null(pattern) & !is.null(pattern_showlegend))) {
@@ -693,7 +698,7 @@ roboplotr_get_pattern_showlegend <- function(d, pattern, pattern_showlegend) {
 #'
 #'     if(any(is.null(max_color),is.null(min_color))) {
 #'       roboplotr_colors <- getOption("roboplot.colors.traces")
-#'       roboplotr.luminance <- getOption("roboplot.colors.traces") %>% roboplotr_get_luminance()
+#'       roboplotr.luminance <- getOption("roboplot.colors.traces") |> roboplotr_get_luminance()
 #'       if(is.null(min_color)) {
 #'         min_color <- roboplotr_colors[which(roboplotr.luminance == min(roboplotr.luminance))]
 #'       }
@@ -727,7 +732,7 @@ roboplotr_get_pattern_showlegend <- function(d, pattern, pattern_showlegend) {
 #'         colorRampPalette(c(max_color, mid_color))(partitions[1])
 #'       second_colors <-
 #'         colorRampPalette(c(mid_color, min_color))(partitions[2])
-#'       c(first_colors, second_colors) %>% unique()
+#'       c(first_colors, second_colors) |> unique()
 #'     }
 #'
 #'   }

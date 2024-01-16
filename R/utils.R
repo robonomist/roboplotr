@@ -43,7 +43,7 @@
 #'
 #' set_roboplot_options(
 #'   border = set_border(xcolor = "#eed5d2", ycolor = "#8b7d7b"),
-#'   caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
+#'   caption_template = "Lähde: {text}.",
 #'   grid = set_grid(xcolor = "#9aff9a", ycolor = "cornsilk"),
 #'   tick_colors = list(x = "darkgray", y = "dimgrey"),
 #'   background_color = "ghostwhite",
@@ -513,7 +513,7 @@ roboplotr_string2filename <- function(string) {
 #'
 #' set_roboplot_options(
 #'   locale = set_locale("en-GB"),
-#'   caption_template = "Source: {caption}."
+#'   caption_template = "Source: {text}."
 #'   )
 #'
 #' d <- energiantuonti |>
@@ -774,8 +774,9 @@ roboplotr_compact <- function (l)
 #' [roboplot()] attempts to bind patterns for continuous line for certain plots
 #' @importFrom dplyr arrange bind_rows filter group_by group_split left_join mutate pull select
 #' @importFrom purrr imap_dfr
+#' @noRd
 #'
-roboplot_continuous_pattern <- function(d, along, pattern, series) {
+roboplotr_continuous_pattern <- function(d, along, pattern, series) {
   series <- enquo(series)
   split <- d |>
     arrange({{pattern}}) |>

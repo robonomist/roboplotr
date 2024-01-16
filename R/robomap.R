@@ -2,19 +2,22 @@
 #'
 #' @importFrom gstat idw
 #' @importFrom leaflet addRasterImage
+#' @importFrom methods as
 #' @importFrom progress progress_bar
 #' @importFrom raster crs crs<- extent focal mask raster rasterize resample setExtent
 #' @importFrom scales rescale
 #' @importFrom sf st_area st_bbox st_crs st_sample st_sf st_union
 #' @importFrom sp "coordinates<-" "gridded<-" proj4string "proj4string<-"
 #' @importFrom tidyr unnest
+#' @importFrom utils capture.output
+#' @noRd
 roboplotr_map_rasterlayer <- function(map, d, data_contour = F, opacity, robomap_palette) {
   if(data_contour == TRUE) {
 
     d <- d |> mutate(area = as.numeric(st_area(d)))
 
-    d <- d |> mutate(area = area / sum(area),
-                      num_points = round(rescale(area, c(1,sqrt(sqrt(sqrt(max(d$area))))))))
+    d <- d |> mutate(area = .data$area / sum(.data$area),
+                      num_points = round(rescale(.data$area, c(1,sqrt(sqrt(sqrt(max(d$area))))))))
 
     show.pb <- getOption("roboplot.verbose") == "All"
 
@@ -23,19 +26,19 @@ roboplotr_map_rasterlayer <- function(map, d, data_contour = F, opacity, robomap
     }
 
     interior_df <- d |>
-      mutate(sampled_points_interior = map2(geom, num_points, ~ {
+      mutate(sampled_points_interior = map2(.data$geom, .data$num_points, ~ {
         if(show.pb) { bpb$tick(token = list(info = "Determining boundaries")) }
         st_sample(.x, size = .y)
       })) |>
-      unnest(sampled_points_interior) |>
+      unnest(.data$sampled_points_interior) |>
       st_sf()
 
     boundary_df <- d |>
-      mutate(sampled_points_boundary = map2(geom, num_points, ~ {
+      mutate(sampled_points_boundary = map2(.data$geom, .data$num_points, ~ {
         if(show.pb) { bpb$tick(token = list(info = "Determining boundaries")) }
         st_sample(.x, size = max(ceiling(.y * 0.2),1), type="regular")
         })) |>
-      unnest(sampled_points_boundary) |>
+      unnest(.data$sampled_points_boundary) |>
       st_sf()
 
     sampled_df <- bind_rows(interior_df, boundary_df)
@@ -205,20 +208,22 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @param area Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use to identify the areas described by the map. This must be of class sfc_MULTIPOLYGON.
 #' @param title,subtitle Characters. Labels for plot elements. Optionally, use [set_title()] for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.
 #' @param caption Function or character. Use a string, or [set_caption()].
-#' @param opacity,tile_opacity Double. Value from 0 to 1, defining how opaque the map polygon fill color or underlying map tiles are. 0 removes the tile layer, but retains the polygon borders if any.
+#' @param map_opacity,tile_opacity Double. Value from 0 to 1, defining how opaque the map polygon fill color or underlying map tiles are. 0 removes the tile layer, but retains the polygon borders if any.
 #' @param map_palette Character. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.
 #' @param hovertext List. Use a list with named items flag and unit.
-#' @param tile_opacity Double. Use a value between 0 and 1 to set the opacity of the map tiles under the map polygons.
 #' @param border_width Integer. The width of polygon borders. Default is the trace border width set with [set_roboplot_options()].
 #' @param legend_cap Integer. The intended legend length. The actual length might vary.
 #' @param data_contour Logical. Experimental. If TRUE, [robomap()] will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
 #' This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.
+#' @param log_colors Logical. Whether the colors scales is log or not.
+#' @param rounding Numeric. How [robomap()] rounds numeric values.
 #' @param markers Logical. Experimental. Whether markers will be added on the map based on the columns "lat" and "lon". Default is FALSE.
 #' @return A list of classes "leaflet" and "htmlwidget"
 #' @importFrom htmltools HTML tags
 #' @importFrom leaflet addControl addLegend addPolygons addTiles colorBin colorNumeric colorQuantile leaflet tileOptions
 #' @importFrom purrr map
 #' @importFrom stringr str_glue str_remove
+#' @importFrom utils head tail
 #' @export
 #' @examples
 #' # You can use roboplotr::robomap() to create html maps. Note that very large
@@ -232,38 +237,40 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' # Currently robomap() only supports very little customization.
 #' vaesto_postinumeroittain |>
 #'   dplyr::filter(Alue == "Espoo") |>
-#'   robomap(Postinumeroalue, title = "Väestö Espoossa", caption = "Tilastokeskus")
+#'   robomap(Postinumeroalue, title = "V\u00e4est\u00f6 Espoossa", caption = "Tilastokeskus")
 #'
-#' # Default polygon colors are picked from trace colors set with set_roboplot_options, based on luminosity.
-#' # Control polygon colors with map_palette. robomap() expands upon this as necessary.
+#' # Default polygon colors are picked from trace colors set with
+#' # set_roboplot_options(), based on luminosity. Control polygon colors with
+#' # map_palette. robomap() expands upon this as necessary.
 #'
 #' vaesto_postinumeroittain |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "Väestö postinumeroittain",
+#'     title = "V\u00e4est\u00f6 postinumeroittain",
 #'     subtitle = "Otanta",
 #'     caption = "Tilastokeskus",
 #'     map_palette = c("lightgreen", "darkred")
 #'   )
 #'
-#' # robomap() automatically scales the values to differentiate large differences in maximum and minimum values.
-#' # Control this with log_colors
+#' # robomap() automatically scales the values to differentiate large differences
+#' # in maximum and minimum values. Control this with log_colors
 #'
 #' vaesto_postinumeroittain |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "Väestö postinumeroittain",
+#'     title = "V\u00e4est\u00f6 postinumeroittain",
 #'     caption = "Tilastokeskus",
 #'     map_palette = c("lightgreen", "darkred"),
 #'     log_colors = FALSE
 #'   )
 #'
-#' # Control background tile opacity with 'tile_opacity', polygon opacity with 'map_opacity' and borders with 'border_width'.
+#' # Control background tile opacity with 'tile_opacity', polygon opacity with
+#' # 'map_opacity' and borders with 'border_width'.
 #'
 #' vaesto_postinumeroittain |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "Väestö postinumeroittain",
+#'     title = "V\u00e4est\u00f6 postinumeroittain",
 #'     caption = "Tilastokeskus",
 #'     map_palette = c("lightgreen", "darkred"),
 #'     border_width = 2,
@@ -279,7 +286,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' vaesto_postinumeroittain |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "Väestö postinumeroittain",
+#'     title = "V\u00e4est\u00f6 postinumeroittain",
 #'     caption = "Tilastokeskus",
 #'     map_palette = biased_palette,
 #'     map_opacity = 1,
@@ -379,10 +386,10 @@ robomap <-
           {
             area
           }
-        }, "<br>", roboplotr_format_robotable_numeric(value, rounding, flag = hovertext$flag), " ", {
+        }, "<br>", roboplotr_format_robotable_numeric(.data$value, rounding, flag = hovertext$flag), " ", {
           hovertext$unit
         }),
-        leafletlabel = map(leafletlabel, HTML)
+        leafletlabel = map(.data$leafletlabel, HTML)
       )
     log_colors <- (function() {
       if(is.null(log_colors) & all(d$value >= 1)) {
@@ -428,14 +435,14 @@ robomap <-
 
     if(log_colors == TRUE) {
       if(min(d$value) == 0) {
-        d <- d |> mutate(robomap.value = log(value+1))
+        d <- d |> mutate(robomap.value = log(.data$value+1))
         bins <- log(bins+1)
       } else {
-        d <- d |> mutate(robomap.value = log(value))
+        d <- d |> mutate(robomap.value = log(.data$value))
         bins <- log(bins)
       }
     } else {
-      d <- d |> mutate(robomap.value = value)
+      d <- d |> mutate(robomap.value = .data$value)
     }
 
     robomap_palette <- roboplotr_get_map_palette(d, map_palette, data_contour, bins)
@@ -590,7 +597,7 @@ robomap <-
             }
             hi_end <- roboplotr_format_robotable_numeric(hi_end, rounding)
             lo_end <- roboplotr_format_robotable_numeric(lo_end, rounding)
-            str_glue("{lo_end} – {hi_end}") |>
+            str_glue("{lo_end} \u2013 {hi_end}") |>
               map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
               reduce(c)
           },

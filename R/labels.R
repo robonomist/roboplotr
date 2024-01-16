@@ -144,9 +144,9 @@ roboplotr_title <- function(p, title, subtitle) {
 #'
 #' Get a string for [roboplot()] captions.
 #'
-#' @param caption Character. Character. The text used in the template (make sure the template has the parameter).
+#' @param text Character. The text used in the template (make sure the template has the parameter 'text').
 #' @param ... Other parameters to be passed to template.
-#' @param template Character. Character. Template for [str_glue()] used to parse the caption wit the given parameters.
+#' @param template Character. Template for [str_glue()] used to parse the caption with the given parameters.
 #' @return A string of classes 'glue' and 'character'.
 #' @examples
 #' # Used to define how captions are constructed inside roboplotr::roboplot()
@@ -232,6 +232,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' @param color Character. Must be a hexadecimal color or a valid css color.
 #' @param bold_title Logical. Only used for font of type 'title'. Determines if the title is bolded.
 #' @param type Character. One of "main", "title" or "caption".
+#' @importFrom httr content GET status_code
 #' @importFrom stringr str_c str_extract
 #' @returns A list
 #' @examples
@@ -312,10 +313,10 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
 
       font_name <- str_replace_all(font_name, ' ','+')
       font_url <- str_glue("https://fonts.googleapis.com/css2?family={font_name}")
-      resp <- httr::GET(font_url)
+      resp <- GET(font_url)
 
-      if(httr::status_code(resp) == 200) {
-       google_font <- httr::content(resp)
+      if(status_code(resp) == 200) {
+       google_font <- content(resp)
        google_font <- list(url = str_extract(google_font, "(?<=url\\()[^\\)]*(?=\\))"), format = str_extract(google_font, "(?<=format\\()[^\\)]*(?=\\))"))
       } else {
           NULL

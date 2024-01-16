@@ -1,21 +1,29 @@
+#' Set labels for robotable items like search box and pagination.
+#' @param search Character. Label for search box.
+#' @param info,lengthMenu,first,last,next,previous Character. Table navigation items.
+#' @param emptyTable Character. The text shown when the table is empty.
+#' @importFrom purrr walk
 #' @export
 set_robotable_labels <-
   function(search = "Etsi:",
-           info = "Näytetään rivit _START_-_END_ / _TOTAL_",
-           lengthMenu = "Näytä _MENU_ riviä per sivu",
+           info = "N\u00e4ytet\u00e4\u00e4n rivit _START_-_END_ / _TOTAL_",
+           lengthMenu = "N\u00e4yt\u00e4 _MENU_ rivi\u00e4 per sivu",
            emptyTable = "Tietoja ei saatavilla",
-           first = "Ensimmäinen",
+           first = "Ensimm\u00e4inen",
            last = "Viimeinen",
-           decimal = ",",
-           thousands = " ",
            `next` = ">>",
            previous = "<<") {
+    separators <- unlist(str_split(getOption("roboplot.locale")$separators, ""))
+    walk(
+      list(search, lengthMenu, emptyTable, first, last, `next`, previous),
+      ~ roboplotr_check_param(.x, "character", allow_null = F)
+    )
     list(
       search = search,
       info = info,
       lengthMenu = lengthMenu,
-      thousands = thousands,
-      decimal = decimal,
+      thousands = separators[2],
+      decimal = separators[1],
       paginate = list(
         first = first,
         last = last,
@@ -54,7 +62,7 @@ roboplotr_format_robotable_numeric <-
               ))
   }
 
-#' @importFrom dplyr across bind_cols cur_column mutate rename_with bind_rows
+#' @importFrom dplyr across bind_cols bind_rows cur_column mutate rename_with where
 roboplotr_robotable_cellformat <-
   function(d, rounding, flag, unit, na_value) {
     if (!is.null(names(unit))) {
@@ -295,6 +303,7 @@ roboplotr_set_robotable_fonts <-
 #' @param height,width Double. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.
 #' @param flag,unit Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.
 #' @param rounding Double. Controls the rounding of numeric columns.
+#' @param na_value Character. How NA values are displayed.
 #' @param pagelength Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, [robotable()] automatically adds navigation.
 #' @param info_text Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.
 #' @param heatmap Function. Use [set_heatmap()]. Displays any numeric values as a heatmap.

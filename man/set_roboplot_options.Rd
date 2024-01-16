@@ -104,7 +104,7 @@ d <- energiantuonti |>
 
 set_roboplot_options(
   border = set_border(xcolor = "#eed5d2", ycolor = "#8b7d7b"),
-  caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE),
+  caption_template = "Lähde: {text}.",
   grid = set_grid(xcolor = "#9aff9a", ycolor = "cornsilk"),
   tick_colors = list(x = "darkgray", y = "dimgrey"),
   background_color = "ghostwhite",

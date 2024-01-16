@@ -33,12 +33,12 @@
 #'   roboplot(
 #'     Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus"
 #'     ) |>
-#'   roboplot_create_widget(filepath = tempdir())
+#'   create_widget(filepath = tempdir())
 #'
 #' file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
 #'
 #' # You can provide the filename as string and
-#' # roboplotr::roboplot_create_widget() will parse the filename from that. The
+#' # roboplotr::create_widget() will parse the filename from that. The
 #' # plot will always be silently returned, but 'render' controls whether it
 #' # will be displayed in viewer on widget creation. Normally
 #' # roboplotr::roboplot() html widgets will have dependencies contained in an
@@ -49,7 +49,7 @@
 #'   roboplot(
 #'     Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus"
 #'     ) |>
-#'   roboplot_create_widget(
+#'   create_widget(
 #'     title = "Energian tuonti - Kanada",
 #'     filepath = tempdir(),
 #'     render = FALSE,
@@ -65,7 +65,7 @@
 #' # of the roboplotr::roboplot() plot, unlike the ones downloaded through
 #' # modebar (set those with roboplotr::set_roboplot_options()). Note that modebar
 #' # gives access to svg file format, while automating it the file creation with
-#' # roboplotr::roboplot_create_widget() or roboplotr::roboplot() allows for pdf
+#' # roboplotr::create_widget() or roboplotr::roboplot() allows for pdf
 #' # files.
 #'
 #' if(interactive()) {
@@ -78,7 +78,7 @@
 #'       width = 400,
 #'       height = 800
 #'     ) |>
-#'     roboplot_create_widget(filepath = tempdir(), artefacts = "pdf")
+#'     create_widget(filepath = tempdir(), artefacts = "pdf")
 #'
 #'   utils::browseURL(paste0(tempdir(), "/kanadan_energiantuonti.pdf"))
 #' }
@@ -90,7 +90,7 @@
 #' @importFrom stringr str_extract_all str_replace_all str_c str_squish
 #' @importFrom widgetframe frameableWidget
 
-roboplot_create_widget <- function(
+create_widget <- function(
     p,
     title = NULL,
     filepath = getOption("roboplot.artefacts")$filepath,
@@ -152,13 +152,27 @@ roboplot_create_widget <- function(
   } else { invisible(p) }
 }
 
+#' File creation from [roboplot()]s (deprecated)
+#'
+#' Write html and and other files from [roboplot()] plots
+#'
+#' @title roboplot_create_widget
+#' @param ... Additional arguments passed to [create_widget()]. See
+#' `?create_widget` for more details.
+#' @return A list of classes "plotly" and "html"
+#' @export
+roboplot_create_widget <- function(...) {
+  .Deprecated("create_widget")
+  create_widget(...)
+}
+
 #' Artefact control for [roboplot()]
 #'
 #' Set global parameters in [set_roboplot_options()] for artefact creation
 #' of [roboplot()] plots.
 #'
 #' @param auto Logical. Whether [roboplot()] will create artefacts automatically.
-#' @inheritParams roboplot_create_widget
+#' @inheritParams create_widget
 #' @examples
 #' # Used to set global defaults for widget or other artefact creation. Any of
 #' # these can be overridden by roboplotr::roboplot(). Only supposed to be
@@ -170,7 +184,7 @@ roboplot_create_widget <- function(
 #' # (one of "html", "png","jpg", "jpge", "jpge", "webp" or "pdf) to control
 #' # what artefacts are created, and 'zoom' to set static artefact zoom level.
 #'
-#' # roboplot_create_widget() shows how the parameters are used.
+#' # create_widget() shows how the parameters are used.
 #' @return A list.
 #' @export
 set_artefacts <- function(
@@ -224,7 +238,7 @@ roboplotr_static_image <-
 
     p |>
       config(displayModeBar = F) |>
-      roboplot_create_widget(
+      create_widget(
         title = "imgdl",
         filepath = tempdir(),
         self_contained = F,

@@ -1,6 +1,13 @@
+# roboplotr 1.4.1
+
+* create_widget to replace roboplot_create_widget (in name only)
+* Fixes for readme examples and pkgdown contents.
+* Fix for roboplot scripts to adjust caption and logo position when there are no xaxis labels.
+* Numerous documentation fixes.
+
 # roboplotr 1.4.0.1
 
-* Added missing webshot2 dependency
+* Added missing webshot2 dependency.
 
 # roboplotr 1.4
 

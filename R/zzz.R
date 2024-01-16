@@ -4,7 +4,7 @@
     roboplot.accessible = F,
     roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, zoom = 1, artefacts = "html", width = 992, height = 744),
     roboplot.border = list(xcolor = "black", ycolor = "black", xmirror = TRUE, ymirror = TRUE, xwidth = 1, ywidth = 1),
-    roboplot.caption.template = "Lähde: {text}.",
+    roboplot.caption.template = "L\u00e4hde: {text}.",
     roboplot.colors.background = "white",
     roboplot.colors.traces =  c("#c1272d","#f15a24","#f7931e","#dcc48a","#118f9a","#951d46"),
     roboplot.colors.ticks = list(x = "#E8E8E8", y = "#E8E8E8"),

@@ -59,7 +59,7 @@ attr(d, "frequency") <- "Quarterly"
 # 'y', and ticktypes with 'xticktype' and 'yticktype'.
 d |> dplyr::filter(time == max(time)) |>
   roboplot(Suunta,
-           glue::glue("Energian tuonti {lubridate::year(max(d$time))}"),
+           stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
            "Milj. €","Tilastokeskus",
            plot_type = "bar",
            plot_mode = "horizontal",
@@ -118,7 +118,7 @@ d2 <- dplyr::tribble(
 )
 
 set_roboplot_options(
-  caption = list(prefix = "Source: ", lineend = ".", updated = FALSE)
+  caption_template = "Source: {text}."
  )
 
 d2 |>
@@ -147,7 +147,7 @@ d3 |> dplyr::arrange(obs1, value) |>
                         xticktype = "numeric"))
 
 set_roboplot_options(
-caption = list(prefix = "Lähde: ", lineend = ".", updated = FALSE)
+caption_template = "Lähde {text}."
 )
 
 # You might just want to switch the axes for time and value

@@ -1,6 +1,6 @@
 Package: roboplotr
 Title: Robonomist Automated Plotly Plotter
-Version: 1.4.0.1
+Version: 1.4.0.2
 Authors@R: 
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
 Description: Automates creation of dynamic plotly plots.
@@ -16,7 +16,7 @@ Imports:
     forcats,
     htmltools,
     htmlwidgets, 
-    knitr,
+    httr,
     lubridate,
     padr,
     plotly,
@@ -27,7 +27,6 @@ Imports:
     shiny,
     stringr,
     tidyr,
-    chromote,
     stats,
     methods,
     crayon,
@@ -43,13 +42,13 @@ Imports:
     webshot2
 Suggests: 
     testthat (>= 3.0.0),
-    glue,
     rmarkdown,
     bs4Dash,
     robonomistClient,
     Quandl,
     slider,
-    tidyverse
+    tidyverse,
+    knitr
 Remotes: robonomist/robonomistClient
 Config/testthat/edition: 3
 Depends: 
