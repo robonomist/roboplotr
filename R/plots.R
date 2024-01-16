@@ -433,6 +433,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'              xmin = "2010-06-10",
 #'              xmax = "2016-01-01",
 #'              color = "green",
+#'              opacity = 0.5,
 #'              border = "gray",
 #'              layer = "below"
 #'            ))

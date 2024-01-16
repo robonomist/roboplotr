@@ -1,3 +1,7 @@
+# roboplotr 1.4.1.1
+
+* minor addition for set_shadearea usage example.
+
 # roboplotr 1.4.1
 
 * create_widget to replace roboplot_create_widget (in name only)

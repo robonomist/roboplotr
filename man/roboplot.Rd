@@ -301,6 +301,7 @@ d2 |> dplyr::filter(Suunta == "Tuonti") |>
              xmin = "2010-06-10",
              xmax = "2016-01-01",
              color = "green",
+             opacity = 0.5,
              border = "gray",
              layer = "below"
            ))
