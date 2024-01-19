@@ -201,37 +201,92 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' Wrapper for [plotly::plot_ly] for shorthand declaration of many layout and trace arguments.
 #' Ensures proper scaling or elements when used in shiny apps, iframes, static image downloads and so on.
 #'
-#' @param d Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric). Other columns could be specified instead with 'plot_axes', using [set_axes()].
-#' @param color Symbol, string, or function resulting in symbol or string. Column from param 'd' to use for trace color. If NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.
-#' @param pattern Symbol, string, or function resulting in symbol or string. Optionally, use [set_pattern()] for more fine-tuned control. See documentation of that function. Column from param 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.
-#' @param title,subtitle Characters. Labels for plot elements. Optionally, use [set_title()] for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.
+#' @param d Data frame. Data to be plotted with at least the columns "time"
+#' (Date or POSIXt) and "value" (numeric). Other columns could be specified
+#' instead with 'plot_axes', using [set_axes()].
+#' @param color Symbol, string, or function resulting in symbol or string.
+#' Column from param 'd' to use for trace color. If NULL, the argument 'subtitle'
+#' will be used as a placeholder for determining color and hoverlabels.
+#' @param pattern Symbol, string, or function resulting in symbol or string.
+#' Optionally, use [set_pattern()] for more fine-tuned control. See documentation
+#' of that function. Column from param 'd' to use for scatter plot linetype or
+#' bar plot pattern. Not supported for pie charts.
+#' @param title,subtitle Characters. Labels for plot elements. Optionally, use
+#' [set_title()] for the title if you want to omit the title from the
+#' displayed plot, but include it for any downloads through the modebar.
 #' @param caption Function or character. Use [set_caption()].
-#' @param legend_position,legend_orientation Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.
-#' @param legend_title Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Use a character string if you want to provide your own legend title.
-#' @param zeroline Logical or double. Determines zeroline inclusion, TRUE for zeroline, or double for exact placement.
-#' @param rangeslider Logical or character in %Y-%m-%d format. Determines rangeslider inclusion. TRUE includes the rangeslider, a character string includes the rangeslider with the given date as a start date.
+#' @param legend_position,legend_orientation Characters. Currently only
+#' legend_position is used, and takes only "bottom" or NA for no legend.
+#' Legend is removed on default if the argument 'color' in argument 'd' has only
+#' one observation.
+#' @param legend_title Logical or character. Use TRUE if you want the parameter
+#' 'color' to be the legend title. Use a character string if you want to
+#' provide your own legend title.
+#' @param zeroline Logical or numeric. Determines zeroline inclusion, TRUE for
+#' zeroline, or numeric for exact placement.
+#' @param rangeslider Logical or character in %Y-%m-%d format. Determines
+#' rangeslider inclusion. TRUE includes the rangeslider, a character string
+#' includes the rangeslider with the given date as a start date.
 #' @param hovertext Function. Use [set_hovertext()].
-#' @param highlight Double or list. Determines if a given trace is included in legend and assigned a color.
-#' If double, traces with max(value) < highlight will be give trace color matching the grid color, and removed from the legend.
-#' If function, it must return a logical and include named items "value" and ".fun", where .fun checks if given value will get a color or legend item.
+#' @param highlight Numeric or list. Determines if a given trace is included in
+#' legend and assigned a color. If numeric, traces with max(value) < highlight
+#' will be give trace color matching the grid color, and removed from the
+#' legend. If function, it must return a logical and include named items "value"
+#' and ".fun", where .fun checks if given value will get a color or legend item.
 #' Will not currently work with multiple patterns.
-#' @param plot_type Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param plot_mode Character vector, named if length > 1. Controls plot specifics along with the parameter 'plot_type'. When 'plot_type' is "scatter", the available modes are "line" "scatter", "smooth", "step" and "scatter+line".
-#' When 'plot_type' is "bar", the available modes are "dodge" "stack", "horizontal" and "horizontalfill". Mode of "horizontalfill" makes bars fill the space available is observations are missing. When 'plot_type' is "pie", the available modes are "normal" and "rotated".
-#' You can give a single unnamed 'plot_mode' which is used as applicable, or name-value pairs, where names are items from parameter 'd' column described by parameter 'color', and values applicable plot modes listed above.
-#' @param plot_axes Function. Function. Use [set_axes()].
-#' @param trace_color Character vector, named if length > 1. Trace colors for all traces. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param line_width Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.
-#' @param height,width Double. Height and width of the plot. Default width is NA for responsive plots, give a value for static plot width.
-#' @param facet_split Currently unused. Variable from argument 'd' to use for facet splits.
-#' @param shadearea Use if you want to have a highlighted area on the [roboplot()]. Use [set_shadearea()] for fine-tuned control (see that function for documentation), or provide a single value that corresponds with the x-axis of the plot. Currently only useful when x-axis is numeric or date, and y-axis is numeric.
-#' @param legend_maxwidth Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis.
-#' @param xaxis_ceiling Character or date. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). Set, or round, the upper bound of plot x-axis for other than bar plots if no axis limits are given.
-#' @param secondary_yaxis Symbol, string, or function resulting in symbol or string. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
-#' Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.
-#' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned control. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by [set_roboplot_options()].
-#' @param container Character. Experimental, might not work as intended. Use only with shiny apps. A css selector for the element in a shiny app where this [roboplot()] will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
-#' @param info_text Character. Experimental, might not work as intended. If provided, an info button is appended to the modebar or the [roboplot()] which brings about a popup with this parameter as the text content.
+#' @param plot_type Character vector, named if length > 1. Determines the trace
+#' type for either the whole plot, or for all variables defined by color as
+#' name-value pairs.
+#' @param plot_mode Character vector, named if length > 1. Controls plot specifics
+#' along with the parameter 'plot_type'. When 'plot_type' is "scatter", the
+#' available modes are "line" "scatter", "smooth", "step" and "scatter+line".
+#' When 'plot_type' is "bar", the available modes are "dodge" "stack",
+#' "horizontal", "horizontalfill" and "horizontalstack". Mode of "horizontalfill"
+#' makes bars fill the space available is observations are missing. When
+#' 'plot_type' is "pie", the available modes are "normal" and "rotated". You can
+#' give a single unnamed 'plot_mode' which is used as applicable, or name-value
+#' pairs, where names are items from parameter 'd' column described by parameter
+#' 'color', and values applicable plot modes listed above.
+#' @param plot_axes Function. Use [set_axes()].
+#' @param trace_color Character vector, named if length > 1. Trace colors for all
+#' traces. Determines the trace type for either the whole plot, or for all variables
+#' defined by param 'color' as name-value pairs.
+#' @param line_width Numeric vector, named if length > 1. Line width for all
+#' line traces. Determines the line width for either the whole plot, or for all
+#' variables contained in the column defined by param 'color' as name-value pairs.
+#' @param height,width Numeric. Height and width of the plot. Default width is
+#' NA for responsive plots, give a value for static plot width.
+#' @param markers Function. Use [set_markers()]. Marker appearance for all markers.
+#' @param facet_split Currently unused. Variable from argument 'd' to use for
+#' facet splits.
+#' @param shadearea Use if you want to have a highlighted area on the
+#' [roboplot()]. Use [set_shadearea()] for fine-tuned control (see that function
+#' for documentation), or provide a single value that corresponds with the x-axis
+#' of the plot. Currently only useful when x-axis is numeric or date, and y-axis
+#' is numeric.
+#' @param error_bars Function. Use [set_errorbars()]. Specifications for any error bars.
+#' @param legend_maxwidth Numeric. Legend items (and y-axis values for horizontal
+#' barplots) longer than this will be collapsed with an ellipsis.
+#' @param xaxis_ceiling Character or date. One of "default", "days", "months",
+#' "weeks", "quarters", "years", or "guess"). Set, or round, the upper bound of
+#' plot x-axis for other than bar plots if no axis limits are given.
+#' @param secondary_yaxis Symbol, string, or function resulting in symbol or
+#' string. Variable from argument 'd' resulting in a maximum of two factor
+#' levels, determining which observations if any use a secondary y-axis.
+#' Parameter 'zeroline' will be ignored. Cannot currently differentiate between
+#' the axes in legend, and right margin will not scale properly on zoom and
+#' possibly on image files downloaded through modebar.
+#' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned
+#' control. Use TRUE instead for automated artefact creation or html and/or other
+#' files from the plot based on settings globally set by [set_roboplot_options()].
+#' @param container Character. Experimental, might not work as intended. Use only
+#' with shiny apps. A css selector for the element in a shiny app where this
+#' [roboplot()] will be contained in. Used for relayouts if the plot is rendered
+#' while the container is not displayed.
+#' @param info_text Character. Experimental, might not work as intended on
+#' standalone web pages. If provided, an info button is appended to the modebar
+#' of the [roboplot()] which brings about a popup with this parameter as the text
+#' content.
 #' @param ... Placeholder for other parameters.
 #' @return A list of classes "plotly" and "html"
 #' @examples
@@ -322,7 +377,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'
 #'
 #' # With single 'time' observation x-axis tickmarks lose tick labels. There are
-#' several places where this information fits nicely.
+#' # several places where this information fits nicely.
 #' d3 <- d2 |> dplyr::filter(time == max(time))
 #' d3 |>
 #'   roboplot(Alue,
@@ -349,9 +404,14 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' # Bar plot can be horizontal with plot axis control and 'plot_mode' set to
 #' # horizontal but then is better off with only a single 'time' observation. Long
 #' # legend items and axis labels can be cut off with 'legend_maxwidth', while
-#' # still showing the proper labels on hover.
+#' # still showing the proper labels on hover. Control the order of the axes
+#' # by explicitly setting them as factors.
 #' d3 |>
 #'   dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
+#'   dplyr::mutate(Alue = forcats::fct_reorder(Alue, value),
+#'                 Suunta = forcats::fct_reorder(Suunta, value) |>
+#'                   forcats::fct_rev()
+#'   ) |>
 #'   roboplot(Suunta,
 #'            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
 #'            "Milj. \u20AC","Tilastokeskus",
@@ -368,13 +428,26 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' # If you want the bars to fill the available space in a horizontal bar chart,
 #' # use the plot_mode of "horizontalfill" instead of "horizontal".
 #' d3 |>
-#'   dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
 #'   roboplot(Suunta,
 #'            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
 #'            "Milj. \u20AC","Tilastokeskus",
 #'            plot_type = "bar",
-#'            legend_maxwidth = 12,
 #'            plot_mode = "horizontalfill",
+#'            plot_axes = set_axes(
+#'              y = "Alue",
+#'              yticktype = "character",
+#'              x = "value",
+#'              xticktype = "numeric")
+#'   )
+#'
+#'
+#' # Or stack the bars horizontally by using "horizontalstack"
+#' d3 |>
+#'   roboplot(Suunta,
+#'            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
+#'            "Milj. \u20AC","Tilastokeskus",
+#'            plot_type = "bar",
+#'            plot_mode = "horizontalstack",
 #'            plot_axes = set_axes(
 #'              y = "Alue",
 #'              yticktype = "character",
@@ -387,6 +460,20 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'                pattern = Suunta,
 #'                plot_type = "pie")
 #'
+#' # Aside from patterns, you might want to change markers used on scatter plots
+#' # by using set_pattern(). You can also include error bars on any numeric axis
+#' # by specifying them with set_errorbars(). See both functions for more details.
+#' d2 |>
+#' dplyr::filter(Alue == "Venäjä") |>
+#'   dplyr::group_by(Alue) |>
+#'   dplyr::mutate(sd = sd(value)) |>
+#'   dplyr::ungroup() |>
+#'   roboplot(Alue,
+#'            plot_type = "scatter",
+#'            plot_mode = "scatter",
+#'            markers = set_markers("line", 12),
+#'            error_bars = set_errorbars(error_y = sd)
+#'   )
 #' # Pie plot can be centered to the first factor level of argument 'color' with
 #' # with plot_mode "rotated".
 #' d3 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC",
@@ -504,12 +591,15 @@ roboplot <- function(d,
                      zeroline = FALSE,
                      rangeslider = FALSE,
                      pattern = NULL,
+                     grouped = NULL,
                      line_width = getOption("roboplot.linewidth"),
                      hovertext = NULL,
                      plot_type = "scatter",
                      plot_mode = NULL,
                      plot_axes = set_axes(),
+                     markers = set_markers(),
                      height = getOption("roboplot.height"),
+                     error_bars = NULL,
                      facet_split = NULL,
                      legend_maxwidth = NULL,
                      xaxis_ceiling = getOption("roboplot.xaxis.ceiling"),
@@ -572,8 +662,10 @@ roboplot <- function(d,
     )
   }
 
+
   color <- enquo(color)
   color <- roboplotr_check_valid_var(color, d_names)
+
   if (is.null(color)) {
     color <- quo(!!sym("roboplot.topic"))
   }
@@ -606,6 +698,12 @@ roboplot <- function(d,
   }
 
   pattern <- roboplotr_check_valid_var(pattern, d_names)
+
+  roboplotr_check_param(
+    markers,
+    "function",allow_null = F,
+    f.name = list(fun = substitute(markers)[1], check = "set_markers")
+  )
 
   roboplotr_check_param(width, "numeric", allow_null = T, allow_na = T)
   roboplotr_check_param(height, "numeric", allow_null = T, allow_na = T)
@@ -656,6 +754,13 @@ roboplot <- function(d,
       }
     }
   }
+
+  roboplotr_check_param(
+    error_bars,
+    "function",
+    f.name = list(fun = substitute(error_bars)[1], check = "set_errorbars")
+  )
+  roboplotr_validate_errorbars(error_bars, d)
 
   roboplotr_check_param(hovertext,
                         "function",
@@ -756,7 +861,7 @@ roboplot <- function(d,
   }
 
 
-  if (any(c("horizontal", "horizontalfill") %in% plot_mode)) {
+  if (any(c("horizontal", "horizontalfill","horizontalstack") %in% plot_mode)) {
     if (plot_axes$y == "value") {
       roboplotr_alert("Did you want \"value\" to be x-axis? Use the parameter 'plot_axes'.")
     }
@@ -891,7 +996,9 @@ roboplot <- function(d,
       width,
       legend_title,
       pattern_showlegend,
-      pattern_sep
+      pattern_sep,
+      error_bars,
+      markers
     )
   # }
 
@@ -1131,8 +1238,11 @@ roboplotr_get_plot <-
            width,
            legend_title,
            pattern_showlegend,
-           pattern_sep
+           pattern_sep,
+           error_bars,
+           markers
            ) {
+
     plot_colors <-
       pull(
         distinct(d, .data$roboplot.trace.color,!!color),
@@ -1154,11 +1264,11 @@ roboplotr_get_plot <-
               height = height,
               width = width,
               colors = plot_colors)
-
     p_mode <-
       ifelse(any(str_detect(
-        d$roboplot.plot.mode, "dodge|horizontal"
-      )), "group", "relative")
+        unique(d$roboplot.plot.mode), "stack"
+      )), "relative", "group")
+
     p  <- layout(p, barmode = p_mode)
 
     d <- d |>
@@ -1176,7 +1286,7 @@ roboplotr_get_plot <-
     roboplot.legend.rank = ((as.numeric(!!color) - 1) * 100) + ((as.numeric(.data$roboplot.dash) - 1) * 10)
     )
 
-    if (any(c("horizontal", "horizontalfill") %in% d$roboplot.plot.mode)) {
+    if (any(c("horizontal", "horizontalfill","horizontalstack") %in% d$roboplot.plot.mode)) {
       if ("horizontalfill" %in% d$roboplot.plot.mode) {
         d <- roboplotr_get_bar_widths(d, ticktypes$y)
       }
@@ -1208,12 +1318,12 @@ roboplotr_get_plot <-
       split_d <- rev(split_d)
     }
 
-    rotation <- if ("rotated" %in% d$roboplot.plot.mode) {
-      -(
+    if ("rotated" %in% d$roboplot.plot.mode) {
+      rotation <- -(
         group_by(d,!!color) |> summarize(value = sum(.data$value), .groups = "drop") |> mutate(value = .data$value / sum(.data$value)) |> slice_min(!!color) |> pull(.data$value) * 360 / 2
       )
     } else {
-      0
+      rotation <- 0
     }
 
     if (!is.null(height) & !is.null(legend_position)) {
@@ -1228,7 +1338,7 @@ roboplotr_get_plot <-
       hoverlab <- case_when(
         tracetype == "pie" ~ "label",
         any(
-          c("horizontal", "horizontalfill") %in% g$roboplot.plot.type
+          c("horizontal", "horizontalfill","horizontalstack") %in% g$roboplot.plot.type
         ) & is.null(pattern) & quo_name(color) != ticktypes$y ~ "text",
         TRUE ~ "customdata"
       )
@@ -1274,11 +1384,27 @@ roboplotr_get_plot <-
           str_c("<b>", as_name(color), "</b>")
         }
 
+      if(!is.null(error_bars)) {
+        if(quo_is_null(error_bars$error_x)) {
+          error_x <- NULL
+        } else {
+          error_x <- list(array = error_bars$error_x, color = error_bars$xcolor)
+        }
+        if(quo_is_null(error_bars$error_y)) {
+          error_y <- NULL
+        } else {
+          error_y <- list(array = error_bars$error_y, color = error_bars$ycolor)
+        }
+      } else {
+        error_x <- NULL
+        error_y <- NULL
+      }
+
       plotting_params <- list(
         color = color,
         #!pie
         customdata = if (any(
-          c("horizontal", "horizontalfill") %in% g$roboplot.plot.mode
+          c("horizontal", "horizontalfill","horizontalstack") %in% g$roboplot.plot.mode
         )) {
           ~ roboplot.horizontal.label
         } else {
@@ -1292,6 +1418,8 @@ roboplotr_get_plot <-
         # } else {
         #   NULL
         # },
+        error_x = error_x,
+        error_y = error_y,
         hoverlabel = list(
           bgcolor = ~ roboplot.bg.color,
           color = ~ roboplot.tx.color
@@ -1323,11 +1451,14 @@ roboplotr_get_plot <-
         marker = list(
           colors = ~ roboplot.trace.color,
           line = getOption("roboplot.trace.border"),
-          pattern = if(is.null(pattern)) {
-            list(shape = ~ roboplot.pattern)
-          } else {
-            list(shape = arrange(g, as.character({{pattern}}))$roboplot.pattern)
-          }
+          # pattern = if(is.null(pattern)) {
+          #   list(shape = ~ roboplot.pattern)
+          # } else {
+          #   list(shape = arrange(g, as.character({{pattern}}))$roboplot.pattern)
+          # }
+          symbol = markers$symbol,
+          size = markers$size,
+          pattern = ~ list(shape = roboplot.pattern)
         ),
         #pie, bar
         mode = str_replace_all(
@@ -1357,7 +1488,7 @@ roboplotr_get_plot <-
         #bar ## onko ok?? mieti
         orientation = ifelse(
           any(
-            c("horizontal", "horizontalfill") %in% g$roboplot.plot.mode
+            c("horizontal", "horizontalfill","horizontalstack") %in% g$roboplot.plot.mode
           ) & "bar" %in% g$roboplot.plot.type,
           "h",
           "v"
@@ -1368,7 +1499,7 @@ roboplotr_get_plot <-
         sort = F,
         #pie
         text = if (any(
-          c("horizontal", "horizontalfill") %in% g$roboplot.plot.mode
+          c("horizontal", "horizontalfill","horizontalstack") %in% g$roboplot.plot.mode
         )) {
           ~ roboplot.horizontal.label
         } else {
@@ -1421,7 +1552,9 @@ roboplotr_get_plot <-
           "showlegend",
           "type",
           "legendgrouptitle",
-          "customdata"
+          "customdata",
+          "error_y",
+          "error_x"
         )
 
         if (tracetype %in% "scatter" &
@@ -1442,6 +1575,7 @@ roboplotr_get_plot <-
                             "line",
                             "mode",
                             "name",
+                            "marker",
                             "color",
                             "xhoverformat")]
         } else if (tracetype == "scatter" &
@@ -1452,9 +1586,10 @@ roboplotr_get_plot <-
                             "mode",
                             "name",
                             "color",
+                            "marker",
                             "xhoverformat")]
         } else if (tracetype == "bar" &
-                   any(c("horizontal", "horizontalfill") %in% g$roboplot.plot.mode)) {
+                   any(c("horizontal", "horizontalfill","horizontalstack") %in% g$roboplot.plot.mode)) {
           plotting_params <- plotting_params[c(
             shared_params,
             "x",
@@ -1560,7 +1695,7 @@ roboplotr_add_trace <- function(...) {
 roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
   plot_modes <- list(
     "scatter" = c("line", "scatter", "step", "scatter+line", "smooth"),
-    "bar" = c("dodge", "stack", "horizontal", "horizontalfill"),
+    "bar" = c("dodge", "stack", "horizontal", "horizontalfill","horizontalstack"),
     "pie" = c("normal", "rotated")
   )
   if (is.null(plot_mode)) {
@@ -1615,4 +1750,84 @@ roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
     stop(msg, call. = F)
   }
   d
+}
+
+#' Set the error bars
+#' @param error_x,error_y Symbol, string, or function resulting in symbol or
+#' string. Columns from param 'd' or [roboplot()] error bars.
+#' @param xcolor,ycolor Characters. Error bar colors. Must be a hexadecimal color
+#' strings or a valid css color strings.
+#' @examples
+#' # You need a column for error bar values to add error bars. Then refer to that
+#' # numeric column by set_errorbars() with the proper axis.
+#' d <- energiantuonti |>
+#'   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä", year(time) > 2016) |>
+#'   dplyr::group_by(Alue) |>
+#'   dplyr::mutate(sd = sd(value)) |>
+#'   dplyr::ungroup()
+#' d |> roboplot(Alue,
+#'               plot_type = "bar",
+#'               error_bars = set_errorbars(error_y = sd))
+#' # You can change the color by providing the proper reference.
+#' d |> roboplot(Alue,
+#'               plot_type = "bar",
+#'               error_bars = set_errorbars(error_y = sd, ycolor = "green"))
+#'
+#' # Remember to refer to proper axis.
+#' d |> roboplot(Alue,
+#'               plot_type = "bar",
+#'               plot_mode = "horizontal",
+#'               plot_axes = set_axes(y = "time", yticktype = "date"),
+#'               error_bars = set_errorbars(error_x = sd, xcolor = "pink"))
+#'
+#'
+#' @export
+set_errorbars <-
+  function(error_x = NULL,
+           error_y = NULL,
+           xcolor = getOption("roboplot.errorbars")$xcolor,
+           ycolor = getOption("roboplot.errorbars")$xcolor) {
+    error_x <- enquo(error_x)
+    error_y <- enquo(error_y)
+    roboplotr_check_param(xcolor, "character")
+    roboplotr_check_param(ycolor, "character")
+    roboplotr_valid_colors(c(xcolor, ycolor), "Error bar colors")
+    list(
+      error_x = error_x,
+      error_y = error_y,
+      xcolor = xcolor,
+      ycolor = ycolor
+    )
+  }
+
+#' @importFrom rlang as_name quo_is_null
+#' @importFrom stringr str_glue
+roboplotr_validate_errorbars <- function(error_bars, d) {
+  if(!is.null(error_bars)) {
+    d_names <- names(d)
+    error_x <- error_bars$error_x
+    error_y <- error_bars$error_y
+    roboplotr_check_valid_var(error_x, d_names, "set_errorbars")
+    roboplotr_check_valid_var(error_y, d_names, "set_errorbars")
+    if(!quo_is_null(error_x)) {
+      if(!"numeric" %in% class(d[[as_name(error_x)]])) {
+        stop(
+          str_glue(
+            "To display an error bar, the column '{as_name(error_x)}' from roboplotr::roboplot() param 'd' must be numeric!"
+          ),
+          call. = FALSE
+        )
+      }
+    }
+    if(!quo_is_null(error_y)) {
+      if(!"numeric" %in% class(d[[as_name(error_y)]])) {
+        stop(
+          str_glue(
+            "To display an error bar, the column '{as_name(error_x)}' from roboplotr::roboplot() param 'd' must be numeric!"
+          ),
+          call. = FALSE
+        )
+      }
+    }
+  }
 }

@@ -146,10 +146,11 @@
 #'
 #' # Making a reasonable line plot like this is a challenge, though, and you are
 #' # better off with a horizontal bar plot.
-#' d |> dplyr::filter(Suunta == "Tuonti") |>
+#' d |>
+#' dplyr::filter(Suunta == "Tuonti", time == max(time)) |>
 #'   roboplotr::roboplot(Alue, "Energian tuonti","Milj. €", "Tilastokeskus",
 #'                       plot_type = "bar",
-#'                       plot_mode = "horizontal",
+#'                       plot_mode = "horizontalfill",
 #'                       plot_axes = set_axes(
 #'                         y = "Alue",
 #'                         yticktype = "character",
@@ -171,7 +172,9 @@ set_axes <-
            yformat = NULL,
            xformat = NULL,
            ylim = c(NA, NA),
-           xlim = c(NA, NA)) {
+           xlim = c(NA, NA)
+           ) {
+
     if (is.null(y)) {
       y <- "value"
     } else if (y != "value" & is.null(x)) {
@@ -419,8 +422,7 @@ roboplotr_get_tick_layout <- function(ticktype,
       tickfont = font,
       ticksuffix = " ",
       autorange = ifelse(reverse, "reversed", TRUE),
-      categoryorder = "trace",
-      #ifelse(reverse, "trace", "trace"),
+      categoryorder = "array",
       tickmode = ifelse(axis == "y", "linear", "auto"),
       tickangle = "auto",
       type = "category",
@@ -482,7 +484,7 @@ roboplotr_set_ticks <- function(p, ticktypes) {
 
 
 #' @importFrom dplyr case_when
-#' @importFrom lubridate month quarter wday week yday
+#' @importFrom lubridate as_date month quarter wday week yday
 roboplotr_guess_xaxis_ceiling <-
   function(d, hovertext, ceiling = "guess", what = "xaxis_ceiling") {
 
@@ -525,7 +527,7 @@ roboplotr_guess_xaxis_ceiling <-
           freq <- freqs[min(which(freqs == freq)+1,length(freqs))]
         }
         this_ceiling <-
-          seq.Date(max(this_time), length.out = this_ceiling + 1, by = freq) |>
+          seq.Date(as_date(max(this_time)), length.out = this_ceiling + 1, by = freq) |>
           max()
       }
 

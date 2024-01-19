@@ -16,9 +16,10 @@
 #' @param linewidth Numeric. The default roboplotr line trace width.
 #' @param locale Function. Defines locale parameters as [roboplot()] needs them. Use [set_locale()].
 #' @param logo_file Character. The filepath to the logo used in every plot.
+#' @param markers Function. Control marker appearance. Use [set_markers()].
 #' @param modebar Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
-#' @param trace_border List. Borders for bars and pies. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.
+#' @param trace_border List. Borders for bars, pies and markers. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
 #' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [set_imgdl_layout]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
@@ -119,11 +120,13 @@
 #' # it alerts the user for this. When provided, 'yaxis_ceiling' will leave
 #' # either a predefined gap between x-axis end and the plot edge, or try to
 #' # guess an appropriate gap. This can also be controlled by-plot and will not
-#' # work with bar plots.
+#' # work with bar plots. Finally, you can somewhat control markers with
+#' roboplot::set_markers().
 #'
 #' set_roboplot_options(
 #'   dashtypes = c("longdash", "dashdot", "longdashdot", "solid", "dash", "dot"),
 #'   linewidth = 4,
+#'   markers = set_markers(symbol = "diamond", size = 12),
 #'   patterns = c("x","-","|","+",".","","/","\\"),
 #'   trace_colors = c("#027f93", "#153a42", "#f78b04"),
 #'   xaxis_ceiling = "guess"
@@ -131,15 +134,16 @@
 #'
 #' d <- energiantuonti |> dplyr::filter(Alue %in% c("Kanada","Norja"))
 #'
-#' p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus", pattern = Suunta)
+#' d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus", pattern = Suunta)
 #'
-#' p
-#'
-#' p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
+#' d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
 #'                    plot_type = "bar",
 #'                    pattern = Suunta)
 #'
-#' p
+#' d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
+#'                    plot_mode = "scatter+line",
+#'                    pattern = Suunta)
+#'
 #'
 #' set_roboplot_options(reset = TRUE)
 #'
@@ -280,6 +284,7 @@ set_roboplot_options <- function(
     linewidth = NULL,
     locale = NULL,
     logo_file = NULL,
+    markers = NULL,
     modebar = NULL,
     patterns = NULL,
     tick_colors = NULL,
@@ -382,6 +387,8 @@ set_roboplot_options <- function(
       roboplotr_check_param(zeroline, "function", NULL, f.name = list(fun = substitute(zeroline)[1], check = "set_zeroline"))
     }
 
+    roboplotr_check_param(markers, "function", NULL,  f.name = list(fun = substitute(markers)[1], check = "set_markers"))
+
     roboplotr_check_param(modebar, "character", NULL)
     roboplotr_valid_strings(modebar, c("home","closest","compare","zoomin","zoomout","img_w","img_n","img_s","data_dl","robonomist"), any)
 
@@ -439,6 +446,7 @@ set_roboplot_options <- function(
     set_roboplot_option(locale)
     set_roboplot_option(linewidth)
     set_roboplot_option(logo_file, "logo")
+    set_roboplot_option(markers)
     set_roboplot_option(modebar, "modebar.buttons")
     set_roboplot_option(imgdl_wide,"imgdl.wide")
     set_roboplot_option(imgdl_narrow,"imgdl.narrow")

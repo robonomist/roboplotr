@@ -17,12 +17,15 @@ roboplot(
   zeroline = FALSE,
   rangeslider = FALSE,
   pattern = NULL,
+  grouped = NULL,
   line_width = getOption("roboplot.linewidth"),
   hovertext = NULL,
   plot_type = "scatter",
   plot_mode = NULL,
   plot_axes = set_axes(),
+  markers = set_markers(),
   height = getOption("roboplot.height"),
+  error_bars = NULL,
   facet_split = NULL,
   legend_maxwidth = NULL,
   xaxis_ceiling = getOption("roboplot.xaxis.ceiling"),
@@ -37,61 +40,118 @@ roboplot(
 )
 }
 \arguments{
-\item{d}{Data frame. Data to be plotted with at least the columns "time" (Date or POSIXt) and "value" (numeric). Other columns could be specified instead with 'plot_axes', using \code{\link[=set_axes]{set_axes()}}.}
+\item{d}{Data frame. Data to be plotted with at least the columns "time"
+(Date or POSIXt) and "value" (numeric). Other columns could be specified
+instead with 'plot_axes', using \code{\link[=set_axes]{set_axes()}}.}
 
-\item{color}{Symbol, string, or function resulting in symbol or string. Column from param 'd' to use for trace color. If NULL, the argument 'subtitle' will be used as a placeholder for determining color and hoverlabels.}
+\item{color}{Symbol, string, or function resulting in symbol or string.
+Column from param 'd' to use for trace color. If NULL, the argument 'subtitle'
+will be used as a placeholder for determining color and hoverlabels.}
 
-\item{title, subtitle}{Characters. Labels for plot elements. Optionally, use \code{\link[=set_title]{set_title()}} for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.}
+\item{title, subtitle}{Characters. Labels for plot elements. Optionally, use
+\code{\link[=set_title]{set_title()}} for the title if you want to omit the title from the
+displayed plot, but include it for any downloads through the modebar.}
 
 \item{caption}{Function or character. Use \code{\link[=set_caption]{set_caption()}}.}
 
-\item{legend_position, legend_orientation}{Characters. Currently only legend_position is used, and takes only "bottom" or NA for no legend. Legend is removed on default if the argument 'color' in argument 'd' has only one observation.}
+\item{legend_position, legend_orientation}{Characters. Currently only
+legend_position is used, and takes only "bottom" or NA for no legend.
+Legend is removed on default if the argument 'color' in argument 'd' has only
+one observation.}
 
-\item{trace_color}{Character vector, named if length > 1. Trace colors for all traces. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
+\item{trace_color}{Character vector, named if length > 1. Trace colors for all
+traces. Determines the trace type for either the whole plot, or for all variables
+defined by param 'color' as name-value pairs.}
 
-\item{highlight}{Double or list. Determines if a given trace is included in legend and assigned a color.
-If double, traces with max(value) < highlight will be give trace color matching the grid color, and removed from the legend.
-If function, it must return a logical and include named items "value" and ".fun", where .fun checks if given value will get a color or legend item.
+\item{highlight}{Numeric or list. Determines if a given trace is included in
+legend and assigned a color. If numeric, traces with max(value) < highlight
+will be give trace color matching the grid color, and removed from the
+legend. If function, it must return a logical and include named items "value"
+and ".fun", where .fun checks if given value will get a color or legend item.
 Will not currently work with multiple patterns.}
 
-\item{zeroline}{Logical or double. Determines zeroline inclusion, TRUE for zeroline, or double for exact placement.}
+\item{zeroline}{Logical or numeric. Determines zeroline inclusion, TRUE for
+zeroline, or numeric for exact placement.}
 
-\item{rangeslider}{Logical or character in \%Y-\%m-\%d format. Determines rangeslider inclusion. TRUE includes the rangeslider, a character string includes the rangeslider with the given date as a start date.}
+\item{rangeslider}{Logical or character in \%Y-\%m-\%d format. Determines
+rangeslider inclusion. TRUE includes the rangeslider, a character string
+includes the rangeslider with the given date as a start date.}
 
-\item{pattern}{Symbol, string, or function resulting in symbol or string. Optionally, use \code{\link[=set_pattern]{set_pattern()}} for more fine-tuned control. See documentation of that function. Column from param 'd' to use for scatter plot linetype or bar plot pattern. Not supported for pie charts.}
+\item{pattern}{Symbol, string, or function resulting in symbol or string.
+Optionally, use \code{\link[=set_pattern]{set_pattern()}} for more fine-tuned control. See documentation
+of that function. Column from param 'd' to use for scatter plot linetype or
+bar plot pattern. Not supported for pie charts.}
 
-\item{line_width}{Double vector, named if length > 1. Line width for all line traces. Determines the line width for either the whole plot, or for all variables defined by color as name-value pairs.}
+\item{line_width}{Numeric vector, named if length > 1. Line width for all
+line traces. Determines the line width for either the whole plot, or for all
+variables contained in the column defined by param 'color' as name-value pairs.}
 
 \item{hovertext}{Function. Use \code{\link[=set_hovertext]{set_hovertext()}}.}
 
-\item{plot_type}{Character vector, named if length > 1. Determines the trace type for either the whole plot, or for all variables defined by color as name-value pairs.}
+\item{plot_type}{Character vector, named if length > 1. Determines the trace
+type for either the whole plot, or for all variables defined by color as
+name-value pairs.}
 
-\item{plot_mode}{Character vector, named if length > 1. Controls plot specifics along with the parameter 'plot_type'. When 'plot_type' is "scatter", the available modes are "line" "scatter", "smooth", "step" and "scatter+line".
-When 'plot_type' is "bar", the available modes are "dodge" "stack", "horizontal" and "horizontalfill". Mode of "horizontalfill" makes bars fill the space available is observations are missing. When 'plot_type' is "pie", the available modes are "normal" and "rotated".
-You can give a single unnamed 'plot_mode' which is used as applicable, or name-value pairs, where names are items from parameter 'd' column described by parameter 'color', and values applicable plot modes listed above.}
+\item{plot_mode}{Character vector, named if length > 1. Controls plot specifics
+along with the parameter 'plot_type'. When 'plot_type' is "scatter", the
+available modes are "line" "scatter", "smooth", "step" and "scatter+line".
+When 'plot_type' is "bar", the available modes are "dodge" "stack",
+"horizontal", "horizontalfill" and "horizontalstack". Mode of "horizontalfill"
+makes bars fill the space available is observations are missing. When
+'plot_type' is "pie", the available modes are "normal" and "rotated". You can
+give a single unnamed 'plot_mode' which is used as applicable, or name-value
+pairs, where names are items from parameter 'd' column described by parameter
+'color', and values applicable plot modes listed above.}
 
-\item{plot_axes}{Function. Function. Use \code{\link[=set_axes]{set_axes()}}.}
+\item{plot_axes}{Function. Use \code{\link[=set_axes]{set_axes()}}.}
 
-\item{height, width}{Double. Height and width of the plot. Default width is NA for responsive plots, give a value for static plot width.}
+\item{markers}{Function. Use \code{\link[=set_markers]{set_markers()}}. Marker appearance for all markers.}
 
-\item{facet_split}{Currently unused. Variable from argument 'd' to use for facet splits.}
+\item{height, width}{Numeric. Height and width of the plot. Default width is
+NA for responsive plots, give a value for static plot width.}
 
-\item{legend_maxwidth}{Double. Legend items (and y-axis values for horizontal barplots) longer than this will be collapsed with an ellipsis.}
+\item{error_bars}{Function. Use \code{\link[=set_errorbars]{set_errorbars()}}. Specifications for any error bars.}
 
-\item{xaxis_ceiling}{Character or date. One of "default", "days", "months", "weeks", "quarters", "years", or "guess"). Set, or round, the upper bound of plot x-axis for other than bar plots if no axis limits are given.}
+\item{facet_split}{Currently unused. Variable from argument 'd' to use for
+facet splits.}
 
-\item{secondary_yaxis}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' resulting in a maximum of two factor levels, determining which observations if any use a secondary y-axis.
-Parameter 'zeroline' will be ignored. Cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through modebar.}
+\item{legend_maxwidth}{Numeric. Legend items (and y-axis values for horizontal
+barplots) longer than this will be collapsed with an ellipsis.}
 
-\item{legend_title}{Logical or character. Use TRUE if you want the parameter 'color' to be the legend title. Use a character string if you want to provide your own legend title.}
+\item{xaxis_ceiling}{Character or date. One of "default", "days", "months",
+"weeks", "quarters", "years", or "guess"). Set, or round, the upper bound of
+plot x-axis for other than bar plots if no axis limits are given.}
 
-\item{shadearea}{Use if you want to have a highlighted area on the \code{\link[=roboplot]{roboplot()}}. Use \code{\link[=set_shadearea]{set_shadearea()}} for fine-tuned control (see that function for documentation), or provide a single value that corresponds with the x-axis of the plot. Currently only useful when x-axis is numeric or date, and y-axis is numeric.}
+\item{secondary_yaxis}{Symbol, string, or function resulting in symbol or
+string. Variable from argument 'd' resulting in a maximum of two factor
+levels, determining which observations if any use a secondary y-axis.
+Parameter 'zeroline' will be ignored. Cannot currently differentiate between
+the axes in legend, and right margin will not scale properly on zoom and
+possibly on image files downloaded through modebar.}
 
-\item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned control. Use TRUE instead for automated artefact creation or html and/or other files from the plot based on settings globally set by \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
+\item{legend_title}{Logical or character. Use TRUE if you want the parameter
+'color' to be the legend title. Use a character string if you want to
+provide your own legend title.}
 
-\item{container}{Character. Experimental, might not work as intended. Use only with shiny apps. A css selector for the element in a shiny app where this \code{\link[=roboplot]{roboplot()}} will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.}
+\item{shadearea}{Use if you want to have a highlighted area on the
+\code{\link[=roboplot]{roboplot()}}. Use \code{\link[=set_shadearea]{set_shadearea()}} for fine-tuned control (see that function
+for documentation), or provide a single value that corresponds with the x-axis
+of the plot. Currently only useful when x-axis is numeric or date, and y-axis
+is numeric.}
 
-\item{info_text}{Character. Experimental, might not work as intended. If provided, an info button is appended to the modebar or the \code{\link[=roboplot]{roboplot()}} which brings about a popup with this parameter as the text content.}
+\item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned
+control. Use TRUE instead for automated artefact creation or html and/or other
+files from the plot based on settings globally set by \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
+
+\item{container}{Character. Experimental, might not work as intended. Use only
+with shiny apps. A css selector for the element in a shiny app where this
+\code{\link[=roboplot]{roboplot()}} will be contained in. Used for relayouts if the plot is rendered
+while the container is not displayed.}
+
+\item{info_text}{Character. Experimental, might not work as intended on
+standalone web pages. If provided, an info button is appended to the modebar
+of the \code{\link[=roboplot]{roboplot()}} which brings about a popup with this parameter as the text
+content.}
 
 \item{...}{Placeholder for other parameters.}
 }
@@ -190,7 +250,7 @@ d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
 
 
 # With single 'time' observation x-axis tickmarks lose tick labels. There are
-several places where this information fits nicely.
+# several places where this information fits nicely.
 d3 <- d2 |> dplyr::filter(time == max(time))
 d3 |>
   roboplot(Alue,
@@ -217,9 +277,14 @@ d2 |>
 # Bar plot can be horizontal with plot axis control and 'plot_mode' set to
 # horizontal but then is better off with only a single 'time' observation. Long
 # legend items and axis labels can be cut off with 'legend_maxwidth', while
-# still showing the proper labels on hover.
+# still showing the proper labels on hover. Control the order of the axes
+# by explicitly setting them as factors.
 d3 |>
   dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
+  dplyr::mutate(Alue = forcats::fct_reorder(Alue, value),
+                Suunta = forcats::fct_reorder(Suunta, value) |>
+                  forcats::fct_rev()
+  ) |>
   roboplot(Suunta,
            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
            "Milj. \u20AC","Tilastokeskus",
@@ -236,13 +301,26 @@ d3 |>
 # If you want the bars to fill the available space in a horizontal bar chart,
 # use the plot_mode of "horizontalfill" instead of "horizontal".
 d3 |>
-  dplyr::mutate(Suunta = paste0(Suunta, " m\uE4\uE4r\uE4maittain")) |>
   roboplot(Suunta,
            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
            "Milj. \u20AC","Tilastokeskus",
            plot_type = "bar",
-           legend_maxwidth = 12,
            plot_mode = "horizontalfill",
+           plot_axes = set_axes(
+             y = "Alue",
+             yticktype = "character",
+             x = "value",
+             xticktype = "numeric")
+  )
+
+
+# Or stack the bars horizontally by using "horizontalstack"
+d3 |>
+  roboplot(Suunta,
+           stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
+           "Milj. \u20AC","Tilastokeskus",
+           plot_type = "bar",
+           plot_mode = "horizontalstack",
            plot_axes = set_axes(
              y = "Alue",
              yticktype = "character",
@@ -255,6 +333,20 @@ d3 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
                pattern = Suunta,
                plot_type = "pie")
 
+# Aside from patterns, you might want to change markers used on scatter plots
+# by using set_pattern(). You can also include error bars on any numeric axis
+# by specifying them with set_errorbars(). See both functions for more details.
+d2 |>
+dplyr::filter(Alue == "Venäjä") |>
+  dplyr::group_by(Alue) |>
+  dplyr::mutate(sd = sd(value)) |>
+  dplyr::ungroup() |>
+  roboplot(Alue,
+           plot_type = "scatter",
+           plot_mode = "scatter",
+           markers = set_markers("line", 12),
+           error_bars = set_errorbars(error_y = sd)
+  )
 # Pie plot can be centered to the first factor level of argument 'color' with
 # with plot_mode "rotated".
 d3 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC",

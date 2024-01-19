@@ -172,10 +172,11 @@ d |> dplyr::filter(Suunta == "Tuonti") |>
 
 # Making a reasonable line plot like this is a challenge, though, and you are
 # better off with a horizontal bar plot.
-d |> dplyr::filter(Suunta == "Tuonti") |>
+d |>
+dplyr::filter(Suunta == "Tuonti", time == max(time)) |>
   roboplotr::roboplot(Alue, "Energian tuonti","Milj. €", "Tilastokeskus",
                       plot_type = "bar",
-                      plot_mode = "horizontal",
+                      plot_mode = "horizontalfill",
                       plot_axes = set_axes(
                         y = "Alue",
                         yticktype = "character",

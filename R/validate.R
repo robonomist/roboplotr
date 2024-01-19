@@ -1,8 +1,8 @@
 #' @importFrom rlang as_name enquo eval_tidy quo quo_is_call quo_is_null sym
 #' @importFrom stringr str_glue
-roboplotr_check_valid_var <- function(var,names) {
+roboplotr_check_valid_var <- function(var,names,where = NULL) {
   this_var <- as_name(substitute(var))
-  wrn <- "The variable '{this_var}' must be a length 1 string or symbol, or a function resulting in length 1 string or symbol that is among the names of argument 'd' of roboplotr::roboplot()."
+  wrn <- "The variable '{this_var}'{where}must be a length 1 string or symbol, or a function resulting in length 1 string or symbol that is among the names of argument 'd' of roboplotr::roboplot()."
   if(quo_is_null(var) == T) {
     return(NULL)
   }
@@ -18,6 +18,11 @@ roboplotr_check_valid_var <- function(var,names) {
   var <- quo(!!sym(as_name(var)))
 
   if(length(as_name(var)) > 1 | !as_name(var) %in% names) {
+    if (!is.null(where)) {
+      where <- str_glue(" in {where}() ")
+    } else {
+      where <- ""
+      }
     stop(str_glue(wrn), call. = F)
   }
 

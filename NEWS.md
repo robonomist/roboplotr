@@ -1,3 +1,12 @@
+# roboplotr 1.4.2
+
+* Axes with ticktype of "character" sorting fixed.
+* Added the "horizontalstack" for plot_mode options available for a horizontal bar plot.
+* Added the "markers" as parameter for roboplot, along with set_marker() to use it.
+* Added the "error_bars" as parameter for roboplot, along with set_errorbars() to use it.
+* roboplot() xaxis_ceiling fix.
+* legend, caption and logo positioning fixes
+
 # roboplotr 1.4.1.1
 
 * minor addition for set_shadearea usage example.

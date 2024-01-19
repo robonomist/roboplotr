@@ -8,8 +8,9 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
       elslider = $(el).find('g.infolayer > g.rangeslider-container')[0].getBBox().height
     }
   }
+  let elxticks_default = pie_chart ? 5 : 0
   let elxticks = $(el).find('g.xaxislayer-above')
-  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  0 };
+  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  elxticks_default };
   let modebar_ht = 0;
   let elmodebar = $(el).find('div.modebar');
   if(elmodebar.length > 0) {
@@ -23,7 +24,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   } else {
     elxtitle = 0
   }
-  let ellegend = {width: 0, height: 15}
+  let ellegend = {width: 0, height: 0}
   if ($(el).find('g.legend')[0] != undefined) {
     ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 5)
     ellegend.width =  $(el).find('g.legend')[0].getBBox().width
@@ -39,7 +40,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let images_sizey = (elcontainer * 0.05) / elplot.height;
   el.layout.images[0].sizey = images_sizey
   let legend_y = -((elxticks + 5 + (elslider*2) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
-  if (legend_y < -2 || (ellegend.height > (elplot.height * 2))) {
+  if (legend_y < -2 || (elplot.height < (elcontainer / 4))) {
     if ('rangeslider' in el.layout.xaxis) {
       if(el.layout.xaxis.rangeslider.visible == true) {
         Plotly.relayout(el, {"showlegend" : false, 'xaxis.rangeslider.visible': false })
@@ -48,23 +49,25 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
       Plotly.relayout(el, {"showlegend" : false})
     }
     elslider = 0;
-    let elxticks = $(el).find('g.xaxislayer-above')
-    if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = 0 };
+    elxticks = $(el).find('g.xaxislayer-above')
+    if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = elxticks_default };
 /*    if ($(el).find('g.legend')[0] != undefined) {
       ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 5)
       ellegend.width =  $(el).find('g.legend')[0].getBBox().width
     };*/
-    margin_bottom = 0 + elcaption + elxticks + elxtitle;
-    let elplot = pie_chart ? elcontainer-margin_bottom-margin_top : $(el).find('.gridlayer');
+    margin_bottom = elcaption + elxticks + elxtitle;
+    margin_bottom = logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend);
+    let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.gridlayer');
     if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
     if (elplot.height == 0) { elplot.height = 1}
     images_sizey = (elcontainer * 0.05) / elplot.height;
     legend_y = -((margin_bottom - elcaption) / elplot.height);
-  }  else {
-    Plotly.relayout(el, {"showlegend" : true})
+  }  else if ((elplot.height > (elcontainer / 2)) & el.layout.showlegend == false) {
+    Plotly.relayout(el, {"showlegend" : true});
   }
   let title_y = (elcontainer - (21+modebar_ht)) / elcontainer
   let low_bound_adjust = elxticks == 0 ? -elcaption : 0
+  low_bound_adjust = ellegend.height == 0 ? low_bound_adjust-5 : low_bound_adjust
   let low_bound = -((margin_bottom+elslider+low_bound_adjust) / elplot.height)//-Math.min((elcontainer - (elplot.height+margin_top)) / elplot.height,(margin_bottom / elplot.height))
   let annotations_y = low_bound
   let images_y = low_bound
@@ -173,33 +176,32 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
         relayout_array["title.text"] = title_text;
     }
     Plotly.relayout(gd, relayout_array);
-    let the_logo = $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()
     let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
-    let captionspace
-    if(pie_chart) {
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo)
+    relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
+    Plotly.relayout(gd, relayout_array);
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo)
+    relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
+    Plotly.relayout(gd, relayout_array);
+    Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['images[0].y', 'annotations[0].y', 'margin.t', 'margin.b','legend.y','images[0].sizey','yaxis.tickfont.size'], pie_chart = pie_chart, logo = logo));
+    Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['images[0].y', 'annotations[0].y', 'legend.y', "margin.b", 'title.y'], pie_chart = pie_chart, logo = logo));
+  }
+}
+
+function findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace) {
+  let captionspace
+  let gdcaption = $(gd).find('g.annotation')[0].getBBox().width;
+  let caption_text = gd.layout.annotations[0].text.replace(new RegExp("<br class = 'roboplotr-breaker'>", 'g'), " ")
+  if(pie_chart) {
       captionspace = titlespace
     } else {
       let plot_width = $(gd).find('.gridlayer')[0].getBBox().width
+      let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
       captionspace = Math.max(plot_width - logo_width, Math.round(logo_width / 2))
     }
-    let gdcaption = $(gd).find('g.annotation')[0].getBBox().width;
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size'], pie_chart = pie_chart, logo = logo)
-    if(captionspace < gdcaption) {
-      relayout_array['annotations[0].text'] = stringDivider(caption_text, Math.floor(captionspace/(gd.layout.annotations[0].font.size/2)), "<br class = 'roboplotr-breaker'>")
-    }
-    Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size'], pie_chart = pie_chart, logo = logo)
-    if(captionspace < gdcaption) {
-      relayout_array['annotations[0].text'] = stringDivider(caption_text, Math.floor(captionspace/(gd.layout.annotations[0].font.size/2)), "<br class = 'roboplotr-breaker'>")
-    }
-    Plotly.relayout(gd, relayout_array);
-    Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['margin.t', 'margin.b','legend.y','images[0].sizey','yaxis.tickfont.size'], pie_chart = pie_chart, logo = logo));
-    Plotly.relayout(gd,
-                    getVerticalLayout(gd, legend_fontsize, false,
-                                      keys = ['images[0].y', 'annotations[0].y', 'legend.y', "margin.b",
-                                              'title.y', 'yaxis.tickfont.size'],
-                                      pie_chart = pie_chart, logo = logo));
-  }
+    relayout_array['annotations[0].text'] = stringDivider(caption_text, Math.floor(captionspace/(gd.layout.annotations[0].font.size/2)), "<br class = 'roboplotr-breaker'>")
+
+    return relayout_array
 }
 
 function findShapeById(plotDiv, customId) {

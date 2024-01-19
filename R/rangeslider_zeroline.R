@@ -174,6 +174,7 @@ set_zeroline <-
            color = getOption("roboplot.zeroline")$color,
            width  = getOption("roboplot.zeroline")$width) {
     roboplotr_check_param(width, "numeric")
+    roboplotr_check_param(color, "character")
     roboplotr_valid_colors(color, "Zeroline color")
     list(color = color, width = width)
   }

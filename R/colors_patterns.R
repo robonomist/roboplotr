@@ -669,6 +669,49 @@ roboplotr_get_pattern_showlegend <- function(d, pattern, pattern_showlegend) {
   pattern_showlegend
 }
 
+#' Set roboplot() marker appearance
+#' @param symbol Character. The marker symbol when drawn by [roboplot()]. Any
+#' one of "circle","square","diamond","cross","x", "line" or "star".
+#' @param size Numeric. Marker size for markers.
+#' @examples
+#' # You can change the markers roboplot() uses by using set_markers().
+#' energiantuonti |>
+#'   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä") |>
+#'   dplyr::group_by(Alue) |>
+#'   dplyr::mutate(sd = sd(value)) |>
+#'   dplyr::ungroup() |>
+#'   roboplot(
+#'     Alue,
+#'     plot_type = "scatter",
+#'     plot_mode = "scatter",
+#'     markers = set_markers(symbol = "diamond", size = 12)
+#'   )
+#' # You cannot control the markers by trace, but you can use pattern along with
+#' # markers if you have set 'plot_mode' to "scatter+line".
+#' energiantuonti |>
+#'   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä") |>
+#'   dplyr::group_by(Alue) |>
+#'   dplyr::mutate(sd = sd(value)) |>
+#'   dplyr::ungroup() |>
+#'   roboplot(
+#'     Alue,
+#'     plot_type = "scatter",
+#'     plot_mode = "scatter+line",
+#'     pattern = set_pattern(Alue, pattern_types = c("Venäjä" = "dot")),
+#'     markers = set_markers(symbol = "square", size = 8)
+#'   )
+#'
+#' @export
+set_markers <-
+  function(symbol = getOption("roboplot.markers")$symbol,
+           size = getOption("roboplot.markers")$size) {
+    roboplotr_check_param(size, "numeric",allow_null = F)
+    roboplotr_check_param(symbol, "character",allow_null = F)
+    symbol <- str_remove(symbol, "-ew-open$")
+    roboplotr_valid_strings(symbol, c("circle","square","diamond","cross","x","line","star"), any, "set_markers() param 'symbol'")
+    list(symbol = symbol |> str_replace("line","line-ew-open"), size = size)
+
+  }
 
 #' #' Map palette specifications for [robomap()]
 #' #'

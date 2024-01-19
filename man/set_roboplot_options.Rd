@@ -23,6 +23,7 @@ set_roboplot_options(
   linewidth = NULL,
   locale = NULL,
   logo_file = NULL,
+  markers = NULL,
   modebar = NULL,
   patterns = NULL,
   tick_colors = NULL,
@@ -65,13 +66,15 @@ set_roboplot_options(
 
 \item{logo_file}{Character. The filepath to the logo used in every plot.}
 
+\item{markers}{Function. Control marker appearance. Use \code{\link[=set_markers]{set_markers()}}.}
+
 \item{modebar}{Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.}
 
 \item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
 \item{tick_colors}{List. Plot tick element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
 
-\item{trace_border}{List. Borders for bars and pies. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.}
+\item{trace_border}{List. Borders for bars, pies and markers. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.}
 
 \item{trace_colors}{Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.}
 
@@ -180,11 +183,13 @@ p
 # it alerts the user for this. When provided, 'yaxis_ceiling' will leave
 # either a predefined gap between x-axis end and the plot edge, or try to
 # guess an appropriate gap. This can also be controlled by-plot and will not
-# work with bar plots.
+# work with bar plots. Finally, you can somewhat control markers with
+roboplot::set_markers().
 
 set_roboplot_options(
   dashtypes = c("longdash", "dashdot", "longdashdot", "solid", "dash", "dot"),
   linewidth = 4,
+  markers = set_markers(symbol = "diamond", size = 12),
   patterns = c("x","-","|","+",".","","/","\\\\"),
   trace_colors = c("#027f93", "#153a42", "#f78b04"),
   xaxis_ceiling = "guess"
@@ -192,15 +197,16 @@ set_roboplot_options(
 
 d <- energiantuonti |> dplyr::filter(Alue \%in\% c("Kanada","Norja"))
 
-p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus", pattern = Suunta)
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus", pattern = Suunta)
 
-p
-
-p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
                    plot_type = "bar",
                    pattern = Suunta)
 
-p
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
+                   plot_mode = "scatter+line",
+                   pattern = Suunta)
+
 
 set_roboplot_options(reset = TRUE)
 
