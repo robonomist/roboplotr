@@ -22,6 +22,7 @@ reference:
     - starts_with("set_")
 - title: Utils
   contents:
+    - create_widget
     - roboplot_create_widget
 - title: Datasets
   desc: Datasets used in examples

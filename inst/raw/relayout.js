@@ -26,10 +26,10 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   }
   let ellegend = {width: 0, height: 0}
   if ($(el).find('g.legend')[0] != undefined) {
-    ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 5)
+    ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height)
     ellegend.width =  $(el).find('g.legend')[0].getBBox().width
   };
-  let margin_bottom = ellegend.height + (elcaption + elxticks + elxtitle + elslider*1);
+  let margin_bottom = ellegend.height + 10 + (elcaption + elxticks + elxtitle + elslider*1);
   // pie charts do not give correct height by measuring the plot, investigate
   let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.gridlayer');
   if (elplot.length > 0) {elplot = elplot[0].getBBox()};
@@ -40,7 +40,9 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let images_sizey = (elcontainer * 0.05) / elplot.height;
   el.layout.images[0].sizey = images_sizey
   let legend_y = -((elxticks + 5 + (elslider*2) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
+
   if (legend_y < -2 || (elplot.height < (elcontainer / 4))) {
+//    console.log("TOO TOIT")
     if ('rangeslider' in el.layout.xaxis) {
       if(el.layout.xaxis.rangeslider.visible == true) {
         Plotly.relayout(el, {"showlegend" : false, 'xaxis.rangeslider.visible': false })
@@ -55,19 +57,70 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
       ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height + 5)
       ellegend.width =  $(el).find('g.legend')[0].getBBox().width
     };*/
-    margin_bottom = elcaption + elxticks + elxtitle;
-    margin_bottom = logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend);
+    margin_bottom = 10 + elcaption + elxticks + elxtitle;
+    margin_bottom = margin_bottom + logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend);
     let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.gridlayer');
     if (elplot.length > 0) {elplot = elplot[0].getBBox().height};
     if (elplot.height == 0) { elplot.height = 1}
     images_sizey = (elcontainer * 0.05) / elplot.height;
     legend_y = -((margin_bottom - elcaption) / elplot.height);
-  }  else if ((elplot.height > (elcontainer / 2)) & el.layout.showlegend == false) {
-    Plotly.relayout(el, {"showlegend" : true});
+  }  else if ((elplot.height > (elcontainer / 1.5)) & el.layout.showlegend == false) {
+//    console.log("NUFF SPACE")
+    if ('rangeslider' in el.layout.xaxis) {
+      if(el.layout.xaxis.rangeslider.visible == false) {
+        Plotly.relayout(el, {"showlegend" : true, "xaxis.rangeslider.visible": true});
+       } else {
+          Plotly.relayout(el, {"showlegend" : true});
+    }
+  } else {
+        Plotly.relayout(el, {"showlegend" : true});
+  }
+    let elslider = 0;
+  if ('rangeslider' in el.layout.xaxis) {
+    if(el.layout.xaxis.rangeslider.visible == true) {
+      elslider = $(el).find('g.infolayer > g.rangeslider-container')[0].getBBox().height
+    }
+  }
+  let elxticks_default = pie_chart ? 5 : 0
+  let elxticks = $(el).find('g.xaxislayer-above')
+  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  elxticks_default };
+  let modebar_ht = 0;
+  let elmodebar = $(el).find('div.modebar');
+  if(elmodebar.length > 0) {
+    modebar_ht = elmodebar[0].clientHeight;
+  }
+  let margin_top = eltitle.height + modebar_ht + 11;
+  let elcaption = $(el).find('g.annotation')[0].getBBox().height + 5;
+  let elxtitle = $(el).find('g.g-xtitle')
+  if(elxtitle.length > 0) {
+    elxtitle = elxtitle[0].getBBox().height * 1.3;
+  } else {
+    elxtitle = 0
+  }
+  let ellegend = {width: 0, height: 0}
+  if ($(el).find('g.legend')[0] != undefined) {
+    ellegend.height =  Math.ceil($(el).find('g.legend')[0].getBBox().height)
+    ellegend.width =  $(el).find('g.legend')[0].getBBox().width
+  };
+  margin_bottom = ellegend.height + 10 + (elcaption + elxticks + elxtitle + elslider*1);
+  margin_bottom = margin_bottom + logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend);
+  // pie charts do not give correct height by measuring the plot, investigate
+  elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.gridlayer');
+  if (elplot.length > 0) {elplot = elplot[0].getBBox()};
+  if (pie_chart) { elplot.height = elcontainer-margin_bottom-margin_top }
+  if (elplot.height == 0) { elplot.height = 1}
+  elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
+  images_sizey = (elcontainer * 0.05) / elplot.height;
+  el.layout.images[0].sizey = images_sizey
+  legend_y = -((elxticks + 5 + (elslider*2) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
   }
   let title_y = (elcontainer - (21+modebar_ht)) / elcontainer
   let low_bound_adjust = elxticks == 0 ? -elcaption : 0
-  low_bound_adjust = ellegend.height == 0 ? low_bound_adjust-5 : low_bound_adjust
+//  low_bound_adjust = ellegend.height == 0 ? low_bound_adjust+(elcaption) : low_bound_adjust
+  elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.gridlayer');
+  if (elplot.length > 0) { elplot = elplot[0].getBBox() };
+  if (pie_chart) { elplot.height = elcontainer-margin_bottom-margin_top }
+  if (elplot.height == 0) { elplot.height = 1}
   let low_bound = -((margin_bottom+elslider+low_bound_adjust) / elplot.height)//-Math.min((elcontainer - (elplot.height+margin_top)) / elplot.height,(margin_bottom / elplot.height))
   let annotations_y = low_bound
   let images_y = low_bound

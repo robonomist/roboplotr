@@ -133,30 +133,19 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
                         plotlyRelayoutEventFunction(eventdata, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
                         })
 
-                        if(data.container !== null) {
-                        let el = gd.closest(data.container);
 
-                        if(el === null) {
-                        console.log('roboplotr could not find the roboplot container!')
-                        } else {
-                        var observer = new MutationObserver(function(mutation) {
-                          let nowactive = mutation[0].target.classList.contains('active')
-                          let lastactive = mutation[0].oldValue.includes('active')
-                          if(nowactive === true && lastactive === false) {
-                            //console.log('state change, inactive to active!')
-                            plotlyRelayoutEventFunction({width: true}, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
-                            observer.disconnect();
-                          }
-                        });
+                        let observer = new IntersectionObserver(function(entries) {
+                              // Check if the element is intersecting (visible)
+                              if(entries[0].isIntersecting) {
+                                // Element is visible, handle the plot rendering or adjustment
+                                console.log('relayout fired!');
+                                plotlyRelayoutEventFunction({width: true}, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
+                                observer.disconnect();
+                              }
+                            }, { threshold: [0.1] });  // Adjust the threshold as needed
 
-                         observer.observe(el, {
-                          attributes: true,
-                          attributeFilter: ['class'],
-                          attributeOldValue: true,
-                        });
-                        }
+                       observer.observe(gd);  // Start observing the container
 
-                        }
 
                         gd.on('plotly_afterplot', function() {
                         let thisclippath = $(gd).find('clipPath[id*=legend] > rect')
@@ -1053,8 +1042,16 @@ roboplot <- function(d,
       stop("roboplotr::roboplot shadearea can't be used unless the x-axis is of type date or numeric and y-axis numeric.", call. = F)
     }
     roboplotr_check_param(shadearea, c(proper_shade, "function"), NULL, f.name = list(fun = substitute(shadearea)[1], check = "set_shadearea"))
+
     if(!is.list(shadearea)) {
-      shadearea <- set_shadearea(xmin = shadearea)
+      if(all(is.na(ticktypes$xlim))) {
+        shadexmax <- NULL
+      } else if (max(ticktypes$xlim, na.rm = T) > shadearea) {
+        shadexmax <- max(ticktypes$xlim, na.rm = T)
+      } else {
+        shadexmax <- NULL
+      }
+      shadearea <- set_shadearea(xmin = shadearea, xmax = shadexmax)
     }
     shadearea <- roboplotr_shadearea(d, shadearea)
   }

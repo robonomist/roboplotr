@@ -1,3 +1,9 @@
+# roboplotr 1.4.3
+
+* Caption and logo positioning fix when no legend exists.
+* Removed the need for specified container when running shiny apps. Roboplot creates an observer to detect changes in visibility.
+* Shadearea accounts for xaxis upper bound if one exists.
+
 # roboplotr 1.4.2
 
 * Axes with ticktype of "character" sorting fixed.
