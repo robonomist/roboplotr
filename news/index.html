@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.3.4.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.4.3</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -48,8 +48,49 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.3" id="roboplotr-143">roboplotr 1.4.3<a class="anchor" aria-label="anchor" href="#roboplotr-143"></a></h2>
+<ul><li>Caption and logo positioning fix when no legend exists.</li>
+<li>Removed the need for specified container when running shiny apps. Roboplot creates an observer to detect changes in visibility.</li>
+<li>Shadearea accounts for xaxis upper bound if one exists.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.2" id="roboplotr-142">roboplotr 1.4.2<a class="anchor" aria-label="anchor" href="#roboplotr-142"></a></h2>
+<ul><li>Axes with ticktype of “character” sorting fixed.</li>
+<li>Added the “horizontalstack” for plot_mode options available for a horizontal bar plot.</li>
+<li>Added the “markers” as parameter for roboplot, along with set_marker() to use it.</li>
+<li>Added the “error_bars” as parameter for roboplot, along with set_errorbars() to use it.</li>
+<li>roboplot() xaxis_ceiling fix.</li>
+<li>legend, caption and logo positioning fixes</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.1.1" id="roboplotr-1411">roboplotr 1.4.1.1<a class="anchor" aria-label="anchor" href="#roboplotr-1411"></a></h2>
+<ul><li>minor addition for set_shadearea usage example.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.1" id="roboplotr-141">roboplotr 1.4.1<a class="anchor" aria-label="anchor" href="#roboplotr-141"></a></h2>
+<ul><li>create_widget to replace roboplot_create_widget (in name only)</li>
+<li>Fixes for readme examples and pkgdown contents.</li>
+<li>Fix for roboplot scripts to adjust caption and logo position when there are no xaxis labels.</li>
+<li>Numerous documentation fixes.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4.0.1" id="roboplotr-1401">roboplotr 1.4.0.1<a class="anchor" aria-label="anchor" href="#roboplotr-1401"></a></h2>
+<ul><li>Added missing webshot2 dependency.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.4" id="roboplotr-14">roboplotr 1.4<a class="anchor" aria-label="anchor" href="#roboplotr-14"></a></h2>
+<ul><li>Completely reworked static file automation, separating it from modebar. Allows for special fonts in static files.</li>
+<li>Added set_shadearea() (and roboplot(shadearea)) to add a highlight area to plots.</li>
+<li>Reworked zeroline handling somewhat, adding set_zeroline() to use with set_roboplot_options(zeroline) to control the appearance of zeroline.</li>
+<li>Added param text_col to set_hovertext() that can be used to set what roboplot() uses for labeling (mainly the hoverlabels).</li>
+<li>Info texts improvement (may use HTML).</li>
+<li>Remove html tags from data when downloading the data from image.</li>
+<li>Improved logo and caption positioning in relation to each other and the legend box.</li>
+<li>Plotly partial bundle switched to 2.28.0 to allow for usage of dashtypes in gridlines (only when set_roboplot_options(shinyapp = F)).</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.3.4.4" id="roboplotr-1344">roboplotr 1.3.4.4<a class="anchor" aria-label="anchor" href="#roboplotr-1344"></a></h2>
-<ul><li>Font fallback crash fix for websafe fonts.</li>
+<ul><li>Improved control for plot mode by trace.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.3.4.3" id="roboplotr-1343">roboplotr 1.3.4.3<a class="anchor" aria-label="anchor" href="#roboplotr-1343"></a></h2>
@@ -57,7 +98,7 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.3.4.2" id="roboplotr-1342">roboplotr 1.3.4.2<a class="anchor" aria-label="anchor" href="#roboplotr-1342"></a></h2>
-<ul><li>Examples fit for set_caption(). Fix for multiple font css definitions. Added Google Font support for fonts. Still won’t work with downloaded pngs (or svgs).</li>
+<ul><li>Examples fix for set_caption(). Fix for multiple font css definitions. Added Google Font support for fonts. Still won’t work with downloaded pngs (or svgs).</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.3.4.1" id="roboplotr-1341">roboplotr 1.3.4.1<a class="anchor" aria-label="anchor" href="#roboplotr-1341"></a></h2>
