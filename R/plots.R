@@ -951,11 +951,16 @@ roboplot <- function(d,
 
   if(!quo_is_null(pattern_along)) {
     if(!all(unique(d$roboplot.plot.mode) == "line")) {
-      roboplotr_warning("'pattern_along' in set_pattern() is ignored, it currently only works with line traces only!")
+      roboplotr_warning("'pattern_along' in set_pattern() was ignored, it currently only works with line traces only!")
       pattern_showlegend <- NULL
     } else {
-      roboplotr_message(str_glue("roboplotr attempts to make continous line with different patterns among '{as_name(pattern)}' over '{as_name(pattern_along)}."))
-      d <- roboplotr_continuous_pattern(d, {{pattern_along}}, {{pattern}}, ticktypes$y)
+      roboplotr_warning(
+        str_glue(
+          "roboplotr attempts to make continous line with different patterns along '{as_name(pattern)}' over '{as_name(pattern_along)}. ",
+          "Be sure to arrange the data in proper order. For complex data you are better off handling the data manipulation outside of roboplot()."
+        )
+      )
+      d <- roboplotr_continuous_pattern(d, {{pattern_along}}, {{pattern}})
     }
   }
 

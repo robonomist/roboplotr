@@ -1,3 +1,8 @@
+# roboplotr 1.4.4
+
+* robotable lengthMenu better aligned with data
+* set_pattern to give more verbose message to alert user of the usage.
+
 # roboplotr 1.4.3
 
 * Caption and logo positioning fix when no legend exists.

@@ -538,6 +538,34 @@ robotable <-
     robotable_buttons <-
       roboplotr_robotable_modebar(d, robotable_id, title, info_text)
 
+    getMagnitudes <- function(value) {
+      # Initialize an empty vector to store magnitudes
+      magnitudes <- numeric(0)
+
+      # Find the largest magnitude less than the given value
+      currentMagnitude <- 10^floor(log10(value))
+
+      # Loop to add magnitudes from the largest to 10
+      while(currentMagnitude >= 10) {
+        magnitudes <- c(magnitudes, currentMagnitude)
+        currentMagnitude <- currentMagnitude / 10
+      }
+
+      rev(magnitudes)
+    }
+
+    roboplotr_pagelength <- function(pagelength, rows) {
+      hi_bound <- 10^(nchar(rows)-1)
+      length_menu <- getMagnitudes(hi_bound)
+      if(!is.null(pagelength)) {
+        length_menu[[1]] <- pagelength
+      }
+      length_menu <- subset(length_menu, length_menu >= pagelength)
+      length_menu <- list(c(length_menu, -1),c(as.character(length_menu), "Kaikki"))
+      list(pagelength = length_menu[[1]][[1]], lengthmenu = length_menu)
+    }
+    .pagination <- roboplotr_pagelength(pagelength, nrow(d))
+
     dt <- d |>
       datatable(
         width = width,
@@ -549,7 +577,8 @@ robotable <-
         options = list(
           columnDefs = column_defs,
           language = set_robotable_labels(),
-          pageLength = pagelength,
+          pageLength = .pagination$pagelength,
+          lengthMenu = .pagination$lengthmenu,
           dom = ifelse(nrow(d) > pagelength, "Btiprlf", "Bt"),
           buttons = robotable_buttons
         )

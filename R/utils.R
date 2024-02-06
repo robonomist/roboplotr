@@ -784,8 +784,7 @@ roboplotr_compact <- function (l)
 #' @importFrom purrr imap_dfr
 #' @noRd
 #'
-roboplotr_continuous_pattern <- function(d, along, pattern, series) {
-  series <- enquo(series)
+roboplotr_continuous_pattern <- function(d, along, pattern) {
   split <- d |>
     arrange({{pattern}}) |>
     group_by({{pattern}}) |>
@@ -798,7 +797,7 @@ roboplotr_continuous_pattern <- function(d, along, pattern, series) {
       prev <- split[[i-1]] |>
         filter({{along}} == max({{along}})) |>
         select(-starts_with("roboplot."), -{{pattern}},)
-      .first <- .group |> filter({{along}} == min({{along}})) |> select(-{{along}}, -{{series}})
+      .first <- .group |> filter({{along}} == min({{along}})) |> select(-{{along}})
       dplyr::left_join(prev, .first, by = names(prev)[names(prev) %in% names(.first)]) |>
         bind_rows(.group)
     }
