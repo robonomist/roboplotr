@@ -14,6 +14,7 @@ robotable(
   height = NULL,
   flag = "",
   unit = "",
+  dateformat = NULL,
   pagelength = 10,
   info_text = NULL,
   heatmap = NULL,
@@ -32,6 +33,8 @@ robotable(
 \item{height, width}{Double. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.}
 
 \item{flag, unit}{Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.}
+
+\item{dateformat}{Character. Controls how to format dates displayed on the table. Robotable tries to determine the proper format if left NULL.}
 
 \item{pagelength}{Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, \code{\link[=robotable]{robotable()}} automatically adds navigation.}
 

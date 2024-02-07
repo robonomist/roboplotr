@@ -39,11 +39,11 @@ roboplotr_format_robotable_date <- function(date_col, dateformat) {
   if (dateformat == "%YQ%q")
   {
     str_glue(
-      '<span data-order="{date_col}">{format(date_col, str_c(year(date_col), "Q", quarter(date_col)))}</span>'
+      '<span data-order="{date_col}">{format(date_col, str_c(year(date_col), "Q", quarter(date_col))) |> replace_na(" ")}</span>'
     )
   }
   else {
-    str_glue('<span data-order="{date_col}">{format(date_col, dateformat)}</span>')
+    str_glue('<span data-order="{date_col}">{format(date_col, dateformat) |> replace_na(" ")}</span>')
   }
 }
 
@@ -64,7 +64,7 @@ roboplotr_format_robotable_numeric <-
 
 #' @importFrom dplyr across bind_cols bind_rows cur_column mutate rename_with where
 roboplotr_robotable_cellformat <-
-  function(d, rounding, flag, unit, na_value) {
+  function(d, rounding, flag, unit, na_value, dateformat) {
     if (!is.null(names(unit))) {
       if (!all(names(d) %in% c(names(unit))) &
           !".default" %in% names(unit)) {
@@ -108,8 +108,10 @@ roboplotr_robotable_cellformat <-
     attr(d, "dt_orders") <- dt_orders
 
     if ("Date" %in% unlist(map(d, class))) {
-      dateformat <-
-        roboplotr_get_dateformat(d) |> roboplotr_hovertemplate_freq()
+      if(is.null(dateformat)) {
+        dateformat <-
+          roboplotr_get_dateformat(d) |> roboplotr_hovertemplate_freq()
+      }
       d <- d |>
         mutate(across(
           where(is.Date),
@@ -303,6 +305,7 @@ roboplotr_set_robotable_fonts <-
 #' @param height,width Double. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.
 #' @param flag,unit Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.
 #' @param rounding Double. Controls the rounding of numeric columns.
+#' @param dateformat Character. Controls how to format dates displayed on the table. Robotable tries to determine the proper format if left NULL.
 #' @param na_value Character. How NA values are displayed.
 #' @param pagelength Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, [robotable()] automatically adds navigation.
 #' @param info_text Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.
@@ -350,6 +353,7 @@ robotable <-
            height = NULL,
            flag = "",
            unit = "",
+           dateformat = NULL,
            pagelength = 10,
            info_text = NULL,
            heatmap = NULL,
@@ -409,7 +413,7 @@ robotable <-
                           NULL,
                           f.name = list(fun = substitute(heatmap)[1], check = "set_heatmap"))
 
-    d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value)
+    d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value, dateformat)
 
     order_defs <-
       map2(

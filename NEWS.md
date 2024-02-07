@@ -1,3 +1,7 @@
+# roboplotr 1.4.5
+
+* robotable parameter dateformat added for user-defined date formats.
+
 # roboplotr 1.4.4
 
 * robotable lengthMenu better aligned with data
