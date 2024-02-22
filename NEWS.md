@@ -1,3 +1,9 @@
+# roboplotr 1.4.6
+
+* roboplot scripts for legend layout improved.
+* robomap option to omit legend added.
+* robotable title tag type change for quarto compatibility.
+
 # roboplotr 1.4.5
 
 * robotable parameter dateformat added for user-defined date formats.

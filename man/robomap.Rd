@@ -16,6 +16,7 @@ robomap(
   map_palette = NULL,
   border_width = getOption("roboplot.trace.border")$width,
   legend_cap = 5,
+  legend_position = "bottomright",
   data_contour = FALSE,
   markers = FALSE,
   log_colors = NULL,
@@ -41,6 +42,8 @@ robomap(
 
 \item{legend_cap}{Integer. The intended legend length. The actual length might vary.}
 
+\item{legend_position}{Character. Currently only accepts "bottom right" or NULL.}
+
 \item{data_contour}{Logical. Experimental. If TRUE, \code{\link[=robomap]{robomap()}} will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
 This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.}
 
@@ -61,10 +64,6 @@ Automates many formatting options.
 # You can use roboplotr::robomap() to create html maps. Note that very large
 # number of map polygons makes for slow rendering maps.
 
-# Call for the usage of sample dataset "vaesto_postinumeroittain".
-requireNamespace("sf", quietly = TRUE)
-
-vaesto_postinumeroittain |> robomap(Postinumeroalue)
 
 # Currently robomap() only supports very little customization.
 vaesto_postinumeroittain |>

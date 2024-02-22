@@ -213,6 +213,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @param hovertext List. Use a list with named items flag and unit.
 #' @param border_width Integer. The width of polygon borders. Default is the trace border width set with [set_roboplot_options()].
 #' @param legend_cap Integer. The intended legend length. The actual length might vary.
+#' @param legend_position Character. Currently only accepts "bottom right" or NULL.
 #' @param data_contour Logical. Experimental. If TRUE, [robomap()] will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
 #' This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.
 #' @param log_colors Logical. Whether the colors scales is log or not.
@@ -229,10 +230,6 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' # You can use roboplotr::robomap() to create html maps. Note that very large
 #' # number of map polygons makes for slow rendering maps.
 #'
-#' # Call for the usage of sample dataset "vaesto_postinumeroittain".
-#' requireNamespace("sf", quietly = TRUE)
-#'
-#' vaesto_postinumeroittain |> robomap(Postinumeroalue)
 #'
 #' # Currently robomap() only supports very little customization.
 #' vaesto_postinumeroittain |>
@@ -306,6 +303,7 @@ robomap <-
            map_palette = NULL,
            border_width = getOption("roboplot.trace.border")$width,
            legend_cap = 5,
+           legend_position = "bottomright",
            data_contour = FALSE,
            markers = FALSE,
            log_colors = NULL,
@@ -522,90 +520,92 @@ robomap <-
         )
       )
 
-    if (data_contour == TRUE) {
-      this_map <- this_map |>
-        addLegend(
-        className = str_glue("{robomap_id}-info legend"),
-        na.label = "",
-        pal = robomap_palette,
-        opacity = 0.9,
-        position = "bottomright",
-        bins = legend_cap,
-        values = ~ robomap.value,
-        labFormat = function(type,cuts) {
-          if(log_colors) {
-            if(min(d$value) == 0) {
-              cuts <- exp(cuts)-1
-            } else {
-              cuts <- exp(cuts)
-            }
-          }
-          cuts <- roboplotr_round_magnitude(cuts, rounding,round)
-          .mag <- round(max(cuts)) |> nchar()
-          .rounding <- ifelse(.mag > 2, max(rounding-.mag, 0), rounding)
-          labs <- roboplotr_format_robotable_numeric(cuts, .rounding)
-          # print(labs)
-          # labs <- labs[!duplicated(labs,fromLast = TRUE)]
-          labs
-        },
-        title = legend_title
-      )
-    } else if (length(bins) == 1) {
-      this_map <- this_map |>
-        addLegend(
-          className = str_glue("{robomap_id}-info legend"),
-          na.label = "",
-          opacity = 0.9,
-          position = "bottomright",
-          labels = roboplotr_format_robotable_numeric(unique(d$value), rounding),
-          colors = unique(robomap_palette(d$value)),
-          values = ~ value,
-          title = legend_title
-        )
-    } else {
-      this_map <- this_map |>
-        addLegend(
-          className = str_glue("{robomap_id}-info legend"),
-          na.label = "",
-          opacity = 0.9,
-          labFormat = function(type, cuts) {
-            # browser()
-            if(log_colors) {
-              if(min(d$value) == 0) {
-                cuts <- exp(cuts)-1
-              } else {
-                cuts <- exp(cuts)
+    if(!is.null(legend_position)) {
+      if (data_contour == TRUE) {
+        this_map <- this_map |>
+          addLegend(
+            className = str_glue("{robomap_id}-info legend"),
+            na.label = "",
+            pal = robomap_palette,
+            opacity = 0.9,
+            position = "bottomright",
+            bins = legend_cap,
+            values = ~ robomap.value,
+            labFormat = function(type,cuts) {
+              if(log_colors) {
+                if(min(d$value) == 0) {
+                  cuts <- exp(cuts)-1
+                } else {
+                  cuts <- exp(cuts)
+                }
               }
-            }
-            cuts <- cuts |> roboplotr_round_magnitude(rounding, round)
-            .magnitude <- NA
-            if(any(round(cuts) != cuts)) {
-              .magnitude <- (cuts |> str_remove("^[^\\.]*") |> nchar() |> max())-1
-              cuts <- cuts * 10^.magnitude
-            }
-            lo_end <- (tail(cuts,-1) - c(
-              rep(-1, length(cuts) - 2), 0
-            ))
-            hi_end <- head(cuts,-1)
-            # max_val <- (max(d$value,na.rm = TRUE) * 10^.magnitude) |> roboplotr_round_magnitude(rounding)
-            # if(max_val < max(hi_end)) {
-            #   hi_end[1] <- max_val
-            # }
-            if(!is.na(.magnitude)) {
-              hi_end <- (hi_end / 10^.magnitude)
-              lo_end <- (lo_end / 10^.magnitude)
-            }
-            hi_end <- roboplotr_format_robotable_numeric(hi_end, rounding)
-            lo_end <- roboplotr_format_robotable_numeric(lo_end, rounding)
-            str_glue("{lo_end} \u2013 {hi_end}") |>
-              map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
-              reduce(c)
-          },
-          position = "bottomright",
-          pal = robomap_palette,
-          values = ~ robomap.value,
-          title = legend_title
-        )
+              cuts <- roboplotr_round_magnitude(cuts, rounding,round)
+              .mag <- round(max(cuts)) |> nchar()
+              .rounding <- ifelse(.mag > 2, max(rounding-.mag, 0), rounding)
+              labs <- roboplotr_format_robotable_numeric(cuts, .rounding)
+              # print(labs)
+              # labs <- labs[!duplicated(labs,fromLast = TRUE)]
+              labs
+            },
+            title = legend_title
+          )
+      } else if (length(bins) == 1) {
+        this_map <- this_map |>
+          addLegend(
+            className = str_glue("{robomap_id}-info legend"),
+            na.label = "",
+            opacity = 0.9,
+            position = "bottomright",
+            labels = roboplotr_format_robotable_numeric(unique(d$value), rounding),
+            colors = unique(robomap_palette(d$value)),
+            values = ~ value,
+            title = legend_title
+          )
+      } else {
+        this_map <- this_map |>
+          addLegend(
+            className = str_glue("{robomap_id}-info legend"),
+            na.label = "",
+            opacity = 0.9,
+            labFormat = function(type, cuts) {
+              # browser()
+              if(log_colors) {
+                if(min(d$value) == 0) {
+                  cuts <- exp(cuts)-1
+                } else {
+                  cuts <- exp(cuts)
+                }
+              }
+              cuts <- cuts |> roboplotr_round_magnitude(rounding, round)
+              .magnitude <- NA
+              if(any(round(cuts) != cuts)) {
+                .magnitude <- (cuts |> str_remove("^[^\\.]*") |> nchar() |> max())-1
+                cuts <- cuts * 10^.magnitude
+              }
+              lo_end <- (tail(cuts,-1) - c(
+                rep(-1, length(cuts) - 2), 0
+              ))
+              hi_end <- head(cuts,-1)
+              # max_val <- (max(d$value,na.rm = TRUE) * 10^.magnitude) |> roboplotr_round_magnitude(rounding)
+              # if(max_val < max(hi_end)) {
+              #   hi_end[1] <- max_val
+              # }
+              if(!is.na(.magnitude)) {
+                hi_end <- (hi_end / 10^.magnitude)
+                lo_end <- (lo_end / 10^.magnitude)
+              }
+              hi_end <- roboplotr_format_robotable_numeric(hi_end, rounding)
+              lo_end <- roboplotr_format_robotable_numeric(lo_end, rounding)
+              str_glue("{lo_end} \u2013 {hi_end}") |>
+                map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
+                reduce(c)
+            },
+            position = "bottomright",
+            pal = robomap_palette,
+            values = ~ robomap.value,
+            title = legend_title
+          )
+      }
     }
 
     this_map |>

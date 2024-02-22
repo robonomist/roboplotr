@@ -515,7 +515,7 @@ robotable <-
           tags$style(roboplotr_set_robotable_css(robotable_id)),
           id = robotable_id,
           modal_html,
-          tags$caption(
+          tags$span(
             id = str_glue("{robotable_id}_title"),
             if (title$include == T)
               tags$span(.bold(title$title))
