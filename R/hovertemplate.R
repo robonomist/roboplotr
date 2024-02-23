@@ -1,3 +1,12 @@
+roboplotr_hoverlabel <- function(p) {
+  .bg <- first(unlist(getOption("roboplot.grid")[c("xcolor","ycolor")]))
+  p |> layout(hoverlabel = list(
+    bgcolor = first(unlist(getOption("roboplot.grid")[c("xcolor","ycolor")])),
+    font =getOption("roboplot.font.main"),
+    bordercolor =  first(unlist(getOption("roboplot.border")[c("xcolor","ycolor")]))
+  ))
+}
+
 roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
   if (is.null(f)) { default } else {
     switch(f,

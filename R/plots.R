@@ -43,7 +43,8 @@ roboplotr_config <- function(p,
     roboplotr_caption(caption) |>
     roboplotr_add_shapes(zeroline, shadearea) |>
     roboplotr_rangeslider(enable_rangeslider) |>
-    roboplotr_set_axis_ranges(ticktypes[c("xlim", "ylim")], enable_rangeslider$rangeslider, hovermode)
+    roboplotr_set_axis_ranges(ticktypes[c("xlim", "ylim")], enable_rangeslider$rangeslider, hovermode) |>
+    roboplotr_hoverlabel()
 }
 
 
@@ -1347,14 +1348,18 @@ roboplotr_get_plot <-
       hovertemplate <-
         roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
       legend_rank <- mean(g$roboplot.legend.rank)
+      g <-
+        mutate(
+          g,
+          roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color, "dark"),
+          roboplot.tx.color = roboplotr_text_color_picker(
+            roboplotr_alter_color(.data$roboplot.trace.color, "dark")
+          )
+        )
       if (tracetype == "pie") {
         g <-
           mutate(
             g,
-            roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color, "dark"),
-            roboplot.tx.color = roboplotr_text_color_picker(
-              roboplotr_alter_color(.data$roboplot.trace.color, "dark")
-            ),
             roboplot.in.tx.color = roboplotr_text_color_picker(.data$roboplot.trace.color)
           )
       }
@@ -1414,17 +1419,12 @@ roboplotr_get_plot <-
         },
         data = g,
         direction = "clockwise",
-        #pie
-        # xhoverformat = if (ticktypes$xticktype == "date") {
-        #   hovertext$dateformat
-        # } else {
-        #   NULL
-        # },
         error_x = error_x,
         error_y = error_y,
         hoverlabel = list(
           bgcolor = ~ roboplot.bg.color,
-          color = ~ roboplot.tx.color
+          bordercolor = first(unique(getOption("roboplot.grid")[c("xcolor","ycolor")]) |> unlist()),
+          font = ~ append(getOption("roboplot.font.main")[c("family", "size")], list(color = roboplot.tx.color))
         ),
         #pie
         hovertemplate = hovertemplate,
@@ -1533,6 +1533,7 @@ roboplotr_get_plot <-
         },
         #horizontal bar
         x = as.formula(str_c("~", ticktypes$x)),
+        xhoverformat = ifelse(ticktypes$xticktype == "date",ticktypes$dateformat,""),
         #!pie
         y = as.formula(str_c(
           "~",
@@ -1549,6 +1550,7 @@ roboplotr_get_plot <-
           "data",
           "text",
           "texttemplate",
+          "hoverlabel",
           "hovertemplate",
           "legendgroup",
           "showlegend",
@@ -1627,7 +1629,6 @@ roboplotr_get_plot <-
             "direction",
             "rotation",
             "sort",
-            "hoverlabel",
             "marker",
             "values"
           )]
@@ -1678,8 +1679,7 @@ roboplotr_get_plot <-
       p <- p |> layout(yaxis2 = y2)
     }
 
-    # hoverlabel font is determined currently here, move to an appropriate place..
-    p |> layout(hoverlabel = list(font = getOption("roboplot.font.main")[c("family", "size")])) |> config(responsive = ifelse(isRunning(), F, T))
+    p |> config(responsive = ifelse(isRunning(), F, T))
 
   }
 

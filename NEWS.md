@@ -1,3 +1,7 @@
+# roboplotr 1.4.7
+
+* roboplot hoverlabel fixes for font, color and xhoverlabel.
+
 # roboplotr 1.4.6
 
 * roboplot scripts for legend layout improved.
