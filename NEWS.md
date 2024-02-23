@@ -1,3 +1,7 @@
+# roboplotr 1.4.8
+
+* Legend item horizontal spacing improvement.
+
 # roboplotr 1.4.7
 
 * roboplot hoverlabel fixes for font, color and xhoverlabel.

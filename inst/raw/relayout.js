@@ -202,11 +202,18 @@ function logoSpace(ratio, image, margin_b, title_h, xtick_h, legend) {
     }
   }
 
-function adjustLegendItems(gd, relayoutarray) {
-   let legendItemTexts = $(gd).find('.legend .legendtext')
-   let maxWidth = Math.max(...Array.from(legendItemTexts).map(item => item.getBBox().width));
-   relayoutarray["legend.entrywidth"] = Math.round(maxWidth*1.05);
-   return relayoutarray
+function adjustLegendItems(gd) {
+  let visdata = gd.data.filter(trace => trace.visible === true || !(trace.hasOwnProperty('visible')));
+  let legendItemTexts = $(gd).find('.legend .legendtext')
+  visdata.forEach(trace => {
+    let thisLegendItem = legendItemTexts.filter(function() {
+    return $(this).text() === trace.name;
+});
+    if(thisLegendItem.length > 0) {
+        let thisLegendWidth = thisLegendItem[0].getBBox().width
+        trace.legendwidth = Math.round(thisLegendWidth*1.05)
+    }
+  })
 }
 
 function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart, logo = undefined) {
@@ -235,7 +242,7 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
         "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
         relayout_array["title.text"] = title_text;
     }
-    relayout_array = adjustLegendItems(gd, relayout_array)
+    adjustLegendItems(gd)
     Plotly.relayout(gd, relayout_array);
     let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
     relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo)
@@ -243,6 +250,7 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
     Plotly.relayout(gd, relayout_array);
     relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo)
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
+    adjustLegendItems(gd)
     Plotly.relayout(gd, relayout_array);
     Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['images[0].y', 'annotations[0].y', 'margin.t', 'margin.b','legend.y','images[0].sizey','yaxis.tickfont.size'], pie_chart = pie_chart, logo = logo));
     Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['images[0].y', 'annotations[0].y', 'legend.y', "margin.b", 'title.y'], pie_chart = pie_chart, logo = logo));
