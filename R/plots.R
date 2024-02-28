@@ -581,7 +581,6 @@ roboplot <- function(d,
                      zeroline = FALSE,
                      rangeslider = FALSE,
                      pattern = NULL,
-                     grouped = NULL,
                      line_width = getOption("roboplot.linewidth"),
                      hovertext = NULL,
                      plot_type = "scatter",
@@ -1348,19 +1347,20 @@ roboplotr_get_plot <-
       hovertemplate <-
         roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
       legend_rank <- mean(g$roboplot.legend.rank)
+      .fontsize <- getOption("roboplot.font.main")$size
       g <-
         mutate(
           g,
           roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color, "dark"),
           roboplot.tx.color = roboplotr_text_color_picker(
-            roboplotr_alter_color(.data$roboplot.trace.color, "dark")
+            roboplotr_alter_color(.data$roboplot.trace.color, "dark"),.fontsize
           )
         )
       if (tracetype == "pie") {
         g <-
           mutate(
             g,
-            roboplot.in.tx.color = roboplotr_text_color_picker(.data$roboplot.trace.color)
+            roboplot.in.tx.color = roboplotr_text_color_picker(.data$roboplot.trace.color, getOption("roboplot.font.caption")$size)
           )
       }
 
@@ -1763,7 +1763,7 @@ roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
 #' # You need a column for error bar values to add error bars. Then refer to that
 #' # numeric column by set_errorbars() with the proper axis.
 #' d <- energiantuonti |>
-#'   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä", year(time) > 2016) |>
+#'   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä", lubridate::year(time) > 2016) |>
 #'   dplyr::group_by(Alue) |>
 #'   dplyr::mutate(sd = sd(value)) |>
 #'   dplyr::ungroup()

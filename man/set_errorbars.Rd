@@ -25,7 +25,7 @@ Set the error bars
 # You need a column for error bar values to add error bars. Then refer to that
 # numeric column by set_errorbars() with the proper axis.
 d <- energiantuonti |>
-  dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä", year(time) > 2016) |>
+  dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä", lubridate::year(time) > 2016) |>
   dplyr::group_by(Alue) |>
   dplyr::mutate(sd = sd(value)) |>
   dplyr::ungroup()

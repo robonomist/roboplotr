@@ -101,6 +101,7 @@ create_widget <- function(
     width = getOption("roboplot.artefacts")$width,
     height = getOption("roboplot.artefacts")$height
     ) {
+  is.robotable <- "datatables" %in% class(p)
 
   roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F, allow_na = F)
   roboplotr_valid_strings(artefacts, c("html","png","jpg","jpge","webp","pdf"), .fun = any)
@@ -116,6 +117,7 @@ create_widget <- function(
   if(is.null(height)) { height <- getOption("roboplot.artefacts")$height }
 
   if (is.null(title)) {
+    if(is.robotable) { stop("You must provide a title for a robotable widget when creating artefacts!", call. = F) }
     title <- (p$x[c("layout","layoutAttrs")] |> unlist())[str_subset(names((p$x[c("layout","layoutAttrs")] |> unlist())),"(?<!axis)\\.title\\.text")] |>
       first() |>
       str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_")
@@ -126,25 +128,36 @@ create_widget <- function(
 
   widget_title <- title
   title <- roboplotr_string2filename(title)
-
-  if("html" %in% artefacts) {
-    roboplotr_widget_deps(filepath = file.path(filepath,"plot_dependencies"))
-    css_dep <- htmlDependency("style", "0.1", src = c(href= "plot_dependencies/css"),  stylesheet = "style.css")
-    js_dep <- htmlDependency("js", "0.1", src = c(href= "plot_dependencies/js"),  script = "relayout.js")
-    p$dependencies <- c(p$dependencies, list(css_dep, js_dep))
-  }
   detached_p <- p
-  detached_p$append <- NULL
+  if(!is.robotable) {
+    detached_p <- p
+    detached_p$append <- NULL
+    if("html" %in% artefacts) {
+      roboplotr_widget_deps(filepath = file.path(filepath,"plot_dependencies"))
+      css_dep <- htmlDependency("style", "0.1", src = c(href= "plot_dependencies/css"),  stylesheet = "style.css")
+      js_dep <- htmlDependency("js", "0.1", src = c(href= "plot_dependencies/js"),  script = "relayout.js")
+      detached_p$dependencies <- c(detached_p$dependencies, list(css_dep, js_dep))
+    }
+  }
 
   if(any(artefacts != "html")) {
-    .images <- subset(artefacts, artefacts != "html")
-    detached_p |> roboplotr_static_image(.images, title, zoom, filepath, width, height)
+    if(is.robotable) {
+      roboplotr_alert("Other artefacts than \"html\" are ignored with robotable!")
+    } else {
+      .images <- subset(artefacts, artefacts != "html")
+      detached_p |> roboplotr_static_image(.images, title, zoom, filepath, width, height)
+    }
   }
 
   if("html" %in% artefacts) {
+    if(self_contained) {
+      .libdir <- NULL
+      } else {
+      .libdir <- ifelse(is.robotable, "tbl_dependencies", "plot_dependencies")
+      }
     detached_p |>
       frameableWidget() |>
-      saveWidget(file.path(filepath,str_c(title,".html")), selfcontained = self_contained, libdir = if(self_contained) { NULL} else { "plot_dependencies" }, title = widget_title)
+      saveWidget(file.path(filepath,str_c(title,".html")), selfcontained = self_contained, libdir =.libdir, title = widget_title)
   }
 
   if(render == T) {
@@ -326,7 +339,7 @@ roboplotr_widget_deps <- function(filepath = NULL) {
       c(
         "-13px !important",
         str_glue("{modebar_labcolor} !important"),
-        str_glue("{roboplotr_text_color_picker(modebar_labcolor)} !important"),
+        str_glue("{roboplotr_text_color_picker(modebar_labcolor,getOption('roboplot.font.caption')$size)} !important"),
         str_glue("{getOption('roboplot.font.caption')$family} !important")
       )
     )
@@ -336,13 +349,19 @@ roboplotr_widget_deps <- function(filepath = NULL) {
          "border-color",
           str_glue("transparent transparent {modebar_labcolor} !important"))
 
+  plotly_position <-
+    list(".plotly.html-widget",
+         "position",
+         "relative")
+
 
   css_list <-
     map(c(
       font_strings,
       list(rangeslider_mask_css),
       list(modebar_lab),
-      list(modebar_labpointer)
+      list(modebar_labpointer),
+      list(plotly_position)
     ), ~ .x)
 
   css_string <- roboplotr_get_css(css_list,

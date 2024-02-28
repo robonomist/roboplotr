@@ -18,7 +18,8 @@ robotable(
   pagelength = 10,
   info_text = NULL,
   heatmap = NULL,
-  na_value = ""
+  na_value = "",
+  artefacts = getOption("roboplot.artefacts")$auto
 )
 }
 \arguments{
@@ -42,7 +43,9 @@ robotable(
 
 \item{heatmap}{Function. Use \code{\link[=set_heatmap]{set_heatmap()}}. Displays any numeric values as a heatmap.}
 
-\item{na_value}{Character. How NA values are displayed.}
+\item{na_value}{Character. The displayed value of all NA values in the table.}
+
+\item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}. Controls artefact creation. Currently unable to make static files, only html files.}
 }
 \value{
 A list of classes "datatable" and "htmlwidget"

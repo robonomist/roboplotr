@@ -17,7 +17,6 @@ roboplot(
   zeroline = FALSE,
   rangeslider = FALSE,
   pattern = NULL,
-  grouped = NULL,
   line_width = getOption("roboplot.linewidth"),
   hovertext = NULL,
   plot_type = "scatter",

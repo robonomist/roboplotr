@@ -1,8 +1,10 @@
 roboplotr_hoverlabel <- function(p) {
-  .bg <- first(unlist(getOption("roboplot.grid")[c("xcolor","ycolor")]))
+  .font <- getOption("roboplot.font.main")
+  .bg <- .font$color
+  .font$color <- roboplotr_text_color_picker(.bg, .font$size)
   p |> layout(hoverlabel = list(
-    bgcolor = first(unlist(getOption("roboplot.grid")[c("xcolor","ycolor")])),
-    font =getOption("roboplot.font.main"),
+    bgcolor = .bg,
+    font = .font,
     bordercolor =  first(unlist(getOption("roboplot.border")[c("xcolor","ycolor")]))
   ))
 }

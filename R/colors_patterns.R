@@ -506,7 +506,7 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
       order_col <- (.orders[col] |> names() |> as.numeric()) + 1
       col <- as.numeric(.orders[col]) + 1
       color_bg <- heatmap_fun(d[[order_col]])
-      color_tx <- roboplotr_text_color_picker(color_bg)
+      color_tx <- roboplotr_text_color_picker(color_bg,getOption("roboplot.font.main")$size)
       dt <- dt |> formatStyle(
         col,
         backgroundColor = styleEqual(d[[col]], color_bg),

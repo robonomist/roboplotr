@@ -310,6 +310,8 @@ roboplotr_set_robotable_fonts <-
 #' @param pagelength Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, [robotable()] automatically adds navigation.
 #' @param info_text Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.
 #' @param heatmap Function. Use [set_heatmap()]. Displays any numeric values as a heatmap.
+#' @param na_value Character. The displayed value of all NA values in the table.
+#' @param artefacts Function. Use [set_artefacts()]. Controls artefact creation. Currently unable to make static files, only html files.
 #' @return A list of classes "datatable" and "htmlwidget"
 #' @importFrom DT datatable tableFooter tableHeader
 #' @importFrom htmltools HTML tags withTags
@@ -357,7 +359,8 @@ robotable <-
            pagelength = 10,
            info_text = NULL,
            heatmap = NULL,
-           na_value = ""
+           na_value = "",
+           artefacts = getOption("roboplot.artefacts")$auto
            ) {
     if (is.null(title)) {
       title <- attributes(d)[c("title", "robonomist_title")]
@@ -591,6 +594,42 @@ robotable <-
 
     dt <- roboplotr_tbl_heatmap(d, dt, heatmap)
 
-    dt
+    if (is.logical(artefacts)) {
+      roboplotr_check_param(artefacts, c("logical"))
+      if (artefacts == TRUE) {
+        params <- getOption("roboplot.artefacts")
+        create_widget(
+          p = dt,
+          title = title$title,
+          filepath = params$filepath,
+          render = params$render,
+          self_contained = params$self_contained,
+          artefacts = "html"
+        )
+      } else {
+        dt
+      }
+    } else {
+      roboplotr_check_param(
+        artefacts,
+        c("function"),
+        NULL,
+        f.name = list(fun = substitute(artefacts)[1], check = "set_artefacts")
+      )
+      if(is.null(artefacts$title)) {
+        .title <- title$title
+      } else {
+        .title <- artefacts$title
+      }
+      create_widget(
+        p = dt,
+        title = .title,
+        filepath = artefacts$filepath,
+        render = artefacts$render,
+        self_contained = artefacts$self_contained,
+        artefacts = "html"
+      )
+    }
+
 
   }

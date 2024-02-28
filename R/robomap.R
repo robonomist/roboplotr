@@ -155,7 +155,7 @@ roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_p
           "background" = getOption("roboplot.colors.background"),
           "font-size" = str_glue('{getOption("roboplot.font.main")$size}px'),
           "font-family" = getOption("roboplot.font.main")$family,
-          "color" = roboplotr_text_color_picker(getOption("roboplot.colors.background")),
+          "color" = roboplotr_text_color_picker(getOption("roboplot.colors.background"), getOption("roboplot.font.main")$size),
           "border" = str_glue('{max(getOption("roboplot.border")[c("xwidth","ywidth")] |> unlist())}pt solid {first(unique(getOption("roboplot.border")[c("xcolor","ycolor")]))}')
         )
       )

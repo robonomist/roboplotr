@@ -1,3 +1,10 @@
+# roboplotr 1.4.9
+
+* Roboplot dependency and css fixes for Quarto renders.
+* Artefact creation integration to robotable.
+* Documentation and example fixes.
+* Improved accessibility for label text colors.
+
 # roboplotr 1.4.8
 
 * Legend item horizontal spacing improvement.

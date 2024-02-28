@@ -121,7 +121,7 @@
 #' # either a predefined gap between x-axis end and the plot edge, or try to
 #' # guess an appropriate gap. This can also be controlled by-plot and will not
 #' # work with bar plots. Finally, you can somewhat control markers with
-#' roboplot::set_markers().
+#' # roboplot::set_markers().
 #'
 #' set_roboplot_options(
 #'   dashtypes = c("longdash", "dashdot", "longdashdot", "solid", "dash", "dot"),
@@ -789,7 +789,6 @@ roboplotr_continuous_pattern <- function(d, along, pattern) {
     arrange({{pattern}}) |>
     group_by({{pattern}}) |>
     group_split()
-
   imap_dfr(split, function(.group, i) {
     if(i == 1) {
       .group
@@ -797,8 +796,9 @@ roboplotr_continuous_pattern <- function(d, along, pattern) {
       prev <- split[[i-1]] |>
         filter({{along}} == max({{along}})) |>
         select(-starts_with("roboplot."), -{{pattern}},)
-      .first <- .group |> filter({{along}} == min({{along}})) |> select(-{{along}})
-      dplyr::left_join(prev, .first, by = names(prev)[names(prev) %in% names(.first)]) |>
+      .first <- .group |> filter({{along}} == min({{along}})) |> select(-{{along}}, -.data$value)
+      .names <- names(prev)[names(prev) %in% names(.first)]
+      left_join(prev, .first, by = .names) |>
         bind_rows(.group)
     }
   }) |>

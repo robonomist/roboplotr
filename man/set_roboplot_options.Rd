@@ -184,7 +184,7 @@ p
 # either a predefined gap between x-axis end and the plot edge, or try to
 # guess an appropriate gap. This can also be controlled by-plot and will not
 # work with bar plots. Finally, you can somewhat control markers with
-roboplot::set_markers().
+# roboplot::set_markers().
 
 set_roboplot_options(
   dashtypes = c("longdash", "dashdot", "longdashdot", "solid", "dash", "dot"),

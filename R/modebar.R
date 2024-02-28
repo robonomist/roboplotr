@@ -381,7 +381,7 @@ set_infobox <-
            border = first(unlist(unique(getOption('roboplot.border')[c('xcolor', 'ycolor')]))),
            border_width = 1) {
     roboplotr_valid_colors(background)
-    font <- roboplotr_text_color_picker(background)
+    font <- roboplotr_text_color_picker(background,getOption("roboplot.font.main")$size)
     roboplotr_valid_colors(border)
     roboplotr_valid_colors(font)
     roboplotr_check_param(border_width, "numeric", allow_null = F)
