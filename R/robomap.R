@@ -217,11 +217,12 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @param data_contour Logical. Experimental. If TRUE, [robomap()] will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
 #' This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.
 #' @param log_colors Logical. Whether the colors scales is log or not.
+#' @param zoom Logical. Whether the map is zoomable or not.
 #' @param rounding Numeric. How [robomap()] rounds numeric values.
 #' @param markers Logical. Experimental. Whether markers will be added on the map based on the columns "lat" and "lon". Default is FALSE.
 #' @return A list of classes "leaflet" and "htmlwidget"
 #' @importFrom htmltools HTML tags
-#' @importFrom leaflet addControl addLegend addPolygons addTiles colorBin colorNumeric colorQuantile leaflet tileOptions
+#' @importFrom leaflet addControl addLegend addPolygons addTiles colorBin colorNumeric colorQuantile leaflet leafletOptions tileOptions
 #' @importFrom purrr map
 #' @importFrom stringr str_glue str_remove
 #' @importFrom utils head tail
@@ -247,6 +248,17 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'     subtitle = "Otanta",
 #'     caption = "Tilastokeskus",
 #'     map_palette = c("lightgreen", "darkred")
+#'   )
+#' # You might want to disallow zooming for some reason. The map will be draggable,
+#' # but zoom by buttons or scrolling is disabled.
+#'
+#' vaesto_postinumeroittain |>
+#'   robomap(
+#'     Postinumeroalue,
+#'     title = "V\u00e4est\u00f6 postinumeroittain",
+#'     subtitle = "Otanta",
+#'     caption = "Tilastokeskus",
+#'     zoom = F
 #'   )
 #'
 #' # robomap() automatically scales the values to differentiate large differences
@@ -307,7 +319,8 @@ robomap <-
            data_contour = FALSE,
            markers = FALSE,
            log_colors = NULL,
-           rounding = 1
+           rounding = 1,
+           zoom = TRUE
            ) {
     if (is.null(title)) {
       title <- attributes(d)[c("title", "robonomist_title")]
@@ -338,7 +351,7 @@ robomap <-
       size = 1,
       f.name = list(fun = substitute(caption)[1], check = "set_caption")
     )
-
+    roboplotr_check_param(zoom, "logical", NULL, FALSE, "robomap param \"zoom\"")
     if (!is.null(caption)) {
       if (!is(substitute(caption)[1], "call")) {
         caption <- set_caption(text = caption)
@@ -447,7 +460,14 @@ robomap <-
 
     robomap_id <- str_c("robomap-", str_remove(runif(1), "\\."))
 
-    this_map <- leaflet(d,elementId = robomap_id) |>
+    this_map <- leaflet(d,elementId = robomap_id,
+                        options = leafletOptions(
+                          scrollWheelZoom = zoom,
+                          doubleClickZoom = zoom,
+                          touchZoom = zoom,
+                          boxZoom = zoom,
+                          zoomControl = zoom
+                        )) |>
       roboplotr_map_tilelayer(tile_opacity) |>
       roboplotr_map_rasterlayer(d, data_contour, map_opacity, robomap_palette) |>
       roboplotr_map_polygonlayer(data_contour, map_opacity, robomap_palette, border_width) |>

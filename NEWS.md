@@ -1,3 +1,9 @@
+# roboplotr 1.4.10
+
+* Fix for internal text color picker.
+* roboplot option to specify only a single trace color added.
+* robomap option to disable zoom added.
+
 # roboplotr 1.4.9
 
 * Roboplot dependency and css fixes for Quarto renders.

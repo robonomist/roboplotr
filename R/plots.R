@@ -365,6 +365,18 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'                            ".scatter" = "line"
 #'              ))
 #'
+#' # If you omit ".other" from the trace colors, roboplot() will give the rest of
+#' # of the traces colors from the default colors set in set_roboplot_options()
+#' d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
+#'                trace_color = c("Kanada" = "pink"))
+#'
+#' # But if you need more control, you're better off just excplicity specifying
+#' the colors.
+#' d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
+#'   trace_color =
+#'     stats::setNames(c("#0052A5", "darkred", "#D52B1E"),
+#'                     unique(d1$Alue))
+#' )
 #'
 #' # With single 'time' observation x-axis tickmarks lose tick labels. There are
 #' # several places where this information fits nicely.
@@ -1352,9 +1364,7 @@ roboplotr_get_plot <-
         mutate(
           g,
           roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color, "dark"),
-          roboplot.tx.color = roboplotr_text_color_picker(
-            roboplotr_alter_color(.data$roboplot.trace.color, "dark"),.fontsize
-          )
+          roboplot.tx.color = roboplotr_text_color_picker(roboplot.bg.color,.fontsize)
         )
       if (tracetype == "pie") {
         g <-

@@ -20,7 +20,8 @@ robomap(
   data_contour = FALSE,
   markers = FALSE,
   log_colors = NULL,
-  rounding = 1
+  rounding = 1,
+  zoom = TRUE
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ This provides a smoother transition and helps in visualizing general trends acro
 \item{log_colors}{Logical. Whether the colors scales is log or not.}
 
 \item{rounding}{Numeric. How \code{\link[=robomap]{robomap()}} rounds numeric values.}
+
+\item{zoom}{Logical. Whether the map is zoomable or not.}
 }
 \value{
 A list of classes "leaflet" and "htmlwidget"
@@ -81,6 +84,17 @@ vaesto_postinumeroittain |>
     subtitle = "Otanta",
     caption = "Tilastokeskus",
     map_palette = c("lightgreen", "darkred")
+  )
+# You might want to disallow zooming for some reason. The map will be draggable,
+# but zoom by buttons or scrolling is disabled.
+
+vaesto_postinumeroittain |>
+  robomap(
+    Postinumeroalue,
+    title = "V\u00e4est\u00f6 postinumeroittain",
+    subtitle = "Otanta",
+    caption = "Tilastokeskus",
+    zoom = F
   )
 
 # robomap() automatically scales the values to differentiate large differences

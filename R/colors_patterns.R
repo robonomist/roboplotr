@@ -29,8 +29,27 @@ roboplotr_set_colors <- function(trace_color, unique_groups, highlight, d, color
     if (length(trace_color) == 1 & is.null(names(trace_color))) {
       color_vector <- rep(trace_color, length(unique_groups)) |> setNames(unique_groups)
     } else if (!all(unique_groups %in% names(trace_color)) & !(".other" %in% names(trace_color)) ) {
-      stop(str_c("Either trace color must be a single color string, or all variables in column \"",as_name(color),"\" must have a corresponding trace color, or key \".other\" must be included, or trace_color must be NULL!"), call. = F)
-    } else {
+
+      ug <- as.character(unique_groups)
+
+      missing_groups <- ug |> subset(!ug %in% names(trace_color))
+      if(length(missing_groups) > 0) {
+        detected_traces <- map2(unname(trace_color), names(trace_color), function(tc,nm) {
+          miss <- missing_groups |> subset(str_detect(missing_groups, str_c(nm, collapse = "|")))
+          rep(tc, length(miss)) |> setNames(miss)
+        }) |> roboplotr_compact() |> unlist()
+        trace_color <- c(trace_color, detected_traces)
+      }
+      color_vector <- c(trace_color[ug[ug %in% names(trace_color)]],
+                        ug[!ug %in% names(trace_color)] |> length() |> rep(x = trace_color[".other"]) |>
+                          setNames(ug[!ug %in% names(trace_color)]))
+
+      na_groups <- color_vector[is.na(color_vector)]
+      color_vector <- c(color_vector[!is.na(color_vector)], roboplotr_get_colors(length(na_groups)) |> setNames(names(na_groups)))
+      # stop(str_c("Either trace color must be a single color string, or all variables in column \"",as_name(color),"\" must have a corresponding trace color, or key \".other\" must be included, or trace_color must be NULL!"), call. = F)
+
+      } else {
+
       ug <- as.character(unique_groups)
       missing_groups <- ug |> subset(!ug %in% names(trace_color))
       if(length(missing_groups) > 0) {
@@ -43,7 +62,8 @@ roboplotr_set_colors <- function(trace_color, unique_groups, highlight, d, color
       color_vector <- c(trace_color[ug[ug %in% names(trace_color)]],
                         ug[!ug %in% names(trace_color)] |> length() |> rep(x = trace_color[".other"]) |>
                           setNames(ug[!ug %in% names(trace_color)]))
-    }
+      }
+
     if(!is.null(highlight)) { roboplotr_alert("The argument 'highlight' is ignored when providing trace colors.")}
 
   } else if(!is.null(highlight)) {
@@ -120,7 +140,8 @@ roboplotr_alter_color <- function(color,modifier) {
 #' @importFrom purrr map_dbl
 roboplotr_text_color_picker <- function(picked_colors, fontsize = 12, fontweight = 500, grey_shades = roboplotr_grey_shades()) {
 
-  map(picked_colors, function(picked_color) {
+  .picked_colors <- unique(picked_colors)
+  replacements <- map(.picked_colors, function(picked_color) {
     #font_color <- ifelse(rev == F, "#FFFFFF", "#000000")
     clr_lmn <- roboplotr_get_luminance(picked_color)
     ratio_lim <- case_when(
@@ -137,7 +158,11 @@ roboplotr_text_color_picker <- function(picked_colors, fontsize = 12, fontweight
       { slice_head(gs, n = 1)} |>
         pull(.data$color)
     }
-  }) |> unlist()
+  }) |> unlist() |>
+    setNames(.picked_colors)
+  v_replaced <- picked_colors
+  v_replaced[v_replaced %in% names(replacements)] <- replacements[match(v_replaced, names(replacements)) ]
+  v_replaced
 }
 
 #' @importFrom farver decode_colour
