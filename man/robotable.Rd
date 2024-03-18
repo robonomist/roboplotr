@@ -19,6 +19,7 @@ robotable(
   info_text = NULL,
   heatmap = NULL,
   na_value = "",
+  class = NULL,
   artefacts = getOption("roboplot.artefacts")$auto
 )
 }
@@ -29,21 +30,23 @@ robotable(
 
 \item{caption}{Function or character. Use \code{\link[=set_caption]{set_caption()}}.}
 
-\item{rounding}{Double. Controls the rounding of numeric columns.}
+\item{rounding}{Numeric. Controls the rounding of numeric columns.}
 
-\item{height, width}{Double. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.}
+\item{height, width}{Numeric. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.}
 
 \item{flag, unit}{Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.}
 
 \item{dateformat}{Character. Controls how to format dates displayed on the table. Robotable tries to determine the proper format if left NULL.}
 
-\item{pagelength}{Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, \code{\link[=robotable]{robotable()}} automatically adds navigation.}
+\item{pagelength}{Numeric. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, \code{\link[=robotable]{robotable()}} automatically adds navigation.}
 
 \item{info_text}{Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.}
 
 \item{heatmap}{Function. Use \code{\link[=set_heatmap]{set_heatmap()}}. Displays any numeric values as a heatmap.}
 
 \item{na_value}{Character. The displayed value of all NA values in the table.}
+
+\item{class}{Character vector. Controls the basic datatable appearance. You may combine any of "cell-border", "compact","hover","nowrap","row-border" and / or "stripe". The default use is "stripe", "hover" and "row-border".}
 
 \item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}. Controls artefact creation. Currently unable to make static files, only html files.}
 }
@@ -80,5 +83,12 @@ d |>
  robotable(heatmap = set_heatmap(),
            pagelength = 50,
            info_text = "Testing the info button.")
+
+# You can use class parameter to control the appearance of the table, providing.
+# a character vector of classes used by the table. Available options are
+# "cell-border", "compact", "hover", "nowrap", "row-border" and "stripe", with
+# the default being "stripe", "hover" and "row-border".
+#
+d |> robotable(class = c("compact","nowrap"))
 
 }

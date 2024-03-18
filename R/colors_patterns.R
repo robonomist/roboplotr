@@ -466,7 +466,9 @@ roboplotr_accessible_colors <- function(colors2alt, compared_colors = c(), backg
 roboplotr_tbl_heatmap_colorfun <- function(d, cols = NULL,
                                            hmin = first(getOption("roboplot.colors.traces")),
                                            hmid = getOption("roboplot.colors.background"),
-                                           hmax = last(getOption("roboplot.colors.traces"))) {
+                                           hmax = last(getOption("roboplot.colors.traces")),
+                                           na_color = getOption("roboplot.colors.background")
+                                           ) {
 
   if(is.null(cols)) {
     numeric_columns <- d |> select(where(is.numeric))
@@ -499,7 +501,9 @@ roboplotr_tbl_heatmap_colorfun <- function(d, cols = NULL,
 
   .color_mapping <- function(values) {
     map_chr(values, function(value) {
-      if(value < anchor_min) {
+      if(is.na(value)) {
+        na_color
+      } else if (value < anchor_min) {
         names(anchor_min)
       } else if (value > anchor_max) {
         names(anchor_max)
@@ -523,8 +527,7 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
   if (is.null(heatmap)) {
     dt
   } else {
-    heatmap_fun <- roboplotr_tbl_heatmap_colorfun(d, hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max)
-
+    heatmap_fun <- roboplotr_tbl_heatmap_colorfun(d, hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max, na = heatmap$na)
     .orders <- attributes(d)$dt_orders
 
     for (col in seq_len(length(.orders))) {
@@ -547,7 +550,7 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
 #'
 #' Use in [robotable()] parameter 'heatmap' to get a list used for setting up the heatmap colors and value breaks.
 #'
-#' @param maxcolor,midcolor,mincolor Characters. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.
+#' @param maxcolor,midcolor,mincolor,na_color Characters. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.
 #' @param maxvalue,midvalue,minvalue Numerics. Optional. Numeric breakpoints where the 'maxcolor', 'midcolor' and 'mincolor' colors are set at.
 #' Any values falling outside of this range will have the nearest corresponding color. If not provided, [robotable()] calculates the values from the data.
 #' Currently only support heatmaps across all numeric columns in the given [robotable()].
@@ -582,12 +585,14 @@ set_heatmap <-
            mincolor = first(getOption("roboplot.colors.traces")),
            maxvalue = NULL,
            midvalue = NULL,
-           minvalue = NULL) {
+           minvalue = NULL,
+           na_color = getOption("roboplot.colors.background")
+           ) {
 
     roboplotr_check_param(maxcolor, "character", allow_null = F)
     roboplotr_check_param(midcolor, "character", allow_null = F)
     roboplotr_check_param(mincolor, "character", allow_null = F)
-    roboplotr_valid_colors(c(maxcolor, midcolor, mincolor),"Any colors set with set_heatmap()")
+    roboplotr_valid_colors(c(maxcolor, midcolor, mincolor, na_color),"Any colors set with set_heatmap()")
     roboplotr_check_param(maxvalue, "numeric", allow_null = T)
     roboplotr_check_param(midvalue, "numeric", allow_null = T)
     roboplotr_check_param(minvalue, "numeric", allow_null = T)
@@ -596,7 +601,7 @@ set_heatmap <-
     mid <- if(is.null(midvalue)) {midcolor} else {setNames(midvalue, midcolor)}
     max <- if(is.null(maxvalue)) {maxcolor} else {setNames(maxvalue, maxcolor)}
 
-    list(min = min, mid = mid, max = max)
+    list(min = min, mid = mid, max = max, na = na_color)
 
   }
 

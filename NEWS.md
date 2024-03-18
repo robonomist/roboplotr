@@ -1,3 +1,8 @@
+# roboplotr 1.4.11
+
+* robotable set_heatmap option added to define color for NA values.
+* robotable option added to control table class from given selection.
+
 # roboplotr 1.4.10
 
 * Fix for internal text color picker.

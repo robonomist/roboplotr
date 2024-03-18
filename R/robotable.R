@@ -302,16 +302,17 @@ roboplotr_set_robotable_fonts <-
 #' @param d Data frame. Data to be created a table from.
 #' @param title,subtitle Characters. Labels for plot elements. Optionally, use [set_title()] for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.
 #' @param caption Function or character. Use [set_caption()].
-#' @param height,width Double. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.
+#' @param height,width Numeric. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.
 #' @param flag,unit Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.
-#' @param rounding Double. Controls the rounding of numeric columns.
+#' @param rounding Numeric. Controls the rounding of numeric columns.
 #' @param dateformat Character. Controls how to format dates displayed on the table. Robotable tries to determine the proper format if left NULL.
 #' @param na_value Character. How NA values are displayed.
-#' @param pagelength Double. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, [robotable()] automatically adds navigation.
+#' @param pagelength Numeric. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, [robotable()] automatically adds navigation.
 #' @param info_text Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.
 #' @param heatmap Function. Use [set_heatmap()]. Displays any numeric values as a heatmap.
 #' @param na_value Character. The displayed value of all NA values in the table.
 #' @param artefacts Function. Use [set_artefacts()]. Controls artefact creation. Currently unable to make static files, only html files.
+#' @param class Character vector. Controls the basic datatable appearance. You may combine any of "cell-border", "compact","hover","nowrap","row-border" and / or "stripe". The default use is "stripe", "hover" and "row-border".
 #' @return A list of classes "datatable" and "htmlwidget"
 #' @importFrom DT datatable tableFooter tableHeader
 #' @importFrom htmltools HTML tags withTags
@@ -345,6 +346,13 @@ roboplotr_set_robotable_fonts <-
 #'            pagelength = 50,
 #'            info_text = "Testing the info button.")
 #'
+#' # You can use class parameter to control the appearance of the table, providing.
+#' # a character vector of classes used by the table. Available options are
+#' # "cell-border", "compact", "hover", "nowrap", "row-border" and "stripe", with
+#' # the default being "stripe", "hover" and "row-border".
+#' #
+#' d |> robotable(class = c("compact","nowrap"))
+#'
 robotable <-
   function(d,
            title = NULL,
@@ -360,6 +368,7 @@ robotable <-
            info_text = NULL,
            heatmap = NULL,
            na_value = "",
+           class = NULL,
            artefacts = getOption("roboplot.artefacts")$auto
            ) {
     if (is.null(title)) {
@@ -431,8 +440,10 @@ robotable <-
 
     center_defs <- (function() {
       dnames <- names(d)
-      center_defs <- (which(subset(dnames, !str_detect(dnames, "^\\.")) %in% dnames)[-1])-1
-      list(list(className = "dt-right", targets = center_defs))
+      center_defs <- ((which(subset(dnames, !str_detect(dnames, "^\\.")) %in% dnames)[-1])-1)
+      list(list(className = "dt-right", targets = center_defs),
+           list(className = "dt-left", targets = 0)
+           )
     })()
 
     column_defs <- append(order_defs, center_defs)
@@ -573,8 +584,14 @@ robotable <-
     }
     .pagination <- roboplotr_pagelength(pagelength, nrow(d))
 
+    roboplotr_check_param(class, "character", NULL)
+    roboplotr_valid_strings(class, c("cell-border", "compact","hover","nowrap","row-border","stripe"), any)
+    if(is.null(class)) { class <- "display" } else {
+      class <- unique(class) |> str_c(collapse = " ")
+    }
     dt <- d |>
       datatable(
+        class = class,
         width = width,
         height = height,
         container = sketch,
