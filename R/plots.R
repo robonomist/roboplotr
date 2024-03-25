@@ -1364,7 +1364,7 @@ roboplotr_get_plot <-
         mutate(
           g,
           roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color, "dark"),
-          roboplot.tx.color = roboplotr_text_color_picker(roboplot.bg.color,.fontsize)
+          roboplot.tx.color = roboplotr_text_color_picker(.data$roboplot.bg.color,.fontsize)
         )
       if (tracetype == "pie") {
         g <-

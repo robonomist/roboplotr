@@ -20,6 +20,9 @@ robotable(
   heatmap = NULL,
   na_value = "",
   class = NULL,
+  searchable = T,
+  sortable = T,
+  col_widths = NULL,
   artefacts = getOption("roboplot.artefacts")$auto
 )
 }
@@ -47,6 +50,10 @@ robotable(
 \item{na_value}{Character. The displayed value of all NA values in the table.}
 
 \item{class}{Character vector. Controls the basic datatable appearance. You may combine any of "cell-border", "compact","hover","nowrap","row-border" and / or "stripe". The default use is "stripe", "hover" and "row-border".}
+
+\item{searchable, sortable}{Logical. Control whether the \code{\link[=robotable]{robotable()}} columns have searching or sorting.}
+
+\item{col_widths}{Named numeric vector. Must sum to 100 or lower. Sets the percentage widths taken by column by name. Columns not named will have the excess space divided evenly between them. For narrow screens the widths cannot be adhered to.}
 
 \item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}. Controls artefact creation. Currently unable to make static files, only html files.}
 }
@@ -87,8 +94,16 @@ d |>
 # You can use class parameter to control the appearance of the table, providing.
 # a character vector of classes used by the table. Available options are
 # "cell-border", "compact", "hover", "nowrap", "row-border" and "stripe", with
-# the default being "stripe", "hover" and "row-border".
-#
-d |> robotable(class = c("compact","nowrap"))
+# the default being "stripe", "hover" and "row-border". Column widths can be
+# specified by giving a named vector where the values are percentages of total
+# width the column will take ([roboplot()] will divide the remaining space
+# evenly between columns not named in the parameter). Navigating options for
+# search and sort can be disabled by 'searchable' and 'sortable'.
 
+d |> robotable(
+  class = c("compact", "nowrap"),
+  searchable = F,
+  sortable = F,
+  col_widths = c("Kanada, Vienti" = 50)
+)
 }

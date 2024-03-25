@@ -146,6 +146,12 @@ roboplotr_set_robotable_css <-
            title = "") {
     str_c(
       roboplotr_set_specific_css(
+        str_glue('#{id}'),
+        'width' = '100%!important',
+        'font-size' = str_glue('{font$size+2}px'),
+        'font-family' = font$family
+        ),
+      roboplotr_set_specific_css(
         str_glue('#{id}_wrapper .dt-buttons .dt-button span svg path'),
         'fill' = 'none',
         'transition' =  'opacity 0.3s ease-in-out width 0.3s ease-in-out'
@@ -313,6 +319,8 @@ roboplotr_set_robotable_fonts <-
 #' @param na_value Character. The displayed value of all NA values in the table.
 #' @param artefacts Function. Use [set_artefacts()]. Controls artefact creation. Currently unable to make static files, only html files.
 #' @param class Character vector. Controls the basic datatable appearance. You may combine any of "cell-border", "compact","hover","nowrap","row-border" and / or "stripe". The default use is "stripe", "hover" and "row-border".
+#' @param searchable,sortable Logical. Control whether the [robotable()] columns have searching or sorting.
+#' @param col_widths Named numeric vector. Must sum to 100 or lower. Sets the percentage widths taken by column by name. Columns not named will have the excess space divided evenly between them. For narrow screens the widths cannot be adhered to.
 #' @return A list of classes "datatable" and "htmlwidget"
 #' @importFrom DT datatable tableFooter tableHeader
 #' @importFrom htmltools HTML tags withTags
@@ -349,10 +357,18 @@ roboplotr_set_robotable_fonts <-
 #' # You can use class parameter to control the appearance of the table, providing.
 #' # a character vector of classes used by the table. Available options are
 #' # "cell-border", "compact", "hover", "nowrap", "row-border" and "stripe", with
-#' # the default being "stripe", "hover" and "row-border".
-#' #
-#' d |> robotable(class = c("compact","nowrap"))
+#' # the default being "stripe", "hover" and "row-border". Column widths can be
+#' # specified by giving a named vector where the values are percentages of total
+#' # width the column will take ([roboplot()] will divide the remaining space
+#' # evenly between columns not named in the parameter). Navigating options for
+#' # search and sort can be disabled by 'searchable' and 'sortable'.
 #'
+#' d |> robotable(
+#'   class = c("compact", "nowrap"),
+#'   searchable = F,
+#'   sortable = F,
+#'   col_widths = c("Kanada, Vienti" = 50)
+#' )
 robotable <-
   function(d,
            title = NULL,
@@ -369,6 +385,9 @@ robotable <-
            heatmap = NULL,
            na_value = "",
            class = NULL,
+           searchable = T,
+           sortable = T,
+           col_widths = NULL,
            artefacts = getOption("roboplot.artefacts")$auto
            ) {
     if (is.null(title)) {
@@ -400,6 +419,32 @@ robotable <-
       size = 1,
       f.name = list(fun = substitute(caption)[1], check = "set_caption")
     )
+
+    roboplotr_check_param(class, "character", NULL)
+    roboplotr_valid_strings(class, c("cell-border", "compact","hover","nowrap","row-border","stripe"), any)
+    if(is.null(class)) { class <- "display" } else {
+      class <- unique(class) |> str_c(collapse = " ")
+    }
+    roboplotr_check_param(searchable, "logical",allow_null = F)
+    roboplotr_check_param(sortable, "logical",allow_null = F)
+    roboplotr_check_param(class, "character", NULL)
+    roboplotr_check_param(col_widths, "numeric", NULL)
+    if(!is.null(col_widths)) {
+      if (all(!names(col_widths) %in% names(d))) {
+        stop("The param 'col_widths' must be a numeric vector with names matching the names from param 'd' or robotable()!", call. = F)
+      } else if (any(!names(col_widths) %in% names(d))) {
+        roboplotr_warning("Some columns specified in robotable() 'col_widths' are not in the data!")
+      }
+      col_widths <- col_widths[names(col_widths) %in% names(d)]
+    if(sum(col_widths) > 100) {
+        if(any(!names(d) %in% names(col_widths))) {
+          .col_widths_msg <- " Remember to leave room for columns not defined in 'col_widths'."
+        } else {
+          .col_widths_msg <- ""
+        }
+        stop(str_glue("The param 'col_widths' must sum to 100 or lower!{.col_widths_msg}"), call. = F)
+      }
+    }
 
     if (!is.null(caption)) {
       if (!is(substitute(caption)[1], "call")) {
@@ -446,7 +491,31 @@ robotable <-
            )
     })()
 
-    column_defs <- append(order_defs, center_defs)
+    colwidth_defs <- (function() {
+      dnames <- names(d)
+      if(!is.null(col_widths)) {
+        col_names <- dnames[!dnames %in% names(col_widths)]
+        colwidth_defs <- which(dnames %in% subset(col_names, !str_detect(col_names, "^\\.")))-1
+        widths <- rep((100-sum(col_widths))/length(colwidth_defs),length(colwidth_defs)) |> roboplotr_round()
+      } else {
+        col_names <- dnames
+        colwidth_defs <- which(dnames %in% subset(col_names, !str_detect(col_names, "^\\.")))-1
+        widths <- rep(100/length(colwidth_defs),length(colwidth_defs)) |> roboplotr_round()
+      }
+      colwidth_defs <- widths |> setNames(colwidth_defs)
+      colwidth_defs <- colwidth_defs |> unique() |> map( ~ list(
+        width = as.character(str_glue("{.x}%")), targets = as.numeric(names(colwidth_defs[colwidth_defs == .x]))
+      ))
+      if(!is.null(col_widths)) {
+        col_widths <- col_widths |> unique() |> map( ~ list(
+          width = as.character(str_glue("{.x}%")), targets = which(dnames %in% names(col_widths[col_widths == .x]))-1
+        ))
+        colwidth_defs <- colwidth_defs |> append(col_widths)
+      }
+      colwidth_defs
+    })()
+
+    column_defs <- append(order_defs, center_defs) |> append(colwidth_defs)
 
     .footer <- caption
 
@@ -584,27 +653,33 @@ robotable <-
     }
     .pagination <- roboplotr_pagelength(pagelength, nrow(d))
 
-    roboplotr_check_param(class, "character", NULL)
-    roboplotr_valid_strings(class, c("cell-border", "compact","hover","nowrap","row-border","stripe"), any)
-    if(is.null(class)) { class <- "display" } else {
-      class <- unique(class) |> str_c(collapse = " ")
-    }
+
+    .dom <- case_when(
+      nrow(d) <= pagelength ~ "Bt",
+      searchable == F ~ "Btiprl",
+      TRUE ~ "Btiprlf"
+    )
+
     dt <- d |>
       datatable(
         class = class,
         width = width,
         height = height,
         container = sketch,
-        rownames = F,
-        escape = F,
+        rownames = FALSE,
+        escape = FALSE,
         extensions = "Buttons",
         options = list(
+          autoWidth = T,
+          scrollX = T,
+          scrollCollapse = T,
+          buttons = robotable_buttons,
           columnDefs = column_defs,
+          dom = .dom,
           language = set_robotable_labels(),
-          pageLength = .pagination$pagelength,
           lengthMenu = .pagination$lengthmenu,
-          dom = ifelse(nrow(d) > pagelength, "Btiprlf", "Bt"),
-          buttons = robotable_buttons
+          ordering = sortable,
+          pageLength = .pagination$pagelength
         )
       ) |>
       roboplotr_set_robotable_fonts(seq(ncol(d)))

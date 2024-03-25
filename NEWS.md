@@ -1,3 +1,7 @@
+# roboplotr 1.5
+
+* robotable options for enabling / disabling filtering and searching, and column width control.
+
 # roboplotr 1.4.11
 
 * robotable set_heatmap option added to define color for NA values.
