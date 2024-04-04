@@ -6,6 +6,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
   if(!is.null(orientation)) { roboplotr_message("The argument 'legend_orientation' is currently ignored.") }
 
   roboplotr_check_param(legend_position, "character", allow_na = T)
+
   if(is.null(legend_position)) { legend_position <- "bottom" }
 
   if (is.na(legend_position)) {

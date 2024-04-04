@@ -982,7 +982,7 @@ roboplot <- function(d,
   }
 
   pattern_showlegend <- roboplotr_get_pattern_showlegend(
-    d, pattern, pattern_showlegend
+    d, pattern, pattern_showlegend, legend_position
   )
 
   p <-

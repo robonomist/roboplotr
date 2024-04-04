@@ -677,25 +677,30 @@ roboplotr_get_map_palette <- function(d, map_colors, data_contour, bins) {
 #' @importFrom rlang is_quosure
 #' @importFrom stats setNames
 #' @noRd
-roboplotr_get_pattern_showlegend <- function(d, pattern, pattern_showlegend) {
-  if(!rlang::is_quosure(pattern)) { pattern <- enquo(pattern) }
-  if((!quo_is_null(pattern) & !is.null(pattern_showlegend))) {
-  pattern_levels <- levels(d[[as_name(pattern)]]) |> as.character()
-  if(is.null(names(pattern_showlegend))) {
-    if(all(pattern_showlegend == T)) {
-      pattern_showlegend <- rep(T, length(pattern_levels)) |> setNames(pattern_levels)
-    } else {
-      pattern_showlegend <- c(T, rep(F, length(pattern_levels)-1)) |> setNames(pattern_levels)
+roboplotr_get_pattern_showlegend <- function(d, pattern, pattern_showlegend, legend_position) {
+  if(!is.null(pattern_showlegend)) {
+    if(is.na(legend_position)) {
+      return(NULL)
     }
-  } else {
-    roboplotr_valid_strings(names(pattern_showlegend), pattern_levels, any)
-    other_patterns <- pattern_levels[!pattern_levels %in% names(pattern_showlegend)]
-    other_patterns <- rep(F, length(other_patterns)) |> setNames(other_patterns)
-    pattern_showlegend <- c(pattern_showlegend, other_patterns)
   }
-} else {
-  pattern_showlegend <- NULL
-}
+  if(!rlang::is_quosure(pattern)) { pattern <- enquo(pattern) }
+    if((!quo_is_null(pattern) & !is.null(pattern_showlegend))) {
+      pattern_levels <- levels(d[[as_name(pattern)]]) |> as.character()
+      if(is.null(names(pattern_showlegend))) {
+        if(all(pattern_showlegend == T)) {
+          pattern_showlegend <- rep(T, length(pattern_levels)) |> setNames(pattern_levels)
+        } else {
+          pattern_showlegend <- c(T, rep(F, length(pattern_levels)-1)) |> setNames(pattern_levels)
+        }
+      } else {
+        roboplotr_valid_strings(names(pattern_showlegend), pattern_levels, any)
+        other_patterns <- pattern_levels[!pattern_levels %in% names(pattern_showlegend)]
+        other_patterns <- rep(F, length(other_patterns)) |> setNames(other_patterns)
+        pattern_showlegend <- c(pattern_showlegend, other_patterns)
+      }
+    } else {
+      pattern_showlegend <- NULL
+    }
   pattern_showlegend
 }
 

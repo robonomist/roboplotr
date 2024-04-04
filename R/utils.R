@@ -795,10 +795,10 @@ roboplotr_continuous_pattern <- function(d, along, pattern) {
     } else {
       prev <- split[[i-1]] |>
         filter({{along}} == max({{along}})) |>
-        select(-starts_with("roboplot."), -{{pattern}},)
+        select(-starts_with("roboplot."), -{{pattern}})
       .first <- .group |> filter({{along}} == min({{along}})) |> select(-{{along}}, -.data$value)
       .names <- names(prev)[names(prev) %in% names(.first)]
-      left_join(prev, .first, by = .names) |>
+      prev |> bind_cols(.first |> select(-.names)) |>
         bind_rows(.group)
     }
   }) |>

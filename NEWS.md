@@ -1,6 +1,12 @@
+# roboplotr 1.5.1
+* NOT PUSHED!!
+* set_pattern continuous pattern bug fix
+* set_pattern showlegend fix when legend_position is set to NA (no legend)
+
 # roboplotr 1.5
 
 * robotable options for enabling / disabling filtering and searching, and column width control.
+* robotable font size fix
 
 # roboplotr 1.4.11
 
