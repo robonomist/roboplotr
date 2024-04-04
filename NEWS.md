@@ -1,7 +1,11 @@
+# roboplotr 1.5.1.1
+
+* set_pattern showlegend hotfix.
+
 # roboplotr 1.5.1
-* NOT PUSHED!!
-* set_pattern continuous pattern bug fix
-* set_pattern showlegend fix when legend_position is set to NA (no legend)
+
+* set_pattern continuous pattern bug fix.
+* set_pattern showlegend fix when legend_position is set to NA (no legend).
 
 # roboplotr 1.5
 

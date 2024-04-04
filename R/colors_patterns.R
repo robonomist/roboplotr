@@ -678,10 +678,9 @@ roboplotr_get_map_palette <- function(d, map_colors, data_contour, bins) {
 #' @importFrom stats setNames
 #' @noRd
 roboplotr_get_pattern_showlegend <- function(d, pattern, pattern_showlegend, legend_position) {
-  if(!is.null(pattern_showlegend)) {
-    if(is.na(legend_position)) {
-      return(NULL)
-    }
+
+  if(is.null(pattern_showlegend)) {
+    return(NULL)
   }
   if(!rlang::is_quosure(pattern)) { pattern <- enquo(pattern) }
     if((!quo_is_null(pattern) & !is.null(pattern_showlegend))) {
