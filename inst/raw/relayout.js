@@ -2,6 +2,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 
   let elcontainer = $(el).find("svg.main-svg")[0].height.animVal.value;
   let eltitle = $(el).find('g.g-gtitle')[0].getBBox();
+  let is_yaxis2 = $(el).find('g.xy2').length > 0 ? true: false
+  let is_yaxistitle2 = $(el).find('g.g-y2title').length > 0 ? true: false
   let elslider = 0;
   if ('rangeslider' in el.layout.xaxis) {
     if(el.layout.xaxis.rangeslider.visible == true) {
@@ -15,6 +17,12 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let elmodebar = $(el).find('div.modebar');
   if(elmodebar.length > 0) {
     modebar_ht = elmodebar[0].clientHeight;
+  }
+  let margin_right = 5
+  if(is_yaxis2) {
+    let yaxis2 = $(el).find('g.overaxes-above > g.xy2-y')[0].getBBox();
+    let yaxiswidth = is_yaxistitle2 ? $(el).find('g.g-y2title')[0].getBBox().width : 0
+    margin_right = yaxis2.width+5+yaxiswidth
   }
   let margin_top = eltitle.height + modebar_ht + 11;
   let elcaption = $(el).find('g.annotation')[0].getBBox().height + 5;
@@ -124,10 +132,10 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let low_bound = -((margin_bottom+elslider+low_bound_adjust) / elplot.height)//-Math.min((elcontainer - (elplot.height+margin_top)) / elplot.height,(margin_bottom / elplot.height))
   let annotations_y = low_bound
   let images_y = low_bound
-  let legend_font_size = (ellegend.height > (elplot.height / 2)) ? legend_fontsize - 2 : legend_fontsize;
+  let legend_font_size = (ellegend.height > (elplot.height / 2)) ? legend_fontsize.legend - 2 : legend_fontsize.legend;
   legend_font_size = (ellegend.width > $(el).find("svg.main-svg")[0].width.animVal.value) ? legend_font_size - 2 : legend_font_size;
 
-  let yaxis_font_size = legend_fontsize
+  let yaxis_font_size = legend_fontsize.y;
 
   let yaxis_layer = $(el).find('g.yaxislayer-above')
 
@@ -137,7 +145,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     if( elplot.height <= yspace) {
       yaxis_font_size = Math.floor(el.layout.yaxis.tickfont.size * 0.8)
     } else {
-      yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size*1.5), legend_fontsize)
+      yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size*1.5), legend_fontsize.y)
     }
   }
   if(showfinal == true) {console.log('legend ht: ' + ellegend.height +
@@ -156,9 +164,11 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     'images[0].sizey': images_sizey,
     'margin.t': margin_top,
     'margin.b': margin_bottom,
+    'margin.r': margin_right,
     'annotations[0].y': annotations_y,
     'legend.font.size': legend_font_size,
-    'yaxis.tickfont.size': yaxis_font_size
+    'yaxis.tickfont.size': yaxis_font_size,
+    'yaxis2.tickfont.size': yaxis_font_size
   };
 
   let rearray = keys.reduce(function (obj2, key) {
@@ -233,7 +243,7 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
     let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox().width;
     let titlespace = pie_chart ? $(gd).find('g.layer-above') : $(gd).find('.cartesianlayer > .xy > .gridlayer');
     if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
-    let relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','legend.y','yaxis.tickfont.size'], pie_chart = pie_chart, logo = logo)
+    let relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','legend.y','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo)
     if(titlespace <= gdtitle) {
       title_text = "<span>" +
         (plot_title[2] ? "<b>" : "" ) +
@@ -245,15 +255,15 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
     adjustLegendItems(gd)
     Plotly.relayout(gd, relayout_array);
     let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo)
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo)
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
     Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo)
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo)
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
     adjustLegendItems(gd)
     Plotly.relayout(gd, relayout_array);
-    Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['images[0].y', 'annotations[0].y', 'margin.t', 'margin.b','legend.y','images[0].sizey','yaxis.tickfont.size'], pie_chart = pie_chart, logo = logo));
-    Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['images[0].y', 'annotations[0].y', 'legend.y', "margin.b", 'title.y'], pie_chart = pie_chart, logo = logo));
+    Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['images[0].y', 'annotations[0].y', 'margin.t', 'margin.b','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo));
+    Plotly.relayout(gd, getVerticalLayout(gd, legend_fontsize, false, keys = ['images[0].y', 'annotations[0].y', 'legend.y', "margin.b", 'margin.r', 'title.y','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo));
   }
 }
 

@@ -19,26 +19,27 @@ roboplotr_config <- function(p,
                              ticktypes,
                              container,
                              hovermode,
-                             info_text
+                             info_text,
+                             legend_title
                              ) {
   if (!is.list(margin)) {
     if (is.na(margin)) {
       margin <- list(t = 0,
                      r = 5,
                      b = 0,
-                     l = 0)
+                     l = 5)
     }
   }
 
   p |>
-    roboplotr_dependencies(title, subtitle, container) |>
+    roboplotr_dependencies(title, subtitle, container, ticktypes) |>
     roboplotr_grid() |>
     roboplotr_set_background() |>
     roboplotr_modebar(title, subtitle, caption, height, width, ticktypes$dateformat, info_text) |>
     roboplotr_set_ticks(ticktypes) |>
     roboplotr_set_margin(margin) |>
     roboplotr_logo() |>
-    roboplotr_legend(legend_position, legend_orientation, legend_order) |>
+    roboplotr_legend(legend_position, legend_orientation, legend_order, legend_title) |>
     roboplotr_title(title, subtitle) |>
     roboplotr_caption(caption) |>
     roboplotr_add_shapes(zeroline, shadearea) |>
@@ -55,7 +56,7 @@ roboplotr_config <- function(p,
 #' @importFrom RCurl base64Encode
 #' @importFrom shiny isRunning
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_pad str_wrap
-roboplotr_dependencies <- function(p, title, subtitle, container) {
+roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
 
   if(title$include == T) {
     plot_title <-
@@ -95,28 +96,6 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
     F
   }
 
-  # accessibility code, R above, js below..
-  # ariaid <- str_pad(round(runif(1)*1000000),6,"left","0")
-  # desc_string <- (function() {
-  #   row.data <- p$data |> pmap(function(...) {
-  #     as.character(list(...)) |> replace_na("NA") |> str_replace_all(c(";"=",","'"="\u2019")) |> str_c(collapse = ";")
-  #   }) |> unlist() |> str_c(collapse = "\\n")
-  #   col.names <- names(p$data) |> str_replace("csv\\.data\\.tiedot","tiedot") |> str_c(collapse = ";")
-  #   str_c("<desc id = '",ariaid,"d'>A plotly plot displaying the following data\\:\\n",col.names,"\\n",row.data,"</desc>")
-  # })()
-  #
-  # ttl_string <- str_c("<title id = '",ariaid,"t'>",title,", ",subtitle,"</title>")
-
-  # let mainsvg = $(gd).find('svg.main-svg')[0]
-  # let desc_string = data.dataString;
-  # let title_string = data.titleString;
-  # let arialabel_string = data.ariaID + 't ' + data.ariaID + 'd'
-  # mainsvg.prepend(document.importNode(new DOMParser().parseFromString(desc_string, 'text/html').body.childNodes[0], true));
-  # mainsvg.prepend(document.importNode(new DOMParser().parseFromString(title_string, 'text/html').head.childNodes[0], true));
-  # mainsvg.setAttribute('aria-labelledby', arialabel_string);
-  # mainsvg.setAttribute('role', 'img');
-
-  # annotations are removed here due to plotly bug replicating annotations when font is provided as list of length > 1
   p |>
     onRender(
       jsCode = "function (gd, params, data){
@@ -129,9 +108,9 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
                         let roboplot_logo = new Image();
                         roboplot_logo.src = gd.layout.images[0].source;
                         roboplot_logo = roboplot_logo.width / roboplot_logo.height
-                        setVerticalLayout({'width': true}, gd, data.legendFontsize, plot_title, pie_plot = data.piePlot, logo = roboplot_logo);
+                        setVerticalLayout({'width': true}, gd, data.fonts, plot_title, pie_plot = data.piePlot, logo = roboplot_logo);
                         gd.on('plotly_relayout',function(eventdata) {
-                        plotlyRelayoutEventFunction(eventdata, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
+                        plotlyRelayoutEventFunction(eventdata, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
                         })
 
 
@@ -140,7 +119,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
                               if(entries[0].isIntersecting) {
                                 // Element is visible, handle the plot rendering or adjustment
                                 console.log('relayout fired!');
-                                plotlyRelayoutEventFunction({width: true}, gd, data.legendFontsize, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
+                                plotlyRelayoutEventFunction({width: true}, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
                                 observer.disconnect();
                               }
                             }, { threshold: [0.1] });  // Adjust the threshold as needed
@@ -165,7 +144,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
       data = list(
         plotTitle = plot_title,
         rangesliderSums = rangeslider_sums,
-        legendFontsize = getOption("roboplot.font.main")$size,
+        fonts = list(legend = getOption("roboplot.font.main")$size, x = ticktypes$xfont$size,y = ticktypes$yfont$size),
         piePlot = pie_plot,
         container = container#,
         # dataString = desc_string,
@@ -257,15 +236,13 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #' @param error_bars Function. Use [set_errorbars()]. Specifications for any error bars.
 #' @param legend_maxwidth Numeric. Legend items (and y-axis values for horizontal
 #' barplots) longer than this will be collapsed with an ellipsis.
+#' @param secondary_yaxis Character vector. Observations from param 'color' of [roboplot]
+#' which will use a secondary y-axis. Parameter 'zeroline' will be ignored. Use
+#' param 'plot_axes' with [set_axes()] for more control over secondary yaxis (see
+#' documentation for several examples.)
 #' @param xaxis_ceiling Character or date. One of "default", "days", "months",
 #' "weeks", "quarters", "years", or "guess"). Set, or round, the upper bound of
 #' plot x-axis for other than bar plots if no axis limits are given.
-#' @param secondary_yaxis Symbol, string, or function resulting in symbol or
-#' string. Variable from argument 'd' resulting in a maximum of two factor
-#' levels, determining which observations if any use a secondary y-axis.
-#' Parameter 'zeroline' will be ignored. Cannot currently differentiate between
-#' the axes in legend, and right margin will not scale properly on zoom and
-#' possibly on image files downloaded through modebar.
 #' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned
 #' control. Use TRUE instead for automated artefact creation or html and/or other
 #' files from the plot based on settings globally set by [set_roboplot_options()].
@@ -457,6 +434,29 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'              xticktype = "numeric")
 #'   )
 #'
+#' # You can use 'secondary_yaxis' to define which observations from 'color' use
+#' # go to a secondary yaxis on the right. Using a secondary yaxis disables any
+#' # zeroline specifications.
+#' d2 |>
+#'   dplyr::filter(Suunta == "Tuonti", Alue %in% c("Yhdistynyt kuningaskunta", "Kanada", "Norja")) |>
+#'   roboplot(Alue,
+#'            "Energian tuonti",
+#'            "Milj. \u20AC",
+#'            "Tilastokeskus",
+#'            secondary_yaxis = "Yhdistynyt kuningaskunta",
+#'            zeroline = 1000)
+#'
+#' # Furthermore, you can use set_axes() in 'plot_axes' for further control, like
+#' # titles (defaults are added when using set_axes()). Documentation for
+#' # set_axes() has more detailed examples.
+#' d2 |>
+#'   dplyr::filter(Suunta == "Tuonti", Alue %in% c("Yhdistynyt kuningaskunta", "Kanada", "Norja")) |>
+#'   roboplot(Alue,
+#'            "Energian tuonti",
+#'            "Milj. \u20AC",
+#'            "Tilastokeskus",
+#'            plot_axes = set_axes(y2 = "Yhdistynyt kuningaskunta")
+#'
 #' # Pie plots are possible too, but pattern is currently ignored by plotly library.
 #' d3 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
 #'                pattern = Suunta,
@@ -533,18 +533,6 @@ roboplotr_dependencies <- function(p, title, subtitle, container) {
 #'            shadearea = set_shadearea(
 #'              xmin = "182625",
 #'            ))
-#' # Secondary yaxis can be added to line plots when the corresponding variable
-#' # only has two unique observations that is a subset of the variable 'color'.
-#' # There is currently no way of differentiating between the axes in legend.
-#' # Zeroline will not behave as expected, but will instead refer to right yaxis.
-#' d2 |>
-#'   dplyr::filter(Suunta == "Tuonti") |>
-#'   dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
-#'   roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
-#'            plot_type = c("Norja" = "bar", ".other" = "scatter"),
-#'            secondary_yaxis = sec_axis,
-#'            zeroline = NA)
-#'
 #' # Finally, you may get html or other files from the plots you create either
 #' # by using roboplotr::roboplot_create_artefacts() or simply using the
 #' # parameter 'artefacts' here. The global defaults or artefact creation are
@@ -604,10 +592,10 @@ roboplot <- function(d,
                      facet_split = NULL,
                      legend_maxwidth = NULL,
                      xaxis_ceiling = getOption("roboplot.xaxis.ceiling"),
-                     secondary_yaxis = NULL,
                      width = getOption("roboplot.width"),
                      legend_title = F,
                      shadearea = NULL,
+                     secondary_yaxis = NULL,
                      artefacts = getOption("roboplot.artefacts")$auto,
                      container = getOption("roboplot.shinyapp")$container,
                      info_text = NULL,
@@ -645,7 +633,20 @@ roboplot <- function(d,
   roboplotr_check_param(plot_axes,
                         "function",
                         NULL,
+                        allow_null = F,
                         f.name = list(fun = substitute(plot_axes)[1], check = "set_axes"))
+
+  if(!is.null(secondary_yaxis)) {
+    # .plot_axes <- substitute(plot_axes)
+    if(!is.null(plot_axes$y)) {
+      roboplotr_alert("roboplot() param 'secondary_yaxis' overrides y2 set with param 'plot_axes'")
+    } else {
+      roboplotr_message("Use roboplot() param 'plot_axes' with set_axes() for more control over secondary yaxis. See documentation.")
+    }
+    # .plot_axes$y2 <- secondary_yaxis
+    # plot_axes <- eval(.plot_axes)
+    plot_axes$y2 <- secondary_yaxis
+  }
 
   if (!all(plot_axes[c("x", "y")] %in% d_names)) {
     stop(str_glue("'d' must be a data frame with columns named \"{plot_axes$x}\"\"{plot_axes$y}\"!"),
@@ -677,6 +678,8 @@ roboplot <- function(d,
     )
     d <- mutate(d, roboplot.topic = str_trunc(title$title, 30))
   }
+
+  unique_groups <- sort(unique(d[[as_name(color)]]))
 
   pattern <- enquo(pattern)
   if(quo_is_call(pattern)) {
@@ -711,48 +714,16 @@ roboplot <- function(d,
   if(!is.null(width)) { if(is.na(width)) { width <- NULL} }
   if(!is.null(height)) { if(is.na(height)) { height <- NULL} }
 
-  secondary_yaxis <- enquo(secondary_yaxis)
-  secondary_yaxis <-
-    roboplotr_check_valid_var(secondary_yaxis, d_names)
+  secondary_yaxis <- plot_axes$y2
+  roboplotr_check_param(secondary_yaxis, "character", size = NULL, allow_null = T, allow_na = F)
+  roboplotr_valid_strings(secondary_yaxis, unique_groups,.fun = any)
 
   if (!is.null(secondary_yaxis)) {
-    if (!is.factor(pull(d, {
-      {
-        secondary_yaxis
-      }
-    }))) {
-      if (pull(d, {
-        {
-          secondary_yaxis
-        }
-      }) |> unique() |> length() > 2) {
-        stop(
-          "No more than two unique observations can be in the variable provided for 'secondary_yaxis'.",
-          call. = F
-        )
-      }
-      d <- d |>
-        mutate({{secondary_yaxis}} := fct_reorder({{secondary_yaxis}}, .data$value, .desc = T, na.rm = T))
-      if (unique(pull(d,!!secondary_yaxis)) |> length() > 1) {
-        zeroline <- F
-        rmargin <-
-          (max(str_length(
-            filter(d, as.numeric(!!secondary_yaxis) == max(as.numeric({
-              {
-                secondary_yaxis
-              }
-            })))$value
-          ), na.rm = T) * getOption("roboplot.font.main")$size / 1.5) |> max(30)
-        margin <- list(
-          t = 0,
-          r = rmargin,
-          b = 0,
-          l = 20
-        )
-        roboplotr_alert(
-          "Secondary_yaxis cannot currently differentiate between the axes in legend, and right margin will not scale properly on zoom and possibly on image files downloaded through the modebar."
-        )
-      }
+    if(is.logical(zeroline)) {
+     if(zeroline == T)
+       roboplotr_alert("When using set_axes(y2), zeroline specifications are ignored.")
+    } else {
+      roboplotr_alert("When using set_axes(y2), zeroline specifications are ignored.")
     }
   }
 
@@ -894,7 +865,6 @@ roboplot <- function(d,
   d <-
     d |> group_by(!!color) |> filter(!all(is.na(.data$value))) |> ungroup() |> droplevels()
 
-  unique_groups <- sort(unique(d[[as_name(color)]]))
 
   if (!all(plot_type %in% c("scatter", "bar", "pie"))) {
     stop("Plot type must be \"scatter\" or \"bar\", or a named character vector!",
@@ -985,6 +955,17 @@ roboplot <- function(d,
     d, pattern, pattern_showlegend, legend_position
   )
 
+  roboplotr_check_param(legend_title, c("logical", "character"), allow_null = F)
+
+  legend_title <-
+    if (legend_title == F) {
+      NULL
+    } else if (is.character(legend_title)) {
+      str_c("<b>", legend_title, "</b>")
+    } else {
+      str_c("<b>", as_name(color), "</b>")
+    }
+
   p <-
     roboplotr_get_plot(
       d,
@@ -1000,14 +981,12 @@ roboplot <- function(d,
       legend_position,
       ticktypes,
       width,
-      legend_title,
       pattern_showlegend,
       pattern_sep,
       error_bars,
       markers
     )
   # }
-
   p$data <-
     roboplotr_transform_data_for_download(d, color, pattern, ticktypes)
 
@@ -1042,7 +1021,7 @@ roboplot <- function(d,
 
   # if only one group for color, remove legend as default
   legend_order <-
-    ifelse(!any(c("bar", "pie") %in% plot_type), "reversed", "normal")
+    ifelse(!any(c("bar", "pie") %in% plot_type), "reversed+grouped", "grouped")
 
   hover.mode <- "compare"
   if(!"horizontal" %in% plot_mode & any(plot_type == "bar")) {
@@ -1093,7 +1072,8 @@ roboplot <- function(d,
       ticktypes = ticktypes,
       container = container,
       hovermode = hover.mode,
-      info_text = info_text
+      info_text = info_text,
+      legend_title = legend_title
     )
 
   # p <- p |>
@@ -1250,7 +1230,6 @@ roboplotr_get_plot <-
            legend_position,
            ticktypes,
            width,
-           legend_title,
            pattern_showlegend,
            pattern_sep,
            error_bars,
@@ -1384,22 +1363,18 @@ roboplotr_get_plot <-
           show.legend <- roboplotr_highlight_legend(highlight, g)
         }
 
-      # ei syyst\uE4 tai toisesta toimi plotlyss\uE4 t\uE4ll\uE4 hetkell\uE4 kunnolla legendgrouptitle, perehdy
-      # if(!is.null(secondary_yaxis)) {
-      # legendgrouptitle <- ifelse(unique(as.numeric(pull(g, {{secondary_yaxis}}))) == 2, "<b>Oikea akseli</b>", "Vasen akseli")
-      # } else {
-      #       legendgrouptitle <- NULL
-      #       }
-      roboplotr_check_param(legend_title, c("logical", "character"), allow_null = F)
-
-      legendgrouptitle <-
-        if (legend_title == F) {
-          NULL
-        } else if (is.character(legend_title)) {
-          str_c("<b>", legend_title, "</b>")
+      .legendgrouptitle <- NULL
+      .legendgroup <- as.character(unique(pull(g,{{color}})))
+      if(!is.null(secondary_yaxis)) {
+        if(unique(pull(g, {{color}})) |> as.character() %in% secondary_yaxis) {
+          .legendgrouptitle <- ticktypes$y2legend
+          .legendgroup <- "R"
         } else {
-          str_c("<b>", as_name(color), "</b>")
+          .legendgrouptitle <- ticktypes$ylegend
+          .legendgroup <- "L"
         }
+      }
+
 
       if(!is.null(error_bars)) {
         if(quo_is_null(error_bars$error_x)) {
@@ -1447,7 +1422,7 @@ roboplotr_get_plot <-
         #pie
         labels = color,
         #pie
-        legendgroup = color,
+        legendgroup = .legendgroup,
         legendrank = legend_rank,
         line = ~ list(
           width = roboplot.linewidth,
@@ -1533,7 +1508,7 @@ roboplotr_get_plot <-
           NA
         },
         type = ~ tracetype,
-        legendgrouptitle = list(text = legendgrouptitle, font = getOption("roboplot.font.main")[c("color", "family", "size")]),
+        legendgrouptitle = list(text = .legendgrouptitle, font = getOption("roboplot.font.main")[c("color", "family", "size")]),
         values = as.formula(str_c("~", ticktypes$y)),
         # pie
         width = if ("horizontalfill" %in% g$roboplot.plot.mode) {
@@ -1645,25 +1620,10 @@ roboplotr_get_plot <-
         }
 
       if (!is.null(secondary_yaxis)) {
-        if (unique(as.numeric(pull(g, {
-          {
-            secondary_yaxis
-          }
-        }))) |> length() > 1) {
-          stop(
-            "The column referred to by argument 'secondary_yaxis' must be plotted to one axis per trace. Try setting it to match the argument 'color'.",
-            call. = F
-          )
-        }
-        if (unique(as.numeric(pull(g, {
-          {
-            secondary_yaxis
-          }
-        }))) == 2) {
+        if(unique(pull(g, {{color}})) |> as.character() %in% secondary_yaxis) {
           plotting_params$yaxis <- "y2"
         }
       }
-
       plotting_params
     })
 
@@ -1673,7 +1633,7 @@ roboplotr_get_plot <-
     }
 
     if (!is.null(secondary_yaxis)) {
-      y2 <- roboplotr_get_tick_layout("double", "y")
+      y2 <- roboplotr_get_tick_layout(ticktypes$yclass,"y",ticktypes$yformat, title = ticktypes$y2title, font = ticktypes$y2font)
       y2 <-
         append(
           y2,
@@ -1681,11 +1641,12 @@ roboplotr_get_plot <-
             overlaying = "y",
             side = "right",
             position = 1,
-            anchor = "free",
+            anchor = "right",
             gridcolor = roboplotr_alter_color(getOption("roboplot.grid")$ycolor, "lighter"),
             size = 1
           )
         )
+
       p <- p |> layout(yaxis2 = y2)
     }
 

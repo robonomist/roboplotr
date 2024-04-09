@@ -7,7 +7,7 @@
 #' @param xticktype,yticktype Characters. Determines axis formatting within
 #' [roboplot()]. One of "character", "date" or "numeric". Defaults to "date" and
 #' "numeric".
-#' @param xtitle,ytitle Character. Used as the axis title.
+#' @param xtitle,ytitle,y2title Character. Used as the axis title.
 #' @param xformat,yformat Character. Formatting for axis tick text. Use
 #' \href{https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md}{d3 time format}
 #' for dates and \href{https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma}{d3 number format}
@@ -15,14 +15,19 @@
 #' @param xlim,ylim Vector of length 2. Used as the axis limits. These are not
 #' type-checked by [roboplot()], but should match the values used in the
 #' respecting plot axis.
+#' @param xfont,yfont,y2font Functions. Use [set_font()]. Note that secondary
+#' y-axis will always use the font size of the main y-axis, but you may set the
+#' family and color separately.
+#' @param y2 Character vector. Observations from param 'color' of [roboplot]
+#' which will use a secondary y-axis. Parameter 'zeroline' will be ignored.
+#' @param ylegend,y2legend Characters. Only used when y2 is given. Use to label
+#' observations described by y2 separately in plot legend from other observations.
 #' @return A list.
 #' @examples
 #' # The primary usage is for creating horizontal bar plots when combining the
 #' # roboplotr::roboplot plot_axes control with plot_mode "horizontal".
 #'
-#' set_roboplot_options(
-#'   caption_template = "Lähde: {text}."
-#' )
+#' set_roboplot_options(caption_template = "Lähde: {text}.")
 #'
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
@@ -70,6 +75,86 @@
 #'   roboplot(Alue,"Energian tuonti","Milj. €","Tilastokeskus",
 #'            plot_axes = set_axes(yticktype = "log")
 #'   )
+#'
+#' # Providing a vector of strings matching observations from roboplot() param 'color'
+#' # as 'y2' will add a secondary y-axis. Any provided zeroline is currently ignored
+#' # when two y-axes are present.
+#' d |>
+#'   dplyr::filter(Suunta == "Tuonti", Alue %in% c("Yhdistynyt kuningaskunta","Norja")) |>
+#'   roboplot(Alue,
+#'            "Energian tuonti",
+#'            "Milj. \u20AC",
+#'            "Tilastokeskus",
+#'            plot_axes = set_axes(y2 = "Yhdistynyt kuningaskunta"))
+#'
+#' # Giving no observations that match the param 'color' in roboplot() causes roboplot()
+#' # to stop.
+#' d2 <- d |>
+#'   dplyr::filter(Suunta == "Tuonti",
+#'                 Alue %in% c("Yhdistynyt kuningaskunta", "Norja"))
+#' if(interactive()) {
+#'   d2 |>
+#'     roboplot(Alue,
+#'              "Energian tuonti",
+#'              "Milj. \u20AC",
+#'              "Tilastokeskus",
+#'              plot_axes = set_axes(y2 = "Kanada"))
+#' }
+#'
+#' # You might want to override the default labels that are added to legend. Using
+#' # them without giving any items in y2 does nothing. You probably want to explicitly
+#' # reorder the observations.
+#' d2 |>
+#'   dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+#'   roboplot(
+#'     Alue,
+#'     "Energian tuonti",
+#'     "Milj. \u20AC",
+#'     "Tilastokeskus",
+#'     plot_axes = set_axes(
+#'       y2 = "Yhdistynyt kuningaskunta",
+#'       ylegend = "1.",
+#'       y2legend = "2."
+#'     )
+#'   )
+#'
+#' # Or maybe you only have two observations and you want to match them by color
+#' # instead of labeling.
+#' d2 |>
+#'   dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+#'   roboplot(
+#'     Alue,
+#'     "Energian tuonti",
+#'     "Milj. \u20AC",
+#'     "Tilastokeskus",
+#'     plot_axes = set_axes(
+#'       y2 = "Yhdistynyt kuningaskunta",
+#'       yfont = set_font(color = getOption("roboplot.colors.traces")[2]),
+#'       y2font = set_font(color = getOption("roboplot.colors.traces")[1]),
+#'       ylegend = "",
+#'       y2legend = ""
+#'     )
+#'   )
+#'
+#'
+#' # Or you could use the axis titles to differentiate between the observations. This
+#' # might be especially appropriate if the values are on a completely different scale.
+#' d2 |>
+#'   dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+#'   dplyr::mutate(value = ifelse(Alue == "Norja", value / 1000, value)) |>
+#'   roboplot(
+#'     Alue,
+#'     "Energian tuonti",
+#'     caption = "Tilastokeskus",
+#'     plot_axes = set_axes(
+#'       y2 = "Yhdistynyt kuningaskunta",
+#'       ytitle = "Norja, Mrd. €",
+#'       y2title = "Yhdistynyt kuningaskunta, Milj €",
+#'       ylegend = "",
+#'       y2legend = ""
+#'     )
+#'   )
+#'
 #'
 #' # roboplotr::set_axes also gives the user fine-grained control for
 #' # plots where there might not be data in a format that is directly transferable
@@ -172,7 +257,14 @@ set_axes <-
            yformat = NULL,
            xformat = NULL,
            ylim = c(NA, NA),
-           xlim = c(NA, NA)
+           xlim = c(NA, NA),
+           yfont = NULL,
+           xfont = NULL,
+           y2 = NULL,
+           y2font = NULL,
+           ylegend = NULL,
+           y2title = "",
+           y2legend = NULL
            ) {
 
     if (is.null(y)) {
@@ -214,6 +306,22 @@ set_axes <-
       }
     }
 
+    yfont <- substitute(yfont)
+    xfont <- substitute(xfont)
+    y2font <- substitute(y2font)
+    axis_fonts <- list("yfont" = yfont, "xfont" = xfont, "y2font" = y2font)
+    for(i in seq_along(axis_fonts)) {
+      .fontname <- names(axis_fonts[i])
+      .font <- unname(axis_fonts[i])[[1]]
+      if(!is.null(.font)) {
+        if(.font[1] != "set_font()" & .font[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for any plot_axes fonts!", call. = F)}
+        .font$type <- "main"
+        assign(.fontname, eval(.font))
+      } else {
+        assign(.fontname, getOption("roboplot.font.main"))
+      }
+    }
+
     roboplotr_check_param(x, "character", allow_null = F, allow_na = F)
     roboplotr_check_param(y, "character", allow_null = F, allow_na = F)
     roboplotr_check_param(xticktype,
@@ -243,6 +351,16 @@ set_axes <-
       allow_null = F,
       allow_na = F
     )
+    roboplotr_check_param(ylegend, "character")
+    roboplotr_check_param(y2legend, "character")
+    if(!is.null(y2)) {
+      if(is.null(ylegend)) {
+        ylegend <- getOption("roboplot.locale")$ylegendlabs$left
+      }
+      if(is.null(y2legend)) {
+        y2legend <- getOption("roboplot.locale")$ylegendlabs$right
+      }
+    }
 
 
     setclass <- function(type) {
@@ -263,7 +381,14 @@ set_axes <-
       xformat = xformat,
       yformat = yformat,
       xlim = xlim,
-      ylim = ylim
+      ylim = ylim,
+      xfont = xfont,
+      yfont = yfont,
+      y2 = y2,
+      y2font = y2font,
+      ylegend = ylegend,
+      y2legend = y2legend,
+      y2title = y2title
     )
   }
 
@@ -310,8 +435,20 @@ roboplotr_get_tick_layout <- function(ticktype,
                                       reverse,
                                       title,
                                       background_color = getOption("roboplot.colors.background"),
-                                      tick_color = getOption("roboplot.colors.ticks")) {
-  font <- getOption("roboplot.font.main")[c("color", "family", "size")]
+                                      tick_color = getOption("roboplot.colors.ticks"),
+                                      font = getOption("roboplot.font.main")
+                                      ) {
+
+  font <- font[c("color", "family", "size")]
+
+  .title = if(str_length(title) > 0) {  list(text = title, font = font) } else { list(text = NULL, font = font) }
+
+  font_list <- list(
+    tickfont = font,
+    ticks = 'outside',
+    title = .title,
+    tickcolor = tick_color[[axis]]
+  )
 
   if (ticktype == "date") {
     dateformats <- c(
@@ -381,18 +518,15 @@ roboplotr_get_tick_layout <- function(ticktype,
       tfstops <- tickformatstops[[tfopt]]
     }
     dlist <- list(
-      tickfont = font,
-      ticks = 'outside',
       type = 'date',
-      title = list(text = title, font = font),
       tickformatstops = if (is.null(tickformat)) {
         tfstops
       } else {
         NULL
       },
-      tickformat = tickformat,
-      tickcolor = tick_color[[axis]]
+      tickformat = tickformat
     )
+    dlist <- append(font_list, dlist)
     if (!is.null(dtick)) {
       append(dlist, list(dtick = dtick))
     } else {
@@ -400,36 +534,30 @@ roboplotr_get_tick_layout <- function(ticktype,
     }
   } else if (ticktype %in% c("numeric","log")) {
     ticklayout <- list(
-      tickfont = font,
       tickformat = if (is.null(tickformat)) {
         ",.3~f"
       } else {
         tickformat
       },
       ticksuffix = " ",
-      ticks = 'outside',
-      title = list(text = title, font = font),
-      tickcolor = tick_color[[axis]],
       type = ifelse(ticktype == "log","log","-")
     )
     if(ticktype == "log") {
-      append(ticklayout, list(dtick = NULL))
+      append(font_list,append(ticklayout, list(dtick = NULL)))
     } else {
-      ticklayout
+      append(font_list,ticklayout)
     }
   } else if (ticktype == "character") {
-    list(
-      tickfont = font,
-      ticksuffix = " ",
-      autorange = ifelse(reverse, "reversed", TRUE),
-      categoryorder = "array",
-      tickmode = ifelse(axis == "y", "linear", "auto"),
-      tickangle = "auto",
-      type = "category",
-      ticks = 'outside',
-      title = list(text = title, font = font),
-      tickcolor = tick_color[[axis]]
-    )
+    append(font_list,
+           list(
+             ticksuffix = " ",
+             autorange = ifelse(reverse, "reversed", TRUE),
+             categoryorder = "array",
+             tickmode = ifelse(axis == "y", "linear", "auto"),
+             tickangle = "auto",
+             type = "category"
+           ))
+
   }
 
 }
@@ -448,11 +576,11 @@ roboplotr_set_ticks <- function(p, ticktypes) {
       tdf == getOption("roboplot.locale")$date ~ list(86400000),
       TRUE ~ list("M12")
     )[[1]]
-    # switch(ticktypes$dateformat %||% "%Y","%Y" = "M12","%YQ%q" = "M3","%m/%Y" = "M1",#"%YW%V" = 604800000,
-    #        "%d.%m.%Y" = 86400000, "M12")
+
   } else {
     NULL
   }
+
   p <- p |>
     layout(
       xaxis = roboplotr_get_tick_layout(
@@ -462,7 +590,8 @@ roboplotr_set_ticks <- function(p, ticktypes) {
         ticktypes$dateformat,
         dtick,
         ticktypes$reverse,
-        ticktypes$xtitle
+        ticktypes$xtitle,
+        font = ticktypes$xfont
       ),
       yaxis = roboplotr_get_tick_layout(
         ticktypes$yticktype,
@@ -471,7 +600,8 @@ roboplotr_set_ticks <- function(p, ticktypes) {
         ticktypes$dateformat,
         dtick,
         ticktypes$reverse,
-        ticktypes$ytitle
+        ticktypes$ytitle,
+        font = ticktypes$yfont
       )
     )
 

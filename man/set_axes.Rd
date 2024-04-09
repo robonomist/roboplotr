@@ -14,7 +14,14 @@ set_axes(
   yformat = NULL,
   xformat = NULL,
   ylim = c(NA, NA),
-  xlim = c(NA, NA)
+  xlim = c(NA, NA),
+  yfont = NULL,
+  xfont = NULL,
+  y2 = NULL,
+  y2font = NULL,
+  ylegend = NULL,
+  y2title = "",
+  y2legend = NULL
 )
 }
 \arguments{
@@ -25,7 +32,7 @@ set_axes(
 \code{\link[=roboplot]{roboplot()}}. One of "character", "date" or "numeric". Defaults to "date" and
 "numeric".}
 
-\item{xtitle, ytitle}{Character. Used as the axis title.}
+\item{xtitle, ytitle, y2title}{Character. Used as the axis title.}
 
 \item{xformat, yformat}{Character. Formatting for axis tick text. Use
 \href{https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md}{d3 time format}
@@ -35,6 +42,16 @@ for numbers. Ignored for characters.}
 \item{xlim, ylim}{Vector of length 2. Used as the axis limits. These are not
 type-checked by \code{\link[=roboplot]{roboplot()}}, but should match the values used in the
 respecting plot axis.}
+
+\item{xfont, yfont, y2font}{Functions. Use \code{\link[=set_font]{set_font()}}. Note that secondary
+y-axis will always use the font size of the main y-axis, but you may set the
+family and color separately.}
+
+\item{y2}{Character vector. Observations from param 'color' of \link{roboplot}
+which will use a secondary y-axis. Parameter 'zeroline' will be ignored.}
+
+\item{ylegend, y2legend}{Characters. Only used when y2 is given. Use to label
+observations described by y2 separately in plot legend from other observations.}
 }
 \value{
 A list.
@@ -46,9 +63,7 @@ Define axis and axis tick formats for \code{\link[=roboplot]{roboplot()}} plots.
 # The primary usage is for creating horizontal bar plots when combining the
 # roboplotr::roboplot plot_axes control with plot_mode "horizontal".
 
-set_roboplot_options(
-  caption_template = "Lähde: {text}."
-)
+set_roboplot_options(caption_template = "Lähde: {text}.")
 
 d <- energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
@@ -96,6 +111,86 @@ d |>
   roboplot(Alue,"Energian tuonti","Milj. €","Tilastokeskus",
            plot_axes = set_axes(yticktype = "log")
   )
+
+# Providing a vector of strings matching observations from roboplot() param 'color'
+# as 'y2' will add a secondary y-axis. Any provided zeroline is currently ignored
+# when two y-axes are present.
+d |>
+  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Yhdistynyt kuningaskunta","Norja")) |>
+  roboplot(Alue,
+           "Energian tuonti",
+           "Milj. \u20AC",
+           "Tilastokeskus",
+           plot_axes = set_axes(y2 = "Yhdistynyt kuningaskunta"))
+
+# Giving no observations that match the param 'color' in roboplot() causes roboplot()
+# to stop.
+d2 <- d |>
+  dplyr::filter(Suunta == "Tuonti",
+                Alue \%in\% c("Yhdistynyt kuningaskunta", "Norja"))
+if(interactive()) {
+  d2 |>
+    roboplot(Alue,
+             "Energian tuonti",
+             "Milj. \u20AC",
+             "Tilastokeskus",
+             plot_axes = set_axes(y2 = "Kanada"))
+}
+
+# You might want to override the default labels that are added to legend. Using
+# them without giving any items in y2 does nothing. You probably want to explicitly
+# reorder the observations.
+d2 |>
+  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+  roboplot(
+    Alue,
+    "Energian tuonti",
+    "Milj. \u20AC",
+    "Tilastokeskus",
+    plot_axes = set_axes(
+      y2 = "Yhdistynyt kuningaskunta",
+      ylegend = "1.",
+      y2legend = "2."
+    )
+  )
+
+# Or maybe you only have two observations and you want to match them by color
+# instead of labeling.
+d2 |>
+  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+  roboplot(
+    Alue,
+    "Energian tuonti",
+    "Milj. \u20AC",
+    "Tilastokeskus",
+    plot_axes = set_axes(
+      y2 = "Yhdistynyt kuningaskunta",
+      yfont = set_font(color = getOption("roboplot.colors.traces")[2]),
+      y2font = set_font(color = getOption("roboplot.colors.traces")[1]),
+      ylegend = "",
+      y2legend = ""
+    )
+  )
+
+
+# Or you could use the axis titles to differentiate between the observations. This
+# might be especially appropriate if the values are on a completely different scale.
+d2 |>
+  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+  dplyr::mutate(value = ifelse(Alue == "Norja", value / 1000, value)) |>
+  roboplot(
+    Alue,
+    "Energian tuonti",
+    caption = "Tilastokeskus",
+    plot_axes = set_axes(
+      y2 = "Yhdistynyt kuningaskunta",
+      ytitle = "Norja, Mrd. €",
+      y2title = "Yhdistynyt kuningaskunta, Milj €",
+      ylegend = "",
+      y2legend = ""
+    )
+  )
+
 
 # roboplotr::set_axes also gives the user fine-grained control for
 # plots where there might not be data in a format that is directly transferable

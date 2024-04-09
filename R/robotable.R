@@ -365,8 +365,8 @@ roboplotr_set_robotable_fonts <-
 #'
 #' d |> robotable(
 #'   class = c("compact", "nowrap"),
-#'   searchable = F,
-#'   sortable = F,
+#'   searchable = FALSE,
+#'   sortable = FALSE,
 #'   col_widths = c("Kanada, Vienti" = 50)
 #' )
 robotable <-

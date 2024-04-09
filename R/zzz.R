@@ -18,7 +18,7 @@
     roboplot.height = 550,
     roboplot.infobox = list(background = "#E8E8E8", border = "black", font = "#696969", border_width = 1),
     roboplot.linewidth = 2,
-    roboplot.locale = list(locale = "fi", separators = ", ", date = "%-d.%-m.%Y"),
+    roboplot.locale = list(locale = "fi", separators = ", ", date = "%-d.%-m.%Y", ylegendlabs = list(left = "Vasen Y-akseli", right = "Oikea Y-akseli")),
     roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),
     roboplot.markers = list(symbol = "circle", size = 8),
     roboplot.modebar.buttons = c("closest","compare","img_w","data_dl"),

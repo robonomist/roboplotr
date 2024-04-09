@@ -15,7 +15,7 @@ robomap(
   tile_opacity = 0.7,
   map_palette = NULL,
   border_width = getOption("roboplot.trace.border")$width,
-  legend_cap = 5,
+  legend_breaks = 5,
   legend_position = "bottomright",
   data_contour = FALSE,
   markers = FALSE,
@@ -37,11 +37,11 @@ robomap(
 
 \item{map_opacity, tile_opacity}{Double. Value from 0 to 1, defining how opaque the map polygon fill color or underlying map tiles are. 0 removes the tile layer, but retains the polygon borders if any.}
 
-\item{map_palette}{Character. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.}
+\item{map_palette}{Character or function. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings, or use \code{\link[=set_heatmap]{set_heatmap()}} if specifying color breakpoints.}
 
 \item{border_width}{Integer. The width of polygon borders. Default is the trace border width set with \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
-\item{legend_cap}{Integer. The intended legend length. The actual length might vary.}
+\item{legend_breaks}{Integer vector. If length  of 1, \code{\link[=robomap]{robomap()}} will break the values into n chunks for the purpose of showing legend, where n is the value of legend_breaks. If length of more than 1, the values are used as the breaks in legend.}
 
 \item{legend_position}{Character. Currently only accepts "bottom right" or NULL.}
 
@@ -94,7 +94,7 @@ vaesto_postinumeroittain |>
     title = "V\u00e4est\u00f6 postinumeroittain",
     subtitle = "Otanta",
     caption = "Tilastokeskus",
-    zoom = F
+    zoom = FALSE
   )
 
 # robomap() automatically scales the values to differentiate large differences
@@ -123,19 +123,28 @@ vaesto_postinumeroittain |>
     map_opacity = 0.5
   )
 
-# Control the story you want to tell by giving an uneven palette.
-biased_palette <- colorRampPalette(c("lightgreen", "darkred"))(12)[c(1,3,5,7:12)]
-# This is how this biased palette looks like, more red colors than green.
-scales::show_col(biased_palette)
-# use the biased palette
+# Control the story you want to tell by using set_heatmap() with 'map_palette',
+# setting the colors and breakpoints. Use legend_breaks to control how many
+# entries the legend is split to.
 vaesto_postinumeroittain |>
   robomap(
     Postinumeroalue,
     title = "V\u00e4est\u00f6 postinumeroittain",
     caption = "Tilastokeskus",
-    map_palette = biased_palette,
+    map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
+    legend_breaks = 3,
     map_opacity = 1,
-    data_contour = TRUE,
+    border_width = 0
+  )
+# Or just give the legend breaks
+vaesto_postinumeroittain |>
+  robomap(
+    Postinumeroalue,
+    title = "V\u00e4est\u00f6 postinumeroittain",
+    caption = "Tilastokeskus",
+    # map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
+    legend_breaks = c(3001, 6001, 9001),
+    map_opacity = 1,
     border_width = 0
   )
 

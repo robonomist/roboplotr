@@ -1,13 +1,20 @@
 #' @importFrom farver decode_colour encode_colour
 #' @importFrom plotly layout
 #' @importFrom stringr str_extract
-roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
+roboplotr_legend <- function(p, legend_position, orientation, legend_order, legend_title) {
 
   if(!is.null(orientation)) { roboplotr_message("The argument 'legend_orientation' is currently ignored.") }
 
   roboplotr_check_param(legend_position, "character", allow_na = T)
 
   if(is.null(legend_position)) { legend_position <- "bottom" }
+
+    if (is.null(legend_title)) {
+      .legend_title <- NULL
+    } else if (is.character(legend_title)) {
+      .legend_title <- str_c("<b>", legend_title, "</b>")
+    }
+
 
   if (is.na(legend_position)) {
     x.pos <- ifelse(legend_position == "right", 100, 0)
@@ -37,6 +44,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order) {
                     orientation = "h",
                     xanchor = "left",
                     yanchor = "top",
+                    title = list(text = .legend_title, font = getOption("roboplot.font.main")),
                     traceorder = legend_order
                     ))
   }

@@ -558,7 +558,11 @@ set_locale <- function(locale = "fi-FI") {
   loc <- case_when(locale == "en-GB" ~ "en", locale == "en-US" ~ "en-US", locale == "sv-SE" ~ "sv", TRUE ~ "fi")
   sep <- case_when(loc %in% c("en", "en-US") ~ ".,", TRUE ~ ", ")
   dat <- case_when(loc == "en" ~ "%-d/%-m/%Y", loc == "en-US" ~ "%-m/%-d/%Y", TRUE ~ "%-d.%-m.%Y")
-  list(locale = loc, separators = sep, date = dat)
+  ylegendlabs <- case_when(loc == "en" ~ list(left = "Left Y-Axis", right = "Right Y-Axis"),
+                           loc == "sv" ~ list(left = "V\uE4nster Y-axel", right = "H\uF6ger Y-axel"),
+                           TRUE ~ list(left = "Vasen Y-akseli", right = "Oikea Y-akseli")
+                           )
+  list(locale = loc, separators = sep, date = dat, ylegendlabs = ylegendlabs)
 }
 
 #' @importFrom dplyr across everything matches mutate rename select

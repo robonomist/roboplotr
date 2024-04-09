@@ -527,7 +527,7 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
   if (is.null(heatmap)) {
     dt
   } else {
-    heatmap_fun <- roboplotr_tbl_heatmap_colorfun(d, hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max, na = heatmap$na)
+    heatmap_fun <- roboplotr_tbl_heatmap_colorfun(d, hmin = heatmap$min, hmid = heatmap$mid, hmax = heatmap$max, na_color = heatmap$na)
     .orders <- attributes(d)$dt_orders
 
     for (col in seq_len(length(.orders))) {

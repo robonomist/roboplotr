@@ -28,10 +28,10 @@ roboplot(
   facet_split = NULL,
   legend_maxwidth = NULL,
   xaxis_ceiling = getOption("roboplot.xaxis.ceiling"),
-  secondary_yaxis = NULL,
   width = getOption("roboplot.width"),
   legend_title = F,
   shadearea = NULL,
+  secondary_yaxis = NULL,
   artefacts = getOption("roboplot.artefacts")$auto,
   container = getOption("roboplot.shinyapp")$container,
   info_text = NULL,
@@ -121,13 +121,6 @@ barplots) longer than this will be collapsed with an ellipsis.}
 "weeks", "quarters", "years", or "guess"). Set, or round, the upper bound of
 plot x-axis for other than bar plots if no axis limits are given.}
 
-\item{secondary_yaxis}{Symbol, string, or function resulting in symbol or
-string. Variable from argument 'd' resulting in a maximum of two factor
-levels, determining which observations if any use a secondary y-axis.
-Parameter 'zeroline' will be ignored. Cannot currently differentiate between
-the axes in legend, and right margin will not scale properly on zoom and
-possibly on image files downloaded through modebar.}
-
 \item{legend_title}{Logical or character. Use TRUE if you want the parameter
 'color' to be the legend title. Use a character string if you want to
 provide your own legend title.}
@@ -137,6 +130,11 @@ provide your own legend title.}
 for documentation), or provide a single value that corresponds with the x-axis
 of the plot. Currently only useful when x-axis is numeric or date, and y-axis
 is numeric.}
+
+\item{secondary_yaxis}{Character vector. Observations from param 'color' of \link{roboplot}
+which will use a secondary y-axis. Parameter 'zeroline' will be ignored. Use
+param 'plot_axes' with \code{\link[=set_axes]{set_axes()}} for more control over secondary yaxis (see
+documentation for several examples.)}
 
 \item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned
 control. Use TRUE instead for automated artefact creation or html and/or other
@@ -339,6 +337,29 @@ d3 |>
              xticktype = "numeric")
   )
 
+# You can use 'secondary_yaxis' to define which observations from 'color' use
+# go to a secondary yaxis on the right. Using a secondary yaxis disables any
+# zeroline specifications.
+d2 |>
+  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Yhdistynyt kuningaskunta", "Kanada", "Norja")) |>
+  roboplot(Alue,
+           "Energian tuonti",
+           "Milj. \u20AC",
+           "Tilastokeskus",
+           secondary_yaxis = "Yhdistynyt kuningaskunta",
+           zeroline = 1000)
+
+# Furthermore, you can use set_axes() in 'plot_axes' for further control, like
+# titles (defaults are added when using set_axes()). Documentation for
+# set_axes() has more detailed examples.
+d2 |>
+  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Yhdistynyt kuningaskunta", "Kanada", "Norja")) |>
+  roboplot(Alue,
+           "Energian tuonti",
+           "Milj. \u20AC",
+           "Tilastokeskus",
+           plot_axes = set_axes(y2 = "Yhdistynyt kuningaskunta")
+
 # Pie plots are possible too, but pattern is currently ignored by plotly library.
 d3 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
                pattern = Suunta,
@@ -415,18 +436,6 @@ d2 |> dplyr::filter(Suunta == "Tuonti") |>
            shadearea = set_shadearea(
              xmin = "182625",
            ))
-# Secondary yaxis can be added to line plots when the corresponding variable
-# only has two unique observations that is a subset of the variable 'color'.
-# There is currently no way of differentiating between the axes in legend.
-# Zeroline will not behave as expected, but will instead refer to right yaxis.
-d2 |>
-  dplyr::filter(Suunta == "Tuonti") |>
-  dplyr::mutate(sec_axis = ifelse(Alue == "Norja","Norja","Muu")) |>
-  roboplot(Alue, "Energian tuonti","Milj. \u20AC","Tilastokeskus",
-           plot_type = c("Norja" = "bar", ".other" = "scatter"),
-           secondary_yaxis = sec_axis,
-           zeroline = NA)
-
 # Finally, you may get html or other files from the plots you create either
 # by using roboplotr::roboplot_create_artefacts() or simply using the
 # parameter 'artefacts' here. The global defaults or artefact creation are

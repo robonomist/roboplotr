@@ -1,3 +1,9 @@
+# roboplotr 1.6
+
+* Completely reworked how secondary y-axis is added to roboplot()s, with much more fine-grained control and improved handling of yaxis when resizing.
+* Reworked map palette specifications for robomap() to accept set_heatmap() when you want to explicitly set color breaks, and added legend_breaks where you can either specify the number of legend items or the breakpoints of robomap().
+* Added more font controls to set_axes().
+
 # roboplotr 1.5.1.1
 
 * set_pattern showlegend hotfix.
