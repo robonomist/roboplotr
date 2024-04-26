@@ -17,6 +17,7 @@
     roboplot.font.title = list(size = 17, family = "Arial, sans-serif", path = NULL, color = "#696969", bold = T, .font = "Arial", .fallback = "Arial"),
     roboplot.height = 550,
     roboplot.infobox = list(background = "#E8E8E8", border = "black", font = "#696969", border_width = 1),
+    roboplot.legend.tidy = FALSE,
     roboplot.linewidth = 2,
     roboplot.locale = list(locale = "fi", separators = ", ", date = "%-d.%-m.%Y", ylegendlabs = list(left = "Vasen Y-akseli", right = "Oikea Y-akseli")),
     roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),

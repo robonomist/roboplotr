@@ -1,6 +1,6 @@
 Package: roboplotr
 Title: Robonomist Automated Plotly Plotter
-Version: 1.6
+Version: 1.7.1
 Authors@R: 
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
 Description: Automates creation of dynamic plotly plots.

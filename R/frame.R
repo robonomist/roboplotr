@@ -3,6 +3,7 @@ roboplotr_grid <- function(p, grid = getOption("roboplot.grid"), border = getOpt
   bg <- getOption("roboplot.colors.background")
   p |> layout(
     xaxis = list(
+      automargin = FALSE,
       showgrid = TRUE,
       gridcolor = grid$xcolor,
       gridwidth = grid$xwidth,
@@ -12,6 +13,7 @@ roboplotr_grid <- function(p, grid = getOption("roboplot.grid"), border = getOpt
       mirror = border$xmirror,
       showline = bg != border$xcolor),
     yaxis = list(
+      automargin = TRUE,
       showgrid = TRUE,
       gridcolor = grid$ycolor,
       gridwidth = grid$ywidth,

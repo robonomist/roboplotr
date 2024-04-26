@@ -20,7 +20,9 @@ roboplotr_config <- function(p,
                              container,
                              hovermode,
                              info_text,
-                             legend_title
+                             legend_title,
+                             tidy_legend,
+                             modebar
                              ) {
   if (!is.list(margin)) {
     if (is.na(margin)) {
@@ -32,10 +34,10 @@ roboplotr_config <- function(p,
   }
 
   p |>
-    roboplotr_dependencies(title, subtitle, container, ticktypes) |>
+    roboplotr_dependencies(title, subtitle, container, ticktypes, tidy_legend) |>
     roboplotr_grid() |>
     roboplotr_set_background() |>
-    roboplotr_modebar(title, subtitle, caption, height, width, ticktypes$dateformat, info_text) |>
+    roboplotr_modebar(title, subtitle, caption, height, width, ticktypes$dateformat, info_text, modebar) |>
     roboplotr_set_ticks(ticktypes) |>
     roboplotr_set_margin(margin) |>
     roboplotr_logo() |>
@@ -50,13 +52,13 @@ roboplotr_config <- function(p,
 
 
 #' @importFrom dplyr add_row
-#' @importFrom htmltools htmlDependency tagList tags
+#' @importFrom htmltools tagList tags
 #' @importFrom htmlwidgets appendContent onRender
 #' @importFrom R.utils setOption
 #' @importFrom RCurl base64Encode
 #' @importFrom shiny isRunning
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_pad str_wrap
-roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
+roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes, tidy_legend = T) {
 
   if(title$include == T) {
     plot_title <-
@@ -108,9 +110,10 @@ roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
                         let roboplot_logo = new Image();
                         roboplot_logo.src = gd.layout.images[0].source;
                         roboplot_logo = roboplot_logo.width / roboplot_logo.height
-                        setVerticalLayout({'width': true}, gd, data.fonts, plot_title, pie_plot = data.piePlot, logo = roboplot_logo);
+                        setVerticalLayout({'width': true}, gd, data.fonts, plot_title, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend);
+                        setYPositions({'width': true}, gd, data.piePlot);
                         gd.on('plotly_relayout',function(eventdata) {
-                        plotlyRelayoutEventFunction(eventdata, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
+                        plotlyRelayoutEventFunction(eventdata, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend);
                         })
 
 
@@ -119,7 +122,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
                               if(entries[0].isIntersecting) {
                                 // Element is visible, handle the plot rendering or adjustment
                                 console.log('relayout fired!');
-                                plotlyRelayoutEventFunction({width: true}, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo);
+                                plotlyRelayoutEventFunction({width: true}, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend);
                                 observer.disconnect();
                               }
                             }, { threshold: [0.1] });  // Adjust the threshold as needed
@@ -128,13 +131,17 @@ roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
 
 
                         gd.on('plotly_afterplot', function() {
+                        let thisscrollbar = $(gd).find('.scrollbar')
+                        thisscrollbar.length > 0 ? thisscrollbar[0].style.visibility = 'hidden' : () => {}
                         let thisclippath = $(gd).find('clipPath[id*=legend] > rect')
                         if(thisclippath.length > 0) {
                           thisclippath = thisclippath[0];
                           thiswidth = thisclippath.getAttribute('width');
+                          thisheight = thisclippath.getAttribute('height');
 //                          console.log('init width: ' + thiswidth)
                           thisclippath.setAttribute('width',Number(thiswidth)*1.05);
-                          thiswidth = thisclippath.getAttribute('width');
+                          thisclippath.setAttribute('height',Number(thisheight)*1.1);
+//                          thiswidth = thisclippath.getAttribute('width');
  //                         console.log('recalc width: ' + thiswidth)
                         };
                         })
@@ -146,7 +153,8 @@ roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
         rangesliderSums = rangeslider_sums,
         fonts = list(legend = getOption("roboplot.font.main")$size, x = ticktypes$xfont$size,y = ticktypes$yfont$size),
         piePlot = pie_plot,
-        container = container#,
+        container = container,
+        tidyLegend = tidy_legend
         # dataString = desc_string,
         # titleString = ttl_string,
         # ariaID = ariaid
@@ -246,14 +254,19 @@ roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
 #' @param artefacts Logical or function. Use [set_artefacts()] for fine-tuned
 #' control. Use TRUE instead for automated artefact creation or html and/or other
 #' files from the plot based on settings globally set by [set_roboplot_options()].
+#' @param tidy_legend Logical. Controls whether the legend items will have matching
+#' widths, making for neater legends, or containing text widths, saving space. Default
+#' is FALSE.
+#' @param modebar Character. One of "constant" or "hover". Controls if the modebar
+#' is visible only on hover, or always. Whatever the choice, static images will not
+#' display modebar.
 #' @param container Character. Experimental, might not work as intended. Use only
 #' with shiny apps. A css selector for the element in a shiny app where this
 #' [roboplot()] will be contained in. Used for relayouts if the plot is rendered
 #' while the container is not displayed.
-#' @param info_text Character. Experimental, might not work as intended on
-#' standalone web pages. If provided, an info button is appended to the modebar
+#' @param info_text Character. If provided, an info button is appended to the modebar
 #' of the [roboplot()] which brings about a popup with this parameter as the text
-#' content.
+#' content, along with plot title and caption elements.
 #' @param ... Placeholder for other parameters.
 #' @return A list of classes "plotly" and "html"
 #' @examples
@@ -310,6 +323,19 @@ roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
 #'                height = 600,
 #'                width = 400
 #' )
+#'
+#' # If you have a lot of legend items, you might want to use param 'tidy_legend' for
+#' # neater columns in the legend. This will cause problems for smaller plots, as
+#' # roboplot() will have a hard time with fitting everything properly. This will be
+#' # doubly so when using a rangeslider, and when resizing the roboplot.
+#' energiantuonti |>
+#'   dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue, tidy_legend = T, rangeslider = T, width = 400)
+#'
+#' # Avoid this by being reasonable with the number of legend items and plot dimensions.
+#' energiantuonti |>
+#'   dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Alue, tidy_legend = T, rangeslider = T, height = 700)
 #'
 #' # Pattern can be used in addition to color and you can control the ordering of
 #' # the traces by transforming your variables to factors. You can also let
@@ -534,7 +560,7 @@ roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes) {
 #'              xmin = "182625",
 #'            ))
 #' # Finally, you may get html or other files from the plots you create either
-#' # by using roboplotr::roboplot_create_artefacts() or simply using the
+#' # by using roboplotr::create_widget() or simply using the
 #' # parameter 'artefacts' here. The global defaults or artefact creation are
 #' # set with roboplotr::set_roboplot_options(), and for this example the
 #' # default filepath will be changed to a temporary directory.
@@ -596,9 +622,11 @@ roboplot <- function(d,
                      legend_title = F,
                      shadearea = NULL,
                      secondary_yaxis = NULL,
+                     modebar = "hover",
                      artefacts = getOption("roboplot.artefacts")$auto,
                      container = getOption("roboplot.shinyapp")$container,
                      info_text = NULL,
+                     tidy_legend = getOption("roboplot.legend.tidy"),
                      ...) {
   margin <- NA # will this be used at all? Probably not.
 
@@ -733,6 +761,10 @@ roboplot <- function(d,
     f.name = list(fun = substitute(error_bars)[1], check = "set_errorbars")
   )
   roboplotr_validate_errorbars(error_bars, d)
+  
+  
+  roboplotr_check_param(modebar, "character", allow_null = F)
+  roboplotr_valid_strings(modebar,c("constant","hover"),.fun = any)
 
   roboplotr_check_param(hovertext,
                         "function",
@@ -946,8 +978,7 @@ roboplot <- function(d,
     }
   }
 
-  if (is.null(legend_position) &
-      length(unique_groups) < 2) {
+  if (all(is.null(legend_position), length(unique_groups) < 2, is.null(pattern))) {
     legend_position <- NA
   }
 
@@ -1021,7 +1052,10 @@ roboplot <- function(d,
 
   # if only one group for color, remove legend as default
   legend_order <-
-    ifelse(!any(c("bar", "pie") %in% plot_type), "reversed+grouped", "grouped")
+    case_when("pie" %in% plot_type ~ "normal",
+              !any(c("bar", "pie") %in% plot_type) ~ "reversed+grouped",
+              TRUE ~ "grouped"
+              )
 
   hover.mode <- "compare"
   if(!"horizontal" %in% plot_mode & any(plot_type == "bar")) {
@@ -1038,7 +1072,6 @@ roboplot <- function(d,
       stop("roboplotr::roboplot shadearea can't be used unless the x-axis is of type date or numeric and y-axis numeric.", call. = F)
     }
     roboplotr_check_param(shadearea, c(proper_shade, "function"), NULL, f.name = list(fun = substitute(shadearea)[1], check = "set_shadearea"))
-
     if(!is.list(shadearea)) {
       if(all(is.na(ticktypes$xlim))) {
         shadexmax <- NULL
@@ -1050,6 +1083,11 @@ roboplot <- function(d,
       shadearea <- set_shadearea(xmin = shadearea, xmax = shadexmax)
     }
     shadearea <- roboplotr_shadearea(d, shadearea)
+  }
+
+  roboplotr_check_param(tidy_legend, "logical", allow_null = F)
+  if("pie" %in% plot_type && !tidy_legend) {
+    roboplotr_message("When using 'plot_mode' of \"pie\", 'tidy_legend = F' is ignored.")
   }
 
   p <- p |>
@@ -1073,7 +1111,9 @@ roboplot <- function(d,
       container = container,
       hovermode = hover.mode,
       info_text = info_text,
-      legend_title = legend_title
+      legend_title = legend_title,
+      tidy_legend = tidy_legend,
+      modebar = modebar
     )
 
   # p <- p |>
@@ -1354,8 +1394,9 @@ roboplotr_get_plot <-
       }
 
         if (is.null(highlight)) {
-          if(!is.null(pattern_showlegend)) {
+          if(!is.null(pattern_showlegend) & trace_showlegend) {
             show.legend <- pattern_showlegend[unique(g[[as_name(pattern)]]) |> as.character()]
+
           } else {
             show.legend <- trace_showlegend
           }

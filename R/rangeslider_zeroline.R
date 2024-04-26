@@ -5,7 +5,6 @@ roboplotr_rangeslider <- function(p, enable_rangeslider, height = 0.1) {
 
   `enable_rangeslider$rangeslider` <- enable_rangeslider$rangeslider
   roboplotr_check_param(`enable_rangeslider$rangeslider`, c("date","Date","logical","character"))
-
   if(is.logical(enable_rangeslider$rangeslider)) {
     enable <- enable_rangeslider$rangeslider
     slider_range <- NULL
@@ -18,7 +17,12 @@ roboplotr_rangeslider <- function(p, enable_rangeslider, height = 0.1) {
 
   if(enable == T) {
     height <- case_when(height > 0.5 ~ 0.5, height < 0.1 ~ 0.1, TRUE ~ height)
-    p |> rangeslider(start = slider_range[[1]], end = slider_range[[2]], thickness = height)
+    p |> rangeslider(start = slider_range[[1]], end = slider_range[[2]], thickness = height) |>
+      onRender(
+        jsCode = "function(gd, params, data) {
+          yrangeRelayout({'xaxis.range': [{}]}, gd, 0, false)
+
+          }")
   } else { p }
 }
 
@@ -26,18 +30,27 @@ roboplotr_rangeslider <- function(p, enable_rangeslider, height = 0.1) {
 roboplotr_add_shapes <- function(p, zeroline, shadearea) {
   zeroline <- roboplotr_zeroline(zeroline)
   the_shapes <- list(shadearea, zeroline) |> roboplotr_compact()
+  range_relayout <- "shadearea" %in% map(the_shapes, ~ .x$shapeId) |> unlist()
   if(length(the_shapes) > 0) {
-
-  }
-  p |>
-    layout(
-      shapes = unname(the_shapes)
-    ) |>
-    onRender(
-      jsCode = "function(gd, params, data) {
+    p |>
+      layout(
+        shapes = unname(the_shapes)
+      ) |>
+      onRender(
+        jsCode = "function(gd, params, data) {
           editShapes(gd, data.zeroline)
+          if(data.range_relayout) {
+                    yrangeRelayout({'xaxis.range': [{}]}, gd, 0, false)
+          }
+
           }", data =
-        list(zeroline = zeroline$y0))
+          list(zeroline = zeroline$y0,
+               range_relayout = range_relayout
+               ))
+
+  } else {
+    p
+  }
 }
 
 #' @importFrom plotly layout
@@ -69,7 +82,6 @@ roboplotr_zeroline <- function(z) {
 
 #' @importFrom purrr map_lgl
 roboplotr_shadearea <- function(d, shadearea = set_shadearea()) {
-
   if (all(map_lgl(shadearea[c("ymin","ymax","xmin","xmax")], is.null))) {
     NULL
   } else {
@@ -89,6 +101,7 @@ roboplotr_shadearea <- function(d, shadearea = set_shadearea()) {
       y0 = check_shadearea(shadearea$ymin, d$value),
       y1 = check_shadearea(shadearea$ymax, d$value, max),
       x0 = check_shadearea(shadearea$xmin, d$time),
+      xnull = ifelse(is.null(shadearea$xmax), TRUE, FALSE),
       x1 = check_shadearea(shadearea$xmax, d$time, max),
       line = list(color = shadearea$border),
       fillcolor = shadearea$color,
@@ -134,8 +147,6 @@ roboplotr_shadearea <- function(d, shadearea = set_shadearea()) {
 set_shadearea <-
   function(xmin = NULL,
            xmax = NULL,
-           # ymin = NULL,
-           # ymax = NULL,
            border = getOption("roboplot.colors.traces")[1],
            color = getOption("roboplot.colors.traces")[1],
            opacity = 0.2,

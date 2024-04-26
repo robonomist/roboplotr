@@ -88,6 +88,7 @@
 #' @importFrom htmltools htmlDependency
 #' @importFrom htmlwidgets saveWidget
 #' @importFrom stringr str_extract_all str_replace_all str_c str_squish
+#' @importFrom utils packageVersion
 #' @importFrom widgetframe frameableWidget
 
 create_widget <- function(
@@ -134,8 +135,8 @@ create_widget <- function(
     detached_p$append <- NULL
     if("html" %in% artefacts) {
       roboplotr_widget_deps(filepath = file.path(filepath,"plot_dependencies"))
-      css_dep <- htmlDependency("style", "0.1", src = c(href= "plot_dependencies/css"),  stylesheet = "style.css")
-      js_dep <- htmlDependency("js", "0.1", src = c(href= "plot_dependencies/js"),  script = "relayout.js")
+      css_dep <- htmlDependency("style", packageVersion("roboplotr"), src = c(href= "plot_dependencies/css"),  stylesheet = "style.css")
+      js_dep <- htmlDependency("js", packageVersion("roboplotr"), src = c(href= "plot_dependencies/js"),  script = "relayout.js")
       detached_p$dependencies <- c(detached_p$dependencies, list(css_dep, js_dep))
     }
   }
@@ -162,7 +163,9 @@ create_widget <- function(
 
   if(render == T) {
     p
-  } else { invisible(p) }
+  } else {
+    invisible(p)
+  }
 }
 
 #' File creation from [roboplot()]s (deprecated)
@@ -249,8 +252,13 @@ roboplotr_static_image <-
     .static_images <-
       str_c(dl_path, str_c(title, artefacts, sep = "."), sep = "/")
 
+    rm_rangeslider <- function(p) {
+      p$x$layout$xaxis$rangeslider = NULL
+      p
+    }
     p |>
       config(displayModeBar = F) |>
+      rm_rangeslider() |>
       create_widget(
         title = "imgdl",
         filepath = tempdir(),

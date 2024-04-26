@@ -1,3 +1,13 @@
+# roboplotr 1.7.1
+
+* Improved plot rescaling
+* Modebar and rangeslider properly removed from static plots.
+
+# roboplotr 1.7
+
+* Added parameter tidy_legend to roboplot(). You might what to make all legend items the same width, regardless of the string length. It is probably better to make the plots tall enough, as wider legend items might cause issues when resizing.
+* Reworked internal resizing scripts to handle corner cases better, and improved scaling of y-axis of shadeareas, and the plot when using a rangeslider.
+
 # roboplotr 1.6
 
 * Completely reworked how secondary y-axis is added to roboplot()s, with much more fine-grained control and improved handling of yaxis when resizing.

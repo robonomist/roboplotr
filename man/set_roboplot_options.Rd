@@ -27,6 +27,7 @@ set_roboplot_options(
   modebar = NULL,
   patterns = NULL,
   tick_colors = NULL,
+  tidy_legend = NULL,
   trace_border = NULL,
   trace_colors = NULL,
   xaxis_ceiling = NULL,
@@ -73,6 +74,8 @@ set_roboplot_options(
 \item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
 \item{tick_colors}{List. Plot tick element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".}
+
+\item{tidy_legend}{Logical. Controls whether the legend items will have matching widths, making for neater legends, or containing text widths, saving space.}
 
 \item{trace_border}{List. Borders for bars, pies and markers. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.}
 

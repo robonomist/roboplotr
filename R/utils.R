@@ -12,6 +12,7 @@
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @param font_main,font_title,font_caption Functions. Use [set_font()].
 #' @param height,width Numerics. Height and width of roboplotr plots in pixels. Use NA for viewport size.
+#' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [set_imgdl_layout]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
 #' @param infobox Function. Defines the appearance of the infobox available from modebar when 'info_text' is provided for [roboplot()] or [robotable()]. Use [set_infobox()].
 #' @param linewidth Numeric. The default roboplotr line trace width.
 #' @param locale Function. Defines locale parameters as [roboplot()] needs them. Use [set_locale()].
@@ -22,7 +23,7 @@
 #' @param trace_border List. Borders for bars, pies and markers. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
-#' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [set_imgdl_layout]. Controls the dimensions and fonts of image files downloaded through modebar buttons.
+#' @param tidy_legend Logical. Controls whether the legend items will have matching widths, making for neater legends, or containing text widths, saving space.
 #' @param zeroline Function. Control the appearance of zeroline when set using [roboplot()] parameter 'zeroline'. Use [set_zeroline()].
 #' @param verbose Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
 #' @param shinyapp Logical or list. Makes fonts, css and javascript available for shiny apps. If given as list, use a named list with the single character string named "container" describing the css selector for the element in a shiny app where most roboplots will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
@@ -288,6 +289,7 @@ set_roboplot_options <- function(
     modebar = NULL,
     patterns = NULL,
     tick_colors = NULL,
+    tidy_legend = NULL,
     trace_border = NULL,
     trace_colors = NULL,
     xaxis_ceiling = NULL,
@@ -402,6 +404,8 @@ set_roboplot_options <- function(
     roboplotr_check_param(tick_colors, "list", c("x","y"))
     roboplotr_valid_colors(tick_colors)
 
+    roboplotr_check_param(tidy_legend, "logical", NULL)
+
     roboplotr_check_param(trace_border, "list", c("color","width"), allow_null = T)
     if(!is.null(trace_border)) {
       `trace_border$color` <- trace_border$color
@@ -444,6 +448,7 @@ set_roboplot_options <- function(
     set_roboplot_option(height)
     set_roboplot_option(infobox)
     set_roboplot_option(locale)
+    set_roboplot_option(tidy_legend, "legend.tidy")
     set_roboplot_option(linewidth)
     set_roboplot_option(logo_file, "logo")
     set_roboplot_option(markers)

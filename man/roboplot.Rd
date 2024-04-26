@@ -32,9 +32,11 @@ roboplot(
   legend_title = F,
   shadearea = NULL,
   secondary_yaxis = NULL,
+  modebar = "hover",
   artefacts = getOption("roboplot.artefacts")$auto,
   container = getOption("roboplot.shinyapp")$container,
   info_text = NULL,
+  tidy_legend = getOption("roboplot.legend.tidy"),
   ...
 )
 }
@@ -136,6 +138,10 @@ which will use a secondary y-axis. Parameter 'zeroline' will be ignored. Use
 param 'plot_axes' with \code{\link[=set_axes]{set_axes()}} for more control over secondary yaxis (see
 documentation for several examples.)}
 
+\item{modebar}{Character. One of "constant" or "hover". Controls if the modebar
+is visible only on hover, or always. Whatever the choice, static images will not
+display modebar.}
+
 \item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned
 control. Use TRUE instead for automated artefact creation or html and/or other
 files from the plot based on settings globally set by \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
@@ -145,10 +151,13 @@ with shiny apps. A css selector for the element in a shiny app where this
 \code{\link[=roboplot]{roboplot()}} will be contained in. Used for relayouts if the plot is rendered
 while the container is not displayed.}
 
-\item{info_text}{Character. Experimental, might not work as intended on
-standalone web pages. If provided, an info button is appended to the modebar
+\item{info_text}{Character. If provided, an info button is appended to the modebar
 of the \code{\link[=roboplot]{roboplot()}} which brings about a popup with this parameter as the text
-content.}
+content, along with plot title and caption elements.}
+
+\item{tidy_legend}{Logical. Controls whether the legend items will have matching
+widths, making for neater legends, or containing text widths, saving space. Default
+is FALSE.}
 
 \item{...}{Placeholder for other parameters.}
 }
@@ -213,6 +222,19 @@ d1 |> roboplot(Alue,"Energian tuonti","Milj. \u20AC","Tilastokeskus",
                height = 600,
                width = 400
 )
+
+# If you have a lot of legend items, you might want to use param 'tidy_legend' for
+# neater columns in the legend. This will cause problems for smaller plots, as
+# roboplot() will have a hard time with fitting everything properly. This will be
+# doubly so when using a rangeslider, and when resizing the roboplot.
+energiantuonti |>
+  dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, tidy_legend = T, rangeslider = T, width = 400)
+
+# Avoid this by being reasonable with the number of legend items and plot dimensions.
+energiantuonti |>
+  dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue, tidy_legend = T, rangeslider = T, height = 700)
 
 # Pattern can be used in addition to color and you can control the ordering of
 # the traces by transforming your variables to factors. You can also let
@@ -437,7 +459,7 @@ d2 |> dplyr::filter(Suunta == "Tuonti") |>
              xmin = "182625",
            ))
 # Finally, you may get html or other files from the plots you create either
-# by using roboplotr::roboplot_create_artefacts() or simply using the
+# by using roboplotr::create_widget() or simply using the
 # parameter 'artefacts' here. The global defaults or artefact creation are
 # set with roboplotr::set_roboplot_options(), and for this example the
 # default filepath will be changed to a temporary directory.
