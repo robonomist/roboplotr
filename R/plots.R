@@ -892,10 +892,14 @@ roboplot <- function(d,
   }
 
   if (!is.factor(d[[as_name(color)]])) {
-    # print(plot_axes)
-    d <-
-      mutate(d,{{color}} := fct_reorder({{color}}, as.numeric(.data[[plot_axes$y]]), .fun = mean, .na_rm = T) |> fct_rev())
-    roboplotr_message(str_glue("roboplotr arranged data 'd' column '{as_label(color)}' using mean of '{plot_axes$y}' by group. Relevel the column as factor with levels of your liking to control trace order."))
+    if(is.numeric(d[[plot_axes$y]])) {
+      d <-
+        mutate(d,{{color}} := fct_reorder({{color}}, as.numeric(.data[[plot_axes$y]]), .fun = mean, .na_rm = T) |> fct_rev())
+      roboplotr_message(str_glue("roboplotr arranged data 'd' column '{as_label(color)}' using mean of '{plot_axes$y}' by group. Relevel the column as factor with levels of your liking to control trace order."))
+    } else {
+      d <- mutate(d,{{color}} := fct_inorder({{color}}))
+      roboplotr_message(str_glue("roboplotr arranged data 'd' column '{as_label(color)}' as factor."))
+    }
   }
 
   d <-
@@ -1327,9 +1331,9 @@ roboplotr_get_plot <-
                } else {
                  !!color
                },
-             roboplot.legend.rank = ((as.numeric(!!color) - 1) * 100) + (coalesce(as.numeric(roboplot.dash, roboplot.pattern))-1) * 10
+             roboplot.legend.rank = ((as.numeric(!!color) - 1) * 100) + (coalesce(as.numeric(.data$roboplot.dash, .data$roboplot.pattern))-1) * 10
     ) |>
-      mutate(roboplot.legend.rank = (roboplot.legend.rank + abs(min(roboplot.legend.rank)) + 100))
+      mutate(roboplot.legend.rank = (.data$roboplot.legend.rank + abs(min(.data$roboplot.legend.rank)) + 100))
     # print(d %>% distinct(!!color, roboplot.legend.rank) |> arrange(!!color))
     if (any(c("horizontal", "horizontalfill","horizontalstack") %in% d$roboplot.plot.mode)) {
       if ("horizontalfill" %in% d$roboplot.plot.mode) {
@@ -1360,14 +1364,14 @@ roboplotr_get_plot <-
         mutate(arranger = as.numeric(!!color)) |>
         # mutate(roboplot.plot.type = ifelse(Alue == "Venäjä", "bar",roboplot.plot.type)) |>
         mutate(arranger = ifelse(
-          roboplot.plot.type == "bar",
+          .data$roboplot.plot.type == "bar",
           # arranger + max(arranger),
-          (max(arranger[roboplot.plot.type == "bar"])+1-arranger)+max(arranger),
-          arranger)
+          (max(.data$arranger[.data$roboplot.plot.type == "bar"])+1-.data$arranger)+max(.data$arranger),
+          .data$arranger)
           )
 
       split_d <- split_d |>
-        group_split(arranger, .data$roboplot.plot.type, .data$roboplot.dash)
+        group_split(.data$arranger, .data$roboplot.plot.type, .data$roboplot.dash)
 
       split_d <- rev(split_d)
     }

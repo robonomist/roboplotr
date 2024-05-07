@@ -418,7 +418,7 @@ set_infobox <-
 #' @param buttons Character vector. Buttons contained in modebar in the given order.
 #' Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w",
 #' "img_n", "img_s", "data_dl" and "robonomist" in any order.
-#' @param modebar Character. One of "constant", "hover" or "none". Controls if the modebar
+#' @param display Character. One of "constant", "hover" or "none". Controls if the modebar
 #' is visible always, only on hover, or never. Whatever the choice, static images will not
 #' display modebar.
 #' @returns A list.

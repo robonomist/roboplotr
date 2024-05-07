@@ -1,3 +1,7 @@
+# roboplotr 1.8.1
+
+* fixes documentation entries, data ordering issues and language.
+
 # roboplotr 1.8
 
 * robotable now correctly displays background color.
