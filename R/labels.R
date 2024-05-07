@@ -2,7 +2,7 @@
 #' @importFrom plotly layout
 #' @importFrom stringr str_extract
 roboplotr_legend <- function(p, legend_position, orientation, legend_order, legend_title) {
-
+# print(legend_order)
   if(!is.null(orientation)) { roboplotr_message("The argument 'legend_orientation' is currently ignored.") }
 
   roboplotr_check_param(legend_position, "character", allow_na = T)

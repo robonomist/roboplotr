@@ -257,15 +257,13 @@ roboplotr_dependencies <- function(p, title, subtitle, container, ticktypes, tid
 #' @param tidy_legend Logical. Controls whether the legend items will have matching
 #' widths, making for neater legends, or containing text widths, saving space. Default
 #' is FALSE.
-#' @param modebar Character. One of "constant" or "hover". Controls if the modebar
-#' is visible only on hover, or always. Whatever the choice, static images will not
-#' display modebar.
+#' @param modebar Function. Use [set_modebar()].
 #' @param container Character. Experimental, might not work as intended. Use only
 #' with shiny apps. A css selector for the element in a shiny app where this
 #' [roboplot()] will be contained in. Used for relayouts if the plot is rendered
 #' while the container is not displayed.
 #' @param info_text Character. If provided, an info button is appended to the modebar
-#' of the [roboplot()] which brings about a popup with this parameter as the text
+#' of [roboplot()] which brings about a popup with this parameter as the text
 #' content, along with plot title and caption elements.
 #' @param ... Placeholder for other parameters.
 #' @return A list of classes "plotly" and "html"
@@ -622,7 +620,7 @@ roboplot <- function(d,
                      legend_title = F,
                      shadearea = NULL,
                      secondary_yaxis = NULL,
-                     modebar = "hover",
+                     modebar = NULL,
                      artefacts = getOption("roboplot.artefacts")$auto,
                      container = getOption("roboplot.shinyapp")$container,
                      info_text = NULL,
@@ -666,7 +664,7 @@ roboplot <- function(d,
 
   if(!is.null(secondary_yaxis)) {
     # .plot_axes <- substitute(plot_axes)
-    if(!is.null(plot_axes$y)) {
+    if(!is.null(plot_axes$y2)) {
       roboplotr_alert("roboplot() param 'secondary_yaxis' overrides y2 set with param 'plot_axes'")
     } else {
       roboplotr_message("Use roboplot() param 'plot_axes' with set_axes() for more control over secondary yaxis. See documentation.")
@@ -747,6 +745,11 @@ roboplot <- function(d,
   roboplotr_valid_strings(secondary_yaxis, unique_groups,.fun = any)
 
   if (!is.null(secondary_yaxis)) {
+    if("pie" %in% plot_type) {
+      roboplotr_warning("secondary_yaxis is ignored with plot_mode \"pie\"!")
+      secondary_yaxis <- NULL
+    }
+
     if(is.logical(zeroline)) {
      if(zeroline == T)
        roboplotr_alert("When using set_axes(y2), zeroline specifications are ignored.")
@@ -761,10 +764,9 @@ roboplot <- function(d,
     f.name = list(fun = substitute(error_bars)[1], check = "set_errorbars")
   )
   roboplotr_validate_errorbars(error_bars, d)
-  
-  
-  roboplotr_check_param(modebar, "character", allow_null = F)
-  roboplotr_valid_strings(modebar,c("constant","hover"),.fun = any)
+
+
+  roboplotr_check_param(modebar, c("function"), NULL,  f.name = list(fun = substitute(modebar)[1], check = "set_modebar"))
 
   roboplotr_check_param(hovertext,
                         "function",
@@ -890,8 +892,10 @@ roboplot <- function(d,
   }
 
   if (!is.factor(d[[as_name(color)]])) {
+    # print(plot_axes)
     d <-
-      mutate(d,{{color}} := fct_reorder({{color}}, .data$value, .fun = mean, .na_rm = T) |> fct_rev())
+      mutate(d,{{color}} := fct_reorder({{color}}, as.numeric(.data[[plot_axes$y]]), .fun = mean, .na_rm = T) |> fct_rev())
+    roboplotr_message(str_glue("roboplotr arranged data 'd' column '{as_label(color)}' using mean of '{plot_axes$y}' by group. Relevel the column as factor with levels of your liking to control trace order."))
   }
 
   d <-
@@ -899,7 +903,10 @@ roboplot <- function(d,
 
 
   if (!all(plot_type %in% c("scatter", "bar", "pie"))) {
-    stop("Plot type must be \"scatter\" or \"bar\", or a named character vector!",
+    stop("Plot type must be \"scatter\", \"bar\", or \"pie\", or a named character vector!",
+         call. = F)
+  } else if ("pie" %in% plot_type & length(unique(plot_type)) > 1) {
+    stop("Roboplotr is unable to combine the plot_type \"pie\" with other plot types!",
          call. = F)
   } else if (length(plot_type) == 1 & is.null(names(plot_type))) {
     d <- d |> mutate(roboplot.plot.type = plot_type)
@@ -1049,13 +1056,17 @@ roboplot <- function(d,
   } else {
     NULL
   }
-
   # if only one group for color, remove legend as default
-  legend_order <-
-    case_when("pie" %in% plot_type ~ "normal",
-              !any(c("bar", "pie") %in% plot_type) ~ "reversed+grouped",
-              TRUE ~ "grouped"
-              )
+  if(!is.null(secondary_yaxis)) {
+    legend_order <- "grouped"
+    # if(all(d$roboplot.plot.type == "bar")) {
+    #   legend_order <- "reversed+grouped"
+    # } else {
+    #   legend_order <- "grouped"
+    # }
+  } else {
+    legend_order <- "normal"
+  }
 
   hover.mode <- "compare"
   if(!"horizontal" %in% plot_mode & any(plot_type == "bar")) {
@@ -1086,8 +1097,8 @@ roboplot <- function(d,
   }
 
   roboplotr_check_param(tidy_legend, "logical", allow_null = F)
-  if("pie" %in% plot_type && !tidy_legend) {
-    roboplotr_message("When using 'plot_mode' of \"pie\", 'tidy_legend = F' is ignored.")
+  if(("pie" %in% plot_type | !is.null(secondary_yaxis)) && !tidy_legend) {
+    roboplotr_message("When using 'plot_mode' of \"pie\" or when providing a secondary_yaxis, 'tidy_legend = F' is ignored.")
   }
 
   p <- p |>
@@ -1316,9 +1327,10 @@ roboplotr_get_plot <-
                } else {
                  !!color
                },
-    roboplot.legend.rank = ((as.numeric(!!color) - 1) * 100) + ((as.numeric(.data$roboplot.dash) - 1) * 10)
-    )
-
+             roboplot.legend.rank = ((as.numeric(!!color) - 1) * 100) + (coalesce(as.numeric(roboplot.dash, roboplot.pattern))-1) * 10
+    ) |>
+      mutate(roboplot.legend.rank = (roboplot.legend.rank + abs(min(roboplot.legend.rank)) + 100))
+    # print(d %>% distinct(!!color, roboplot.legend.rank) |> arrange(!!color))
     if (any(c("horizontal", "horizontalfill","horizontalstack") %in% d$roboplot.plot.mode)) {
       if ("horizontalfill" %in% d$roboplot.plot.mode) {
         d <- roboplotr_get_bar_widths(d, ticktypes$y)
@@ -1344,12 +1356,22 @@ roboplotr_get_plot <-
         d |> arrange(!!color) |> group_split(.data$roboplot.plot.type, .data$roboplot.dash)
     } else {
       split_d <-
-        arrange(d,!!color) |> group_split(!!color, .data$roboplot.plot.type, .data$roboplot.dash)
-    }
+        d |>
+        mutate(arranger = as.numeric(!!color)) |>
+        # mutate(roboplot.plot.type = ifelse(Alue == "Venäjä", "bar",roboplot.plot.type)) |>
+        mutate(arranger = ifelse(
+          roboplot.plot.type == "bar",
+          # arranger + max(arranger),
+          (max(arranger[roboplot.plot.type == "bar"])+1-arranger)+max(arranger),
+          arranger)
+          )
 
-    if ("scatter" %in% plot_type) {
+      split_d <- split_d |>
+        group_split(arranger, .data$roboplot.plot.type, .data$roboplot.dash)
+
       split_d <- rev(split_d)
     }
+
 
     if ("rotated" %in% d$roboplot.plot.mode) {
       rotation <- -(
@@ -1377,7 +1399,12 @@ roboplotr_get_plot <-
       )
       hovertemplate <-
         roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
-      legend_rank <- mean(g$roboplot.legend.rank)
+      if(unique(pull(g,!!color)) %in% secondary_yaxis) {
+        legend_rank <- mean(g$roboplot.legend.rank) + max(d$roboplot.legend.rank)
+      } else {
+        legend_rank <- mean(g$roboplot.legend.rank)
+      }
+
       .fontsize <- getOption("roboplot.font.main")$size
       g <-
         mutate(
@@ -1464,6 +1491,7 @@ roboplotr_get_plot <-
         labels = color,
         #pie
         legendgroup = .legendgroup,
+        legendgrouptitle = list(text = .legendgrouptitle, font = getOption("roboplot.font.main")[c("color", "family", "size")]),
         legendrank = legend_rank,
         line = ~ list(
           width = roboplot.linewidth,
@@ -1549,7 +1577,6 @@ roboplotr_get_plot <-
           NA
         },
         type = ~ tracetype,
-        legendgrouptitle = list(text = .legendgrouptitle, font = getOption("roboplot.font.main")[c("color", "family", "size")]),
         values = as.formula(str_c("~", ticktypes$y)),
         # pie
         width = if ("horizontalfill" %in% g$roboplot.plot.mode) {
@@ -1579,6 +1606,7 @@ roboplotr_get_plot <-
           "hoverlabel",
           "hovertemplate",
           "legendgroup",
+          "legendrank",
           "showlegend",
           "type",
           "legendgrouptitle",

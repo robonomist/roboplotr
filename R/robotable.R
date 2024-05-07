@@ -593,7 +593,7 @@ robotable <-
     sketch <-
       tagList(tags$div(
         class = "robotable-container",
-        style = "position: relative",
+        style = str_glue("position: relative; background: {getOption('roboplot.colors.background')};"),
         tags$table(
           tags$style(roboplotr_set_robotable_css(robotable_id)),
           id = robotable_id,

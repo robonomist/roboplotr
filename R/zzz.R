@@ -22,7 +22,7 @@
     roboplot.locale = list(locale = "fi", separators = ", ", date = "%-d.%-m.%Y", ylegendlabs = list(left = "Vasen Y-akseli", right = "Oikea Y-akseli")),
     roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),
     roboplot.markers = list(symbol = "circle", size = 8),
-    roboplot.modebar.buttons = c("closest","compare","img_w","data_dl"),
+    roboplot.modebar = list(buttons = c("closest","compare","img_w","data_dl"), display = "hover"),
     roboplot.imgdl.wide = list(x = 1280, y = 720, title = 31, main = 24, caption = 19, suffix = "_levea", type = "png"),
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 31, main = 24, caption = 19, suffix = "_kapea", type = "png"),
     roboplot.imgdl.small = list(x = 889, y = 500, title = 23, main = 18, caption = 14, suffix = "_pieni", type = "png"),

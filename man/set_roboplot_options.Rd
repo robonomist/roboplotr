@@ -35,7 +35,8 @@ set_roboplot_options(
   verbose = NULL,
   width = NULL,
   shinyapp = NULL,
-  reset = F
+  reset = F,
+  .defaults = F
 )
 }
 \arguments{
@@ -69,7 +70,7 @@ set_roboplot_options(
 
 \item{markers}{Function. Control marker appearance. Use \code{\link[=set_markers]{set_markers()}}.}
 
-\item{modebar}{Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.}
+\item{modebar}{Character vector or function. Use \code{\link[=set_modebar]{set_modebar()}}, or provide the buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.}
 
 \item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
@@ -85,11 +86,13 @@ set_roboplot_options(
 
 \item{zeroline}{Function. Control the appearance of zeroline when set using \code{\link[=roboplot]{roboplot()}} parameter 'zeroline'. Use \code{\link[=set_zeroline]{set_zeroline()}}.}
 
-\item{verbose}{Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".}
+\item{verbose}{Character. Will \link{roboplotr} display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".}
 
 \item{shinyapp}{Logical or list. Makes fonts, css and javascript available for shiny apps. If given as list, use a named list with the single character string named "container" describing the css selector for the element in a shiny app where most roboplots will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.}
 
-\item{reset}{Logical. Ignores other options, resets options to defaults.}
+\item{reset}{Logical. Resets options to \link{roboplotr} defaults.}
+
+\item{.defaults}{Logical. Saves the current roboplot options as \link{roboplotr} defaults for future calls of \code{\link[=set_roboplot_options]{set_roboplot_options()}} param 'reset'. Is automatically called the first time \code{\link[=set_roboplot_options]{set_roboplot_options()}} is run.}
 }
 \description{
 Override the default options for colors, fonts etc. for any plot created with \code{\link[=roboplot]{roboplot()}}

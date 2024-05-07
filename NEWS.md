@@ -1,3 +1,12 @@
+# roboplotr 1.8
+
+* robotable now correctly displays background color.
+* roboplot relayout fixes for various plot types.
+* roboplot legend order fix to respect factor levels both for legend and trace order (first level is the topmost trace, bar traces are behind scatter and line traces). Using secondary_yaxis will mess up trace order on plots, but not on legends.
+* added function set_modebar() for modebar control in roboplots, adding visibility controls both globally and by plot. Not yet supported by robotable.
+* set_roboplot_options() can now save current options as defaults with .defaults = T, and reset = T uses these defaults if they are set. You can also use reset = T simultaneously with setting new options.
+* added option of using set_roboplot_options() param logo_file as "none".
+
 # roboplotr 1.7.1
 
 * Improved plot rescaling

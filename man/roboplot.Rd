@@ -32,7 +32,7 @@ roboplot(
   legend_title = F,
   shadearea = NULL,
   secondary_yaxis = NULL,
-  modebar = "hover",
+  modebar = NULL,
   artefacts = getOption("roboplot.artefacts")$auto,
   container = getOption("roboplot.shinyapp")$container,
   info_text = NULL,
@@ -138,9 +138,7 @@ which will use a secondary y-axis. Parameter 'zeroline' will be ignored. Use
 param 'plot_axes' with \code{\link[=set_axes]{set_axes()}} for more control over secondary yaxis (see
 documentation for several examples.)}
 
-\item{modebar}{Character. One of "constant" or "hover". Controls if the modebar
-is visible only on hover, or always. Whatever the choice, static images will not
-display modebar.}
+\item{modebar}{Function. Use \code{\link[=set_modebar]{set_modebar()}}.}
 
 \item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned
 control. Use TRUE instead for automated artefact creation or html and/or other
@@ -152,7 +150,7 @@ with shiny apps. A css selector for the element in a shiny app where this
 while the container is not displayed.}
 
 \item{info_text}{Character. If provided, an info button is appended to the modebar
-of the \code{\link[=roboplot]{roboplot()}} which brings about a popup with this parameter as the text
+of \code{\link[=roboplot]{roboplot()}} which brings about a popup with this parameter as the text
 content, along with plot title and caption elements.}
 
 \item{tidy_legend}{Logical. Controls whether the legend items will have matching

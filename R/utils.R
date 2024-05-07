@@ -18,16 +18,17 @@
 #' @param locale Function. Defines locale parameters as [roboplot()] needs them. Use [set_locale()].
 #' @param logo_file Character. The filepath to the logo used in every plot.
 #' @param markers Function. Control marker appearance. Use [set_markers()].
-#' @param modebar Character vector. Buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.
+#' @param modebar Character vector or function. Use [set_modebar()], or provide the buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
 #' @param trace_border List. Borders for bars, pies and markers. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".
 #' @param tidy_legend Logical. Controls whether the legend items will have matching widths, making for neater legends, or containing text widths, saving space.
 #' @param zeroline Function. Control the appearance of zeroline when set using [roboplot()] parameter 'zeroline'. Use [set_zeroline()].
-#' @param verbose Character. Will roboplot display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
+#' @param verbose Character. Will [roboplotr] display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
 #' @param shinyapp Logical or list. Makes fonts, css and javascript available for shiny apps. If given as list, use a named list with the single character string named "container" describing the css selector for the element in a shiny app where most roboplots will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
-#' @param reset Logical. Ignores other options, resets options to defaults.
+#' @param reset Logical. Resets options to [roboplotr] defaults.
+#' @param .defaults Logical. Saves the current roboplot options as [roboplotr] defaults for future calls of [set_roboplot_options()] param 'reset'. Is automatically called the first time [set_roboplot_options()] is run.
 #' @export
 #' @examples
 #' # Control global options for roboplotr::roboplot(). Some of these you can set
@@ -262,7 +263,7 @@
 #'
 #'
 #' @importFrom htmltools singleton tagList tags
-#' @importFrom purrr iwalk
+#' @importFrom purrr iwalk walk2
 #' @importFrom shiny addResourcePath
 #' @importFrom stringr str_c str_detect str_extract str_subset
 #' @importFrom R.utils setOption
@@ -297,7 +298,8 @@ set_roboplot_options <- function(
     verbose = NULL,
     width = NULL,
     shinyapp = NULL,
-    reset = F
+    reset = F,
+    .defaults = F
 ) {
 
   set_roboplot_option <- function(option, opt_name = NULL) {
@@ -317,10 +319,19 @@ set_roboplot_options <- function(
   roboplotr_valid_strings(verbose, c("All","Alert","Warning"), any)
   set_roboplot_option(verbose, "verbose")
 
+  roboplotr_check_param(reset, "logical", allow_null = F)
   if (reset) {
-    .onLoad(override = T)
+    if(is.null(getOption("roboplotr.options.defaults"))) {
+      .onLoad(override = T)
+    } else {
+      .roboplotr_defaults <- getOption("roboplotr.options.defaults")
+      walk2(.roboplotr_defaults, names(.roboplotr_defaults), ~ setOption(.y, .x))
+    }
+
     roboplotr_message("Roboplot options reset.")
-  } else {
+
+  }
+
     opts_names <- names(options())
     # reset session specific options
     widget_deps_names <- subset(opts_names, str_detect(opts_names, "^roboplot.widget.deps"))
@@ -381,7 +392,9 @@ set_roboplot_options <- function(
 
     roboplotr_check_param(logo_file, "character")
     if(!is.null(logo_file)) {
-      if (!file.exists(logo_file)) {
+      if(logo_file == "none") {
+        logo_file <- system.file("images","none.png",package = "roboplotr")
+      } else if (!file.exists(logo_file)) {
         stop("Given logo file does not seem to exist. Is the file path correct?", call. = F)
       }}
 
@@ -391,8 +404,13 @@ set_roboplot_options <- function(
 
     roboplotr_check_param(markers, "function", NULL,  f.name = list(fun = substitute(markers)[1], check = "set_markers"))
 
-    roboplotr_check_param(modebar, "character", NULL)
-    roboplotr_valid_strings(modebar, c("home","closest","compare","zoomin","zoomout","img_w","img_n","img_s","data_dl","robonomist"), any)
+    if(!is.null(modebar)) {
+      if(is.character(modebar)) {
+        modebar <- set_modebar(modebar)
+      } else {
+        roboplotr_check_param(modebar, c("function"), NULL,  f.name = list(fun = substitute(modebar)[1], check = "set_modebar"))
+      }
+    }
 
     roboplotr_check_param(patterns, "character", NULL)
     roboplotr_valid_strings(patterns,c("","/","\\","x","-","|","+","."))
@@ -452,7 +470,7 @@ set_roboplot_options <- function(
     set_roboplot_option(linewidth)
     set_roboplot_option(logo_file, "logo")
     set_roboplot_option(markers)
-    set_roboplot_option(modebar, "modebar.buttons")
+    set_roboplot_option(modebar)
     set_roboplot_option(imgdl_wide,"imgdl.wide")
     set_roboplot_option(imgdl_narrow,"imgdl.narrow")
     set_roboplot_option(imgdl_small,"imgdl.small")
@@ -472,8 +490,18 @@ set_roboplot_options <- function(
 
 
 
-    if(!str_detect(getOption("roboplot.logo"),"robonomist") & !"robonomist" %in% getOption("roboplot.modebar.buttons")) {
-      setOption("roboplot.modebar.buttons", c(getOption("roboplot.modebar.buttons"),"robonomist"))
+    if(!str_detect(getOption("roboplot.logo"),"robonomist") & !"robonomist" %in% getOption("roboplot.modebar")$buttons) {
+      .modebar <- getOption("roboplot.modebar")
+      .modebar$buttons <- c(.modebar$buttons, "robonomist")
+      setOption("roboplot.modebar",.modebar)
+    }
+
+    roboplotr_check_param(.defaults, "logical", allow_null = F)
+
+    if(is.null(getOption("roboplotr.options.defaults")) | .defaults) {
+      .roboplot_options <- options() |> names() |> str_subset("roboplot\\.")
+      .roboplot_options <- map(.roboplot_options, ~ getOption(.x)) |> setNames(.roboplot_options)
+      setOption("roboplotr.options.defaults", .roboplot_options)
     }
 
     if(!is.null(shinyapp)) {
@@ -498,8 +526,6 @@ set_roboplot_options <- function(
 
       }
     }
-
-  }
 }
 
 # Strips a string to filename format for roboplots

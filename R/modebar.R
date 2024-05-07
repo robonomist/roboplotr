@@ -8,6 +8,13 @@
 #' @importFrom tidyr drop_na
 roboplotr_modebar <- function(p, title, subtitle, caption, height, width, dateformat, info_text = NULL, modebar) {
 
+  if(is.null(modebar)) {
+    modebar <- getOption("roboplot.modebar")
+  }
+  if(modebar$display == "none") {
+    return(config(p, displayModeBar = F))
+  }
+
   if(is.null(title)) {
     dl_title <- "img"
   } else {
@@ -130,7 +137,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
   )
 
 
-  btn_list <- btn_list[getOption("roboplot.modebar.buttons")]
+  btn_list <- btn_list[modebar$buttons]
 
   if(!is.null(info_text)) {
     modal_id <- str_c("roboplot-info-", str_remove(runif(1), "\\."))
@@ -211,11 +218,11 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     displaylogo = FALSE,
     modeBarButtons = list(unname(btn_list))
   )
-  
-  if(modebar == "constant") {
+
+  if(modebar$display == "constant") {
     p <- config(p, displayModeBar = T)
   }
-  
+
   p
 }
 
@@ -262,7 +269,7 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 }
 
 
-#' Statis file downloads through [roboplot()] modebar
+#' Statis image layout specs for files downloaded by clicking [roboplot()] modebar
 #'
 #' Use in [set_roboplot_options()] to get a list of specifications used for
 #' [roboplot()] relayouts for downloaded static files when the appropriate modebar
@@ -402,3 +409,27 @@ set_infobox <-
       border_width = round(border_width)
     )
   }
+
+
+#' Modebar control for [roboplot()] or [robotable()]
+#'
+#' Set global parameters in [set_roboplot_options()] for modebars.
+#'
+#' @param buttons Character vector. Buttons contained in modebar in the given order.
+#' Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w",
+#' "img_n", "img_s", "data_dl" and "robonomist" in any order.
+#' @param modebar Character. One of "constant", "hover" or "none". Controls if the modebar
+#' is visible always, only on hover, or never. Whatever the choice, static images will not
+#' display modebar.
+#' @returns A list.
+#' @export
+set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons, display = getOption("roboplot.modebar")$display) {
+  roboplotr_check_param(buttons, "character", NULL)
+  roboplotr_valid_strings(buttons, c("home","closest","compare","zoomin","zoomout","img_w","img_n","img_s","data_dl","robonomist"), any)
+  if(!str_detect(getOption("roboplot.logo"),"robonomist") & !"robonomist" %in% buttons) {
+    buttons <- c(buttons, "robonomist")
+  }
+  roboplotr_check_param(display, "character", 1, allow_null = F)
+  roboplotr_valid_strings(display,c("constant","hover","none"),.fun = any)
+  list(buttons = buttons, display = display)
+}

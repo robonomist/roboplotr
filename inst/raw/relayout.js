@@ -21,11 +21,11 @@ function rangeSliderHeight(el) {
       if(xticks.length > 0) {
         xticks = $(el).find('g.xaxislayer-above')[0].getBBox().height
         elslider = elslider + (xticks / 10)
-        
+
       }
     }
   }
-  
+
   return (elslider)
 }
 
@@ -34,7 +34,7 @@ function findModeBarHeight(el) {
     let elmodebar = $(el).find('div.modebar');
     if(elmodebar.length > 0) {
         if(elmodebar.css("display") != "none") {
-            modebar_ht = elmodebar[0].clientHeight;   
+            modebar_ht = elmodebar[0].clientHeight;
     }
   }
   return modebar_ht
@@ -169,7 +169,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     'yaxis.tickfont.size': yaxis_font_size,
     'yaxis2.tickfont.size': yaxis_font_size
   };
-  
+
   let rearray = keys.reduce(function (obj2, key) {
     if (key in thearray) // line can be removed to make it inclusive
     obj2[key] = thearray[key];
@@ -295,7 +295,7 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
 function setYPositions(eventdata, gd, pie_chart = false) {
 
     if ('width' in eventdata | 'autosize' in eventdata) {
-      
+
   let container = $(gd).find("svg.main-svg")[0].height.animVal.value;
   let modebar_ht = findModeBarHeight(gd)
   let title_y = (container - (21+modebar_ht)) / container
@@ -304,8 +304,19 @@ function setYPositions(eventdata, gd, pie_chart = false) {
  // console.log("margin b: " + margin_bottom)
   let margin_bottom = gd.layout.margin.b
   let margin_top = gd.layout.margin.t
-  if (pie_chart) { plot.height = container-margin_bottom-margin_top }
+ // if (pie_chart) { plot.height = container-margin_bottom-margin_top }
   let mb = container-plot.height-gd.layout.margin.t
+  let ph = Math.round(container-margin_top-margin_bottom)
+  if(pie_chart === true) {
+      let container_width = $(gd).find("svg.main-svg")[0].width.animVal.value;
+        if(ph > Math.round(plot.height) && container > container_width*2) {
+            mb = mb - (ph-plot.height)
+            plot.height = plot.height + (ph-plot.height)
+            }
+  }
+
+//  console.log("plotting area height: " + plot.height + "; margin top: " + margin_top)
+ // console.log("calc mb: " + mb, "; plot mb: " + margin_bottom)
   let low_bound = -(mb / plot.height)//-Math.min((elcontainer - (elplot.height+margin_top)) / elplot.height,(margin_bottom / elplot.height))
   let annotations_y = low_bound
   let images_y = low_bound
