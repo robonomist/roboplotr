@@ -10,7 +10,7 @@
     
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -47,6 +47,15 @@
       <small>Source: <a href="https://github.com/robonomist/roboplotr/blob/HEAD/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="1.8" id="roboplotr-18">roboplotr 1.8<a class="anchor" aria-label="anchor" href="#roboplotr-18"></a></h2>
+<ul><li>robotable now correctly displays background color.</li>
+<li>roboplot relayout fixes for various plot types.</li>
+<li>roboplot legend order fix to respect factor levels both for legend and trace order (first level is the topmost trace, bar traces are behind scatter and line traces). Using secondary_yaxis will mess up trace order on plots, but not on legends.</li>
+<li>added function set_modebar() for modebar control in roboplots, adding visibility controls both globally and by plot. Not yet supported by robotable.</li>
+<li>set_roboplot_options() can now save current options as defaults with .defaults = T, and reset = T uses these defaults if they are set. You can also use reset = T simultaneously with setting new options.</li>
+<li>added option of using set_roboplot_options() param logo_file as “none”.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.7.1" id="roboplotr-171">roboplotr 1.7.1<a class="anchor" aria-label="anchor" href="#roboplotr-171"></a></h2>
 <ul><li>Improved plot rescaling</li>

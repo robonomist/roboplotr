@@ -12,7 +12,7 @@ Ensures proper scaling or elements when used in shiny apps, iframes, static imag
     
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.7.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.8</small>
 
     
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -85,7 +85,7 @@ Ensures proper scaling or elements when used in shiny apps, iframes, static imag
 <span>  legend_title <span class="op">=</span> <span class="cn">F</span>,</span>
 <span>  shadearea <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  secondary_yaxis <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  modebar <span class="op">=</span> <span class="st">"hover"</span>,</span>
+<span>  modebar <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  artefacts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"roboplot.artefacts"</span><span class="op">)</span><span class="op">$</span><span class="va">auto</span>,</span>
 <span>  container <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"roboplot.shinyapp"</span><span class="op">)</span><span class="op">$</span><span class="va">container</span>,</span>
 <span>  info_text <span class="op">=</span> <span class="cn">NULL</span>,</span>
@@ -242,9 +242,7 @@ documentation for several examples.)</p></dd>
 
 
 <dt>modebar</dt>
-<dd><p>Character. One of "constant" or "hover". Controls if the modebar
-is visible only on hover, or always. Whatever the choice, static images will not
-display modebar.</p></dd>
+<dd><p>Function. Use <code>set_modebar()</code>.</p></dd>
 
 
 <dt>artefacts</dt>
@@ -262,7 +260,7 @@ while the container is not displayed.</p></dd>
 
 <dt>info_text</dt>
 <dd><p>Character. If provided, an info button is appended to the modebar
-of the <code>roboplot()</code> which brings about a popup with this parameter as the text
+of <code>roboplot()</code> which brings about a popup with this parameter as the text
 content, along with plot title and caption elements.</p></dd>
 
 
