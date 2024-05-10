@@ -30,7 +30,7 @@ function rangeSliderHeight(el) {
 }
 
 function findModeBarHeight(el) {
-    let modebar_ht = 0;
+    let modebar_ht = 5;
     let elmodebar = $(el).find('div.modebar');
     if(elmodebar.length > 0) {
         if(elmodebar.css("display") != "none") {

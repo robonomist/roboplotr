@@ -1,6 +1,14 @@
+# roboplotr 1.8.3
+
+* Static image downloads font size and top margin fix.
+
+# roboplotr 1.8.2
+
+* Fixes roboplot pie plots erroneously trying to use secondary_yaxis
+
 # roboplotr 1.8.1
 
-* fixes documentation entries, data ordering issues and language.
+* Fixes documentation entries, data ordering issues and language.
 
 # roboplotr 1.8
 

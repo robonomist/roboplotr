@@ -1403,7 +1403,7 @@ roboplotr_get_plot <-
       )
       hovertemplate <-
         roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
-      if(unique(pull(g,!!color)) %in% secondary_yaxis) {
+      if(any(unique(pull(g,!!color)) %in% secondary_yaxis)) {
         legend_rank <- mean(g$roboplot.legend.rank) + max(d$roboplot.legend.rank)
       } else {
         legend_rank <- mean(g$roboplot.legend.rank)

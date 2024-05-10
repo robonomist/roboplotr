@@ -29,29 +29,29 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     ht <- ifelse(is.null(height), 'null', as.character(height))
     wt <- ifelse(is.null(width), 'null', as.character(width))
     pie <-ifelse(all(p$trace_types == "pie"),"true","false")
-    str_c('
+    str_glue('
           function(gd, params) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
           delete gd.layout.xaxis.rangeslider;
           delete gd.layout.height;
           delete gd.layout.width;
-          Plotly.relayout(gd, {height: ',layout$y,', width: ',layout$x,',
-          "annotations[0].font.size": ',layout$caption,',
-          "xaxis.tickfont.size": ',layout$main,',
-          "yaxis.tickfont.size": ',layout$main,',
-          "title.font.size": ',layout$title,'})
+          Plotly.relayout(gd, {height: <{layout$y}, width: <{layout$x},
+          "annotations[0].font.size": <{layout$caption},
+          "xaxis.tickfont.size": <{layout$main},
+          "yaxis.tickfont.size": <{layout$main},
+          "title.font.size": <{layout$title}})
           let roboplot_logo = new Image();
           roboplot_logo.src = gd.layout.images[0].source;
           roboplot_logo = roboplot_logo.width / roboplot_logo.height
           $(gd).find("div.modebar").css("display","none")
-          setVerticalLayout({"width": true}, gd, ',layout$main,', ["',plot_title[[1]],'","',plot_title[[2]],'",',tolower(plot_title[[3]]),'], pie_plot = ',pie,', logo = roboplot_logo)
-          setYPositions({"width": true}, gd, ',pie,');
-          Plotly.downloadImage(gd, {scale: "1", format: "',layout$type,'", width: ',layout$x,', height: ',layout$y,', filename: "',ttl,layout$suffix,'"});
+          setVerticalLayout({"width": true}, gd, {legend: <{layout$main}, x: <{layout$main}, y: <{layout$main}}, ["<{plot_title[[1]]}","<{plot_title[[2]]}",<{tolower(plot_title[[3]])}], pie_plot = <{pie}, logo = roboplot_logo)
+          setYPositions({"width": true}, gd, <{pie});
+          Plotly.downloadImage(gd, {scale: "1", format: "<{layout$type}", width: <{layout$x}, height: <{layout$y}, filename: "<{ttl}<{layout$suffix}"});
           $(gd).find("div.modebar").css("display","initial")
           Plotly.relayout(gd, oldlayout)
           delete oldlayout
           }
-   ')
+   ',.open = "<{")
   }
 
   dl_icon <- function(fa_icon, scale = 0.032, translate = c(0,0)) {
