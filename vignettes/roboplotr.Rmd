@@ -584,13 +584,14 @@ d <- tribble(
   "Aug 2022", 314920505, 
   "Sep 2022", 322755333,
   "Oct 2022", 298371747
-) |> mutate(value = value / 1000000)
+) |> mutate(value = value / 1000000,
+            )
 
 
 d |> 
   roboplot(
     title = "Value of monthly exports from China", 
-    subtitle = "Billion US dollars", 
+    subtitle = "Billion US dollars",
     caption = "National Bureau of Statistics, China", 
     plot_axes = set_axes(xticktype = "character")
     )

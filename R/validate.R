@@ -1,3 +1,24 @@
+#' Print method for roboplotr objects
+#'
+#' This is the print method for objects of class \code{roboplotr}. It temporarily
+#' removes the \code{roboplotr} class attribute and related classes before calling
+#' the next method in the method chain, ensuring that the default print method is
+#' used.
+#'
+#' @param x An object of class \code{roboplotr}. This object can be any type that
+#' also includes the class \code{roboplotr}.
+#' @param ... Additional arguments passed to the \code{print} method.
+#' @return The function does not return a value. It is used for its side effect
+#' of printing.
+#' @export
+print.roboplotr <- function(x, ...) {
+  old_class <- class(x)
+  class(x) <- subset(old_class, !str_detect(old_class, "^roboplotr"))
+  NextMethod("print")
+  class(x) <- old_class
+}
+
+
 #' @importFrom rlang as_name enquo eval_tidy quo quo_is_call quo_is_null sym
 #' @importFrom stringr str_glue
 roboplotr_check_valid_var <- function(var,names,where = NULL) {
@@ -27,6 +48,73 @@ roboplotr_check_valid_var <- function(var,names,where = NULL) {
   }
 
   var
+
+}
+
+#' @importFrom purrr map2_chr
+#' @importFrom stringr str_c str_glue str_remove
+roboplotr_typecheck <- function(var, type, size = 1, allow_null = TRUE, allow_na = FALSE, extra = NULL) {
+
+  get_type <- function(x) {
+    if(length(x) == 0) return(NULL)
+    if (any(is.na(x))) return(NULL)
+    class(x)
+  }
+
+  if(is.null(extra)) {
+    extra <- ""
+  } else {
+    extra <- str_glue(" {extra}")
+  }
+  .what <- first(as.character(substitute(var)))
+
+  if (is.null(var)) {
+    if (!allow_null) { stop(str_glue("{.what}{extra} cannot be NULL."), call. = F)
+    } else {
+        return()
+      }
+  }
+
+  if (any(is.na(var))) {
+    if (!allow_na) stop(str_glue("{.what}{extra} cannot be NA."), call. = F)
+  }
+
+  type_valid <- FALSE
+
+  for (t in seq(length(type))) {
+    required_types <- unname(type[t])
+    # browser()
+    if(!is.null(names(type[t]))) {
+      if(names(type[t]) != "") {
+        required_types <- c(required_types, str_c("roboplotr.",names(type[t])))
+      }
+    }
+    if (!any(inherits(var, required_types, which = T) == 0)) {
+      type_valid <- TRUE
+      break
+    } else if (length(required_types) == 1) {
+      try({
+        .var <- as(var, required_types)
+        if (get_type(.var) == required_types) {
+          type_valid <- TRUE
+          break
+        }
+      }, silent = TRUE)
+    }
+  }
+
+  if (!type_valid) {
+    if(!is.null(names(type))) {
+      .types <- map2_chr(type, names(type), ~ ifelse(.y != "", str_c("a call of roboplotr::", str_remove(.y,'^roboplotr\\.')), .x)) |> unname()
+    } else {
+      .types <- type
+    }
+    stop(str_glue("{.what}{extra} must be {ifelse(length(type) > 1, 'one of ','')}{roboplotr_combine_words(.types, and = ' or ')}!"), call. = F)
+  }
+
+  if (!is.null(size) && length(var) != size && !is.list(var)) {
+    stop(str_glue("{.what}{extra} must have length of {size}!"), call. = F)
+  }
 
 }
 
@@ -86,14 +174,15 @@ roboplotr_check_param <- function(var, type, size = 1, allow_null = T, allow_na 
   }
 }
 
-#' @importFrom stringr str_c
+
+#' @importFrom stringr str_glue
 roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = all, msg = NULL) {
   if(!is.null(strings_to_validate)) {
     if(!.fun(valid_values %in% strings_to_validate)) {
       if(is.null(msg)) {
         msg <- str_glue("'{deparse(substitute(strings_to_validate))}'")
       }
-      stop (str_c(msg," must be among ",roboplotr_combine_words(str_replace_all(valid_values,"\\\\", "\\\\\\\\")),"!"), call. = F)
+      stop (str_glue("{msg} must be among {roboplotr_combine_words(str_replace_all(valid_values,'\\\\', '\\\\\\\\'))}!"), call. = F)
     }
   }
 }

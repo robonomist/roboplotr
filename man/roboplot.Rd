@@ -34,7 +34,6 @@ roboplot(
   secondary_yaxis = NULL,
   modebar = NULL,
   artefacts = getOption("roboplot.artefacts")$auto,
-  container = getOption("roboplot.shinyapp")$container,
   info_text = NULL,
   tidy_legend = getOption("roboplot.legend.tidy"),
   ...
@@ -143,11 +142,6 @@ documentation for several examples.)}
 \item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for fine-tuned
 control. Use TRUE instead for automated artefact creation or html and/or other
 files from the plot based on settings globally set by \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
-
-\item{container}{Character. Experimental, might not work as intended. Use only
-with shiny apps. A css selector for the element in a shiny app where this
-\code{\link[=roboplot]{roboplot()}} will be contained in. Used for relayouts if the plot is rendered
-while the container is not displayed.}
 
 \item{info_text}{Character. If provided, an info button is appended to the modebar
 of \code{\link[=roboplot]{roboplot()}} which brings about a popup with this parameter as the text
@@ -480,7 +474,5 @@ set_roboplot_options(reset = TRUE)
 # Further specifications for creating artefacts is defined under
 # roboplotr::set_roboplot_options() and roboplotr::set_artefacts().
 
-# Using "container" is defined under roboplotr::set_roboplot_options() under
-# as its usage is tied to using the 'shinyapp' parameter therein.
 }
 }

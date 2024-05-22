@@ -6,7 +6,8 @@
 \usage{
 set_modebar(
   buttons = getOption("roboplot.modebar")$buttons,
-  display = getOption("roboplot.modebar")$display
+  display = getOption("roboplot.modebar")$display,
+  ...
 )
 }
 \arguments{
@@ -17,6 +18,8 @@ Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w",
 \item{display}{Character. One of "constant", "hover" or "none". Controls if the modebar
 is visible always, only on hover, or never. Whatever the choice, static images will not
 display modebar.}
+
+\item{...}{Placeholder for other parameters.}
 }
 \value{
 A list.

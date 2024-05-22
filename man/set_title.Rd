@@ -4,7 +4,7 @@
 \alias{set_title}
 \title{Titles for \code{\link[=roboplot]{roboplot()}}}
 \usage{
-set_title(title = NULL, include = T)
+set_title(title = NULL, include = T, ...)
 }
 \arguments{
 \item{title}{Character. Optional. Will try to determine a title based on
@@ -12,6 +12,8 @@ attributes of  argument 'd' of \code{\link[=roboplot]{roboplot()}}. Defaults to 
 
 \item{include}{Logical. Determines whether the given title will be used in
 the plot. Will always inlcude it for downloaded png images.}
+
+\item{...}{Placeholder for other parameters.}
 }
 \value{
 A list

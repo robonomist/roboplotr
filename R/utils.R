@@ -6,7 +6,6 @@
 #' @param artefacts Function. Control html and other file creation. Use [set_artefacts()].
 #' @param border Function. Control plot borders. Use [set_border()].
 #' @param grid Function. Control the grid behind the traces. Use [set_grid()].
-#' @param tick_colors List. Plot tick element colors. Values need to be hexadecimal colors or valid css colors, named "x" and "y".
 #' @param background_color Character. Plot background color. Must be a hexadecimal color or a valid css color.
 #' @param caption_template Character. Template for [str_glue()] used to parse captions.
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
@@ -26,7 +25,7 @@
 #' @param tidy_legend Logical. Controls whether the legend items will have matching widths, making for neater legends, or containing text widths, saving space.
 #' @param zeroline Function. Control the appearance of zeroline when set using [roboplot()] parameter 'zeroline'. Use [set_zeroline()].
 #' @param verbose Character. Will roboplotr display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".
-#' @param shinyapp Logical or list. Makes fonts, css and javascript available for shiny apps. If given as list, use a named list with the single character string named "container" describing the css selector for the element in a shiny app where most roboplots will be contained in. Used for relayouts if the plot is rendered while the container is not displayed.
+#' @param shinyapp Logical. Makes fonts, css and javascript available for shiny apps.
 #' @param reset Logical. Resets options to roboplotr defaults.
 #' @param .defaults Logical. Saves the current roboplot options as roboplotr defaults for future calls of [set_roboplot_options()] param 'reset'. Is automatically set the first time [set_roboplot_options()] is run.
 #' @export
@@ -48,7 +47,6 @@
 #'   border = set_border(xcolor = "#eed5d2", ycolor = "#8b7d7b"),
 #'   caption_template = "Lähde: {text}.",
 #'   grid = set_grid(xcolor = "#9aff9a", ycolor = "cornsilk"),
-#'   tick_colors = list(x = "darkgray", y = "dimgrey"),
 #'   background_color = "ghostwhite",
 #'   height = 700,
 #' )
@@ -192,75 +190,6 @@
 #'
 #' }
 #'
-#'# As roboplotr::roboplot() uses javascript to relayout the plot elements to
-#' # correct sizes and placements on render, there might be cases where the user
-#' # navigates between tabs too fast. This results in the plots rendering
-#' # incorrectly as the element heights are zero at render time. Giving the
-#' # parameter 'shinyapp' as a list with a character string named
-#' # 'container' describing the css selector of the container that controls plot
-#' # visibility allows roboplotr::roboplot() to detect if the container was
-#' # displayed on plot rendering, redoing the incorrect layouts. The example
-#' # below has one card starting as collapsed as an example of use case where
-#' # this does not work at all.
-#'
-#' if(interactive()) {
-#'
-#'   ui <- bs4Dash::dashboardPage(
-#'     bs4Dash::dashboardHeader(
-#'       title = "Basic dashboard",
-#'       set_roboplot_options(
-#'         shinyapp = list(container = ".tab-pane.container-fluid"))
-#'     ),
-#'     bs4Dash::dashboardSidebar(
-#'       bs4Dash::sidebarMenu(
-#'         htmltools::tagList(
-#'           bs4Dash::menuItem(text = "Tab 1", tabName = "tab_1"),
-#'           bs4Dash::menuItem(text = "Tab 2", tabName = "tab_2")
-#'         )
-#'       )
-#'     ),
-#'     bs4Dash::dashboardBody(
-#'       shiny::uiOutput("plots")
-#'     )
-#'   )
-#'
-#'   server <- function(input, output) {
-#'
-#'     output$plots <- renderUI({
-#'       bs4Dash::tabItems(
-#'         bs4Dash::tabItem(tabName = "tab_1", shiny::fluidRow(
-#'           bs4Dash::box(plotly::plotlyOutput("plot1", height = 550), collapsed = T,
-#'                        container = ".card-body")
-#'         )),
-#'         bs4Dash::tabItem(tabName = "tab_2", shiny::fluidRow(
-#'           bs4Dash::box(plotly::plotlyOutput("plot2", height = 500),collapsed = F)
-#'         ))
-#'       )
-#'     })
-#'
-#'     output$plot1 <- plotly::renderPlotly({
-#'       roboplot(
-#'         dplyr::filter(energiantuonti, Suunta == "Tuonti"),
-#'         Alue, "Energian tuonti Kanadasta",
-#'         "Milj. €",
-#'         "Tilastokeskus")
-#'     })
-#'     output$plot2 <- plotly::renderPlotly({
-#'       roboplot(
-#'         dplyr::filter(energiantuonti, Suunta == "Vienti"),
-#'         Alue, "Energian vienti",
-#'         "Milj. €",
-#'         "Tilastokeskus",
-#'         height = 500)
-#'     })
-#'
-#'
-#'   }
-#'
-#'   shiny::shinyApp(ui, server)
-#'
-#' }
-#'
 #'
 #' @importFrom htmltools singleton tagList tags
 #' @importFrom purrr iwalk walk2
@@ -289,7 +218,6 @@ set_roboplot_options <- function(
     markers = NULL,
     modebar = NULL,
     patterns = NULL,
-    tick_colors = NULL,
     tidy_legend = NULL,
     trace_border = NULL,
     trace_colors = NULL,
@@ -315,11 +243,12 @@ set_roboplot_options <- function(
     }
   }
 
-  roboplotr_check_param(verbose, "character", allow_null = T)
+  roboplotr_typecheck(verbose, "character", allow_null = T)
   roboplotr_valid_strings(verbose, c("All","Alert","Warning"), any)
   set_roboplot_option(verbose, "verbose")
 
-  roboplotr_check_param(reset, "logical", allow_null = F)
+  roboplotr_typecheck(reset, "logical", allow_null = F)
+
   if (reset) {
     if(is.null(getOption("roboplotr.options.defaults"))) {
       .onLoad(override = T)
@@ -340,19 +269,18 @@ set_roboplot_options <- function(
     }
 
     # print(accessible)
-    roboplotr_check_param(accessible, "logical", NULL)
+    roboplotr_typecheck(accessible, "logical")
 
-    if(!is.null(artefacts)) {
-      roboplotr_check_param(artefacts, "function", NULL, f.name = list(fun = substitute(artefacts)[1], check = "set_artefacts"))
-    }
+    roboplotr_typecheck(artefacts, c("set_artefacts" = "list"))
 
-    roboplotr_check_param(border, "function", NULL,  f.name = list(fun = substitute(border)[1], check = "set_border"))
-    roboplotr_check_param(background_color, "character")
+    roboplotr_typecheck(border, c("set_border" = "list"))
+
+    roboplotr_typecheck(background_color, "character")
     roboplotr_valid_colors(background_color)
 
-    roboplotr_check_param(caption_template, "character")
+    roboplotr_typecheck(caption_template, "character")
 
-    roboplotr_check_param(dashtypes, "character", NULL)
+    roboplotr_typecheck(dashtypes, "character", NULL)
     roboplotr_valid_strings(dashtypes,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"))
 
     font_main <- substitute(font_main)
@@ -376,21 +304,17 @@ set_roboplot_options <- function(
       font_caption <- eval(font_caption)
     }
 
-    roboplotr_check_param(grid, "function", NULL,  f.name = list(fun = substitute(grid)[1], check = "set_grid"))
+    roboplotr_typecheck(grid, c("set_grid" = "list"))
 
-    roboplotr_check_param(height, "numeric", allow_na = T)
+    roboplotr_typecheck(height, "numeric", allow_na = T)
 
-    if(!is.null(infobox)) {
-      roboplotr_check_param(locale, "function", NULL, f.name = list(fun = substitute(infobox)[1], check = "set_infobox"))
-    }
+    roboplotr_typecheck(infobox, c("set_infobox" = "list"))
 
-    roboplotr_check_param(linewidth, "numeric")
+    roboplotr_typecheck(linewidth, "numeric")
 
-    if(!is.null(locale)) {
-      roboplotr_check_param(locale, "function", NULL, f.name = list(fun = substitute(locale)[1], check = "set_locale"))
-    }
+    roboplotr_typecheck(locale, c("set_locale" = "list"))
 
-    roboplotr_check_param(logo_file, "character")
+    roboplotr_typecheck(logo_file, "character")
     if(!is.null(logo_file)) {
       if(logo_file == "none") {
         logo_file <- system.file("images","none.png",package = "roboplotr")
@@ -398,60 +322,56 @@ set_roboplot_options <- function(
         stop("Given logo file does not seem to exist. Is the file path correct?", call. = F)
       }}
 
-    if(!is.null(zeroline)) {
-      roboplotr_check_param(zeroline, "function", NULL, f.name = list(fun = substitute(zeroline)[1], check = "set_zeroline"))
-    }
+    roboplotr_typecheck(markers, c("set_markers" = "list"))
 
-    roboplotr_check_param(markers, "function", NULL,  f.name = list(fun = substitute(markers)[1], check = "set_markers"))
+    roboplotr_typecheck(modebar, c("character","set_modebar" = "list"), size = NULL)
 
     if(!is.null(modebar)) {
       if(is.character(modebar)) {
-        modebar <- set_modebar(modebar)
-      } else {
-        roboplotr_check_param(modebar, c("function"), NULL,  f.name = list(fun = substitute(modebar)[1], check = "set_modebar"))
+        modebar <- set_modebar(modebar, .extra = "in set_roboplot_options(modebar = set_modebar)")
       }
     }
 
-    roboplotr_check_param(patterns, "character", NULL)
+    roboplotr_typecheck(patterns, "character", NULL)
     roboplotr_valid_strings(patterns,c("","/","\\","x","-","|","+","."))
 
-    roboplotr_check_param(imgdl_wide, "function", NULL, f.name = list(fun = substitute(imgdl_wide)[1], check = "set_imgdl_layout"))
-    roboplotr_check_param(imgdl_narrow, "function", NULL, f.name = list(fun = substitute(imgdl_narrow)[1], check = "set_imgdl_layout"))
-    roboplotr_check_param(imgdl_small, "function", NULL, f.name = list(fun = substitute(imgdl_small)[1], check = "set_imgdl_layout"))
+    roboplotr_typecheck(imgdl_wide, c("set_imgdl_layout" = "list"))
+    roboplotr_typecheck(imgdl_narrow, c("set_imgdl_layout" = "list"))
+    roboplotr_typecheck(imgdl_small, c("set_imgdl_layout" = "list"))
 
-    roboplotr_check_param(tick_colors, "list", c("x","y"))
-    roboplotr_valid_colors(tick_colors)
+    roboplotr_typecheck(tidy_legend, "logical")
 
-    roboplotr_check_param(tidy_legend, "logical", NULL)
-
-    roboplotr_check_param(trace_border, "list", c("color","width"), allow_null = T)
+    roboplotr_typecheck(trace_border, "list", allow_null = T)
     if(!is.null(trace_border)) {
+      if(!is.null(trace_border$color) | is.null(trace_border$width)) {
+        stop("set_roboplot_options() `trace_border` must have character names `color` and numeric named `width`!", call. = F)
+      }
       `trace_border$color` <- trace_border$color
       `trace_border$width` <- trace_border$width
-      roboplotr_check_param(`trace_border$color`, "character")
-      roboplotr_valid_colors(`trace_border$color`)
-      roboplotr_check_param(`trace_border$width`, "numeric")
+      roboplotr_typecheck(`trace_border$color`, "character", allow_null = F, extra = "set_roboplot_options()")
+      roboplotr_valid_colors(`trace_border$color`, message = "set_roboplot_options(trace_border)")
+      roboplotr_typecheck(`trace_border$width`, "numeric", allow_null = F, extra = "set_roboplot_options()")
     }
 
-    roboplotr_check_param(trace_colors, "character", NULL)
+    roboplotr_typecheck(trace_colors, "character", NULL)
     roboplotr_valid_colors(trace_colors)
-    if(length(trace_colors) > 1 & length(trace_colors) < 5) { roboplotr_alert("Are you sure ",length(trace_colors)," color",ifelse(length(trace_colors)==1," is","s are")," enough?\n")}
-
-    roboplotr_check_param(shinyapp, c("logical","list"), allow_null = T)
-
-    if(!is.logical(shinyapp) & !is.null(shinyapp)) {
-      roboplotr_check_param(shinyapp, "list", c("container"))
-      shinyapp$shinyapp <- TRUE
-      `shinyapp$container` <- shinyapp$container
-      roboplotr_check_param(`shinyapp$container`, "character", allow_null = F)
-    } else if (!is.null(shinyapp)) {
-      shinyapp <- list(shinyapp = shinyapp, container = NULL)
+    if (length(trace_colors) > 1 &
+        length(trace_colors) < 5) {
+      roboplotr_alert(
+        str_glue(
+          "Are you sure {length(trace_colors)} color{ifelse(length(trace_colors)==1,' is','s are')} enough?\n"
+        )
+      )
     }
 
-    roboplotr_check_param(width, "numeric", allow_na = T)
+    roboplotr_typecheck(shinyapp, "logical")
 
-    roboplotr_check_param(xaxis_ceiling, "character")
+    roboplotr_typecheck(width, "numeric", allow_na = T)
+
+    roboplotr_typecheck(xaxis_ceiling, "character")
     roboplotr_valid_strings(xaxis_ceiling, c("default","days","months","weeks","quarters","years","guess"), any)
+
+    roboplotr_typecheck(zeroline, c("set_zeroline" = "list"))
 
     set_roboplot_option(accessible)
     set_roboplot_option(artefacts)
@@ -476,7 +396,6 @@ set_roboplot_options <- function(
     set_roboplot_option(imgdl_small,"imgdl.small")
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(shinyapp)
-    set_roboplot_option(tick_colors, "colors.ticks")
     set_roboplot_option(trace_border, "trace.border")
     set_roboplot_option(trace_colors, "colors.traces")
     set_roboplot_option(zeroline)
@@ -496,7 +415,7 @@ set_roboplot_options <- function(
       setOption("roboplot.modebar",.modebar)
     }
 
-    roboplotr_check_param(.defaults, "logical", allow_null = F)
+    roboplotr_typecheck(.defaults, "logical", allow_null = F)
 
     if(is.null(getOption("roboplotr.options.defaults")) | .defaults) {
       .roboplot_options <- options() |> names() |> str_subset("roboplot\\.")
@@ -505,7 +424,7 @@ set_roboplot_options <- function(
     }
 
     if(!is.null(shinyapp)) {
-      if(shinyapp$shinyapp == T) {
+      if(shinyapp == T) {
 
         roboplotr_alert("Reminder: set_roboplot_options() needs to be run inside the app ui header at runtime!\n",
                         "Take care with roboplotr container css, all plotly plots inherit some but not all css.")
@@ -584,7 +503,7 @@ roboplotr_string2filename <- function(string) {
 #' @export
 #' @importFrom dplyr case_when
 set_locale <- function(locale = "fi-FI") {
-  roboplotr_check_param(locale, "character", allow_null = F)
+  roboplotr_typecheck(locale, "character", allow_null = F, extra = "set_locale()")
   roboplotr_valid_strings(locale, c("en-GB","en-US","sv-SE","fi-FI"), any)
   loc <- case_when(locale == "en-GB" ~ "en", locale == "en-US" ~ "en-US", locale == "sv-SE" ~ "sv", TRUE ~ "fi")
   sep <- case_when(loc %in% c("en", "en-US") ~ ".,", TRUE ~ ", ")
@@ -593,7 +512,13 @@ set_locale <- function(locale = "fi-FI") {
                            loc == "sv" ~ list(left = "V\uE4nster Y-axel", right = "H\uF6ger Y-axel"),
                            TRUE ~ list(left = "Vasen Y-akseli", right = "Oikea Y-akseli")
                            )
-  list(locale = loc, separators = sep, date = dat, ylegendlabs = ylegendlabs)
+
+  .res <- list(locale = loc, separators = sep, date = dat, ylegendlabs = ylegendlabs)
+
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_locale", class(.res)))
+
+  .res
+
 }
 
 #' @importFrom dplyr across everything matches mutate rename select

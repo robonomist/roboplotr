@@ -187,5 +187,11 @@ set_zeroline <-
     roboplotr_check_param(width, "numeric")
     roboplotr_check_param(color, "character")
     roboplotr_valid_colors(color, "Zeroline color")
-    list(color = color, width = width)
+
+    .res <- list(color = color, width = width)
+
+    .res <- structure(.res, class = c("roboplotr","roboplotr.set_zeroline", class(.res)))
+
+    .res
+
   }

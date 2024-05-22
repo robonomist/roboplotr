@@ -23,7 +23,8 @@ robotable(
   searchable = T,
   sortable = T,
   col_widths = NULL,
-  artefacts = getOption("roboplot.artefacts")$auto
+  artefacts = getOption("roboplot.artefacts")$auto,
+  ...
 )
 }
 \arguments{
@@ -56,6 +57,8 @@ robotable(
 \item{col_widths}{Named numeric vector. Must sum to 100 or lower. Sets the percentage widths taken by column by name. Columns not named will have the excess space divided evenly between them. For narrow screens the widths cannot be adhered to.}
 
 \item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}. Controls artefact creation. Currently unable to make static files, only html files.}
+
+\item{...}{Placeholder for other parameters.}
 }
 \value{
 A list of classes "datatable" and "htmlwidget"

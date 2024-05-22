@@ -1,3 +1,13 @@
+# roboplotr 1.8.4.9000
+
+* Changes in roboplotr internal validation.
+
+# roboplotr 1.8.4
+
+* Added preDraw callback to robotable() that forces core DataTables css to load properly.
+* Improved roboplot() logo handling when set to "none".
+* Legend fixes for robomap().
+
 # roboplotr 1.8.3
 
 * Static image downloads font size and top margin fix.

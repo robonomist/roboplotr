@@ -162,6 +162,7 @@ roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_p
     )
 }
 
+#' @importFrom leaflet addTiles tileOptions
 roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F) {
   if (tile_opacity > 0) {
     map |>
@@ -212,17 +213,17 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @param map_palette Character or function. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings, or use [set_heatmap()] if specifying color breakpoints.
 #' @param hovertext List. Use a list with named items flag and unit.
 #' @param border_width Integer. The width of polygon borders. Default is the trace border width set with [set_roboplot_options()].
-#' @param legend_breaks Integer vector. If length  of 1, [robomap()] will break the values into n chunks for the purpose of showing legend, where n is the value of legend_breaks. If length of more than 1, the values are used as the breaks in legend.
-#' @param legend_position Character. Currently only accepts "bottom right" or NULL.
+#' @param legend Function. Use [set_robomap_legend()].
 #' @param data_contour Logical. Experimental. If TRUE, [robomap()] will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
 #' This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.
 #' @param log_colors Logical. Whether the colors scales is log or not.
 #' @param zoom Logical. Whether the map is zoomable or not.
 #' @param rounding Numeric. How [robomap()] rounds numeric values.
 #' @param markers Logical. Experimental. Whether markers will be added on the map based on the columns "lat" and "lon". Default is FALSE.
+#' @param ... Placeholder for other parameters.
 #' @return A list of classes "leaflet" and "htmlwidget"
 #' @importFrom htmltools HTML tags
-#' @importFrom leaflet addControl addLegend addPolygons addTiles colorBin colorNumeric colorQuantile leaflet leafletOptions tileOptions
+#' @importFrom leaflet addControl addLegend leaflet leafletOptions
 #' @importFrom purrr map
 #' @importFrom stringr str_glue str_remove
 #' @importFrom utils head tail
@@ -230,7 +231,6 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @examples
 #' # You can use roboplotr::robomap() to create html maps. Note that very large
 #' # number of map polygons makes for slow rendering maps.
-#'
 #'
 #' # Currently robomap() only supports very little customization.
 #' vaesto_postinumeroittain |>
@@ -323,44 +323,39 @@ robomap <-
            tile_opacity = 0.7,
            map_palette = NULL,
            border_width = getOption("roboplot.trace.border")$width,
-           legend_breaks = 5,
-           legend_position = "bottomright",
+           legend = set_robomap_legend(),
            data_contour = FALSE,
            markers = FALSE,
            log_colors = NULL,
            rounding = 1,
-           zoom = TRUE
+           zoom = TRUE,
+           ...
            ) {
+
+    roboplotr_typecheck(title, c("set_title" = "list","character"), extra = "in robomap()")
+
     if (is.null(title)) {
       title <- attributes(d)[c("title", "robonomist_title")]
       if (!is.null(title$robonomist_title)) {
         roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
-        title <- set_title(title$robonomist_title)
+        title <- set_title(title$robonomist_title, .extra = "in robomap(title = set_title())")
       } else if (!is.null(title$title) & length(title$title != 1)) {
         roboplotr_alert("Using the attribute \"title\" as plot title.")
-        title <- set_title(title$title)
+        title <- set_title(title$title, .extra = "in robomap(title = set_title())")
       } else {
         roboplotr_alert("Missing the title, using placeholder.")
         title <- set_title("PLACEHOLDER")
       }
-    } else if (is.character(title)) {
-      title <- set_title(title = title, include = TRUE)
-    } else {
-      roboplotr_check_param(
-        title,
-        c("character,", "function"),
-        NULL,
-        f.name = list(fun = substitute(title)[1], check = "set_title")
-      )
+    } else if (!"roboplotr.set_title" %in% class(title)) {
+      title <- set_title(title = as.character(title), include = TRUE, .extra = "in robomap(title = set_title())")
     }
 
-    roboplotr_check_param(
-      caption,
-      c("character", "function"),
-      size = 1,
-      f.name = list(fun = substitute(caption)[1], check = "set_caption")
-    )
-    roboplotr_check_param(zoom, "logical", NULL, FALSE, "robomap param \"zoom\"")
+    roboplotr_typecheck(caption, c("character", "set_caption" = "glue"), extra = "in robomap()")
+
+    roboplotr_typecheck(legend, c("set_robomap_legend"="list"), extra = "in robomap()")
+
+    roboplotr_typecheck(zoom, "logical", allow_null = F, extra = "in robomap()")
+
     if (!is.null(caption)) {
       if (!is(substitute(caption)[1], "call")) {
         caption <- set_caption(text = caption)
@@ -380,14 +375,7 @@ robomap <-
       }
     }
 
-    # roboplotr_check_param(
-    #   map_palette,
-    #   c("character"),
-    #   size = NULL,
-    #   extra = "robomap()"
-    # )
-
-    roboplotr_check_param(map_palette, c("character", "function"), NULL, f.name = list(fun = substitute(map_palette)[1], check = "set_heatmap", extra = "robomap()"))
+    roboplotr_typecheck(map_palette, c("character","set_heatmap" = "list"), size = NULL, extra = "in robomap()")
 
     if(!is.null(map_palette)) {
       if(all(is.character(map_palette))) {
@@ -395,7 +383,7 @@ robomap <-
       }
     } else {
       roboplotr_colors <- getOption("roboplot.colors.traces")
-      roboplotr.luminance <- getOption("roboplot.colors.traces") |> roboplotr_get_luminance()
+      roboplotr.luminance <- roboplotr_get_luminance(roboplotr_colors)
       map_palette <- c(
         roboplotr_colors[which(roboplotr.luminance == max(roboplotr.luminance))],
                          roboplotr_colors[which(roboplotr.luminance == min(roboplotr.luminance))]
@@ -430,8 +418,6 @@ robomap <-
 
     })()
 
-    roboplotr_check_param(legend_breaks, "numeric", NULL, extra = "robomap()")
-
     get_bins <- function(legend_breaks) {
       if(length(legend_breaks) == 1) {
         bins <- rev(seq(
@@ -460,7 +446,7 @@ robomap <-
       bins |> unique()
     }
 
-    bins <- get_bins(legend_breaks)
+    bins <- get_bins(legend$breaks)
     # bins <- c(10000, 2203, 0)
 
     if(log_colors == TRUE) {
@@ -511,7 +497,7 @@ robomap <-
           str_glue(".{robomap_id}-info"),
           "width" = "fit-content",
           "background" = getOption("roboplot.colors.background"),
-          "opacity" = "0.7",
+          "opacity" = "1", ## mikä on sopiva..?
           "font-size" = str_glue('{getOption("roboplot.font.main")$size}px'),
           "font-family" = getOption("roboplot.font.main")$family,
           "color" = getOption("roboplot.font.main")$color,
@@ -550,7 +536,7 @@ robomap <-
       ) |>
       addControl(
         html = caption,
-        position = "bottomright",
+        position = ifelse(legend$position == "none","bottomright",legend$position),
         className = str_glue("{robomap_id}-info")
       )
 
@@ -564,7 +550,7 @@ robomap <-
         )
       )
 
-    if(!is.null(legend_position)) {
+    if(legend$position != "none") {
       if (data_contour == TRUE) {
 
         this_legend <- (function() {
@@ -600,8 +586,8 @@ robomap <-
             className = str_glue("{robomap_id}-info legend"),
             na.label = "",
             # pal = robomap_palette,
-            opacity = 0.9,
-            position = "bottomright",
+            opacity = tile_opacity,
+            position = legend$position,
             # bins = legend_cap,
             labels = this_legend$labs,
             colors = this_legend$colors,
@@ -629,8 +615,8 @@ robomap <-
           addLegend(
             className = str_glue("{robomap_id}-info legend"),
             na.label = "",
-            opacity = 0.9,
-            position = "bottomright",
+            opacity = tile_opacity,
+            position = legend$position,
             labels = roboplotr_format_robotable_numeric(bins, rounding),
             colors = robomap_palette(bins),
             # values = ~ value,
@@ -640,28 +626,53 @@ robomap <-
         this_legend <- (function() {
           cuts <- bins |> roboplotr_round_magnitude(rounding, round)
           .magnitude <- NA
-          if(any(round(cuts) != cuts)) {
-            .magnitude <- (cuts |> str_remove("^[^\\.]*") |> nchar() |> max())-1
-            cuts <- cuts * 10^.magnitude
-          }
-          lo_end <- (tail(cuts,-1) - c(
-            rep(-1, length(cuts) - 2), 0
-          ))
-          hi_end <- head(cuts,-1)
+          if(all.equal(sort(cuts),sort(unique(d$robomap.value))) == T) {
+            labs <- map(cuts, ~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
+              reduce(c)
+            if(!is.null(legend$labels)) {
+              if(is.numeric(legend$labels)) {
+                labs <- sparsify_legend(labs, legend$labels) |> map(HTML)
+              } else {
+                labs <- rev(legend$labels) |> map(HTML)
+              }
+            }
+            colors <- robomap_palette(cuts)
+          } else {
+            if(any(round(cuts) != cuts)) {
+              .magnitude <- (cuts |> str_remove("^[^\\.]*") |> nchar() |> max())-1
+              cuts <- cuts * 10^.magnitude
+            }
+            lo_end <- (tail(cuts,-1) - c(
+              rep(-1, length(cuts) - 2), 0
+            ))
+            hi_end <- head(cuts,-1)
             # max_val <- (max(d$value,na.rm = TRUE) * 10^.magnitude) |> roboplotr_round_magnitude(rounding)
             # if(max_val < max(hi_end)) {
             #   hi_end[1] <- max_val
             # }
-          if(!is.na(.magnitude)) {
-            hi_end <- (hi_end / 10^.magnitude)
-            lo_end <- (lo_end / 10^.magnitude)
-          }
-          colors <- robomap_palette((hi_end + lo_end)/2)
-          hi_end <- roboplotr_format_robotable_numeric(hi_end, rounding)
-          lo_end <- roboplotr_format_robotable_numeric(lo_end, rounding)
-          labs <- str_glue("{lo_end} \u2013 {hi_end}") |>
+            if(!is.na(.magnitude)) {
+              hi_end <- (hi_end / 10^.magnitude)
+              lo_end <- (lo_end / 10^.magnitude)
+            }
+            colors <- robomap_palette((hi_end + lo_end)/2)
+            hi_end <- roboplotr_format_robotable_numeric(hi_end, rounding)
+            lo_end <- roboplotr_format_robotable_numeric(lo_end, rounding)
+            if(legend$range) {
+             labs <- str_glue("{lo_end} \u2013 {hi_end}")
+            } else {
+              labs <- hi_end
+            }
+            labs <- labs |>
               map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
               reduce(c)
+            if(!is.null(legend$labels)) {
+              if(is.numeric(legend$labels)) {
+                labs <- sparsify_legend(labs, legend$labels) |> map(HTML)
+              } else {
+                labs <- rev(legend$labels) |> map(HTML)
+              }
+            }
+          }
           list(labs = labs, colors = colors)
         })()
 
@@ -669,43 +680,8 @@ robomap <-
           addLegend(
             className = str_glue("{robomap_id}-info legend"),
             na.label = "",
-            opacity = 0.9,
-            # labFormat = function(type, cuts) {
-            #   # browser()
-            #   if(log_colors) {
-            #     if(min(d$value) == 0) {
-            #       cuts <- exp(cuts)-1
-            #     } else {
-            #       cuts <- exp(cuts)
-            #     }
-            #   }
-            #   cuts <- cuts |> roboplotr_round_magnitude(rounding, round)
-            #   .magnitude <- NA
-            #   if(any(round(cuts) != cuts)) {
-            #     .magnitude <- (cuts |> str_remove("^[^\\.]*") |> nchar() |> max())-1
-            #     cuts <- cuts * 10^.magnitude
-            #   }
-            #   lo_end <- (tail(cuts,-1) - c(
-            #     rep(-1, length(cuts) - 2), 0
-            #   ))
-            #   hi_end <- head(cuts,-1)
-            #   # max_val <- (max(d$value,na.rm = TRUE) * 10^.magnitude) |> roboplotr_round_magnitude(rounding)
-            #   # if(max_val < max(hi_end)) {
-            #   #   hi_end[1] <- max_val
-            #   # }
-            #   if(!is.na(.magnitude)) {
-            #     hi_end <- (hi_end / 10^.magnitude)
-            #     lo_end <- (lo_end / 10^.magnitude)
-            #   }
-            #   hi_end <- roboplotr_format_robotable_numeric(hi_end, rounding)
-            #   lo_end <- roboplotr_format_robotable_numeric(lo_end, rounding)
-            #   str_glue("{lo_end} \u2013 {hi_end}") |>
-            #     map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
-            #     reduce(c)
-            # },
-            position = "bottomright",
-            # pal = robomap_palette,
-            # values = ~ robomap.value
+            opacity = tile_opacity,
+            position = legend$position,
             labels = this_legend$labs,
             colors = this_legend$colors,
             title = legend_title
@@ -726,3 +702,28 @@ robomap <-
   }
 #
 # robomap(this, Postinumeroalue)
+
+sparsify_legend <- function(char_vector, retain_fraction) {
+
+  n <- length(char_vector)
+
+  retain_count <- max(2, ceiling(retain_fraction * n))
+
+  if (retain_count >= n) {
+    return(char_vector)
+  }
+
+  retain_positions <- rep(FALSE, n)
+
+  retain_positions[c(1, n)] <- TRUE
+
+  interval <- (n - 1) / (retain_count - 1)
+
+  for (i in 2:(retain_count - 1)) {
+    position <- round(1 + (i - 1) * interval)
+    retain_positions[position] <- TRUE
+  }
+
+  res <- ifelse(retain_positions, char_vector, "")
+  res
+}

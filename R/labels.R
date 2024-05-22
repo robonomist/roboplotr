@@ -81,6 +81,7 @@ roboplotr_caption <- function(p, caption) {
 #' attributes of  argument 'd' of [roboplot()]. Defaults to "PLACEHOLDER".
 #' @param include Logical. Determines whether the given title will be used in
 #' the plot. Will always inlcude it for downloaded png images.
+#' @param ... Placeholder for other parameters.
 #' @examples
 #' # Used to set titles for plots created with roboplotr::roboplot. You can
 #' # simply give a charater string for plot titles.
@@ -106,9 +107,23 @@ roboplotr_caption <- function(p, caption) {
 #'
 #' @returns A list
 #' @export
-set_title <- function(title = NULL, include = T) {
-  roboplotr_check_param(title, type = "character", allow_null = F)
-  list(title = title, include = include)
+set_title <- function(title = NULL, include = T, ...) {
+
+  args <- list(...)
+
+  if (!is.null(args$.extra)) {
+    .extra <- args$.extra
+  } else {
+    .extra <- "in set_title()"
+  }
+
+  roboplotr_typecheck(title, "character", extra = .extra)
+
+  .res <- list(title = title, include = include)
+
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_title", class(.res)))
+
+  .res
 }
 
 
@@ -210,8 +225,11 @@ set_caption <- function(text, ..., template = getOption("roboplot.caption.templa
   for (i in seq_along(args)) {
     assign(names(args)[[i]], args[[i]])
   }
-  str_glue(template)
+  .res <- str_glue(template)
 
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_robomap_legend", class(.res)))
+
+  .res
 
 }
 
@@ -384,7 +402,67 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
     family <- str_glue("roboplot-{type}, {fallback}")
   }
 
-  font_list <- list(path = font, family = family, font_face = font_face, size = size, color = color, bold = bold_title, google_font = google_font, .fallback = .fallback, .font = .font)
-  structure(font_list, class = c("roboplotr_set_font", class(font_list)))
-  font_list
+  .res <- list(path = font, family = family, font_face = font_face, size = size, color = color, bold = bold_title, google_font = google_font, .fallback = .fallback, .font = .font)
+  .res <- structure(.res, class = c("roboplotr.set_font", class(.res)))
+  .res
 }
+
+#' Legends for [robomap()]
+#'
+#' Get a list for [robomap()] to parse the legend from.
+#'
+#' @param breaks Numeric vector. A length 1 vector attempts to make that many legend entries. Length 2+ vector should be the breaks in values of param 'd' or [robomap()] how the legend should be split.
+#' @param labels Character vector or numeric. If 'breaks' is of length 1, a numeric between 0 and 1, which is the rough proportion of legend entries [robomap()] will display (1 displays all). If 'breaks' is of length 2+, labels must be a character vector of length 1 + length of 'breaks'.
+#' @param range Logical. Whether to use the maximum value of each legend item, or give a range. Ignored if 'labels' is provided.
+#' @param position Character. One of 'bottomleft', 'bottomright', or 'none'.
+#' @param orientation Character. Currently only accepts 'vertical'.
+#' @param title Character. Currently unused.
+#' @param opacity Numeric. The opacity of the legend, between 0 and 1.
+#' @importFrom dplyr between
+#' @return A list of class 'roboplotr.robomap.legend'.
+set_robomap_legend <- function(
+    breaks = 5,
+    labels = NULL,
+    range = T,
+    position = "bottomright",
+    orientation = "vertical",
+    title = NULL,
+    opacity = 1
+) {
+
+  roboplotr_check_param(position, "character",allow_null = F)
+  roboplotr_valid_strings(position, c("bottomleft","bottomright","none"), any, "set_robomap_legend() param 'position'")
+  roboplotr_check_param(orientation, "character",allow_null = F)
+  roboplotr_valid_strings(orientation, c("vertical"), any, "set_robomap_legend() param 'orientation'")
+  # robomap-info css: display: flex; flex-flow: row wrap; gap: 5px; margin-left: 10px; margin-right: 10px;
+  # muuta myös legend titleä.. pitäisikö tulla ylös
+  roboplotr_check_param(title, "character",allow_null = T)
+  roboplotr_check_param(breaks, "numeric", size = NULL, allow_null = F)
+  roboplotr_check_param(range, "logical", allow_null = F)
+  roboplotr_check_param(opacity, "numeric", allow_null = F)
+  if(length(breaks) == 1) {
+    labtype <- "numeric"
+    labsize <- 1
+  } else {
+    labtype <- "character"
+    labsize <- length(breaks) + 1
+  }
+  roboplotr_check_param(labels, labtype, size = labsize, allow_null = T)
+  if(!is.null(labels)) {
+    if(labtype == "numeric") {
+      if(!between(labels, 0, 1)) {
+        stop("set_robomap_legend() param 'labels' must be between 0 and 1 when 'breaks' is of length one!", call. = F)
+      }
+    }
+  }
+  # if(!is.null(labels) & !range) { roboplotr_alert("set_robomap_legend() param 'range' is ignored when 'labels' are provided!") }
+  if(!between(opacity, 0, 1)) {
+    stop("set_robomap_legend() param 'opacity' must be between 0 and 1!", call. = F)
+  }
+  .res <- list(position = position, breaks = breaks, position = position, labels = labels, opacity = opacity, title = title, range = range)
+
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_robomap_legend", class(.res)))
+
+  .res
+}
+

@@ -15,13 +15,13 @@ robomap(
   tile_opacity = 0.7,
   map_palette = NULL,
   border_width = getOption("roboplot.trace.border")$width,
-  legend_breaks = 5,
-  legend_position = "bottomright",
+  legend = set_robomap_legend(),
   data_contour = FALSE,
   markers = FALSE,
   log_colors = NULL,
   rounding = 1,
-  zoom = TRUE
+  zoom = TRUE,
+  ...
 )
 }
 \arguments{
@@ -41,9 +41,7 @@ robomap(
 
 \item{border_width}{Integer. The width of polygon borders. Default is the trace border width set with \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
-\item{legend_breaks}{Integer vector. If length  of 1, \code{\link[=robomap]{robomap()}} will break the values into n chunks for the purpose of showing legend, where n is the value of legend_breaks. If length of more than 1, the values are used as the breaks in legend.}
-
-\item{legend_position}{Character. Currently only accepts "bottom right" or NULL.}
+\item{legend}{Function. Use \code{\link[=set_robomap_legend]{set_robomap_legend()}}.}
 
 \item{data_contour}{Logical. Experimental. If TRUE, \code{\link[=robomap]{robomap()}} will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
 This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.}
@@ -55,6 +53,8 @@ This provides a smoother transition and helps in visualizing general trends acro
 \item{rounding}{Numeric. How \code{\link[=robomap]{robomap()}} rounds numeric values.}
 
 \item{zoom}{Logical. Whether the map is zoomable or not.}
+
+\item{...}{Placeholder for other parameters.}
 }
 \value{
 A list of classes "leaflet" and "htmlwidget"
@@ -66,7 +66,6 @@ Automates many formatting options.
 \examples{
 # You can use roboplotr::robomap() to create html maps. Note that very large
 # number of map polygons makes for slow rendering maps.
-
 
 # Currently robomap() only supports very little customization.
 vaesto_postinumeroittain |>

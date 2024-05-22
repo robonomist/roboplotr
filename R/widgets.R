@@ -224,7 +224,7 @@ set_artefacts <- function(
   roboplotr_check_param(width, "numeric", allow_null = F, allow_na = F)
   roboplotr_check_param(height, "numeric", allow_null = F, allow_na = F)
 
-  list(
+  .res <-   list(
     auto = auto,
     filepath = filepath,
     render = render,
@@ -235,6 +235,10 @@ set_artefacts <- function(
     width = round(width),
     height = round(height)
   )
+
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_artefacts", class(.res)))
+
+  .res
 }
 
 

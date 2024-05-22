@@ -65,7 +65,12 @@ set_border <- function(
   roboplotr_check_param(xwidth, "numeric", allow_null = F)
   roboplotr_check_param(ywidth, "numeric", allow_null = F)
 
-  list(xcolor = xcolor, ycolor = ycolor, xmirror = xmirror, ymirror = ymirror, xwidth = xwidth, ywidth = ywidth)
+  .res <- list(xcolor = xcolor, ycolor = ycolor, xmirror = xmirror, ymirror = ymirror, xwidth = xwidth, ywidth = ywidth)
+
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_border", class(.res)))
+
+  .res
+
 }
 
 #' Plot grid for [roboplot()]
@@ -73,7 +78,7 @@ set_border <- function(
 #' Set global parameters in [set_roboplot_options()] for plot grid
 #' of [roboplot()] plots.
 #'
-#' @param xcolor,ycolor Characters. Plot gridline colors. Must be a hexadecimal color strings or a valid css color strings.
+#' @param xcolor,ycolor,xtick,ytick Characters. Plot gridline colors. Must be a hexadecimal color strings or a valid css color strings.
 #' @param xwidth,ywidth Numerics. Plot gridline widths.
 #' @param xdash,ydash Not currently supported by [plot_ly]. Characters. Plot gridline linetypes. Must contain one of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @examples
@@ -97,20 +102,30 @@ set_grid <- function(
   xwidth = getOption("roboplot.grid")$xwidth,
   ywidth = getOption("roboplot.grid")$ywidth,
   xdash = getOption("roboplot.grid")$xdash,
-  ydash = getOption("roboplot.grid")$ydash) {
+  ydash = getOption("roboplot.grid")$ydash,
+  xtick = NULL,
+  ytick = NULL
+  ) {
+  roboplotr_typecheck(xcolor, "character", allow_null = F)
+  roboplotr_typecheck(ycolor, "character", allow_null = F)
+  roboplotr_typecheck(xcolor, "character", allow_null = F)
+  roboplotr_typecheck(ycolor, "character", allow_null = F)
+  roboplotr_typecheck(xtick, "character")
+  if(is.null(xtick)) { xtick <- xcolor}
+  roboplotr_typecheck(ytick, "character")
+  if(is.null(ytick)) { ytick <- ycolor}
+  roboplotr_valid_colors(c(xtick,ytick,xcolor,ycolor), message = "Colors in set_grid()")
+  roboplotr_typecheck(xwidth, "numeric", allow_null = F)
+  roboplotr_typecheck(ywidth, "numeric", allow_null = F)
+  roboplotr_typecheck(xdash, "character", allow_null = F)
+  roboplotr_typecheck(ydash, "character", allow_null = F)
+  roboplotr_valid_strings(c(xdash,ydash),c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"),any, msg = "Dash types in set_grid()")
 
-  roboplotr_check_param(xcolor, "character", allow_null = F)
-  roboplotr_check_param(ycolor, "character", allow_null = F)
-  roboplotr_valid_colors(xcolor)
-  roboplotr_valid_colors(ycolor)
-  roboplotr_check_param(xwidth, "numeric", allow_null = F)
-  roboplotr_check_param(ywidth, "numeric", allow_null = F)
-  roboplotr_check_param(xdash, "character", allow_null = F)
-  roboplotr_check_param(ydash, "character", allow_null = F)
-  roboplotr_valid_strings(xdash,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"),any)
-  roboplotr_valid_strings(ydash,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"),any)
+  .res <- list(xcolor = xcolor, ycolor = ycolor, xwidth = xwidth, ywidth = ywidth, xdash = xdash, ydash = ydash, xtick = xtick, ytick = ytick)
 
-  list(xcolor = xcolor, ycolor = ycolor, xwidth = xwidth, ywidth = ywidth, xdash = xdash, ydash = ydash)
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_grid", class(.res)))
+
+  .res
 }
 
 #' @importFrom plotly layout

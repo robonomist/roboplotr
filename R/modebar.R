@@ -370,15 +370,20 @@ set_imgdl_layout <- function(
     captionfont = getOption("roboplot.font.caption")$size,
     suffix = "_img",
     format = "png") {
-  roboplotr_check_param(width, "numeric", allow_null = F)
-  roboplotr_check_param(height, "numeric", allow_null = F)
-  roboplotr_check_param(mainfont, "numeric", allow_null = F)
-  roboplotr_check_param(titlefont, "numeric", allow_null = F)
-  roboplotr_check_param(captionfont, "numeric", allow_null = F)
-  roboplotr_check_param(suffix, "character", allow_null = F)
-  roboplotr_check_param(format, "character", allow_null = F)
+  roboplotr_typecheck(width, "numeric", allow_null = F)
+  roboplotr_typecheck(height, "numeric", allow_null = F)
+  roboplotr_typecheck(mainfont, "numeric", allow_null = F)
+  roboplotr_typecheck(titlefont, "numeric", allow_null = F)
+  roboplotr_typecheck(captionfont, "numeric", allow_null = F)
+  roboplotr_typecheck(suffix, "character", allow_null = F)
+  roboplotr_typecheck(format, "character", allow_null = F)
   roboplotr_valid_strings(format, c("png","svg","jpeg", "webp"), any)
-  list(x = width, y = height, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix, type = format)
+
+  .res <- list(x = width, y = height, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix, type = format)
+
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_imgdl_layout", class(.res)))
+
+  .res
 }
 
 #' Infobox appearance control for [roboplot()] or [robotable()]
@@ -402,12 +407,17 @@ set_infobox <-
     roboplotr_valid_colors(border)
     roboplotr_valid_colors(font)
     roboplotr_check_param(border_width, "numeric", allow_null = F)
-    list(
+
+    .res <- list(
       background = background,
       border = border,
       font = font,
       border_width = round(border_width)
     )
+
+    .res <- structure(.res, class = c("roboplotr","roboplotr.set_infobox", class(.res)))
+
+    .res
   }
 
 
@@ -421,15 +431,35 @@ set_infobox <-
 #' @param display Character. One of "constant", "hover" or "none". Controls if the modebar
 #' is visible always, only on hover, or never. Whatever the choice, static images will not
 #' display modebar.
+#' @param ... Placeholder for other parameters.
 #' @returns A list.
 #' @export
-set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons, display = getOption("roboplot.modebar")$display) {
-  roboplotr_check_param(buttons, "character", NULL)
+set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons, display = getOption("roboplot.modebar")$display, ...) {
+
+  args <- list(...)
+
+  if (!is.null(args$.extra)) {
+    .extra <- args$.extra
+  } else {
+    .extra <- "in set_modebar()"
+  }
+
+  roboplotr_typecheck(buttons, "character", NULL, extra = .extra)
+
   roboplotr_valid_strings(buttons, c("home","closest","compare","zoomin","zoomout","img_w","img_n","img_s","data_dl","robonomist"), any)
+
   if(!str_detect(getOption("roboplot.logo"),"robonomist") & !"robonomist" %in% buttons) {
     buttons <- c(buttons, "robonomist")
   }
-  roboplotr_check_param(display, "character", 1, allow_null = F)
-  roboplotr_valid_strings(display,c("constant","hover","none"),.fun = any)
-  list(buttons = buttons, display = display)
+
+  roboplotr_typecheck(display, "character", allow_null = F, extra = .extra)
+
+  roboplotr_valid_strings(display,c("constant","hover","none"), .fun = any)
+
+  .res <- list(buttons = buttons, display = display)
+
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_modebar", class(.res)))
+
+  .res
+
 }

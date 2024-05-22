@@ -435,7 +435,7 @@ roboplotr_get_tick_layout <- function(ticktype,
                                       reverse,
                                       title,
                                       background_color = getOption("roboplot.colors.background"),
-                                      tick_color = getOption("roboplot.colors.ticks"),
+                                      tick_color = setNames(getOption("roboplot.grid")[c("xtick","ytick")], c("x","y")),
                                       font = getOption("roboplot.font.main")
                                       ) {
 
@@ -552,7 +552,7 @@ roboplotr_get_tick_layout <- function(ticktype,
            list(
              ticksuffix = " ",
              autorange = ifelse(reverse, "reversed", TRUE),
-             categoryorder = "array",
+             categoryorder = ifelse(axis == "y", "array", "trace"),
              tickmode = ifelse(axis == "y", "linear", "auto"),
              tickangle = "auto",
              type = "category"

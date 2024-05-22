@@ -164,7 +164,7 @@ roboplotr_set_robotable_css <-
         'z-index' = '2'
       ),
       if (str_length(title) == 0 &
-          getOption("roboplot.shinyapp")$shinyapp == F) {
+          getOption("roboplot.shinyapp") == F) {
         roboplotr_set_specific_css(str_glue('#{id}_wrapper'),
                                    'padding-top' = '18px')
       } else {
@@ -321,6 +321,7 @@ roboplotr_set_robotable_fonts <-
 #' @param class Character vector. Controls the basic datatable appearance. You may combine any of "cell-border", "compact","hover","nowrap","row-border" and / or "stripe". The default use is "stripe", "hover" and "row-border".
 #' @param searchable,sortable Logical. Control whether the [robotable()] columns have searching or sorting.
 #' @param col_widths Named numeric vector. Must sum to 100 or lower. Sets the percentage widths taken by column by name. Columns not named will have the excess space divided evenly between them. For narrow screens the widths cannot be adhered to.
+#' @param ... Placeholder for other parameters.
 #' @return A list of classes "datatable" and "htmlwidget"
 #' @importFrom DT datatable tableFooter tableHeader
 #' @importFrom htmltools HTML tags withTags
@@ -388,7 +389,8 @@ robotable <-
            searchable = T,
            sortable = T,
            col_widths = NULL,
-           artefacts = getOption("roboplot.artefacts")$auto
+           artefacts = getOption("roboplot.artefacts")$auto,
+           ...
            ) {
     if (is.null(title)) {
       title <- attributes(d)[c("title", "robonomist_title")]
@@ -660,6 +662,40 @@ robotable <-
       TRUE ~ "Btiprlf"
     )
 
+    preloadJS <- JS("
+function reloadCSS(href, callback) {
+  let links = Array.from(document.querySelectorAll('link[rel=\"stylesheet\"]')).filter(function(link) {
+    return link.href.includes(href);
+  });
+
+  if (links.length > 0) {
+    let link = links[0];
+    let newLink = document.createElement('link');
+    newLink.rel = 'stylesheet';
+    newLink.href = href + '?v=' + new Date().getTime();
+
+    newLink.onload = function() {
+      link.parentNode.removeChild(link);
+      document.head.appendChild(newLink);
+      if (typeof callback === 'function') callback();
+    };
+
+    document.head.appendChild(newLink);
+  } else {
+    if (typeof callback === 'function') callback();
+  }
+}
+
+function preInitFunction(settings, json) {
+  console.log('preInit function started');
+
+  reloadCSS('tbl_dependencies/dt-core-1.13.6/css/jquery.dataTables.min.css', function() {
+    console.log('CSS reloaded, proceeding with DataTable initialization.');
+    settings.oApi._fnInitComplete(settings);
+  });
+}
+")
+
     dt <- d |>
       datatable(
         class = class,
@@ -679,8 +715,8 @@ robotable <-
           language = set_robotable_labels(),
           lengthMenu = .pagination$lengthmenu,
           ordering = sortable,
-          pageLength = .pagination$pagelength
-        )
+          pageLength = .pagination$pagelength,
+          preInit = preloadJS)
       ) |>
       roboplotr_set_robotable_fonts(seq(ncol(d)))
 
