@@ -2,7 +2,7 @@
 % Please edit documentation in R/modebar.R
 \name{set_imgdl_layout}
 \alias{set_imgdl_layout}
-\title{Statis image layout specs for files downloaded by clicking \code{\link[=roboplot]{roboplot()}} modebar}
+\title{Font configuration for modebar exports.}
 \usage{
 set_imgdl_layout(
   width = 1280,
@@ -15,31 +15,30 @@ set_imgdl_layout(
 )
 }
 \arguments{
-\item{height, width}{Integer. The dimensions for the image file in pixels the modebar button will produce.}
+\item{height, width}{Numeric. The dimensions for the export file in pixels.}
 
-\item{mainfont, titlefont, captionfont}{Integer. The font sizes used in the static file the modebar button will produce.}
+\item{mainfont, titlefont, captionfont}{Numeric. The font sizes used in the export
+the modebar button will produce.}
 
-\item{suffix}{Character. Suffix attached after the name of the downloaded static file.}
+\item{suffix}{Character. Suffix attached after the name of the export.}
 
-\item{format}{Character. One of "png", "svg", "jpg", or "webp". Defines the file format of the downloaded image file.}
+\item{format}{Character. One of "png", "svg", "jpg", or "webp". Defines the file
+format of the export.}
 }
 \value{
-A list
+A list of class of roboplotr.set_imgdl_layout
 }
 \description{
-Use in \code{\link[=set_roboplot_options]{set_roboplot_options()}} to get a list of specifications used for
-\code{\link[=roboplot]{roboplot()}} relayouts for downloaded static files when the appropriate modebar
-button is pressed
+Parameters to customize plot layout when exported from modebar.
 }
 \examples{
-# Used inside roboplotr::set_roboplot_options() to control image download
-# specifications. Parameters 'x' and 'y' control the image dimensions. The
-# image uses the font specifications of the main plot, but you might need to
-# alter the font sizes with 'mainfont', 'titlefont' and 'captionfont'. You
-# can give a suffix for image download filenames (the filename is derived
-# from the plot title), and provide any one of "png","svg","jpeg", or "webp"
-# for the file format.
+# Used inside `set_roboplot_options()` to control modebar export specifications
+# globally. Parameters `x` and `y` control the dimensions. Override plot font
+# sizes with `mainfont`, `titlefont`, and `captionfont`. You can give a suffix
+# for export filenames (the filename is derived from title), and provide any
+# one of "png","svg","jpeg", or "webp" the for `format`.
 
+\dontrun{
 set_roboplot_options(
   imgdl_wide =
     set_imgdl_layout(
@@ -52,8 +51,7 @@ set_roboplot_options(
       format = "svg")
 )
 
-if(interactive()) {
-# Create a roboplotr::roboplot and navigate to it, and download your static
+# Create a `roboplot()` and navigate to it, and download your static
 # image by clicking the appropriate button in the modebar.
 energiantuonti |>
   dplyr::filter(Suunta == "Tuonti") |>
@@ -65,15 +63,14 @@ energiantuonti |>
     artefacts = set_artefacts("html", filepath = tempdir())
   )
   utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
-}
 
 # Static image downloads are controlled through the modebar, so if you use
-# other than 'img_wide' you need to use roboplotr::set_roboplot_options() to
+# other than "img_wide" you need to use `set_roboplot_options()` to
 # control the modebar accordingly in addition to giving the downloaded image
-# specifications (roboplotr::roboplot() does have some defaults in place
+# specifications (`roboplot()` does have some defaults in place
 # for every size, so you can skip image specifications even if you do add
 # use other image download buttons in the modebar). With multiple image
-# download buttons the 'suffix' parameter is especially handy.
+# download buttons the `suffix` parameter is especially handy.
 
 set_roboplot_options(
   imgdl_wide =
@@ -95,8 +92,7 @@ set_roboplot_options(
   modebar = c("img_w","img_n","img_s")
 )
 
-if(interactive()) {
-  # Create a roboplotr::roboplot and navigate to it, and download any of the
+  # Create a `roboplot()` and navigate to it, and download any of the
   # static images through the modebar.
   energiantuonti |>
     dplyr::filter(Suunta == "Tuonti") |>
@@ -108,8 +104,8 @@ if(interactive()) {
       artefacts = set_artefacts("html", filepath = tempdir())
     )
   utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
-}
 
 # Revert to defaults:
 set_roboplot_options(reset = TRUE)
+}
 }

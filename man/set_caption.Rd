@@ -2,29 +2,31 @@
 % Please edit documentation in R/labels.R
 \name{set_caption}
 \alias{set_caption}
-\title{Captions for \code{\link[=roboplot]{roboplot()}}}
+\title{Caption configuration}
 \usage{
 set_caption(text, ..., template = getOption("roboplot.caption.template"))
 }
 \arguments{
-\item{text}{Character. The text used in the template (make sure the template has the parameter 'text').}
+\item{text}{Character. The text used in the template (make sure the template
+has the parameter \code{text}).}
 
 \item{...}{Other parameters to be passed to template.}
 
-\item{template}{Character. Template for \code{\link[=str_glue]{str_glue()}} used to parse the caption with the given parameters.}
+\item{template}{Character. Template for \code{\link[stringr:str_glue]{stringr::str_glue()}} used to parse
+the caption with the given parameters.}
 }
 \value{
-A string of classes 'glue' and 'character'.
+A character of class glue and roboplot.set_caption
 }
 \description{
-Get a string for \code{\link[=roboplot]{roboplot()}} captions.
+Parameters to customize caption defaults.
 }
 \examples{
-# Used to define how captions are constructed inside roboplotr::roboplot()
-# The used parameters are used inside stringr::str_glue() to parse a caption
-# string. You can skip using set_caption() simply by giving a character string.
+# Used to define how captions are constructed inside `roboplot()`. The used
+# parameters are used inside stringr::str_glue() to parse a caption
+# string. You can skip using `set_caption()` simply by giving a character string.
 # You can provide the template here, or use the one defined globally with
-# roboplotr::set_roboplot_options().
+# `set_roboplot_options()`.
 
 
 d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
@@ -51,8 +53,7 @@ d |>
   )
 
 # If you need to make manual changes repeatedly, you are probably better off
-# using roboplotr::set_roboplot_options() (documented therein) to change the
-# defaults to something more sensible.
+# using `set_roboplot_options()` to change the defaults to something more sensible.
 
 set_roboplot_options(
   caption_template = "Source: {text}.",

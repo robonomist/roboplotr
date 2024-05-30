@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{set_roboplot_options}
 \alias{set_roboplot_options}
-\title{Set global options for \code{\link[=roboplot]{roboplot()}}}
+\title{Global configuration of various \code{roboplotr} outputs}
 \usage{
 set_roboplot_options(
   accessible = NULL,
@@ -45,65 +45,84 @@ set_roboplot_options(
 
 \item{border}{Function. Control plot borders. Use \code{\link[=set_border]{set_border()}}.}
 
-\item{background_color}{Character. Plot background color. Must be a hexadecimal color or a valid css color.}
+\item{background_color}{Character. Plot background color. Must be a hexadecimal
+color or a valid css color.}
 
-\item{caption_template}{Character. Template for \code{\link[=str_glue]{str_glue()}} used to parse captions.}
+\item{caption_template}{Character. Template for \code{\link[stringr:str_glue]{stringr::str_glue()}} used to
+parse captions.}
 
-\item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
+\item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must
+contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
 
 \item{font_main, font_title, font_caption}{Functions. Use \code{\link[=set_font]{set_font()}}.}
 
 \item{grid}{Function. Control the grid behind the traces. Use \code{\link[=set_grid]{set_grid()}}.}
 
-\item{height, width}{Numerics. Height and width of roboplotr plots in pixels. Use NA for viewport size.}
+\item{height, width}{Numerics. Height and width of roboplotr plots in pixels.
+Use NA for viewport size.}
 
-\item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{set_imgdl_layout}. Controls the dimensions and fonts of image files downloaded through modebar buttons.}
+\item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{set_imgdl_layout}.
+Controls the dimensions and fonts of exports through modebar.}
 
-\item{infobox}{Function. Defines the appearance of the infobox available from modebar when 'info_text' is provided for \code{\link[=roboplot]{roboplot()}} or \code{\link[=robotable]{robotable()}}. Use \code{\link[=set_infobox]{set_infobox()}}.}
+\item{infobox}{Function. Defines the appearance of the infobox when \code{info_text}
+is provided for \link[=roboplot]{roboplots} or \link[=robotable]{robotables}. Use \code{\link[=set_infobox]{set_infobox()}}.}
 
-\item{linewidth}{Numeric. The default roboplotr line trace width.}
+\item{linewidth}{Numeric. The default \code{roboplot()} line trace width.}
 
-\item{locale}{Function. Defines locale parameters as \code{\link[=roboplot]{roboplot()}} needs them. Use \code{\link[=set_locale]{set_locale()}}.}
+\item{locale}{Function. Defines locale parameters as \code{roboplotr} needs them.
+Use \code{\link[=set_locale]{set_locale()}}.}
 
-\item{logo_file}{Character. The filepath to the logo used in every plot.}
+\item{logo_file}{Character. The filepath to the logo used in every plot. Use
+"none" for no logo.}
 
 \item{markers}{Function. Control marker appearance. Use \code{\link[=set_markers]{set_markers()}}.}
 
-\item{modebar}{Character vector or function. Use \code{\link[=set_modebar]{set_modebar()}}, or provide the buttons contained in modebar in the given order. Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl" and "robonomist" in any order.}
+\item{modebar}{Character vector or function. Use \code{\link[=set_modebar]{set_modebar()}}, or provide
+the buttons contained in modebar in the given order. Must contain any of "home",
+"closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl"
+and "robonomist" in any order.}
 
-\item{patterns}{Character vector. Line trace linetypes in order of usage. Must contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
+\item{patterns}{Character vector. Line trace linetypes in order of usage. Must
+contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
-\item{tidy_legend}{Logical. Controls whether the legend items will have matching widths, making for neater legends, or containing text widths, saving space.}
+\item{tidy_legend}{Logical. Controls whether the legend items will have matching
+widths, making for neater legends, or containing text widths, saving space.}
 
-\item{trace_border}{List. Borders for bars, pies and markers. Values must be named "color" and "width". Item "color" needs to be a hexadecimal color or a valid css color, item "width" needs to be numeric.}
+\item{trace_border}{List. Borders for bars, pies and markers. Values must be
+named "color" and "width". "color" needs to be a hexadecimal color or a
+valid css color, "width" needs to be numeric.}
 
-\item{trace_colors}{Character vector. Trace colors in order of usage. Needs to be a hexadecimal color or a valid css color. You should provide enough colors for most use cases, while roboplotr adds colors as needed.}
+\item{trace_colors}{Character vector. Trace colors in order of usage. Needs to
+be hexadecimal colors or valid css colors. You should provide enough colors for
+most use cases, although \code{roboplotr} is able to extrapolate.}
 
-\item{xaxis_ceiling}{Character. Default rounding for yaxis limit. One of "default", "days", "months", "weeks", "quarters", "years" or "guess".}
+\item{xaxis_ceiling}{Character. Default rounding for yaxis limit. One of "default",
+"days", "months", "weeks", "quarters", "years" or "guess".}
 
-\item{zeroline}{Function. Control the appearance of zeroline when set using \code{\link[=roboplot]{roboplot()}} parameter 'zeroline'. Use \code{\link[=set_zeroline]{set_zeroline()}}.}
+\item{zeroline}{Function. Control the appearance of zeroline when set using \code{\link[=roboplot]{roboplot()}}
+parameter \code{zeroline}. Use \code{\link[=set_zeroline]{set_zeroline()}}.}
 
-\item{verbose}{Character. Will roboplotr display all messages, alerts and warnings, or warnings only? Must be one of "All", "Alert", or "Warning".}
+\item{verbose}{Character. Will roboplotr display all messages, alerts and warnings,
+or warnings only? Must be one of "All", "Alert", or "Warning".}
 
 \item{shinyapp}{Logical. Makes fonts, css and javascript available for shiny apps.}
 
 \item{reset}{Logical. Resets options to roboplotr defaults.}
 
-\item{.defaults}{Logical. Saves the current roboplot options as roboplotr defaults for future calls of \code{\link[=set_roboplot_options]{set_roboplot_options()}} param 'reset'. Is automatically set the first time \code{\link[=set_roboplot_options]{set_roboplot_options()}} is run.}
+\item{.defaults}{Logical. Saves the current roboplot options as roboplotr defaults
+for future calls of \code{set_roboplot_options(reset = T)}.}
 }
 \description{
-Override the default options for colors, fonts etc. for any plot created with \code{\link[=roboplot]{roboplot()}}
+Parameters to add and customize the various options of used by \code{roboplotr}.
 }
 \examples{
-# Control global options for roboplotr::roboplot(). Some of these you can set
-# also in roboplotr::roboplot(), some are available only globally.
+# Control global options for `roboplotr`. Some of these you can set
+# also in `roboplot()`, `robotable()` or `robomap()`, some are available only
+# globally.
 
 
-# Basic plot frame colors for ticks, grid and border must be defined by axis
-# with lists of color hex codes or valid css colors. Same with plot backround.
-# Height can be controlled by-plot or globally. You can also preconstruct
-# some defaults for captions. Border control is further documented under
-# set_border() function documentation.
+# Basic plot frame colors for ticks, grid and border, background, height, and
+# caption controls work like this:
 
 d <- energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada","Norja"), Suunta == "Tuonti")
@@ -116,77 +135,61 @@ set_roboplot_options(
   height = 700,
 )
 
-p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-
-p
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 
 # When testing different options, you can use 'reset' to reset default values.
 
 set_roboplot_options(reset = TRUE)
 
-p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 
-p
 
 # You can set the displayed lower right logo by 'logo_file'. Logo file needs
 # the filepath to the logo used. The logo will be automatically scaled for
-# roboplotr::roboplot() usage. If the logo is not Robonomist logo, one will
+# `roboplotr` usage. If the logo is not the Robonomist logo, one will
 # be automatically added to modebar (or you can add it manually as
-# "robonomist").  Use 'verbose' to control if roboplotr writes all messages,
-# alerts and warnings only, or warnings only.
+# "robonomist").
 
-# Of modebar options, "closest" and "compare" control on hover comparison
-# points, and "zoomin" and "zoomout" are simple zoom buttons. You will
-# probably want "home" along with the previous options for resetting the
-# zoom. For downloading the plot data in .csv file format use "data_dl".
-# Image sizes for downloaded image files are differentiated with
-# "img_w"(ide), "img_n"(arrow) or "img_s"(mall).
+# Control modebar.
 
 set_roboplot_options(
   logo_file = system.file("images", "robonomist.png", package = "roboplotr"),
-  modebar = c("home","closest","compare","zoomin","zoomout",
-              "img_w","img_n","img_s","data_dl"),
-  verbose = "All")
+  modebar = set_modebar(
+    buttons = c(
+      "home",
+      "closest",
+      "compare",
+      "zoomin",
+      "zoomout",
+      "img_w",
+      "img_n",
+      "img_s",
+      "data_dl"
+    )
+  )
+)
 
-p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
-
-p
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 
 # Files downloaded through plotly modebar require separate layout
-# specifications which roboplotr::roboplot() automatically takes care of. Plot
+# specifications which `roboplot()` automatically takes care of. Plot
 # dimensions and font sizes might require extra specifications. Set these
-# globally with 'img_wide', 'img_narrow', and / or 'img_small' using
-# roboplotr::set_imgdl_layout(), documented in detail in that
-# function.
+# globally with `img_wide`, `img_narrow`, and / or `img_small` using
+# `set_imgdl_layout()`.
 
 set_roboplot_options(imgdl_wide = set_imgdl_layout(width = 1600))
 
 
-# Captions are partly controlled by 'caption template', while you must
-# provide the basic text by-plot in roboplotr::roboplot().
-# roboplotr::set_caption() is used on by-plot basis for more
-# control, but you can provide global template string, used in
-# stringr::str_glue().
+# Captions are partly controlled by `caption template`, while you will probably
+# want to provide the actual content in `roboplot()`.
 
 set_roboplot_options(
   caption_template = "Lähteenä: {text}."
 )
 
-p <- d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 
-p
-
-# Trace appearance is controlled globally by 'dashtypes', 'linewidth',
-# 'patterns' and 'trace_colors'. Trace color you can determine by plot, the
-# other options are available only globally. Linewidth simply controls the
-# line width, but the other options are used specifically in the given order
-# for roboplotr::roboplot() variables as factors. With only a few trace
-# colors given roboplotr::roboplot() might struggle with a lot of traces, so
-# it alerts the user for this. When provided, 'yaxis_ceiling' will leave
-# either a predefined gap between x-axis end and the plot edge, or try to
-# guess an appropriate gap. This can also be controlled by-plot and will not
-# work with bar plots. Finally, you can somewhat control markers with
-# roboplot::set_markers().
+# Trace appearance controls can be set globally.
 
 set_roboplot_options(
   dashtypes = c("longdash", "dashdot", "longdashdot", "solid", "dash", "dot"),
@@ -213,10 +216,10 @@ d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus",
 set_roboplot_options(reset = TRUE)
 
 
-# When used inside shiny apps (assumed to use bs4Dash::dashboardPage()), run
-# roboplotr::set_roboplot_options() in app ui header with 'shinyapp' = TRUE.
+# When used inside shiny apps, run `set_roboplot_options()` in app ui head with
+# `shinyapp` = TRUE.
 
-if(interactive()) {
+\dontrun{
 
 ui <- bs4Dash::dashboardPage(
   bs4Dash::dashboardHeader(title = "Basic dashboard",

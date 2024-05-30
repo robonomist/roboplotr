@@ -2,7 +2,7 @@
 % Please edit documentation in R/frame.R
 \name{set_border}
 \alias{set_border}
-\title{Plot border for \code{\link[=roboplot]{roboplot()}}}
+\title{Plot border configuration}
 \usage{
 set_border(
   xcolor = getOption("roboplot.border")$xcolor,
@@ -14,25 +14,27 @@ set_border(
 )
 }
 \arguments{
-\item{xcolor, ycolor}{Characters. Plot border colors. Must be a hexadecimal color strings or a valid css color strings.}
+\item{xcolor, ycolor}{Characters. Plot border colors. Must be hexadecimal colors
+or valid css color.}
 
-\item{xmirror, ymirror}{Logicals. Will the given axis be mirrored to left to right or bottom to top.}
+\item{xmirror, ymirror}{Logicals. Will the given axis be mirrored to left to right
+or bottom to top.}
 
-\item{xwidth, ywidth}{Numerics. Plot border widths.}
+\item{xwidth, ywidth}{Numerics. Border width.}
 }
 \value{
-A list.
+A list of class roboplotr.set_border.
 }
 \description{
-Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for plot borders
-of \code{\link[=roboplot]{roboplot()}} plots.
+Global parameters to add and customize plot borders of \link[=roboplot]{roboplots}.
 }
 \examples{
-# You can control x- and y-axis border mirroring, width and color by using
-# set_border() inside set_roboplot_options().
+# You can global control x- and y-axis border mirroring, width and color by using
+# `set_border()` inside `set_roboplot_options()`.
 
 set_roboplot_options(
-  border = set_border(ycolor = "green", xmirror = FALSE, xwidth = 5))
+  border = set_border(ycolor = "green", xmirror = FALSE, xwidth = 5)
+  )
 
 energiantuonti |> dplyr::filter(Alue == "Venäjä") |> roboplot(Suunta)
 

@@ -2,7 +2,7 @@
 % Please edit documentation in R/modebar.R
 \name{set_modebar}
 \alias{set_modebar}
-\title{Modebar control for \code{\link[=roboplot]{roboplot()}} or \code{\link[=robotable]{robotable()}}}
+\title{Modebar configuration}
 \usage{
 set_modebar(
   buttons = getOption("roboplot.modebar")$buttons,
@@ -15,9 +15,9 @@ set_modebar(
 Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w",
 "img_n", "img_s", "data_dl" and "robonomist" in any order.}
 
-\item{display}{Character. One of "constant", "hover" or "none". Controls if the modebar
-is visible always, only on hover, or never. Whatever the choice, static images will not
-display modebar.}
+\item{display}{Character. One of "constant", "hover" or "none". Controls whether
+modebar is visible always, only on hover, or never. Whatever the choice, static
+exports will not display a modebar.}
 
 \item{...}{Placeholder for other parameters.}
 }
@@ -25,5 +25,5 @@ display modebar.}
 A list.
 }
 \description{
-Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for modebars.
+Parameters to add and customize modebars in \link[=roboplot]{roboplots}.
 }

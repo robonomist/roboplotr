@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils.R
 \name{set_locale}
 \alias{set_locale}
-\title{Locales for \code{\link[=roboplot]{roboplot()}}}
+\title{Locale configuration}
 \usage{
 set_locale(locale = "fi-FI")
 }
@@ -11,10 +11,10 @@ set_locale(locale = "fi-FI")
 "sv-SE", or "fi-FI" (the default).}
 }
 \value{
-A list
+A list of class roboplot.set_locale
 }
 \description{
-Used to set locale parameters for \code{\link[=roboplot]{roboplot()}} in \code{\link[=set_roboplot_options]{set_roboplot_options()}}
+Parameters to add and customize the locale as used by \code{roboplotr}.
 }
 \examples{
 # You might want to display dates or numbers with some another default format

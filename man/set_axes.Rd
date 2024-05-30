@@ -2,7 +2,7 @@
 % Please edit documentation in R/axes_ticks.R
 \name{set_axes}
 \alias{set_axes}
-\title{Axis and tick control for \code{\link[=roboplot]{roboplot()}}}
+\title{Axis configuration}
 \usage{
 set_axes(
   y = NULL,
@@ -25,39 +25,34 @@ set_axes(
 )
 }
 \arguments{
-\item{x, y}{Character. The name of the column from parameter 'd' of
-\code{\link[=roboplot]{roboplot()}} used for the axis. Defaults to "time" and "value".}
+\item{x, y}{Character. Names of columns from \code{d} in \link[=roboplot]{roboplot} for
+the axes. Defaults to "time" and "value".}
 
-\item{xticktype, yticktype}{Characters. Determines axis formatting within
-\code{\link[=roboplot]{roboplot()}}. One of "character", "date" or "numeric". Defaults to "date" and
-"numeric".}
+\item{xticktype, yticktype}{Characters. Axis formatting: "character", "date",
+or "numeric". Defaults to "date" and "numeric".}
 
-\item{xtitle, ytitle, y2title}{Character. Used as the axis title.}
+\item{xtitle, ytitle, y2title}{Character. Titles for the axes.}
 
 \item{xformat, yformat}{Character. Formatting for axis tick text. Use
-\href{https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md}{d3 time format}
-for dates and \href{https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma}{d3 number format}
-for numbers. Ignored for characters.}
+\href{https://d3js.org/api#d3-time}{d3 time format} for dates and
+\href{https://d3js.org/api#d3-format}{d3 number format} for numbers.}
 
-\item{xlim, ylim}{Vector of length 2. Used as the axis limits. These are not
-type-checked by \code{\link[=roboplot]{roboplot()}}, but should match the values used in the
-respecting plot axis.}
+\item{xlim, ylim}{Vector of length 2. Axis limits. Should match the axis values
+in the plot by type.}
 
-\item{xfont, yfont, y2font}{Functions. Use \code{\link[=set_font]{set_font()}}. Note that secondary
-y-axis will always use the font size of the main y-axis, but you may set the
-family and color separately.}
+\item{xfont, yfont, y2font}{Functions. Use \code{\link[=set_font]{set_font()}}. Secondary y-axis uses
+the main y-axis font size but allows separate family and color.}
 
-\item{y2}{Character vector. Observations from param 'color' of \link{roboplot}
-which will use a secondary y-axis. Parameter 'zeroline' will be ignored.}
+\item{y2}{Character vector. Observations from \code{color} in plots using a secondary y-axis.}
 
-\item{ylegend, y2legend}{Characters. Only used when y2 is given. Use to label
-observations described by y2 separately in plot legend from other observations.}
+\item{ylegend, y2legend}{Characters. Labels for legend title when \code{y2} is given.}
 }
 \value{
-A list.
+List of class roboplotr.set_axes
 }
 \description{
-Define axis and axis tick formats for \code{\link[=roboplot]{roboplot()}} plots.
+Parameters to configure axis settings in \link[=roboplot]{roboplots}. Includes options for specifying
+axis columns, formatting, titles, limits, and font settings, as well as handling secondary y-axes.
 }
 \examples{
 # The primary usage is for creating horizontal bar plots when combining the
@@ -85,13 +80,11 @@ d |> dplyr::filter(time == max(time)) |>
              xticktype = "numeric")
   )
 
-# You can use 'xtitle' and 'ytitle' to provide labeling for axis titles,
-# and control the axis format with d3 time
-# (https://github.com/d3/d3-3.x-api-reference/blob/master/Time-Formatting.md)
-# and number
-# (https://github.com/d3/d3-3.x-api-reference/blob/master/Formatting.md#d3_forma)
-# vector for 'xlim' and 'ylim'. These are not typed by roboplotr::roboplot(),
-# but must match the corresponding axis values.
+# You can use `xtitle` and `ytitle` to provide labeling for axis titles,
+# and control the axis format with d3 time (https://d3js.org/api#d3-time)
+# and number (https://d3js.org/api#d3-format) -formatted vectors for 'xlim'
+# and 'ylim'. These are not typechecked by `roboplot()`, but must match the
+# corresponding axis values.
 
 d |>
   dplyr::filter(Suunta == "Tuonti") |>
@@ -105,16 +98,16 @@ d |>
   )
 
 # Additionally, you may use logartihmic axis for any numeric variable used in
-# plot axes.
+# `plot_axes```.
 d |>
   dplyr::filter(Suunta == "Tuonti") |>
   roboplot(Alue,"Energian tuonti","Milj. €","Tilastokeskus",
            plot_axes = set_axes(yticktype = "log")
   )
 
-# Providing a vector of strings matching observations from roboplot() param 'color'
-# as 'y2' will add a secondary y-axis. Any provided zeroline is currently ignored
-# when two y-axes are present.
+# Providing a vector of strings matching observations from `roboplot()` param
+# `color` as `y2` will add a secondary y-axis. Any provided `zeroline`does not
+# work for both axes at the time.
 d |>
   dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Yhdistynyt kuningaskunta","Norja")) |>
   roboplot(Alue,
@@ -123,12 +116,11 @@ d |>
            "Tilastokeskus",
            plot_axes = set_axes(y2 = "Yhdistynyt kuningaskunta"))
 
-# Giving no observations that match the param 'color' in roboplot() causes roboplot()
-# to stop.
+# Giving no observations that match param `color` in `roboplot()` fails.
 d2 <- d |>
   dplyr::filter(Suunta == "Tuonti",
                 Alue \%in\% c("Yhdistynyt kuningaskunta", "Norja"))
-if(interactive()) {
+\dontrun{
   d2 |>
     roboplot(Alue,
              "Energian tuonti",
@@ -137,9 +129,9 @@ if(interactive()) {
              plot_axes = set_axes(y2 = "Kanada"))
 }
 
-# You might want to override the default labels that are added to legend. Using
-# them without giving any items in y2 does nothing. You probably want to explicitly
-# reorder the observations.
+# You might want to override the default axis reference labels that are added
+# to legend. Using them without giving any items in `y2` does nothing. You probably
+# want to explicitly reorder the observations.
 d2 |>
   dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
   roboplot(
@@ -173,8 +165,9 @@ d2 |>
   )
 
 
-# Or you could use the axis titles to differentiate between the observations. This
-# might be especially appropriate if the values are on a completely different scale.
+# Or you could use the axis titles to differentiate between the observations.
+# This might be especially appropriate if the values are on a completely different
+# scale.
 d2 |>
   dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
   dplyr::mutate(value = ifelse(Alue == "Norja", value / 1000, value)) |>
@@ -192,9 +185,9 @@ d2 |>
   )
 
 
-# roboplotr::set_axes also gives the user fine-grained control for
-# plots where there might not be data in a format that is directly transferable
-# to date or numeric format.
+# `set_axes()` also gives the user fine-grained control for plots where there
+# might not be data in a format that is directly transferable to date or numeric
+# format.
 
 d2 <- dplyr::tribble(
   ~time, ~value,
@@ -221,8 +214,8 @@ d2 |>
                       caption = "National bureau of statistics, China",
                       plot_axes = set_axes(xticktype = "character"))
 
-# Or you might have numeric data on both axes. roboplotr::roboplot() will draw
-# any traces in the order they appear in the data, so it is up to the user to
+# Or you might have numeric data on both axes. `roboplot()` will draw any
+# traces in the order they appear in the data, so it is up to the user to
 # order the traces properly.
 
 d3 <- dplyr::tibble(time =

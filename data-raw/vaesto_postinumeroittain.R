@@ -10,7 +10,7 @@ vaesto_postinumeroittain <- robonomistServer::data_get("paavo/uusin/paavo_pxt_12
     Postinumeroalue = stringr::str_glue("{Postinumeroalue} ({Postinumero} {Alue})")
   ) |>
   dplyr::select(Postinumero, Postinumeroalue, Alue, time, value) |>
-  dplyr::filter(stringr::str_detect(Postinumero, "^[0-1]"), time == max(time))
+  dplyr::filter(stringr::str_detect(Postinumero, "^[0]"), time == max(time))set
 
 vaesto_postinumeroittain <- geofi::get_zipcodes() |>
   dplyr::select(Postinumero = posti_alue, geom) |>
@@ -23,4 +23,4 @@ vaesto_postinumeroittain <- geofi::get_zipcodes() |>
 
 attr(vaesto_postinumeroittain, "robonomist_title") <- "Roboplotr-paketin testaamiseen väestö postinumeroalueittain tietyiltä alueilta muuttujina Postinumeroalue, Alue, geom, time ja value"
 
-usethis::use_data(vaesto_postinumeroittain, overwrite = TRUE)
+usethis::use_data(vaesto_postinumeroittain, overwrite = TRUE,compress = "xz")

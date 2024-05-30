@@ -3,16 +3,16 @@
 \docType{data}
 \name{energiantuonti}
 \alias{energiantuonti}
-\title{Energian tuonti ja vienti alkuperämaittain}
+\title{Energy Import and Export by Country of Origin}
 \format{
 \subsection{\code{energiantuonti}}{
 
-Kehys jossa 925 riviä and 4 saraketta:
+Data frame with 925 rows and 4 columns:
 \describe{
-\item{Alue}{Maan tai maaryhmän nimi}
-\item{Suunta}{Tuonti tai vienti}
-\item{time}{Vuosineljännes}
-\item{value}{Arvo (miljoonaa euroa)}
+\item{Alue}{The name of the country or country group}
+\item{Suunta}{Import or export}
+\item{time}{Quarter}
+\item{value}{Value (million euros)}
 ...
 }
 }
@@ -24,6 +24,6 @@ Kehys jossa 925 riviä and 4 saraketta:
 energiantuonti
 }
 \description{
-Otos energian tuonnista ja viennistä alkuperämaittain Tilastokeskuksen arkistotaulusta.
+A sample of energy imports and exports by country of origin from Statistics Finland's archive table.
 }
 \keyword{datasets}

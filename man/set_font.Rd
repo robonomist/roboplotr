@@ -2,7 +2,7 @@
 % Please edit documentation in R/labels.R
 \name{set_font}
 \alias{set_font}
-\title{Get a list for \code{\link[=set_roboplot_options]{set_roboplot_options()}} used as font specifications in \code{\link[=roboplot]{roboplot()}}}
+\title{Font configuration.}
 \usage{
 set_font(
   font = "Arial",
@@ -14,32 +14,32 @@ set_font(
 )
 }
 \arguments{
-\item{font}{Character. One of "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT" or a path to an .otf or .ttf file.}
+\item{font}{Character. One of your system fonts if \code{systemfonts} package is available.
+"Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond",
+"Courier New", "Brush Script MT", a Google font, or a path to an .otf or .ttf file.}
 
-\item{fallback}{Character. Only used when a file path is used with 'font'. Fallback font when the defined font is unavailable. Especially concerns image downloads.}
+\item{fallback}{Character. Only used when a file path is used with \code{font}. Fallback
+font when the defined font is unavailable. Especially concerns image downloads.}
 
-\item{size}{Double. Determines font size for the font.}
+\item{size}{Numeric. Font size.}
 
 \item{color}{Character. Must be a hexadecimal color or a valid css color.}
 
-\item{bold_title}{Logical. Only used for font of type 'title'. Determines if the title is bolded.}
+\item{bold_title}{Logical. Only used for font of type \code{title}. Determines if
+the title is bolded.}
 
 \item{type}{Character. One of "main", "title" or "caption".}
 }
 \value{
-A list
+A list of class roboplot.set_font
 }
 \description{
-Get a list for \code{\link[=set_roboplot_options]{set_roboplot_options()}} used as font specifications in \code{\link[=roboplot]{roboplot()}}
+Parameters to customize fonts in various \code{roboplotr} contexts.
 }
 \examples{
-# Used to set fonts used by roboplotr::roboplot(). Only supposed to be called
-# inside roboplotr::set_roboplot_options(). 'path' can be a file path or
-# string "serif" or "sans-serif", if no specific font path will be provided.
-# This will change fonts according to the list output of
-# roboplotr::set_font(). You can designate font color, size, and
-# path, and (for title font only) whether it is bolded. You must provide a
-# web-safe fallback font if an actual filepath is provided for 'path'.
+# Used to set fonts used by `roboplotr` functions. You can designate various
+# specifications. You must provide a web-safe fallback (as accepted by `roboplotr`,
+# see `font`) font if an actual filepath is provided for 'path'.
 
 set_roboplot_options(
   caption_template = "Lähde: {text}!!",
@@ -59,13 +59,12 @@ d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
 # Valid Google Fonts work as well.
 set_roboplot_options(font_title = set_font(font = "Exo"))
 
-# Note that plotly's own downloadImage method does not support external fonts.
-# It can only use the fonts the browser has available. Use
-# roboplotr::set_artefacts() in roboplotr::roboplot() to automate their
-# creation if you need static images with external fonts.
+# Note that `plotly`'s own downloadImage method does not support external fonts.
+# It can only use the fonts the browser has available. Use `set_artefacts()`
+# `roboplot()` to automate their creation if you need static images with external fonts.
 
-if(interactive()) {
-  # Create a html file with roboplotr::roboplot().
+\dontrun{
+  # Create a html file with `roboplot()`.
   d |>
     roboplot(
       color = Alue,
@@ -75,10 +74,9 @@ if(interactive()) {
       artefacts = set_artefacts(artefacts = c("html", "png"), filepath = tempdir())
     )
 
-  # The html file will have the proper fonts, but images downloaded through the
-  # modebar will not.
+  # The html has proper fonts, but files exported from modebar will not.
   utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
-  # The images automated with roboplotr::set_artefacts() will have the proper font.
+  # The images automated with `set_artefacts()` will have the proper font.
   utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.png"))
 }
 

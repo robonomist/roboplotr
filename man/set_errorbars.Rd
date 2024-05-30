@@ -2,7 +2,7 @@
 % Please edit documentation in R/plots.R
 \name{set_errorbars}
 \alias{set_errorbars}
-\title{Set the error bars}
+\title{Error bar configuration}
 \usage{
 set_errorbars(
   error_x = NULL,
@@ -12,18 +12,21 @@ set_errorbars(
 )
 }
 \arguments{
-\item{error_x, error_y}{Symbol, string, or function resulting in symbol or
-string. Columns from param 'd' or \code{\link[=roboplot]{roboplot()}} error bars.}
+\item{error_x, error_y}{Symbol or character. Columns from \code{d} in \code{roboplot()}
+for error bars.}
 
-\item{xcolor, ycolor}{Characters. Error bar colors. Must be a hexadecimal color
-strings or a valid css color strings.}
+\item{xcolor, ycolor}{Characters. Colors for error bars. Must be hexadecimal colors
+or valid CSS colors.}
+}
+\value{
+A list of class roboplot.set_errorbars
 }
 \description{
-Set the error bars
+Parameters to add and customize error bars in \link[=roboplot]{roboplots}.
 }
 \examples{
 # You need a column for error bar values to add error bars. Then refer to that
-# numeric column by set_errorbars() with the proper axis.
+# numeric column by `set_errorbars()` on the proper axis.
 d <- energiantuonti |>
   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä", lubridate::year(time) > 2016) |>
   dplyr::group_by(Alue) |>

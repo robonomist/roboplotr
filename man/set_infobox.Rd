@@ -2,7 +2,7 @@
 % Please edit documentation in R/modebar.R
 \name{set_infobox}
 \alias{set_infobox}
-\title{Infobox appearance control for \code{\link[=roboplot]{roboplot()}} or \code{\link[=robotable]{robotable()}}}
+\title{Info box configuration for \code{\link[=roboplot]{roboplot()}} or \code{\link[=robotable]{robotable()}}}
 \usage{
 set_infobox(
   background = first(unlist(unique(getOption("roboplot.grid")[c("xcolor", "ycolor")]))),
@@ -13,14 +13,14 @@ set_infobox(
 \arguments{
 \item{background, border}{Characters. Colors used for the corresponding
 element of the infopopup of \code{\link[=robotable]{robotable()}}s and \code{\link[=roboplot]{roboplot()}}s. Must be a
-hexadecimal color strings or a valid css color strings.}
+hexadecimal color or a valid css color.}
 
 \item{border_width}{Integer. The border width of infomodal.}
 }
 \value{
-A list.
+A list of class roboplot.set_infobox.
 }
 \description{
-Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for plot borders
-of \code{\link[=roboplot]{roboplot()}} plots and \code{\link[=robotable]{robotable()}} tables.
+Global parameters to add and customize info boxes in \link[=roboplot]{roboplots}
+and \link[=robomap]{robomaps}.
 }

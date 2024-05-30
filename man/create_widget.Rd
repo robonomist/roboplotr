@@ -2,7 +2,7 @@
 % Please edit documentation in R/widgets.R
 \name{create_widget}
 \alias{create_widget}
-\title{File creation from \code{\link[=roboplot]{roboplot()}}s}
+\title{Export visualizations to various formats}
 \usage{
 create_widget(
   p,
@@ -20,42 +20,42 @@ create_widget(
 \item{p}{A plotly object.}
 
 \item{title}{Character. The filename of the artefact(s) created
-(without file format). Will be formatted with underscores, and the title
-of argument 'p' will be used if no title is provided.}
+(without file format). Will be formatted with underscores, and the \code{title} text
+of \code{p} will be used if no title is provided.}
 
 \item{filepath}{Character. The filepath to the created artefacts.}
 
-\item{render}{Logical. Controls if the plot saved will be displayed in
-viewer. Plot will be returned silently in either case.}
+\item{render}{Logical. Controls if the artefact will be displayed in
+viewer. Will be returned silently in either case.}
 
-\item{self_contained}{Logical. Controls if the plot dependencies will be
-saved in an adjacent directory "plot_dependencies" or contained within the
+\item{self_contained}{Logical. Controls whether artefact's dependencies' are
+saved in an adjacent directory or contained within the
 file, increasing size.}
 
-\item{zoom}{Numeric. Controls the zoom level of static images if any are
+\item{zoom}{Numeric. Controls the zoom level of static plots if any are
 defined with 'artefacts'. Default 1.}
 
 \item{artefacts}{Character vector. Controls what artefacts are saved. One or
 more of "html", "png", "jpg", "jpge", "webp", or "pdf".}
 
-\item{width, height}{Numeric. Sets the size of any static images created. Any
-artefacts created with \code{\link[=roboplot]{roboplot()}}'s 'artefacts' parameter will use the given
+\item{width, height}{Numeric. Sets the size of any static plots created. Any
+artefacts created with \code{\link[=roboplot]{roboplot()}}'s \code{artefacts} parameter will use the given
 dimensions, if any, for that plot.}
 }
 \value{
-A list of classes "plotly" and "html"
+What was passed as \code{p}.
 }
 \description{
-Write html and and other files from \code{\link[=roboplot]{roboplot()}} plots
+Write html and and other files from \link[=roboplot]{roboplots}, \link[=robotable]{robotables}
+or \link[=robomap]{robomaps}.
 }
 \examples{
-# Saving roboplotr::roboplot() plots as files can be controlled by setting
-# global options with roboplotr::set_roboplot_options() (see documentation),
-# and using roboplotr::set_artefacts() in roboplotr::roboplot() parameter
-# 'artefacts', but you can use this function as well. Control location of the
-# files with 'filepath'. Default 'filepath' will be the current working
-# directory. If a 'title' is not provided, it will be parsed from plot title.
-
+set_roboplot_options(verbose = "Warning", .default = TRUE)
+# Saving `roboplot()` plots as files can be controlled by setting global options
+# with `set_roboplot_options()`, and using `set_artefacts()` in `roboplot()`
+# `artefacts`, but you can use this function as well. Control location of the
+# files with `filepath` (default is current working directory).
+\dontrun{
 d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 
 d |>
@@ -66,13 +66,11 @@ d |>
 
 file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
 
-# You can provide the filename as string and
-# roboplotr::create_widget() will parse the filename from that. The
-# plot will always be silently returned, but 'render' controls whether it
-# will be displayed in viewer on widget creation. Normally
-# roboplotr::roboplot() html widgets will have dependencies contained in an
-# external folder "plot_dependencies", but elements can be bundled within the
-# widgets with 'self_contained' (if you want to forward the file, perhaps).
+# You can provide the filename as string and `create_widget()` will parse the
+# filename from that. The plot will always be silently returned, but `render`
+# controls whether it will be displayed in viewer on widget creation. Normally
+# `roboplotr` html widgets will have dependencies contained in an
+# external folder, but they can be bundled within with 'self_contained'.
 
 d |>
   roboplot(
@@ -87,17 +85,13 @@ d |>
 
 file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
 
-# If you want to create static plot files, use a character vector of file
-# types in 'artefacts'. Exclude "html" if you want to create static plots
-# only. Possible filetypes are "html","png","jpg","jpge","webp","pdf". The
-# static files created this way will respect the plot layout specifications
-# of the roboplotr::roboplot() plot, unlike the ones downloaded through
-# modebar (set those with roboplotr::set_roboplot_options()). Note that modebar
-# gives access to svg file format, while automating it the file creation with
-# roboplotr::create_widget() or roboplotr::roboplot() allows for pdf
-# files.
+# If you want to create non-interactive files, use a character vector of file
+# types in 'artefacts'. Possible filetypes are "html","png","jpg","jpge","webp",
+# "pdf". The static files created this way will respect the plot layout specifications
+# of the `roboplot()` plot, unlike the ones exported with modebar. Note that
+# modebar gives access to svg file format, while automating it the file creation with
+# `create_widget()` or `roboplot()` allows for pdf files.
 
-if(interactive()) {
   d |>
     roboplot(
       color = Alue,

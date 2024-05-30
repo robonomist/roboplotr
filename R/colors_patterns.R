@@ -225,29 +225,28 @@ roboplotr_grey_shades <- function() {
   tibble("color" = grey_shades, "luminance" = roboplotr_get_luminance(grey_shades))
 }
 
-#' Set [roboplot()] pattern definitions
-#' @param pattern Symbol, string, or function resulting in symbol or string.
-#' Column from param 'd' of [roboplot()] to use for scatter plot linetype or bar
-#' plot pattern. Not supported for pie charts.
+#' Pattern configuration.
+#'
+#' Parameters to customize patterns in [roboplots][roboplot()].
+#'
+#' @param pattern Symbol or string. Column from param `d` of a [roboplot][roboplot()]
+#' to use for the linetype of `plot_type` "scatter" or pattern of `plot_type` "bar".
+#' Not supported for pie charts.
 #' @param pattern_types Named character vector. Pattern types for all traces.
-#' Names must correspond to values in the column referenced by param 'pattern'
-#' in param 'd' of [roboplot()]. See [set_roboplot_options()] parameter
-#' 'dashtypes' and 'patterns' for options, or use ".other" if all traces are of
-#' the same 'plot_type'.
+#' Names must correspond to values in the column referenced by `pattern. See
+#' [set_roboplot_options()] parameter `dashtypes` and `patterns` for options, or
+#' use ".other" if multiple traces are of the same `plot_type` and share the pattern.
 #' @param show_legend Logical, named if vector. If any pattern(s) will have
 #' their own legend entries. If FALSE, only the first item in param 'pattern'
-#' will be in [roboplot()] legend. If named, the must correspond to values in
-#' the column referenced by param 'pattern' in param 'd' of [roboplot()]. See
-#' [set_roboplot_options()] parameter 'dashtypes' and 'patterns' for options, or
-#' use ".other" if all traces are of the same 'plot_type'.
-#' @param pattern_along Symbol, string, or function resulting in symbol or string.
-#' Column from param 'd' of [roboplot()] along which the series should be
-#' continuous along. If set, and the 'plot_mode' corresponding to all items in
-#' the given group as defined by 'pattern' is "line", [roboplot()] will try to
-#' fill the series in such a way as to create a continuous line.
-#' @param sep Character. The separator of color and pattern in legend text.
+#' will be in a [roboplot's][roboplot()] legend. If named, the must correspond to
+#' values in the column referenced by `pattern`.
+#' @param pattern_along Symbol or string. Column from param `d` of a [roboplot][roboplot()]
+#' along which the series should be continuous along. If set, and the `plot_mode`
+#' corresponding to all items in `pattern` is "line", [roboplot][roboplot()] will
+#' try to fill the series in such a way as to create a continuous line.
+#' @param sep Character. The separator of `color` and `pattern` in legend labels.
 #' Default is ", ". Use NA if you want to omit the pattern label from legend,
-#' resulting only the [roboplot()] param 'color' being the label.
+#' resulting only the [roboplot()] param `color` being the label.
 #' @examples
 #' # You can use [set_pattern()] to just give the column name, but in that case
 #' # you could just as well provide the column name by itself.
@@ -277,13 +276,13 @@ roboplotr_grey_shades <- function() {
 #'
 #' roboplot(d, Alue, pattern = Sarjatyyppi)
 #'
-#' # Use the parameter 'pattern_along' to provide the column along which the plot
+#' # Use the parameter `pattern_along` to provide the column along which the plot
 #' # should show a continous line.
 #' roboplot(d, Alue, pattern = set_pattern(Sarjatyyppi, pattern_along = time))
 #'
-#' # Use the parameter 'show_legend' to omit all patterns expect the first one
-#' # from the legend, and use the parameter 'sep' to control the separator
-#' # between the roboplotr::roboplot() param 'color' and 'pattern' in the legend.
+#' # Use the parameter `show_legend` to omit all patterns expect the first one
+#' # from the legend, and use the parameter `sep` to control the separator
+#' # between the `roboplot()` param `color` and `pattern` in the legend.
 #' roboplot(d,
 #'          Alue,
 #'          pattern = set_pattern(
@@ -293,7 +292,7 @@ roboplotr_grey_shades <- function() {
 #'            sep = " - "
 #'          ))
 #'
-#' # Or just use 'sep' = NA to omit the pattern from the legend labels.
+#' # Or just use `sep` = NA to omit the pattern from the legend labels.
 #' roboplot(d, Alue,
 #'            pattern =
 #'              set_pattern(
@@ -304,44 +303,47 @@ roboplotr_grey_shades <- function() {
 #'              ))
 #'
 #' # Finally, control the patterns for linetypes and bars with the parameter
-#' # 'pattern_types', with a named vector containing either all the observations
-#' # in the column 'pattern', or ".other" as a catch-all category.
+#' # `pattern_types`, with a named vector containing either all the observations
+#' # in the column `pattern`, or ".other" as a catch-all category.
 #' energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
 #'   roboplot(Alue, pattern = set_pattern(Alue, pattern_types = c(
 #'     "Kanada" = "dash", ".other" = "dot"
 #'   )))
 #' # Bar plots use the pattern_types too, but they are different from the ones
-#' # used by line plots. Don't worry if you don't give the corrent ones, roboplot()
-#' #informs you which you should be using.
+#' # used by line plots. If you get them wrong, `roboplot()` informs you which you
+#' # should be using.
 #' energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
 #'   roboplot(Alue,
 #'            plot_type = "bar",
 #'            pattern = set_pattern(Alue, pattern_types = c(
-#'     "Ruotsi" = "", ".other" = "x"
-#'   )))
+#'              "Ruotsi" = "", ".other" = "x"
+#'            )))
 #' @export
+#' @returns A list of class roboplotr.set_pattern
 set_pattern <- function(pattern = NULL,
                         pattern_types = NULL,
                         pattern_along = NULL,
                         show_legend = TRUE,
                         sep = ", ") {
   pattern <- enquo(pattern)
-  roboplotr_check_param(pattern_types,
-                        "character",
-                        size = NULL,
-                        extra = "set_pattern() parameter")
+  roboplotr_typecheck(pattern_types, "character", size = NULL, extra = "in set_pattern()")
   pattern_along <- enquo(pattern_along)
-  roboplotr_check_param(show_legend, "logical", NULL, FALSE, extra = "set_pattern() parameter")
-  roboplotr_check_param(sep, "character", 1, F, allow_na = TRUE, extra = "set_pattern() parameter")
-  list(
+  roboplotr_typecheck(show_legend, "logical", NULL, F, extra = "in set_pattern()")
+  roboplotr_typecheck(sep, "character", 1, F, allow_na = T, extra = "set_pattern()")
+
+  .res <- list(
     pattern = pattern,
     pattern_types = pattern_types,
     pattern_along = pattern_along,
     show_legend = show_legend,
     pattern_sep = sep
   )
+
+  .res <- structure(.res, class = c("roboplotr", "roboplotr.set_pattern", class(.res)))
+
+  .res
 }
 
 #' @importFrom dplyr mutate
@@ -515,7 +517,7 @@ roboplotr_accessible_colors <- function(colors2alt,
     failed <- select(color_ops, ends_with("_ratio")) |> pivot_longer(everything()) |> filter(.data$value == F)
     if (nrow(failed) > 0) {
       msg <- failed$name |> str_extract("(?<=\\\").{1,}(?=\\\")") |> roboplotr_combine_words() |>
-        str_c("Color contrast fails with ", msg, " for ", pulled) |> roboplotr_warning(severity = "warning")
+        str_c("Color contrast fails with ", msg, " for ", pulled) |> roboplotr_alert(severity = "warning")
 
     }
     color_ops |> pull(.data$color)
@@ -639,17 +641,20 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
   }
 }
 
-#' Heatmap specifications for [robotable()]
+#' Heatmap configuration.
 #'
-#' Use in [robotable()] parameter 'heatmap' to get a list used for setting up the heatmap colors and value breaks.
+#' Parameters to customize heatmaps in [robotables][robotable()] and [robomaps][robomap()].
 #'
-#' @param maxcolor,midcolor,mincolor,na_color Characters. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.
-#' @param maxvalue,midvalue,minvalue Numerics. Optional. Numeric breakpoints where the 'maxcolor', 'midcolor' and 'mincolor' colors are set at.
-#' Any values falling outside of this range will have the nearest corresponding color. If not provided, [robotable()] calculates the values from the data.
+#' @param maxcolor,midcolor,mincolor,na_color Characters. Colors used for heatmap color
+#' range. Must be a hexadecimal colors or a valid css colors.
+#' @param maxvalue,midvalue,minvalue Numerics. Optional. Numeric breakpoints where
+#' `maxcolor`, `midcolor` and `mincolor` are set at. Any values falling outside of
+#' this range will have the nearest corresponding color. If not provided, [robotable()]
+#' calculates the values from the data.
 #' Currently only support heatmaps across all numeric columns in the given [robotable()].
 #' @examples
-#' \dontrun{
-#' # Use [set_heatmap()] to specify any the colors are value breaks used in heatmaps.
+#' # Use `set_heatmap()` to specify any the colors are value breaks used in heatmaps.
+#'
 #' d <- roboplotr::energiantuonti |>
 #'   dplyr::filter(Alue %in% c("Ruotsi","Kanada")) |>
 #'   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
@@ -658,18 +663,19 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
 #'   dplyr::mutate(dplyr::across(where(is.numeric), ~ tidyr::replace_na(.x, 0))) |>
 #'   dplyr::arrange(time)
 #' # No specifications uses the ends of the default trace colors set with
-#' # [set_roboplot_options()] and bases the numeric breakpoints on the data.
+#' # `set_roboplot_options()` and bases the numeric breakpoints on the data.
 #'
 #' d |> robotable(heatmap = set_heatmap())
-#' # You can specify any of the parameters separately, and [robotable()] fills in the rest.
+#'
+#' # You can specify any of the parameters separately, and `robotable()` fills in the rest.
+#'
 #' d |>
 #'   robotable(heatmap = set_heatmap(
 #'     midcolor = "white",
 #'     mincolor = "lightblue",
 #'     midvalue = 75
 #'   ))
-#' }
-#' @return A list
+#' @returns A list of class roboplot.set_heatmap
 #' @importFrom stats setNames
 #' @export
 set_heatmap <-
@@ -680,14 +686,14 @@ set_heatmap <-
            midvalue = NULL,
            minvalue = NULL,
            na_color = getOption("roboplot.colors.background")) {
-    roboplotr_check_param(maxcolor, "character", allow_null = F)
-    roboplotr_check_param(midcolor, "character", allow_null = F)
-    roboplotr_check_param(mincolor, "character", allow_null = F)
+    roboplotr_typecheck(maxcolor, "character", allow_null = F)
+    roboplotr_typecheck(midcolor, "character", allow_null = F)
+    roboplotr_typecheck(mincolor, "character", allow_null = F)
     roboplotr_valid_colors(c(maxcolor, midcolor, mincolor, na_color),
                            "Any colors set with set_heatmap()")
-    roboplotr_check_param(maxvalue, "numeric", allow_null = T)
-    roboplotr_check_param(midvalue, "numeric", allow_null = T)
-    roboplotr_check_param(minvalue, "numeric", allow_null = T)
+    roboplotr_typecheck(maxvalue, "numeric")
+    roboplotr_typecheck(midvalue, "numeric")
+    roboplotr_typecheck(minvalue, "numeric")
 
     min <- if (is.null(minvalue)) {
       mincolor
@@ -727,7 +733,7 @@ set_heatmap <-
 #' @noRd
 roboplotr_set_pattern <- function(d, pattern, pattern_type) {
   if (!is.null(pattern_type)) {
-    roboplotr_check_param(pattern_type, "character", NULL, allow_null = F)
+    roboplotr_typecheck(pattern_type, "character", NULL, allow_null = F)
     if (!all(unique(pull(select(
       d, quo_name(pattern)
     ))) %in% names(pattern_type)) &
@@ -803,22 +809,12 @@ roboplotr_get_map_palette <- function(d, map_colors, data_contour, bins) {
         na.color = "#00000000"
       )
   } else {
-    # browser()
     map_palette <- colorNumeric(
-      # colorRampPalette(map_colors)(legend_cap * 5),
       map_colors,
-      # n = 5*legend_cap,
       domain = d$robomap.value,
       reverse = T,
       na.color = "#00000000"
     )
-    # map_palette <- colorBin(
-    #   map_colors,
-    #   bins = bins,
-    #   domain = d$robomap.value,
-    #   reverse = T,
-    #   na.color = "#00000000"
-    # )
   }
 }
 
@@ -856,12 +852,16 @@ roboplotr_get_pattern_showlegend <- function(d,
   pattern_showlegend
 }
 
-#' Set roboplot() marker appearance
+#' Marker configuration
+#'
+#' Parameters to customize markers in [roboplots][roboplot()]. Currently not available
+#' by trace.
+#'
 #' @param symbol Character. The marker symbol when drawn by [roboplot()]. Any
 #' one of "circle","square","diamond","cross","x", "line" or "star".
 #' @param size Numeric. Marker size for markers.
 #' @examples
-#' # You can change the markers roboplot() uses by using set_markers().
+#' # You can change the markers `roboplot()` uses by using `set_markers()`.
 #' energiantuonti |>
 #'   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä") |>
 #'   dplyr::group_by(Alue) |>
@@ -873,8 +873,8 @@ roboplotr_get_pattern_showlegend <- function(d,
 #'     plot_mode = "scatter",
 #'     markers = set_markers(symbol = "diamond", size = 12)
 #'   )
-#' # You cannot control the markers by trace, but you can use pattern along with
-#' # markers if you have set 'plot_mode' to "scatter+line".
+#' # You cannot control the markers by trace, but you can use `pattern` in `roboplot()`
+#' # with markers if you have set 'plot_mode' to "scatter+line".
 #' energiantuonti |>
 #'   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä") |>
 #'   dplyr::group_by(Alue) |>
@@ -890,17 +890,18 @@ roboplotr_get_pattern_showlegend <- function(d,
 #'
 #' @importFrom stringr str_replace
 #' @export
+#' @returns A list of class roboplotr.set_markers
 set_markers <-
   function(symbol = getOption("roboplot.markers")$symbol,
            size = getOption("roboplot.markers")$size) {
-    roboplotr_check_param(size, "numeric", allow_null = F)
-    roboplotr_check_param(symbol, "character", allow_null = F)
+    roboplotr_typecheck(size, "numeric", allow_null = F)
+    roboplotr_typecheck(symbol, "character", allow_null = F)
     symbol <- str_remove(symbol, "-ew-open$")
     roboplotr_valid_strings(
       symbol,
       c("circle", "square", "diamond", "cross", "x", "line", "star"),
       any,
-      "set_markers() param 'symbol'"
+      "set_markers(symbol)"
     )
 
     .res <- list(symbol = str_replace(symbol, "line", "line-ew-open"),

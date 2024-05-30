@@ -1,36 +1,49 @@
-#' Set labels for robotable items like search box and pagination.
+#' Table label configuration
+#'
+#' Parameters to add and customize labeling in [robotables][robotable()].
 #' @param search Character. Label for search box.
 #' @param info,lengthMenu,first,last,next,previous Character. Table navigation items.
 #' @param emptyTable Character. The text shown when the table is empty.
-#' @importFrom purrr walk
 #' @export
 set_robotable_labels <-
-  function(search = "Etsi:",
-           info = "N\u00e4ytet\u00e4\u00e4n rivit _START_-_END_ / _TOTAL_",
-           lengthMenu = "N\u00e4yt\u00e4 _MENU_ rivi\u00e4 per sivu",
-           emptyTable = "Tietoja ei saatavilla",
-           first = "Ensimm\u00e4inen",
-           last = "Viimeinen",
+  function(search = getOption("roboplot.locale")$robotable_labels$search,
+           info = getOption("roboplot.locale")$robotable_labels$info,
+           lengthMenu = getOption("roboplot.locale")$robotable_labels$lengthMenu,
+           emptyTable = getOption("roboplot.locale")$robotable_labels$emptyTable,
+           first = getOption("roboplot.locale")$robotable_labels$first,
+           last = getOption("roboplot.locale")$robotable_labels$last,
            `next` = ">>",
            previous = "<<") {
+
+    arggs <- as.list(environment())
+    for (.name in names(arggs)) {
+      Parameter <- arggs[[.name]]
+      roboplotr_typecheck(Parameter, "character", allow_null = F,extra = str_glue("`{.name}` in set_robotable_labels()"))
+      if(length(arggs[[.name]]) > 0) {
+        assign(.name, as(arggs[[.name]], "character"))
+      }
+    }
+
     separators <- unlist(str_split(getOption("roboplot.locale")$separators, ""))
-    walk(
-      list(search, lengthMenu, emptyTable, first, last, `next`, previous),
-      ~ roboplotr_check_param(.x, "character", allow_null = F)
-    )
-    list(
-      search = search,
-      info = info,
-      lengthMenu = lengthMenu,
+
+    .res <- list(
+      search = arggs$search,
+      info = arggs$info,
+      lengthMenu = arggs$lengthMenu,
+      emptyTable = arggs$emptyTable,
       thousands = separators[2],
       decimal = separators[1],
       paginate = list(
-        first = first,
-        last = last,
-        `next` = `next`,
-        previous = previous
+        first = arggs$first,
+        last = arggs$last,
+        `next` = arggs$`next`,
+        previous = arggs$previous
       )
     )
+
+    .res <- structure(.res, class = c("roboplotr", "roboplotr.set_robotable_labels", class(.res)))
+
+    .res
   }
 
 #' @importFrom lubridate quarter year
@@ -300,35 +313,46 @@ roboplotr_set_robotable_fonts <-
     )
   }
 
-#' Automated datatable tables.
+#' Comprehensive leaflet wrapper function
 #'
-#' Wrapper for [DT::datatable] for shorthand declaration of many layout arguments.
-#' Automates many formatting options.
+#' This function wraps numerous [DT](https://rstudio.github.io/DT/)
+#' features into a single, well-parametrized interface.
 #'
 #' @param d Data frame. Data to be created a table from.
-#' @param title,subtitle Characters. Labels for plot elements. Optionally, use [set_title()] for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.
+#' @param title,subtitle Characters. Labels for plot elements.
 #' @param caption Function or character. Use [set_caption()].
-#' @param height,width Numeric. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.
-#' @param flag,unit Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.
+#' @param height,width Numeric. Height and width of the table. Default width is
+#' NULL for responsive tables, give a value for static table dimensions.
+#' @param flag,unit Character vectors. Use "+" for flag if you want to flag a numeric
+#' column for positive values. Unit is prepended to values in a numeric column.
+#' Name the units with column names from `d` if you want to target specific columns.
 #' @param rounding Numeric. Controls the rounding of numeric columns.
-#' @param dateformat Character. Controls how to format dates displayed on the table. Robotable tries to determine the proper format if left NULL.
+#' @param dateformat Character. Controls how to format dates displayed on the table.
+#' `robotable()` attempts to determine the proper format if left NULL.
 #' @param na_value Character. How NA values are displayed.
-#' @param pagelength Numeric. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, [robotable()] automatically adds navigation.
-#' @param info_text Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.
-#' @param heatmap Function. Use [set_heatmap()]. Displays any numeric values as a heatmap.
-#' @param na_value Character. The displayed value of all NA values in the table.
-#' @param artefacts Function. Use [set_artefacts()]. Controls artefact creation. Currently unable to make static files, only html files.
-#' @param class Character vector. Controls the basic datatable appearance. You may combine any of "cell-border", "compact","hover","nowrap","row-border" and / or "stripe". The default use is "stripe", "hover" and "row-border".
-#' @param searchable,sortable Logical. Control whether the [robotable()] columns have searching or sorting.
-#' @param col_widths Named numeric vector. Must sum to 100 or lower. Sets the percentage widths taken by column by name. Columns not named will have the excess space divided evenly between them. For narrow screens the widths cannot be adhered to.
+#' @param pagelength Numeric. Controls how many rows are displayed on the table.
+#' If `d` contains more rows than this, [robotable()] adds navigation elements.
+#' @param info_text Character. Optional. If included, this text will be displayed
+#' with a popup when the info button in the table modebar is clicked.
+#' @param heatmap Function. Use [set_heatmap()]. Color-codes numeric columns.
+#' @param artefacts Function. Use [set_artefacts()]. Controls file exports.
+#' Currently unable to make static exports, only html files.
+#' @param class Character vector. Controls the basic datatable appearance. You may
+#' combine any of "cell-border", "compact","hover","nowrap","row-border" and / or
+#' "stripe". The default use is "stripe", "hover" and "row-border".
+#' @param searchable,sortable Logical. Control whether the [robotable()] columns
+#' have searching or sorting when navigation is displayed.
+#' @param col_widths Named numeric vector. Must sum to 100 or lower. Sets the percentage
+#' widths taken by column by name. Columns not named will have the excess space
+#' divided evenly between them. For narrow screens the widths cannot be adhered to.
 #' @param ... Placeholder for other parameters.
-#' @return A list of classes "datatable" and "htmlwidget"
+#' @returns A list of classes datatable, htmlwidget, and roboplotr.robotable
 #' @importFrom DT datatable tableFooter tableHeader
 #' @importFrom htmltools HTML tags withTags
 #' @importFrom stringr str_glue str_remove_all str_split str_width
 #' @export
 #' @examples
-#' # You can use roboplotr::robotable() to create html tables
+#' # You can use `robotable()` to create html tables
 #' #
 #' energiantuonti |> robotable()
 #' #
@@ -345,24 +369,22 @@ roboplotr_set_robotable_fonts <-
 #
 #' d |> robotable()
 #' #
-#' # You can use the pagelength parameter to control how many rows are shown at once,
-#' # info_text to add any information you wish describe about the table, and
-#' # heatmap parameter if you want to color-code any numeric values across the
-#' # table. See [set_heatmap()] documentation for further examples.
+#' # You can use `pagelength` to control how many rows are shown at once,
+#' # `info_text` to add any information you wish describe about the table, and
+#' # `heatmap` parameter if you want to color-code any numeric values across the
+#' # table. See [set_heatmap()].
 #' #
 #' d |>
 #'  robotable(heatmap = set_heatmap(),
 #'            pagelength = 50,
 #'            info_text = "Testing the info button.")
 #'
-#' # You can use class parameter to control the appearance of the table, providing.
-#' # a character vector of classes used by the table. Available options are
-#' # "cell-border", "compact", "hover", "nowrap", "row-border" and "stripe", with
-#' # the default being "stripe", "hover" and "row-border". Column widths can be
-#' # specified by giving a named vector where the values are percentages of total
-#' # width the column will take ([roboplot()] will divide the remaining space
-#' # evenly between columns not named in the parameter). Navigating options for
-#' # search and sort can be disabled by 'searchable' and 'sortable'.
+#' # You can use `class` to control visuals, providing a character vector of html
+#' # classes used by the table. Available options are "cell-border", "compact",
+#' # "hover", "nowrap", "row-border" and "stripe", with the default being "stripe",
+#' # "hover" and "row-border". Column widths can be specified by giving a named
+#' # vector where the values are percentages of total width. Navigating options
+#' # can be disabled by 'searchable' and 'sortable'.
 #'
 #' d |> robotable(
 #'   class = c("compact", "nowrap"),
@@ -392,50 +414,22 @@ robotable <-
            artefacts = getOption("roboplot.artefacts")$auto,
            ...
            ) {
-    if (is.null(title)) {
-      title <- attributes(d)[c("title", "robonomist_title")]
-      if (!is.null(title$robonomist_title)) {
-        roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
-        title <- set_title(title$robonomist_title)
-      } else if (!is.null(title$title) & length(title$title != 1)) {
-        roboplotr_alert("Using the attribute \"title\" as plot title.")
-        title <- set_title(title$title)
-      } else {
-        roboplotr_alert("Missing the title, using placeholder.")
-        title <- set_title("PLACEHOLDER")
-      }
-    } else if (is.character(title)) {
-      title <- set_title(title = title, include = T)
-    } else {
-      roboplotr_check_param(
-        title,
-        c("character,", "function"),
-        NULL,
-        f.name = list(fun = substitute(title)[1], check = "set_title")
-      )
-    }
 
-    roboplotr_check_param(
-      caption,
-      c("character", "function"),
-      size = 1,
-      f.name = list(fun = substitute(caption)[1], check = "set_caption")
-    )
+    title <- roboplotr_set_title(title, d, "in `robotable()`")
 
-    roboplotr_check_param(class, "character", NULL)
-    roboplotr_valid_strings(class, c("cell-border", "compact","hover","nowrap","row-border","stripe"), any)
+    roboplotr_typecheck(class, "character", NULL)
+    roboplotr_valid_strings(class, c("cell-border", "compact","hover","nowrap","row-border","stripe"), any, "robotable() class")
     if(is.null(class)) { class <- "display" } else {
       class <- unique(class) |> str_c(collapse = " ")
     }
-    roboplotr_check_param(searchable, "logical",allow_null = F)
-    roboplotr_check_param(sortable, "logical",allow_null = F)
-    roboplotr_check_param(class, "character", NULL)
-    roboplotr_check_param(col_widths, "numeric", NULL)
+    roboplotr_typecheck(searchable, "logical",allow_null = F)
+    roboplotr_typecheck(sortable, "logical",allow_null = F)
+    roboplotr_typecheck(col_widths, "numeric", NULL)
     if(!is.null(col_widths)) {
       if (all(!names(col_widths) %in% names(d))) {
         stop("The param 'col_widths' must be a numeric vector with names matching the names from param 'd' or robotable()!", call. = F)
       } else if (any(!names(col_widths) %in% names(d))) {
-        roboplotr_warning("Some columns specified in robotable() 'col_widths' are not in the data!")
+        roboplotr_alert("Some columns specified in robotable() 'col_widths' are not in the data!")
       }
       col_widths <- col_widths[names(col_widths) %in% names(d)]
     if(sum(col_widths) > 100) {
@@ -448,29 +442,9 @@ robotable <-
       }
     }
 
-    if (!is.null(caption)) {
-      if (!is(substitute(caption)[1], "call")) {
-        caption <- set_caption(text = caption)
-      }
-    } else {
-      cpt <- attributes(d)$source
-      if (length(cpt) == 1) {
-        roboplotr_message("Using the attribute \"source\" for plot caption.")
-        caption <- set_caption(text = unlist(cpt)[1])
-      } else if (!is.null(cpt[[getOption("roboplot.locale")$locale]])) {
-        roboplotr_message("Using the attribute \"source\" as plot caption.")
-        caption <-
-          set_caption(text = cpt[[getOption("roboplot.locale")$locale]][1])
-      } else {
-        roboplotr_alert("Missing the caption, using placeholder.")
-        caption <- set_caption(text = "PLACEHOLDER")
-      }
-    }
+    caption <- roboplotr_set_caption(caption, d, "in robotable()")
 
-    roboplotr_check_param(heatmap,
-                          c("function"),
-                          NULL,
-                          f.name = list(fun = substitute(heatmap)[1], check = "set_heatmap"))
+    roboplotr_typecheck(heatmap, "set_heatmap")
 
     d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value, dateformat)
 
@@ -596,6 +570,7 @@ robotable <-
       tagList(tags$div(
         class = "robotable-container",
         style = str_glue("position: relative; background: {getOption('roboplot.colors.background')};"),
+        roboplotr_get_robotable_google_fonts(),
         tags$table(
           tags$style(roboplotr_set_robotable_css(robotable_id)),
           id = robotable_id,
@@ -722,8 +697,11 @@ function preInitFunction(settings, json) {
 
     dt <- roboplotr_tbl_heatmap(d, dt, heatmap)
 
+    dt <- structure(dt, class = c("roboplotr","roboplotr.robotable", class(dt)))
+
+    roboplotr_typecheck(artefacts, c("logical","set_artefacts"))
+
     if (is.logical(artefacts)) {
-      roboplotr_check_param(artefacts, c("logical"))
       if (artefacts == TRUE) {
         params <- getOption("roboplot.artefacts")
         create_widget(
@@ -738,12 +716,6 @@ function preInitFunction(settings, json) {
         dt
       }
     } else {
-      roboplotr_check_param(
-        artefacts,
-        c("function"),
-        NULL,
-        f.name = list(fun = substitute(artefacts)[1], check = "set_artefacts")
-      )
       if(is.null(artefacts$title)) {
         .title <- title$title
       } else {
@@ -761,3 +733,27 @@ function preInitFunction(settings, json) {
 
 
   }
+
+
+#' @importFrom htmltools HTML tags
+#' @importFrom purrr map
+#' @importFrom stringr str_c str_extract str_glue
+roboplotr_get_robotable_google_fonts <- function() {
+
+  .fonts <- options()[c(
+    "roboplot.font.main",
+    "roboplot.font.title",
+    "roboplot.font.caption"
+  )] |> map( ~ if (!is.null(.x$google_font)) {
+    roboplotr_set_specific_css("@font-face", "font-family" = str_extract(.x$family, "[^,]*(?=,)"),
+                               "src" = str_glue("url('{.x$google_font$url}')"))
+  }) |>
+    unique() |>
+    unlist()
+
+  if(length(.fonts) == 0) {
+    NULL
+  } else {
+    tags$style(HTML(str_c(.fonts, collapse= ";")))
+  }
+}

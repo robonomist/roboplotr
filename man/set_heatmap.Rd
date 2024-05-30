@@ -2,7 +2,7 @@
 % Please edit documentation in R/colors_patterns.R
 \name{set_heatmap}
 \alias{set_heatmap}
-\title{Heatmap specifications for \code{\link[=robotable]{robotable()}}}
+\title{Heatmap configuration.}
 \usage{
 set_heatmap(
   maxcolor = last(getOption("roboplot.colors.traces")),
@@ -15,21 +15,24 @@ set_heatmap(
 )
 }
 \arguments{
-\item{maxcolor, midcolor, mincolor, na_color}{Characters. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings.}
+\item{maxcolor, midcolor, mincolor, na_color}{Characters. Colors used for heatmap color
+range. Must be a hexadecimal colors or a valid css colors.}
 
-\item{maxvalue, midvalue, minvalue}{Numerics. Optional. Numeric breakpoints where the 'maxcolor', 'midcolor' and 'mincolor' colors are set at.
-Any values falling outside of this range will have the nearest corresponding color. If not provided, \code{\link[=robotable]{robotable()}} calculates the values from the data.
+\item{maxvalue, midvalue, minvalue}{Numerics. Optional. Numeric breakpoints where
+\code{maxcolor}, \code{midcolor} and \code{mincolor} are set at. Any values falling outside of
+this range will have the nearest corresponding color. If not provided, \code{\link[=robotable]{robotable()}}
+calculates the values from the data.
 Currently only support heatmaps across all numeric columns in the given \code{\link[=robotable]{robotable()}}.}
 }
 \value{
-A list
+A list of class roboplot.set_heatmap
 }
 \description{
-Use in \code{\link[=robotable]{robotable()}} parameter 'heatmap' to get a list used for setting up the heatmap colors and value breaks.
+Parameters to customize heatmaps in \link[=robotable]{robotables} and \link[=robomap]{robomaps}.
 }
 \examples{
-\dontrun{
-# Use [set_heatmap()] to specify any the colors are value breaks used in heatmaps.
+# Use `set_heatmap()` to specify any the colors are value breaks used in heatmaps.
+
 d <- roboplotr::energiantuonti |>
   dplyr::filter(Alue \%in\% c("Ruotsi","Kanada")) |>
   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
@@ -38,15 +41,16 @@ d <- roboplotr::energiantuonti |>
   dplyr::mutate(dplyr::across(where(is.numeric), ~ tidyr::replace_na(.x, 0))) |>
   dplyr::arrange(time)
 # No specifications uses the ends of the default trace colors set with
-# [set_roboplot_options()] and bases the numeric breakpoints on the data.
+# `set_roboplot_options()` and bases the numeric breakpoints on the data.
 
 d |> robotable(heatmap = set_heatmap())
-# You can specify any of the parameters separately, and [robotable()] fills in the rest.
+
+# You can specify any of the parameters separately, and `robotable()` fills in the rest.
+
 d |>
   robotable(heatmap = set_heatmap(
     midcolor = "white",
     mincolor = "lightblue",
     midvalue = 75
   ))
-}
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/rangeslider_zeroline.R
 \name{set_shadearea}
 \alias{set_shadearea}
-\title{Set up a shade area to highlight a part of \code{\link[=roboplot]{roboplot()}} background}
+\title{Shade configuration}
 \usage{
 set_shadearea(
   xmin = NULL,
@@ -14,29 +14,32 @@ set_shadearea(
 )
 }
 \arguments{
-\item{xmin, xmax}{Currently not validated. These need
-to be of the same type as the respective axis for the shade area to work. If
-none are provided, no shade area will be displayed.}
+\item{xmin, xmax}{Currently not validated. These need to be of the same type as
+the respective axis for the shade area to work.}
 
 \item{border, color}{Characters. The color for the shade area. Must be a
-hexadecimal color strings or a valid css color strings.}
+hexadecimal color or a valid css color.}
 
 \item{opacity}{Numeric. Controls the opacity of the shade area. Use a value
-that is between > 0 and 1.}
+between 0 and 1.}
 
 \item{layer}{Character. Whether the shade area is above or below the plot
 traces. Use "above" or "below".}
 }
+\value{
+A list of class roboplotr.set_shadearea
+}
 \description{
-Set up a shade area to highlight a part of \code{\link[=roboplot]{roboplot()}} background
+Parameters to add and customize shadeareas in \link[=roboplot]{roboplots}.
 }
 \examples{
-# You can use shadearea when the x-axis is numeric or date, to highlight areas of
-# the plot.
+# You can use` shadearea` when the x-axis is numeric or date to highlight areas
+# of the plot.
 d <- energiantuonti |>
   dplyr::filter(Alue == "Venäjä")
 d |> roboplot(Suunta, shadearea = set_shadearea(xmin = "2018-01-01"))
-# Use the other parameters to fine-tune the appearance of the shade area
+
+# Use the other parameters to fine-tune the appearance of the `shadearea`.
 d |> roboplot(
   Suunta,
   shadearea = set_shadearea(

@@ -25,27 +25,29 @@ roboplotr_grid <- function(p, grid = getOption("roboplot.grid"), border = getOpt
   )
 }
 
-#' Plot border for [roboplot()]
+#' Plot border configuration
 #'
-#' Set global parameters in [set_roboplot_options()] for plot borders
-#' of [roboplot()] plots.
+#' Global parameters to add and customize plot borders of [roboplots][roboplot()].
 #'
-#' @param xcolor,ycolor Characters. Plot border colors. Must be a hexadecimal color strings or a valid css color strings.
-#' @param xmirror,ymirror Logicals. Will the given axis be mirrored to left to right or bottom to top.
-#' @param xwidth,ywidth Numerics. Plot border widths.
+#' @param xcolor,ycolor Characters. Plot border colors. Must be hexadecimal colors
+#' or valid css color.
+#' @param xmirror,ymirror Logicals. Will the given axis be mirrored to left to right
+#' or bottom to top.
+#' @param xwidth,ywidth Numerics. Border width.
 #' @examples
-#' # You can control x- and y-axis border mirroring, width and color by using
-#' # set_border() inside set_roboplot_options().
+#' # You can global control x- and y-axis border mirroring, width and color by using
+#' # `set_border()` inside `set_roboplot_options()`.
 #'
 #' set_roboplot_options(
-#'   border = set_border(ycolor = "green", xmirror = FALSE, xwidth = 5))
+#'   border = set_border(ycolor = "green", xmirror = FALSE, xwidth = 5)
+#'   )
 #'
 #' energiantuonti |> dplyr::filter(Alue == "Venäjä") |> roboplot(Suunta)
 #'
 #' # Reset to defaults
 #' set_roboplot_options(reset = TRUE)
 #'
-#' @return A list.
+#' @returns A list of class roboplotr.set_border.
 #' @export
 set_border <- function(
 
@@ -56,14 +58,13 @@ set_border <- function(
   xwidth = getOption("roboplot.border")$xwidth,
   ywidth = getOption("roboplot.border")$ywidth) {
 
-  roboplotr_check_param(xcolor, "character", allow_null = F)
-  roboplotr_check_param(ycolor, "character", allow_null = F)
-  roboplotr_valid_colors(xcolor)
-  roboplotr_valid_colors(ycolor)
-  roboplotr_check_param(xmirror, "logical", allow_null = F)
-  roboplotr_check_param(ymirror, "logical", allow_null = F)
-  roboplotr_check_param(xwidth, "numeric", allow_null = F)
-  roboplotr_check_param(ywidth, "numeric", allow_null = F)
+  roboplotr_typecheck(xcolor, "character", allow_null = F)
+  roboplotr_typecheck(ycolor, "character", allow_null = F)
+  roboplotr_valid_colors(c(xcolor,ycolor), message = "Colors in set_border()")
+  roboplotr_typecheck(xmirror, "logical", allow_null = F)
+  roboplotr_typecheck(ymirror, "logical", allow_null = F)
+  roboplotr_typecheck(xwidth, "numeric", allow_null = F)
+  roboplotr_typecheck(ywidth, "numeric", allow_null = F)
 
   .res <- list(xcolor = xcolor, ycolor = ycolor, xmirror = xmirror, ymirror = ymirror, xwidth = xwidth, ywidth = ywidth)
 
@@ -73,27 +74,29 @@ set_border <- function(
 
 }
 
-#' Plot grid for [roboplot()]
+#' Grid configuration.
 #'
-#' Set global parameters in [set_roboplot_options()] for plot grid
-#' of [roboplot()] plots.
+#' Parameters to customize grids in [roboplots][roboplot()].
 #'
-#' @param xcolor,ycolor,xtick,ytick Characters. Plot gridline colors. Must be a hexadecimal color strings or a valid css color strings.
+#' @param xcolor,ycolor,xtick,ytick Characters. Plot gridline colors. Must be hexadecimal
+#' colors or a valid css colors.
 #' @param xwidth,ywidth Numerics. Plot gridline widths.
-#' @param xdash,ydash Not currently supported by [plot_ly]. Characters. Plot gridline linetypes. Must contain one of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
+#' @param xdash,ydash Characters. Plot gridline linetypes. Must contain one of
+#' "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @examples
 #' # You can control x- and y-grid color, width and linetype by using
-#' # set_grid() inside set_roboplot_options().
+#' # `set_grid()` inside `set_roboplot_options()`.
 #'
 #' set_roboplot_options(
-#'   grid = set_grid(ycolor = "green", ydash = "longdash", xwidth = 3))
+#'   grid = set_grid(ycolor = "green", ydash = "longdash", xwidth = 3),
+#'   )
 #'
 #' energiantuonti |> dplyr::filter(Alue == "Venäjä") |> roboplot(Suunta)
 #'
 #' # Reset to defaults
 #' set_roboplot_options(reset = TRUE)
 #'
-#' @return A list.
+#' @returns A list of class roboplot.set_grid
 #' @export
 set_grid <- function(
 

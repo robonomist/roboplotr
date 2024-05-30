@@ -1,12 +1,11 @@
-# roboplotr 1.8.4.9000
+# roboplotr 2.0
 
-* Changes in roboplotr internal validation.
-
-# roboplotr 1.8.4
-
+* `shinyapp`-parameter in roboplot() and set_roboplot_options() has been reworked to align with how it actually works. This is a breaking change.
+* Changes in roboplotr internal validation. This is a breaking change.
+* Fix for Google fonts not showing on robotable(). Loosened font restrictions.
 * Added preDraw callback to robotable() that forces core DataTables css to load properly.
 * Improved roboplot() logo handling when set to "none".
-* Legend fixes for robomap().
+* Added set_robomap_legend() for specifying robomap() legend appearance..
 
 # roboplotr 1.8.3
 

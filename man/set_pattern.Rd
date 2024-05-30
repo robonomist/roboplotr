@@ -2,7 +2,7 @@
 % Please edit documentation in R/colors_patterns.R
 \name{set_pattern}
 \alias{set_pattern}
-\title{Set \code{\link[=roboplot]{roboplot()}} pattern definitions}
+\title{Pattern configuration.}
 \usage{
 set_pattern(
   pattern = NULL,
@@ -13,35 +13,32 @@ set_pattern(
 )
 }
 \arguments{
-\item{pattern}{Symbol, string, or function resulting in symbol or string.
-Column from param 'd' of \code{\link[=roboplot]{roboplot()}} to use for scatter plot linetype or bar
-plot pattern. Not supported for pie charts.}
+\item{pattern}{Symbol or string. Column from param \code{d} of a \link[=roboplot]{roboplot}
+to use for the linetype of \code{plot_type} "scatter" or pattern of \code{plot_type} "bar".
+Not supported for pie charts.}
 
 \item{pattern_types}{Named character vector. Pattern types for all traces.
-Names must correspond to values in the column referenced by param 'pattern'
-in param 'd' of \code{\link[=roboplot]{roboplot()}}. See \code{\link[=set_roboplot_options]{set_roboplot_options()}} parameter
-'dashtypes' and 'patterns' for options, or use ".other" if all traces are of
-the same 'plot_type'.}
+Names must correspond to values in the column referenced by \verb{pattern. See [set_roboplot_options()] parameter }dashtypes\code{and}patterns\verb{for options, or use ".other" if multiple traces are of the same}plot_type` and share the pattern.}
 
-\item{pattern_along}{Symbol, string, or function resulting in symbol or string.
-Column from param 'd' of \code{\link[=roboplot]{roboplot()}} along which the series should be
-continuous along. If set, and the 'plot_mode' corresponding to all items in
-the given group as defined by 'pattern' is "line", \code{\link[=roboplot]{roboplot()}} will try to
-fill the series in such a way as to create a continuous line.}
+\item{pattern_along}{Symbol or string. Column from param \code{d} of a \link[=roboplot]{roboplot}
+along which the series should be continuous along. If set, and the \code{plot_mode}
+corresponding to all items in \code{pattern} is "line", \link[=roboplot]{roboplot} will
+try to fill the series in such a way as to create a continuous line.}
 
 \item{show_legend}{Logical, named if vector. If any pattern(s) will have
 their own legend entries. If FALSE, only the first item in param 'pattern'
-will be in \code{\link[=roboplot]{roboplot()}} legend. If named, the must correspond to values in
-the column referenced by param 'pattern' in param 'd' of \code{\link[=roboplot]{roboplot()}}. See
-\code{\link[=set_roboplot_options]{set_roboplot_options()}} parameter 'dashtypes' and 'patterns' for options, or
-use ".other" if all traces are of the same 'plot_type'.}
+will be in a \link[=roboplot]{roboplot's} legend. If named, the must correspond to
+values in the column referenced by \code{pattern}.}
 
-\item{sep}{Character. The separator of color and pattern in legend text.
+\item{sep}{Character. The separator of \code{color} and \code{pattern} in legend labels.
 Default is ", ". Use NA if you want to omit the pattern label from legend,
-resulting only the \code{\link[=roboplot]{roboplot()}} param 'color' being the label.}
+resulting only the \code{\link[=roboplot]{roboplot()}} param \code{color} being the label.}
+}
+\value{
+A list of class roboplotr.set_pattern
 }
 \description{
-Set \code{\link[=roboplot]{roboplot()}} pattern definitions
+Parameters to customize patterns in \link[=roboplot]{roboplots}.
 }
 \examples{
 # You can use [set_pattern()] to just give the column name, but in that case
@@ -72,13 +69,13 @@ d <- energiantuonti |>
 
 roboplot(d, Alue, pattern = Sarjatyyppi)
 
-# Use the parameter 'pattern_along' to provide the column along which the plot
+# Use the parameter `pattern_along` to provide the column along which the plot
 # should show a continous line.
 roboplot(d, Alue, pattern = set_pattern(Sarjatyyppi, pattern_along = time))
 
-# Use the parameter 'show_legend' to omit all patterns expect the first one
-# from the legend, and use the parameter 'sep' to control the separator
-# between the roboplotr::roboplot() param 'color' and 'pattern' in the legend.
+# Use the parameter `show_legend` to omit all patterns expect the first one
+# from the legend, and use the parameter `sep` to control the separator
+# between the `roboplot()` param `color` and `pattern` in the legend.
 roboplot(d,
          Alue,
          pattern = set_pattern(
@@ -88,7 +85,7 @@ roboplot(d,
            sep = " - "
          ))
 
-# Or just use 'sep' = NA to omit the pattern from the legend labels.
+# Or just use `sep` = NA to omit the pattern from the legend labels.
 roboplot(d, Alue,
            pattern =
              set_pattern(
@@ -99,21 +96,21 @@ roboplot(d, Alue,
              ))
 
 # Finally, control the patterns for linetypes and bars with the parameter
-# 'pattern_types', with a named vector containing either all the observations
-# in the column 'pattern', or ".other" as a catch-all category.
+# `pattern_types`, with a named vector containing either all the observations
+# in the column `pattern`, or ".other" as a catch-all category.
 energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
   roboplot(Alue, pattern = set_pattern(Alue, pattern_types = c(
     "Kanada" = "dash", ".other" = "dot"
   )))
 # Bar plots use the pattern_types too, but they are different from the ones
-# used by line plots. Don't worry if you don't give the corrent ones, roboplot()
-#informs you which you should be using.
+# used by line plots. If you get them wrong, `roboplot()` informs you which you
+# should be using.
 energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
   roboplot(Alue,
            plot_type = "bar",
            pattern = set_pattern(Alue, pattern_types = c(
-    "Ruotsi" = "", ".other" = "x"
-  )))
+             "Ruotsi" = "", ".other" = "x"
+           )))
 }

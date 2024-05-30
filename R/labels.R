@@ -1,24 +1,22 @@
 #' @importFrom farver decode_colour encode_colour
 #' @importFrom plotly layout
 #' @importFrom stringr str_extract
-roboplotr_legend <- function(p, legend_position, orientation, legend_order, legend_title) {
+roboplotr_legend <- function(p, legend) {
 # print(legend_order)
-  if(!is.null(orientation)) { roboplotr_message("The argument 'legend_orientation' is currently ignored.") }
+  if(!is.null(legend$orientation)) { roboplotr_message("The set_legend() argument `legend_orientation` is currently ignored.") }
 
-  roboplotr_check_param(legend_position, "character", allow_na = T)
+  if(is.null(legend$position)) { legend$position <- "bottom" }
 
-  if(is.null(legend_position)) { legend_position <- "bottom" }
-
-    if (is.null(legend_title)) {
+    if (is.null(legend$title)) {
       .legend_title <- NULL
-    } else if (is.character(legend_title)) {
-      .legend_title <- str_c("<b>", legend_title, "</b>")
+    } else if (is.character(legend$title)) {
+      .legend_title <- str_c("<b>", legend$title, "</b>")
     }
 
 
-  if (is.na(legend_position)) {
-    x.pos <- ifelse(legend_position == "right", 100, 0)
-    y.pos <- ifelse(legend_position == "right", 1, 0) #-0.05
+  if (is.na(legend$position)) {
+    x.pos <- ifelse(legend$position == "right", 100, 0)
+    y.pos <- ifelse(legend$position == "right", 1, 0) #-0.05
     # orientation <- "h"#case_when(orientation == "auto" ~ ifelse(legend_position == "right", "v","h"), TRUE ~ str_extract(orientation, "^(v|h)"))
     p |> layout(
       showlegend = T,
@@ -28,13 +26,13 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order, lege
                     orientation = "h",
                     xanchor = "left",
                     yanchor = "top",
-                    traceorder = legend_order
+                    traceorder = legend$order
       ))
-  } else if (!legend_position %in% c("bottom")) {
-    stop("legend_position must be \"bottom\", or NA for no legend!", call. = F)
+  } else if (!legend$position %in% c("bottom")) {
+    stop("set_legend() `position` must be \"bottom\", or NA for no legend!", call. = F)
   } else {
-    x.pos <- ifelse(legend_position == "right", 100, 0)
-    y.pos <- ifelse(legend_position == "right", 1, 0) #-0.05
+    x.pos <- ifelse(legend$position == "right", 100, 0)
+    y.pos <- ifelse(legend$position == "right", 1, 0) #-0.05
     # orientation <- "h"#case_when(orientation == "auto" ~ ifelse(legend_position == "right", "v","h"), TRUE ~ str_extract(orientation, "^(v|h)"))
     p |> layout(
       showlegend = T,
@@ -45,7 +43,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order, lege
                     xanchor = "left",
                     yanchor = "top",
                     title = list(text = .legend_title, font = getOption("roboplot.font.main")),
-                    traceorder = legend_order
+                    traceorder = legend$order
                     ))
   }
 }
@@ -54,7 +52,7 @@ roboplotr_legend <- function(p, legend_position, orientation, legend_order, lege
 #' @importFrom plotly layout
 roboplotr_caption <- function(p, caption) {
 
-  roboplotr_check_param(caption, type = "character", allow_null = F)
+  roboplotr_typecheck(caption, "character", allow_null = F)
 
   if(!is.null(caption)) {
     p <- p |>
@@ -73,30 +71,30 @@ roboplotr_caption <- function(p, caption) {
 
 }
 
-#' Titles for [roboplot()]
+#' Title configuration.
 #'
-#' Use in [roboplot()] parameter 'title' to get a list used for setting the title.
+#' Parameters to customize titles of [roboplots][roboplot()]. Can be used with
+#' [robotables][robomap()] and [robomaps][robomap()], but don't really do anything.
 #'
 #' @param title Character. Optional. Will try to determine a title based on
-#' attributes of  argument 'd' of [roboplot()]. Defaults to "PLACEHOLDER".
+#' attributes of `d` in a [roboplots][roboplot()]. Defaults to "PLACEHOLDER".
 #' @param include Logical. Determines whether the given title will be used in
-#' the plot. Will always inlcude it for downloaded png images.
+#' the plot. Will always inlcude it for exported static images.
 #' @param ... Placeholder for other parameters.
 #' @examples
-#' # Used to set titles for plots created with roboplotr::roboplot. You can
+#' # Used to set titles for plots created with `roboplot()`. You can
 #' # simply give a charater string for plot titles.
-#'
 #'
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 #'
 #' d |> roboplot(Alue,"Energian tuonti Kanadasta")
 #'
 #' # However, if you want to render the plot without the title included, you
-#' # can use roboplotr::set_title(include = F) to omit it from the plot. This
+#' # can use `set_title(include = F)` to omit it from the plot. This
 #' # is for cases where you will insert the plot into environment where the
-#' # title is outside the plot element. When downloading the plot, you would
-#' # still want to have the title included, and roboplotr::set_plot() takes
-#' # care of this. If you include a subtitle, it will still be in the plot.
+#' # title is outside the plot element. When exporting, you would till want to have
+#' # the title included, and `roboplot()` takes care of this. If you include a subtitle,
+#' # it will be displayed regardless.
 #'
 #'
 #' d |>
@@ -105,7 +103,7 @@ roboplotr_caption <- function(p, caption) {
 #' subtitle = "Milj. €")
 #'
 #'
-#' @returns A list
+#' @returns A list of class roboplotr.set_title
 #' @export
 set_title <- function(title = NULL, include = T, ...) {
 
@@ -135,11 +133,11 @@ roboplotr_title <- function(p, title, subtitle) {
   if(!is.null(title)) {
     `title$title` <- title$title
     `title$include` <- title$include
-    roboplotr_check_param(`title$title`, "character")
-    roboplotr_check_param(`title$include`, "logical")
+    roboplotr_typecheck(`title$title`, "character")
+    roboplotr_typecheck(`title$include`, "logical")
   }
 
-  roboplotr_check_param(subtitle, type = "character", allow_null = F)
+  roboplotr_typecheck(subtitle, "character", allow_null = F)
 
   if(title$include == T) {
     txt <- str_c(
@@ -164,20 +162,22 @@ roboplotr_title <- function(p, title, subtitle) {
       )
 }
 
-#' Captions for [roboplot()]
+#' Caption configuration
 #'
-#' Get a string for [roboplot()] captions.
+#' Parameters to customize caption defaults.
 #'
-#' @param text Character. The text used in the template (make sure the template has the parameter 'text').
+#' @param text Character. The text used in the template (make sure the template
+#' has the parameter `text`).
 #' @param ... Other parameters to be passed to template.
-#' @param template Character. Template for [str_glue()] used to parse the caption with the given parameters.
-#' @return A string of classes 'glue' and 'character'.
+#' @param template Character. Template for [stringr::str_glue()] used to parse
+#' the caption with the given parameters.
+#' @returns A character of class glue and roboplot.set_caption
 #' @examples
-#' # Used to define how captions are constructed inside roboplotr::roboplot()
-#' # The used parameters are used inside stringr::str_glue() to parse a caption
-#' # string. You can skip using set_caption() simply by giving a character string.
+#' # Used to define how captions are constructed inside `roboplot()`. The used
+#' # parameters are used inside stringr::str_glue() to parse a caption
+#' # string. You can skip using `set_caption()` simply by giving a character string.
 #' # You can provide the template here, or use the one defined globally with
-#' # roboplotr::set_roboplot_options().
+#' # `set_roboplot_options()`.
 #'
 #'
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
@@ -204,8 +204,7 @@ roboplotr_title <- function(p, title, subtitle) {
 #'   )
 #'
 #' # If you need to make manual changes repeatedly, you are probably better off
-#' # using roboplotr::set_roboplot_options() (documented therein) to change the
-#' # defaults to something more sensible.
+#' # using `set_roboplot_options()` to change the defaults to something more sensible.
 #'
 #' set_roboplot_options(
 #'   caption_template = "Source: {text}.",
@@ -221,13 +220,10 @@ roboplotr_title <- function(p, title, subtitle) {
 
 set_caption <- function(text, ..., template = getOption("roboplot.caption.template")) {
 
-  args <- list(...)
-  for (i in seq_along(args)) {
-    assign(names(args)[[i]], args[[i]])
-  }
+  list2env(list(...), envir = environment())
   .res <- str_glue(template)
 
-  .res <- structure(.res, class = c("roboplotr","roboplotr.set_robomap_legend", class(.res)))
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_caption", class(.res)))
 
   .res
 
@@ -251,25 +247,27 @@ roboplotr_highlight_legend <- function(highlight, df) {
 }
 
 
-#' Get a list for [set_roboplot_options()] used as font specifications in [roboplot()]
+#' Font configuration.
 #'
-#' @param font Character. One of "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond", "Courier New", "Brush Script MT" or a path to an .otf or .ttf file.
-#' @param fallback Character. Only used when a file path is used with 'font'. Fallback font when the defined font is unavailable. Especially concerns image downloads.
-#' @param size Double. Determines font size for the font.
+#' Parameters to customize fonts in various `roboplotr` contexts.
+#'
+#' @param font Character. One of your system fonts if `systemfonts` package is available.
+#' "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond",
+#' "Courier New", "Brush Script MT", a Google font, or a path to an .otf or .ttf file.
+#' @param fallback Character. Only used when a file path is used with `font`. Fallback
+#' font when the defined font is unavailable. Especially concerns image downloads.
+#' @param size Numeric. Font size.
 #' @param color Character. Must be a hexadecimal color or a valid css color.
-#' @param bold_title Logical. Only used for font of type 'title'. Determines if the title is bolded.
+#' @param bold_title Logical. Only used for font of type `title`. Determines if
+#' the title is bolded.
 #' @param type Character. One of "main", "title" or "caption".
 #' @importFrom httr content GET status_code
 #' @importFrom stringr str_c str_extract
-#' @returns A list
+#' @returns A list of class roboplot.set_font
 #' @examples
-#' # Used to set fonts used by roboplotr::roboplot(). Only supposed to be called
-#' # inside roboplotr::set_roboplot_options(). 'path' can be a file path or
-#' # string "serif" or "sans-serif", if no specific font path will be provided.
-#' # This will change fonts according to the list output of
-#' # roboplotr::set_font(). You can designate font color, size, and
-#' # path, and (for title font only) whether it is bolded. You must provide a
-#' # web-safe fallback font if an actual filepath is provided for 'path'.
+#' # Used to set fonts used by `roboplotr` functions. You can designate various
+#' # specifications. You must provide a web-safe fallback (as accepted by `roboplotr`,
+#' # see `font`) font if an actual filepath is provided for 'path'.
 #'
 #' set_roboplot_options(
 #'   caption_template = "Lähde: {text}!!",
@@ -290,13 +288,12 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' # Valid Google Fonts work as well.
 #' set_roboplot_options(font_title = set_font(font = "Exo"))
 #'
-#' # Note that plotly's own downloadImage method does not support external fonts.
-#' # It can only use the fonts the browser has available. Use
-#' # roboplotr::set_artefacts() in roboplotr::roboplot() to automate their
-#' # creation if you need static images with external fonts.
+#' # Note that `plotly`'s own downloadImage method does not support external fonts.
+#' # It can only use the fonts the browser has available. Use `set_artefacts()`
+#' # `roboplot()` to automate their creation if you need static images with external fonts.
 #'
-#' if(interactive()) {
-#'   # Create a html file with roboplotr::roboplot().
+#' \dontrun{
+#'   # Create a html file with `roboplot()`.
 #'   d |>
 #'     roboplot(
 #'       color = Alue,
@@ -306,10 +303,9 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'       artefacts = set_artefacts(artefacts = c("html", "png"), filepath = tempdir())
 #'     )
 #'
-#'   # The html file will have the proper fonts, but images downloaded through the
-#'   # modebar will not.
+#'   # The html has proper fonts, but files exported from modebar will not.
 #'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
-#'   # The images automated with roboplotr::set_artefacts() will have the proper font.
+#'   # The images automated with `set_artefacts()` will have the proper font.
 #'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.png"))
 #' }
 #'
@@ -330,12 +326,19 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
   if(is.null(color)) {
     color <- getOption(str_glue("roboplot.font.{type}"))$color
   }
+
   websafe <- c("Arial","Verdana","Tahoma","Trebuchet","Times New Roman","Georgia","Garamond","Courier New","Brush Script MT")
 
-  roboplotr_check_param(font, "character", allow_null = F)
+  if (!requireNamespace("systemfonts", quietly = TRUE)) {
+    .fonts <- websafe
+  } else {
+    .fonts <- c(websafe, systemfonts::system_fonts()$family) |> unique()
+  }
+
+  roboplotr_typecheck(font, "character", allow_null = F)
 
   google_font <- NULL
-  if (!font %in% websafe & !str_detect(tolower(font), "(ttf|otf)$")) {
+  if (!font %in% .fonts & !str_detect(tolower(font), "(ttf|otf)$")) {
     google_font <- (function(font_name = font) {
 
       font_name <- str_replace_all(font_name, ' ','+')
@@ -351,7 +354,7 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
     })()
   }
 
-  if(!font %in% websafe & is.null(google_font)) {
+  if(!font %in% .fonts & is.null(google_font)) {
     if (!file.exists(font) | !str_extract(font, "[^\\.]*$") %in% c("otf","ttf","OTF","TTF")) {
       stop(str_c("The give 'font' does not seem to exist or the font file is not in file format .otf or .ttf. Is the file path correct?\n",
                  "Try using a call of system.file() (eg. system.file(\"www\",\"fonts\",\"Roboto-Regular.ttf\", package = \"roboplotr\"))\n",
@@ -359,15 +362,20 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
     }
   }
 
+  if(!font %in% websafe) {
+    .safes <- roboplotr_combine_words(str_c("\"",websafe,"\""), and = " or ")
+    roboplotr_message(str_glue("The font '{font}' might not work in all contexts, consider using one of {.safes}."))
+  }
+
 
   .font <- font
-  roboplotr_check_param(size, "numeric", allow_null = F)
-  roboplotr_check_param(color, "character", allow_null = F)
+  roboplotr_typecheck(size, "numeric", allow_null = F)
+  roboplotr_typecheck(color, "character", allow_null = F)
   roboplotr_valid_colors(color)
-  roboplotr_check_param(bold_title, "logical", allow_null = F)
+  roboplotr_typecheck(bold_title, "logical", allow_null = F)
 
   if(!font %in% websafe & is.null(google_font)) {
-    roboplotr_check_param(type, "character", allow_null = F)
+    roboplotr_typecheck(type, "character", allow_null = F)
     type <- tolower(type)
     if(!type %in% c("main","title","caption")) {
       stop("When the font is a file, the parameter 'type' must be one of \"main\", \"title\" or \"caption\".", call. = F)
@@ -379,14 +387,14 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
                  "Courier New" = "monospace",
                  "Brush Script MT" = "cursive")
 
-  if(font %in% websafe) {
+  if(font %in% .fonts) {
     .fallback <- fallback
     fallback <- str_replace_all(font, fallbacks)
     family <- str_c(font,", ",fallback)
     font <- NULL
     font_face <- NULL
   } else if (!is.null(google_font)) {
-    roboplotr_check_param(fallback, "character", allow_null = F)
+    roboplotr_typecheck(fallback, "character", allow_null = F)
     roboplotr_valid_strings(fallback, websafe, any)
     .fallback <- fallback
     fallback <- str_c(fallback," , ",str_replace_all(fallback, fallbacks))
@@ -394,7 +402,7 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
     family <- str_glue("{font}, {fallback}")
     font <- NULL
   } else {
-    roboplotr_check_param(fallback, "character", allow_null = F)
+    roboplotr_typecheck(fallback, "character", allow_null = F)
     roboplotr_valid_strings(fallback, websafe, any)
     .fallback <- fallback
     fallback <- str_c(fallback," , ",str_replace_all(fallback, fallbacks))
@@ -407,62 +415,268 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
   .res
 }
 
-#' Legends for [robomap()]
+#' Legend configuration
 #'
-#' Get a list for [robomap()] to parse the legend from.
+#' Parameters to customize legend in [roboplots][roboplot()] and [robomaps][robomap()].
+#' @inheritDotParams set_plot_legend
+#' @inheritDotParams set_map_legend
+#' @param ... Placeholder for other parameters.
+#' @returns A list of class roboplotr.set_legend
+#' @export
+#' @examples
+#' # You can use `set_legend` to control how legends are displayed on a `roboplot()`.
 #'
-#' @param breaks Numeric vector. A length 1 vector attempts to make that many legend entries. Length 2+ vector should be the breaks in values of param 'd' or [robomap()] how the legend should be split.
-#' @param labels Character vector or numeric. If 'breaks' is of length 1, a numeric between 0 and 1, which is the rough proportion of legend entries [robomap()] will display (1 displays all). If 'breaks' is of length 2+, labels must be a character vector of length 1 + length of 'breaks'.
-#' @param range Logical. Whether to use the maximum value of each legend item, or give a range. Ignored if 'labels' is provided.
-#' @param position Character. One of 'bottomleft', 'bottomright', or 'none'.
-#' @param orientation Character. Currently only accepts 'vertical'.
-#' @param title Character. Currently unused.
-#' @param opacity Numeric. The opacity of the legend, between 0 and 1.
+#' d <- energiantuonti |>
+#'   dplyr::filter(Alue == "Venäjä")
+#'
+#' # Use `position` NA to remove the legend.
+#' d |>
+#'   roboplot(Suunta,
+#'            legend = set_legend(
+#'              position = NA
+#'            )
+#'            )
+#'
+#' # `roboplot()` omits the legend to give more space for the plot area, when there
+#' # is only a single trace for `color`. Use `position` to force the legend to show.
+#' # You can also use `title` to set a title.
+#'
+#' d |>
+#'   dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(Suunta, legend = set_legend(title = "Example", position = "bottom"))
+#'
+#' # Legend title is distinct from axis-specific legend titles which are controlled
+#' # by `set_axes()` parameters `ylegend` and `y2legend`, when `y2` is used to move
+#' # items from `color` to a secondary y-axis.
+#'
+#' d |>
+#'   roboplot(
+#'     color = Suunta,
+#'     plot_axes = set_axes(
+#'       y2 = "Tuonti",
+#'       ylegend = "Left yaxis",
+#'       y2legend = "Right yaxis"
+#'     ),
+#'     legend = set_legend(title = "Example")
+#'   )
+#'
+#' # Use `tidy` to force legend items to have equal horizontal space across columns
+#' # for slightly neater looking plots. Avoid if space is at premium.
+#'
+#' energiantuonti |>
+#'   dplyr::filter(Suunta == "Tuonti") |>
+#'   roboplot(
+#'     Alue,
+#'     legend = set_legend(tidy = TRUE)
+#'   )
+#'
+#' # `set_legend()` works with `robomap()` too, but with a bit different parameters.
+#' # Control number of legend items with `breaks`.
+#'
+#' d <- vaesto_postinumeroittain |>
+#'   dplyr::filter(stringr::str_detect(Postinumero, "^00(8|9)"))
+#'
+#' d |>
+#'   robomap(Postinumero, "Väkiluku", legend = set_legend(breaks = 3))
+#'
+#' # Or give speficic breakpoints (minimum of two breakpoints). Omit ranges from
+#' # labeling by using `range`.
+#'
+#' d |>
+#'   robomap(Postinumero, "Väkiluku", legend = set_legend(breaks = c(9000, 18000), range = FALSE))
+#'
+#' # Adjust position and opacity.
+#' d |>
+#'   robomap(Postinumero,
+#'           "Väkiluku",
+#'           legend = set_legend(position = "bottomleft", opacity = 0.3))
+#'
+#' # Give a character vector for labels when specific breaks are given. The length
+#' # of labels must be one more than the length of breaks.
+#' d |>
+#'   robomap(Postinumero, "Väkiluku",
+#'           legend = set_legend(
+#'     breaks = c(9000, 18000),
+#'     labels = c("Vähän", "Keskiverto", "Paljon")
+#'   ))
+#'
+#' # Or when breaks is a single value, giving the number of legend items, you
+#' # can give a logical vector of that length, controlling legend item visibility.
+#' # This way you can approximate a gradient legend.
+#' d |> robomap(
+#'   area = Postinumero,
+#'   title = "Väkiluku",
+#'   legend = set_legend(
+#'     breaks = 13,
+#'     labels = c(
+#'       TRUE,
+#'       FALSE,
+#'       TRUE,
+#'       FALSE,
+#'       TRUE,
+#'       FALSE,
+#'       TRUE,
+#'       FALSE,
+#'       TRUE,
+#'       FALSE,
+#'       TRUE,
+#'       FALSE,
+#'       TRUE
+#'     ),
+#'     range = FALSE
+#'   )
+#' )
+set_legend <- function(...) {
+  arggs <- list(...)
+  purpose <- arggs$purpose
+  calls <- sys.calls()
+  purpose <- calls |> unlist() |> as.character() |> str_extract("(roboplot|robomap)(?=\\()")
+  if ("roboplot" %in% purpose) {
+    set_plot_legend(...)
+  } else if ("robomap" %in% purpose) {
+    set_map_legend(...)
+  } else {
+    set_plot_legend(...)
+  }
+}
+
+#' @param position Character. Either "bottom" or NA for no legend for [roboplot][roboplot()],
+#' or one of "bottomleft", "bottomright", or "none" for [robomap][robomap()]. On a
+#' [roboplot][roboplot()], the legend is removed on default if column in data for
+#' param `d` of the [roboplot][roboplot()] that is defined by param `color` of that
+#' plot has only one observation.
+#' @param orientation Character. Currently unused.
+#' @param maxwidth Numeric. All [roboplot][roboplot()] legend items (and y-axis
+#' values for horizontal barplots) longer than this will be trunctated with an ellipsis.
+#' @param title Logical or character. TRUE if you want the parameter `color` from
+#' the [roboplot][roboplot()] to be the legend title. Character if you want to provide
+#' your own legend title.
+#' @param tidy Logical. Controls whether the [roboplot][roboplot()] legend items
+#' will have matching widths
+#' across columns. Default is FALSE.
+#' @rdname set_legend
+set_plot_legend <- function(position = NULL,
+                                      orientation = NULL,
+                                      maxwidth = NULL,
+                                      title = FALSE,
+                                      tidy = getOption("roboplot.legend.tidy"),
+                                      ...) {
+
+
+  roboplotr_typecheck(position, "character", allow_na = T)
+  roboplotr_typecheck(orientation, "character")
+  roboplotr_typecheck(maxwidth, "numeric")
+  roboplotr_typecheck(title, c("logical","character"), allow_null = F)
+  roboplotr_typecheck(tidy, "logical", allow_null = F)
+
+  .res <- list(position = position, orientation = orientation, maxwidth = maxwidth, title = title, tidy = tidy)
+
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_legend", class(.res)))
+
+  .res
+}
+
+
+
+#' @param breaks Numeric vector. A length 1 vector attempts to make that many
+#' [robomap][robomap()] legend entries. Length 2+ vector should be the breaks in
+#' values of param `d` of [robomap][robomap()] where the legend should be split.
+#' @param labels Character or logical vector. If [robomap][robomap()] `breaks` is
+#' of length 1, a logical vector of length equal to value of `breaks`, controlling
+#' which legend items are shown. If `breaks` is of length 2+, provide a character
+#' vector of length 1 + length of `breaks`.
+#' @param range Logical. Whether [robomap][robomap()] shows single values or ranges.
+#' Ignored if `labels` are provided as characters.
+#' @param opacity Numeric. The opacity of the [robomap][robomap()] legend, ranging
+#' from  0 to 1.
 #' @importFrom dplyr between
-#' @return A list of class 'roboplotr.robomap.legend'.
-set_robomap_legend <- function(
+#' @rdname set_legend
+set_map_legend <- function(
     breaks = 5,
     labels = NULL,
     range = T,
     position = "bottomright",
     orientation = "vertical",
     title = NULL,
-    opacity = 1
+    opacity = 1,
+    ...
 ) {
 
-  roboplotr_check_param(position, "character",allow_null = F)
-  roboplotr_valid_strings(position, c("bottomleft","bottomright","none"), any, "set_robomap_legend() param 'position'")
-  roboplotr_check_param(orientation, "character",allow_null = F)
-  roboplotr_valid_strings(orientation, c("vertical"), any, "set_robomap_legend() param 'orientation'")
+  roboplotr_typecheck(position, "character",allow_null = F)
+  roboplotr_valid_strings(position, c("bottomleft","bottomright","none"), any, "set_legend() param 'position'")
+  roboplotr_typecheck(orientation, "character",allow_null = F)
+  roboplotr_valid_strings(orientation, c("vertical"), any, "set_legend() param 'orientation'")
   # robomap-info css: display: flex; flex-flow: row wrap; gap: 5px; margin-left: 10px; margin-right: 10px;
   # muuta myös legend titleä.. pitäisikö tulla ylös
-  roboplotr_check_param(title, "character",allow_null = T)
-  roboplotr_check_param(breaks, "numeric", size = NULL, allow_null = F)
-  roboplotr_check_param(range, "logical", allow_null = F)
-  roboplotr_check_param(opacity, "numeric", allow_null = F)
+  roboplotr_typecheck(title, "character")
+  roboplotr_typecheck(breaks, "numeric", size = NULL, allow_null = F)
+  roboplotr_typecheck(range, "logical", allow_null = F)
+  roboplotr_typecheck(opacity, "numeric", allow_null = F)
   if(length(breaks) == 1) {
-    labtype <- "numeric"
-    labsize <- 1
+    labtype <- "logical"
+    labsize <- as.numeric(breaks)
   } else {
     labtype <- "character"
     labsize <- length(breaks) + 1
   }
-  roboplotr_check_param(labels, labtype, size = labsize, allow_null = T)
-  if(!is.null(labels)) {
-    if(labtype == "numeric") {
-      if(!between(labels, 0, 1)) {
-        stop("set_robomap_legend() param 'labels' must be between 0 and 1 when 'breaks' is of length one!", call. = F)
-      }
-    }
-  }
-  # if(!is.null(labels) & !range) { roboplotr_alert("set_robomap_legend() param 'range' is ignored when 'labels' are provided!") }
+  roboplotr_typecheck(labels, labtype, size = labsize)
+
   if(!between(opacity, 0, 1)) {
-    stop("set_robomap_legend() param 'opacity' must be between 0 and 1!", call. = F)
+    stop("set_legend() param 'opacity' must be between 0 and 1!", call. = F)
   }
   .res <- list(position = position, breaks = breaks, position = position, labels = labels, opacity = opacity, title = title, range = range)
 
-  .res <- structure(.res, class = c("roboplotr","roboplotr.set_robomap_legend", class(.res)))
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_legend", class(.res)))
 
   .res
 }
 
+
+roboplotr_set_caption <- function(caption, d, where) {
+
+  roboplotr_typecheck(caption, c("character","set_caption"), extra = where)
+
+  if (!is.null(caption)) {
+    if (!inherits(caption,"roboplotr.set_caption")) {
+      caption <- set_caption(text = caption)
+    }
+  } else {
+    cpt <- attributes(d)$source
+    if (length(cpt) == 1) {
+      roboplotr_message("Using the attribute \"source\" for plot caption.")
+      caption <- set_caption(text = unlist(cpt)[1])
+    } else if (!is.null(cpt[[getOption("roboplot.locale")$locale]])) {
+      roboplotr_message("Using the attribute \"source\" as plot caption.")
+      caption <-
+        set_caption(text = cpt[[getOption("roboplot.locale")$locale]][1])
+    } else {
+      roboplotr_alert("Missing the caption, using placeholder.")
+      caption <- set_caption(text = "PLACEHOLDER")
+    }
+  }
+
+  caption
+}
+
+
+roboplotr_set_title <- function(title, d, where) {
+
+  roboplotr_typecheck(title, c("set_title","character"), extra = where)
+
+  if (is.null(title)) {
+    title <- attributes(d)[c("title", "robonomist_title")]
+    if (!is.null(title$robonomist_title)) {
+      roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
+      title <- set_title(title$robonomist_title, .extra = where)
+    } else if (!is.null(title$title) & length(title$title != 1)) {
+      roboplotr_message("Using the attribute \"title\" as plot title.")
+      title <- set_title(title$title, .extra = where)
+    } else {
+      roboplotr_message("Missing the title, using placeholder.")
+      title <- set_title("PLACEHOLDER")
+    }
+  } else if (!"roboplotr.set_title" %in% class(title)) {
+    title <- set_title(title = as.character(title), include = TRUE, .extra = where)
+  }
+  title
+}

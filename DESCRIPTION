@@ -1,9 +1,9 @@
 Package: roboplotr
 Title: Robonomist Automated Plotly Plotter
-Version: 1.8.3
+Version: 2.0.0
 Authors@R: 
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
-Description: Automates creation of dynamic plotly plots.
+Description: Comprehensive plotly wrapper function simplifying the creation and customization of advanced visualizations.
 License: file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
@@ -22,14 +22,12 @@ Imports:
     plotly,
     progress,
     purrr,
-    R.utils,
     rlang,
     shiny,
     stringr,
     tidyr,
     stats,
     methods,
-    crayon,
     widgetframe,
     DT,
     leaflet,
@@ -39,7 +37,8 @@ Imports:
     raster,
     scales,
     tibble,
-    webshot2
+    webshot2,
+    lifecycle
 Suggests: 
     testthat (>= 3.0.0),
     rmarkdown,
@@ -48,7 +47,8 @@ Suggests:
     Quandl,
     slider,
     knitr,
-    tidyverse
+    tidyverse,
+    systemfonts
 Remotes: robonomist/robonomistClient
 Config/testthat/edition: 3
 Depends: 

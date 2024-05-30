@@ -1,32 +1,32 @@
-#' File creation from [roboplot()]s
+#' Export visualizations to various formats
 #'
-#' Write html and and other files from [roboplot()] plots
+#' Write html and and other files from [roboplots][roboplot()], [robotables][robotable()]
+#' or [robomaps][robomap()].
 #'
 #' @param p A plotly object.
 #' @param title Character. The filename of the artefact(s) created
-#' (without file format). Will be formatted with underscores, and the title
-#' of argument 'p' will be used if no title is provided.
+#' (without file format). Will be formatted with underscores, and the `title` text
+#' of `p` will be used if no title is provided.
 #' @param filepath Character. The filepath to the created artefacts.
-#' @param render Logical. Controls if the plot saved will be displayed in
-#' viewer. Plot will be returned silently in either case.
-#' @param self_contained Logical. Controls if the plot dependencies will be
-#' saved in an adjacent directory "plot_dependencies" or contained within the
+#' @param render Logical. Controls if the artefact will be displayed in
+#' viewer. Will be returned silently in either case.
+#' @param self_contained Logical. Controls whether artefact's dependencies' are
+#' saved in an adjacent directory or contained within the
 #' file, increasing size.
 #' @param artefacts Character vector. Controls what artefacts are saved. One or
 #' more of "html", "png", "jpg", "jpge", "webp", or "pdf".
-#' @param zoom Numeric. Controls the zoom level of static images if any are
+#' @param zoom Numeric. Controls the zoom level of static plots if any are
 #' defined with 'artefacts'. Default 1.
-#' @param width,height Numeric. Sets the size of any static images created. Any
-#' artefacts created with [roboplot()]'s 'artefacts' parameter will use the given
+#' @param width,height Numeric. Sets the size of any static plots created. Any
+#' artefacts created with [roboplot()]'s `artefacts` parameter will use the given
 #' dimensions, if any, for that plot.
 #' @examples
-#' # Saving roboplotr::roboplot() plots as files can be controlled by setting
-#' # global options with roboplotr::set_roboplot_options() (see documentation),
-#' # and using roboplotr::set_artefacts() in roboplotr::roboplot() parameter
-#' # 'artefacts', but you can use this function as well. Control location of the
-#' # files with 'filepath'. Default 'filepath' will be the current working
-#' # directory. If a 'title' is not provided, it will be parsed from plot title.
-#'
+#' set_roboplot_options(verbose = "Warning", .default = TRUE)
+#' # Saving `roboplot()` plots as files can be controlled by setting global options
+#' # with `set_roboplot_options()`, and using `set_artefacts()` in `roboplot()`
+#' # `artefacts`, but you can use this function as well. Control location of the
+#' # files with `filepath` (default is current working directory).
+#' \dontrun{
 #' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
 #'
 #' d |>
@@ -37,13 +37,11 @@
 #'
 #' file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
 #'
-#' # You can provide the filename as string and
-#' # roboplotr::create_widget() will parse the filename from that. The
-#' # plot will always be silently returned, but 'render' controls whether it
-#' # will be displayed in viewer on widget creation. Normally
-#' # roboplotr::roboplot() html widgets will have dependencies contained in an
-#' # external folder "plot_dependencies", but elements can be bundled within the
-#' # widgets with 'self_contained' (if you want to forward the file, perhaps).
+#' # You can provide the filename as string and `create_widget()` will parse the
+#' # filename from that. The plot will always be silently returned, but `render`
+#' # controls whether it will be displayed in viewer on widget creation. Normally
+#' # `roboplotr` html widgets will have dependencies contained in an
+#' # external folder, but they can be bundled within with 'self_contained'.
 #'
 #' d |>
 #'   roboplot(
@@ -58,17 +56,13 @@
 #'
 #' file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
 #'
-#' # If you want to create static plot files, use a character vector of file
-#' # types in 'artefacts'. Exclude "html" if you want to create static plots
-#' # only. Possible filetypes are "html","png","jpg","jpge","webp","pdf". The
-#' # static files created this way will respect the plot layout specifications
-#' # of the roboplotr::roboplot() plot, unlike the ones downloaded through
-#' # modebar (set those with roboplotr::set_roboplot_options()). Note that modebar
-#' # gives access to svg file format, while automating it the file creation with
-#' # roboplotr::create_widget() or roboplotr::roboplot() allows for pdf
-#' # files.
+#' # If you want to create non-interactive files, use a character vector of file
+#' # types in 'artefacts'. Possible filetypes are "html","png","jpg","jpge","webp",
+#' # "pdf". The static files created this way will respect the plot layout specifications
+#' # of the `roboplot()` plot, unlike the ones exported with modebar. Note that
+#' # modebar gives access to svg file format, while automating it the file creation with
+#' # `create_widget()` or `roboplot()` allows for pdf files.
 #'
-#' if(interactive()) {
 #'   d |>
 #'     roboplot(
 #'       color = Alue,
@@ -82,7 +76,7 @@
 #'
 #'   utils::browseURL(paste0(tempdir(), "/kanadan_energiantuonti.pdf"))
 #' }
-#' @return A list of classes "plotly" and "html"
+#' @returns What was passed as `p`.
 #' @export
 #' @importFrom dplyr first
 #' @importFrom htmltools htmlDependency
@@ -104,11 +98,11 @@ create_widget <- function(
     ) {
   is.robotable <- "datatables" %in% class(p)
 
-  roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F, allow_na = F)
+  roboplotr_typecheck(artefacts, "character", size = NULL, allow_null = F)
   roboplotr_valid_strings(artefacts, c("html","png","jpg","jpge","webp","pdf"), .fun = any)
-  roboplotr_check_param(zoom, "numeric", allow_null = F, allow_na = F)
-  roboplotr_check_param(width, "numeric", allow_null = T, allow_na = F)
-  roboplotr_check_param(height, "numeric", allow_null = T, allow_na = F)
+  roboplotr_typecheck(zoom, "numeric", allow_null = F)
+  roboplotr_typecheck(width, "numeric", allow_null = T)
+  roboplotr_typecheck(height, "numeric", allow_null = T)
 
   if(!dir.exists(filepath)) {
     stop(str_glue("Does the directory {filepath} exist?"), call. = T)
@@ -124,7 +118,7 @@ create_widget <- function(
       str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_")
     roboplotr_message(str_c("Using \"",roboplotr_string2filename(title),"\" for htmlwidget filename.."))
   } else {
-    roboplotr_check_param(title, "character", allow_null = F, allow_na = F)
+    roboplotr_typecheck(title, "character", allow_null = F)
   }
 
   widget_title <- title
@@ -168,40 +162,24 @@ create_widget <- function(
   }
 }
 
-#' File creation from [roboplot()]s (deprecated)
+#' Visualization export configuration
 #'
-#' Write html and and other files from [roboplot()] plots
+#' Parameters to configure exports from [roboplots][roboplot()] or [robotables][robotable()].
 #'
-#' @title roboplot_create_widget
-#' @param ... Additional arguments passed to [create_widget()]. See
-#' `?create_widget` for more details.
-#' @return A list of classes "plotly" and "html"
-#' @export
-roboplot_create_widget <- function(...) {
-  .Deprecated("create_widget")
-  create_widget(...)
-}
-
-#' Artefact control for [roboplot()]
-#'
-#' Set global parameters in [set_roboplot_options()] for artefact creation
-#' of [roboplot()] plots.
-#'
-#' @param auto Logical. Whether [roboplot()] will create artefacts automatically.
+#' @param auto Logical. Whether [roboplot][roboplot()] or [robotable][robotable()]
+#' will create artefacts automatically.
 #' @inheritParams create_widget
 #' @examples
 #' # Used to set global defaults for widget or other artefact creation. Any of
-#' # these can be overridden by roboplotr::roboplot(). Only supposed to be
-#' # called inside roboplotr::set_roboplot_options() or roboplotr::roboplot().
-#' # Use 'filepath' to control which directory the artefacts are created to,
-#' # 'render' to control if the roboplot() plot will be rendered on artefact
-#' # creation, 'self_contained' to control if html plot dependencies are placed
-#' # in an adjacent directory or contained within the html file, 'artefacts'
-#' # (one of "html", "png","jpg", "jpge", "jpge", "webp" or "pdf) to control
-#' # what artefacts are created, and 'zoom' to set static artefact zoom level.
+#' # these can be overridden by `roboplot()`. Use `filepath` to control which
+#' # directory the artefacts are created to, `render` to control if the object will
+#' # be rendered on artefact creation, `self_contained` to control if html plot
+#' # dependencies are placed in an adjacent directory or contained within the html file,
+#' # `artefacts` (one of "html", "png","jpg", "jpge", "jpge", "webp" or "pdf) to
+#' # control what artefacts are created, and 'zoom' to set static artefact zoom level.
 #'
 #' # create_widget() shows how the parameters are used.
-#' @return A list.
+#' @returns A list of class roboplot.set_artefacts.
 #' @export
 set_artefacts <- function(
     artefacts = getOption("roboplot.artefacts")$artefacts,
@@ -214,17 +192,17 @@ set_artefacts <- function(
     width = getOption("roboplot.artefacts")$width,
     height = getOption("roboplot.artefacts")$height
 ) {
-  roboplotr_check_param(filepath, "character", allow_null = F)
-  roboplotr_check_param(render, "logical", allow_null = F)
-  roboplotr_check_param(self_contained, "logical", allow_null = F)
-  roboplotr_check_param(artefacts, "character", size = NULL, allow_null = F)
+  roboplotr_typecheck(filepath, "character", allow_null = F)
+  roboplotr_typecheck(render, "logical", allow_null = F)
+  roboplotr_typecheck(self_contained, "logical", allow_null = F)
+  roboplotr_typecheck(artefacts, "character", size = NULL, allow_null = F)
   roboplotr_valid_strings(artefacts, c("html","png","jpg","jpge","webp","pdf"), .fun = any)
-  roboplotr_check_param(title, "character", allow_null = T)
-  roboplotr_check_param(zoom, "numeric", allow_null = F, allow_na = F)
-  roboplotr_check_param(width, "numeric", allow_null = F, allow_na = F)
-  roboplotr_check_param(height, "numeric", allow_null = F, allow_na = F)
+  roboplotr_typecheck(title, "character", allow_null = T)
+  roboplotr_typecheck(zoom, "numeric", allow_null = F)
+  roboplotr_typecheck(width, "numeric", allow_null = F)
+  roboplotr_typecheck(height, "numeric", allow_null = F)
 
-  .res <-   list(
+  .res <- list(
     auto = auto,
     filepath = filepath,
     render = render,
@@ -386,81 +364,3 @@ roboplotr_widget_deps <- function(filepath = NULL) {
   }
 
 }
-
-# Uploads the html elements and dependencies to cloud storage. DO NOT USE! WORK IN PROGRESS
-#
-# @param files_path The folder where the artefacts to be uploaded are located.
-# @param upload_path The gcs folder where the artefacts will be uploaded to.
-# @param overwrite If named files exist in the cloud storage, will they be overwritten.
-# @importFrom knitr current_input
-# @importFrom stringr str_remove str_replace_all str_c str_detect
-# @importFrom dplyr case_when
-# @importFrom googleCloudStorageR gcs_metadata_object gcs_upload gcs_get_global_bucket gcs_auth gcs_global_bucket gcs_list_objects
-# @importFrom purrr walk
-# roboplotr_upload_widgets <- function(files_path, upload_path, overwrite = FALSE) {
-#
-#   if (length(Sys.glob(file.path(getwd() |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))) != 0){
-#     aut_file <- Sys.glob(file.path(getwd() |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))
-#   } else {
-#     aut_file <- Sys.glob(file.path("~" |> str_remove("(?<=pttrobo).{1,}"),"robottiperhe-*.json"))
-#   }
-#
-#   tryCatch(gcs_auth(aut_file), error = function(e) {
-#     str <- str_c("Do you have the proper authorisation file in the directory?\n")
-#     stop(str, call. = F)
-#   })
-#   suppressMessages(gcs_global_bucket("pttry"))
-#
-#   is_knitting <- isTRUE(getOption('knitr.in.progress'))
-#
-#   if(missing(files_path)) {
-#     if(is_knitting == T) {
-#       cur_input <- current_input()
-#       files_path <- tempdir()
-#     } else {
-#       stop("Give the path to the files you wish to upload. Careful! This will upload every .html, .css, .map, .scss, .txt and .js file in the given path!", call. = F)
-#     }
-#   } else {
-#     upl_files <-  list.files(path = files_path, recursive = T, full.names = T) |> str_subset("\\.(css|js|map|scss|html|txt)$") |> str_c(collapse = ", ")
-#     roboplotr_warning(str_c("Give the path to the files you wish to upload. Careful! This will upload all of ",upl_files,"!\nType \"upload\" to continue:"))
-#     ans <- readline(" ")
-#     if (ans != "upload") { stop("Canceled", call. = F) }
-#   }
-#
-#   if (missing(upload_path) & !is_knitting) {
-#     stop("Give the path to the folder in the upload bucket where you wish to upload the files to.", call. = F)
-#   }
-#
-#   artefact_files <- list.files(files_path, recursive = T) |> str_subset("\\.(css|js|map|scss|html|txt)$")
-#   if(overwrite == FALSE) { message("Overwrite is set to false, set overwrite = T in roboplotr_upload_widgets if you want to overwrite existing uploads.") }
-#   walk(artefact_files, function(artefact_file) {
-#     upload_file <- if(is_knitting) {
-#       prefix <- cur_input |> str_remove("\\.Rmd$") |> str_replace_all("/","_") |> str_c("_artefacts")
-#       file.path("ennustekuvat",prefix,artefact_file)
-#     } else {
-#       file.path(upload_path,artefact_file)
-#     }
-#     obj.existence <- suppressMessages(gcs_list_objects(prefix = upload_file) |> nrow() |> as.logical())
-#     # print(artefact_file)
-#     # print(upload_file)
-#     if(obj.existence == TRUE & overwrite == FALSE) {
-#       roboplotr_warning(str_c("The file ",upload_file, " already exists!"))
-#     } else {
-#       if(obj.existence == TRUE) {
-#         roboplotr_alert(str_c("Overwriting previous upload of ",upload_file))
-#       } else {
-#         roboplotr_message(str_c("Uploading ",upload_file))
-#       }
-#       upload_type <- case_when(str_detect(upload_file, "css$") ~ "text/css",
-#                                str_detect(upload_file, "js$") ~ "text/javascript",
-#                                str_detect(upload_file, "txt$") ~ "text/plain",
-#                                str_detect(upload_file, "map$") ~ "application/json",
-#                                TRUE ~ as.character(NA))
-#       if(is.na(upload_type)) { upload_type <- NULL}
-#       meta <- gcs_metadata_object(artefact_file, cacheControl = "public, max-age=600")
-#       meta[["name"]] <- str_replace_all(upload_file, c("\\%C3\\%B6" = "\u00f6", "\\%C3\\%A4" = "\u00e4", "\\%2F" = "/"))
-#       gcs_upload(file.path(files_path,artefact_file), gcs_get_global_bucket(), name = upload_file, type = upload_type, object_metadata = meta, predefinedAcl="bucketLevel")
-#     }
-#
-#   })
-# }

@@ -269,25 +269,24 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 }
 
 
-#' Statis image layout specs for files downloaded by clicking [roboplot()] modebar
+#' Font configuration for modebar exports.
 #'
-#' Use in [set_roboplot_options()] to get a list of specifications used for
-#' [roboplot()] relayouts for downloaded static files when the appropriate modebar
-#' button is pressed
+#' Parameters to customize plot layout when exported from modebar.
 #'
-#' @param height,width Integer. The dimensions for the image file in pixels the modebar button will produce.
-#' @param mainfont,titlefont,captionfont Integer. The font sizes used in the static file the modebar button will produce.
-#' @param suffix Character. Suffix attached after the name of the downloaded static file.
-#' @param format Character. One of "png", "svg", "jpg", or "webp". Defines the file format of the downloaded image file.
+#' @param height,width Numeric. The dimensions for the export file in pixels.
+#' @param mainfont,titlefont,captionfont Numeric. The font sizes used in the export
+#' the modebar button will produce.
+#' @param suffix Character. Suffix attached after the name of the export.
+#' @param format Character. One of "png", "svg", "jpg", or "webp". Defines the file
+#' format of the export.
 #' @examples
-#' # Used inside roboplotr::set_roboplot_options() to control image download
-#' # specifications. Parameters 'x' and 'y' control the image dimensions. The
-#' # image uses the font specifications of the main plot, but you might need to
-#' # alter the font sizes with 'mainfont', 'titlefont' and 'captionfont'. You
-#' # can give a suffix for image download filenames (the filename is derived
-#' # from the plot title), and provide any one of "png","svg","jpeg", or "webp"
-#' # for the file format.
+#' # Used inside `set_roboplot_options()` to control modebar export specifications
+#' # globally. Parameters `x` and `y` control the dimensions. Override plot font
+#' # sizes with `mainfont`, `titlefont`, and `captionfont`. You can give a suffix
+#' # for export filenames (the filename is derived from title), and provide any
+#' # one of "png","svg","jpeg", or "webp" the for `format`.
 #'
+#' \dontrun{
 #' set_roboplot_options(
 #'   imgdl_wide =
 #'     set_imgdl_layout(
@@ -300,8 +299,7 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #'       format = "svg")
 #' )
 #'
-#' if(interactive()) {
-#' # Create a roboplotr::roboplot and navigate to it, and download your static
+#' # Create a `roboplot()` and navigate to it, and download your static
 #' # image by clicking the appropriate button in the modebar.
 #' energiantuonti |>
 #'   dplyr::filter(Suunta == "Tuonti") |>
@@ -313,15 +311,14 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #'     artefacts = set_artefacts("html", filepath = tempdir())
 #'   )
 #'   utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
-#' }
 #'
 #' # Static image downloads are controlled through the modebar, so if you use
-#' # other than 'img_wide' you need to use roboplotr::set_roboplot_options() to
+#' # other than "img_wide" you need to use `set_roboplot_options()` to
 #' # control the modebar accordingly in addition to giving the downloaded image
-#' # specifications (roboplotr::roboplot() does have some defaults in place
+#' # specifications (`roboplot()` does have some defaults in place
 #' # for every size, so you can skip image specifications even if you do add
 #' # use other image download buttons in the modebar). With multiple image
-#' # download buttons the 'suffix' parameter is especially handy.
+#' # download buttons the `suffix` parameter is especially handy.
 #'
 #' set_roboplot_options(
 #'   imgdl_wide =
@@ -343,8 +340,7 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #'   modebar = c("img_w","img_n","img_s")
 #' )
 #'
-#' if(interactive()) {
-#'   # Create a roboplotr::roboplot and navigate to it, and download any of the
+#'   # Create a `roboplot()` and navigate to it, and download any of the
 #'   # static images through the modebar.
 #'   energiantuonti |>
 #'     dplyr::filter(Suunta == "Tuonti") |>
@@ -356,11 +352,11 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #'       artefacts = set_artefacts("html", filepath = tempdir())
 #'     )
 #'   utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
-#' }
 #'
 #' # Revert to defaults:
 #' set_roboplot_options(reset = TRUE)
-#' @returns A list
+#' }
+#' @returns A list of class of roboplotr.set_imgdl_layout
 #' @export
 set_imgdl_layout <- function(
     width = 1280,
@@ -386,27 +382,27 @@ set_imgdl_layout <- function(
   .res
 }
 
-#' Infobox appearance control for [roboplot()] or [robotable()]
+#' Info box configuration for [roboplot()] or [robotable()]
 #'
-#' Set global parameters in [set_roboplot_options()] for plot borders
-#' of [roboplot()] plots and [robotable()] tables.
+#' Global parameters to add and customize info boxes in [roboplots][roboplot()]
+#' and [robomaps][robomap()].
 #'
 #' @importFrom dplyr first
 #' @param background,border Characters. Colors used for the corresponding
 #' element of the infopopup of [robotable()]s and [roboplot()]s. Must be a
-#' hexadecimal color strings or a valid css color strings.
+#' hexadecimal color or a valid css color.
 #' @param border_width Integer. The border width of infomodal.
-#' @returns A list.
+#' @returns A list of class roboplot.set_infobox.
 #' @export
 set_infobox <-
   function(background = first(unlist(unique(getOption('roboplot.grid')[c('xcolor', 'ycolor')]))),
            border = first(unlist(unique(getOption('roboplot.border')[c('xcolor', 'ycolor')]))),
            border_width = 1) {
-    roboplotr_valid_colors(background)
     font <- roboplotr_text_color_picker(background,getOption("roboplot.font.main")$size)
-    roboplotr_valid_colors(border)
-    roboplotr_valid_colors(font)
-    roboplotr_check_param(border_width, "numeric", allow_null = F)
+    roboplotr_typecheck(background, "character", allow_null = F)
+    roboplotr_typecheck(border, "character", allow_null = F)
+    roboplotr_valid_colors(c(background,border), message = "Colors in set_infobox()")
+    roboplotr_typecheck(border_width, "numeric", allow_null = F)
 
     .res <- list(
       background = background,
@@ -421,16 +417,16 @@ set_infobox <-
   }
 
 
-#' Modebar control for [roboplot()] or [robotable()]
+#' Modebar configuration
 #'
-#' Set global parameters in [set_roboplot_options()] for modebars.
+#' Parameters to add and customize modebars in [roboplots][roboplot()].
 #'
 #' @param buttons Character vector. Buttons contained in modebar in the given order.
 #' Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w",
 #' "img_n", "img_s", "data_dl" and "robonomist" in any order.
-#' @param display Character. One of "constant", "hover" or "none". Controls if the modebar
-#' is visible always, only on hover, or never. Whatever the choice, static images will not
-#' display modebar.
+#' @param display Character. One of "constant", "hover" or "none". Controls whether
+#' modebar is visible always, only on hover, or never. Whatever the choice, static
+#'exports will not display a modebar.
 #' @param ... Placeholder for other parameters.
 #' @returns A list.
 #' @export

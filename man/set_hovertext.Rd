@@ -2,7 +2,7 @@
 % Please edit documentation in R/hovertemplate.R
 \name{set_hovertext}
 \alias{set_hovertext}
-\title{Hovertemplate specifications for \code{\link[=roboplot]{roboplot()}}}
+\title{Hovertext configuration}
 \usage{
 set_hovertext(
   frequency = NULL,
@@ -13,38 +13,33 @@ set_hovertext(
 )
 }
 \arguments{
-\item{frequency}{Character. Determines how hovertemplate dates are formatted.
-One of "Annual", "Quarterly", "Monthly", "Weekly", "Daily" or NULL. Default
-NULL. With NULL roboplot will try to determine the format based on argument
-'d' of \code{\link[=roboplot]{roboplot()}}.}
+\item{frequency}{Character. Determines the format of hovertemplate dates. One
+of "Annual", "Quarterly", "Monthly", "Weekly", "Daily", or NULL. Defaults to
+NULL, where \code{\link[=roboplot]{roboplot()}} infers the format from \code{d}.}
 
-\item{rounding}{Double. Determines the number of small digits of \code{\link[=roboplot]{roboplot()}}
-hovertemplate values. Defaults to 1.}
+\item{rounding}{Double. Number of decimal places for hovertemplate values. Defaults
+to 1.}
 
-\item{unit}{Character. Unit displayed for \code{\link[=roboplot]{roboplot()}} hovertemplate values.}
+\item{unit}{Character. Unit displayed.}
 
-\item{text_col}{Symbol, string, or function resulting in symbol or string.
-Column from param 'd' in roboplot() to use for labeling. If NULL, the column
-used for 'color' (and if given, 'pattern') is used for labels.}
+\item{text_col}{Symbol or character. Column used from \code{d} in a \link[=roboplot]{roboplot}
+for labeling. If NULL, the column used for \code{color} (and, if given, \code{pattern})
+is used for labels.}
 
-\item{extra}{Character vector. Extra text displayed under \code{\link[=roboplot]{roboplot()}}
-hovertemplate.}
+\item{extra}{Character vector. Extra text displayed under any hovertext.}
 }
 \value{
-A list
+A list of class roboplotr.set_hovertext
 }
 \description{
-Use in \code{\link[=roboplot]{roboplot()}} parameter 'hovertext' to get a list used for
-hovertemplate text formatting
+Parameters to control the formatting and content of hovertext in \link[=roboplot]{roboplots}.
 }
 \examples{
-# Use to give hovertemplate specifications for roboplotr::roboplot() plots,
-# assumed normally to be called within roboplotr::roboplot().
-
-# Without specifying hovertext, roboplotr::roboplot() will construct it based
-# on data from argument 'd' of roboplotr::roboplot(), guessing frequency and using
-# the argument subtitle' as the unit of value. Control displayed time with
-# 'frequency', and unit rounding and labeling with 'rounding' and 'unit'.
+# Use to give hovertemplate specifications for `roboplot()` plots.
+# Without specifying hovertext, `roboplot()` will construct it based
+# on data from argument `d` of `roboplot()`, guessing frequency and using
+# the argument `subtitle` as the unit of value. Control formatting with
+# `frequency`, `rounding`, and `unit`.
 
 d <- energiantuonti |>
   dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"),
@@ -57,9 +52,8 @@ d |> roboplot(
     )
 )
 
-
 # Parameter 'extra' will be added to last line(s) of the hovertemplate, which
-# can be plain text or reference to the plotly object data, with d3 syntax.
+# can be plain text or reference to `d` of the `roboplot()`, with d3 syntax.
 
 d |> roboplot(
   Alue, "Energian tuonti", "Milj. €", "Lähde: Tilastokeskus.",

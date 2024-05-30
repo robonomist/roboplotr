@@ -18,7 +18,20 @@
     roboplot.infobox = list(background = "#E8E8E8", border = "black", font = "#696969", border_width = 1),
     roboplot.legend.tidy = FALSE,
     roboplot.linewidth = 2,
-    roboplot.locale = list(locale = "fi", separators = ", ", date = "%-d.%-m.%Y", ylegendlabs = list(left = "Vasen Y-akseli", right = "Oikea Y-akseli")),
+    roboplot.locale = list(
+      locale = "fi",
+      separators = ", ",
+      date = "%-d.%-m.%Y",
+      ylegendlabs = list(left = "Vasen Y-akseli", right = "Oikea Y-akseli"),
+      robotable_labels = list(
+        search = "Etsi:",
+        info = "N\u00e4ytet\u00e4\u00e4n rivit _START_-_END_ / _TOTAL_",
+        lengthMenu = "N\u00e4yt\u00e4 _MENU_ rivi\u00e4 per sivu",
+        emptyTable = "Tietoja ei saatavilla",
+        first = "Ensimm\u00e4inen",
+        last = "Viimeinen"
+      )
+    ),
     roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),
     roboplot.markers = list(symbol = "circle", size = 8),
     roboplot.modebar = list(buttons = c("closest","compare","img_w","data_dl"), display = "hover"),

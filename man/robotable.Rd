@@ -2,7 +2,7 @@
 % Please edit documentation in R/robotable.R
 \name{robotable}
 \alias{robotable}
-\title{Automated datatable tables.}
+\title{Comprehensive leaflet wrapper function}
 \usage{
 robotable(
   d,
@@ -30,45 +30,57 @@ robotable(
 \arguments{
 \item{d}{Data frame. Data to be created a table from.}
 
-\item{title, subtitle}{Characters. Labels for plot elements. Optionally, use \code{\link[=set_title]{set_title()}} for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.}
+\item{title, subtitle}{Characters. Labels for plot elements.}
 
 \item{caption}{Function or character. Use \code{\link[=set_caption]{set_caption()}}.}
 
 \item{rounding}{Numeric. Controls the rounding of numeric columns.}
 
-\item{height, width}{Numeric. Height and width of the table. Default width is NULL for responsive plots, give a value for static table dimensions.}
+\item{height, width}{Numeric. Height and width of the table. Default width is
+NULL for responsive tables, give a value for static table dimensions.}
 
-\item{flag, unit}{Character vectors. Use "+" for flag if you want to flag a numeric column for positive values. Unit is prepended to values in a numeric column. Name the units with column names from data 'd' if you want to target specific columns.}
+\item{flag, unit}{Character vectors. Use "+" for flag if you want to flag a numeric
+column for positive values. Unit is prepended to values in a numeric column.
+Name the units with column names from \code{d} if you want to target specific columns.}
 
-\item{dateformat}{Character. Controls how to format dates displayed on the table. Robotable tries to determine the proper format if left NULL.}
+\item{dateformat}{Character. Controls how to format dates displayed on the table.
+\code{robotable()} attempts to determine the proper format if left NULL.}
 
-\item{pagelength}{Numeric. Controls how many rows are displayed on the table. If data 'd' contains more rows than this, \code{\link[=robotable]{robotable()}} automatically adds navigation.}
+\item{pagelength}{Numeric. Controls how many rows are displayed on the table.
+If \code{d} contains more rows than this, \code{\link[=robotable]{robotable()}} adds navigation elements.}
 
-\item{info_text}{Character. Optional. If included, this text will be displayed with a popup when the info button in the table modebar is clicked.}
+\item{info_text}{Character. Optional. If included, this text will be displayed
+with a popup when the info button in the table modebar is clicked.}
 
-\item{heatmap}{Function. Use \code{\link[=set_heatmap]{set_heatmap()}}. Displays any numeric values as a heatmap.}
+\item{heatmap}{Function. Use \code{\link[=set_heatmap]{set_heatmap()}}. Color-codes numeric columns.}
 
-\item{na_value}{Character. The displayed value of all NA values in the table.}
+\item{na_value}{Character. How NA values are displayed.}
 
-\item{class}{Character vector. Controls the basic datatable appearance. You may combine any of "cell-border", "compact","hover","nowrap","row-border" and / or "stripe". The default use is "stripe", "hover" and "row-border".}
+\item{class}{Character vector. Controls the basic datatable appearance. You may
+combine any of "cell-border", "compact","hover","nowrap","row-border" and / or
+"stripe". The default use is "stripe", "hover" and "row-border".}
 
-\item{searchable, sortable}{Logical. Control whether the \code{\link[=robotable]{robotable()}} columns have searching or sorting.}
+\item{searchable, sortable}{Logical. Control whether the \code{\link[=robotable]{robotable()}} columns
+have searching or sorting when navigation is displayed.}
 
-\item{col_widths}{Named numeric vector. Must sum to 100 or lower. Sets the percentage widths taken by column by name. Columns not named will have the excess space divided evenly between them. For narrow screens the widths cannot be adhered to.}
+\item{col_widths}{Named numeric vector. Must sum to 100 or lower. Sets the percentage
+widths taken by column by name. Columns not named will have the excess space
+divided evenly between them. For narrow screens the widths cannot be adhered to.}
 
-\item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}. Controls artefact creation. Currently unable to make static files, only html files.}
+\item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}. Controls file exports.
+Currently unable to make static exports, only html files.}
 
 \item{...}{Placeholder for other parameters.}
 }
 \value{
-A list of classes "datatable" and "htmlwidget"
+A list of classes datatable, htmlwidget, and roboplotr.robotable
 }
 \description{
-Wrapper for \link[DT:datatable]{DT::datatable} for shorthand declaration of many layout arguments.
-Automates many formatting options.
+This function wraps numerous \href{https://rstudio.github.io/DT/}{DT}
+features into a single, well-parametrized interface.
 }
 \examples{
-# You can use roboplotr::robotable() to create html tables
+# You can use `robotable()` to create html tables
 #
 energiantuonti |> robotable()
 #
@@ -84,24 +96,22 @@ d <- energiantuonti |>
   dplyr::arrange(time)
 d |> robotable()
 #
-# You can use the pagelength parameter to control how many rows are shown at once,
-# info_text to add any information you wish describe about the table, and
-# heatmap parameter if you want to color-code any numeric values across the
-# table. See [set_heatmap()] documentation for further examples.
+# You can use `pagelength` to control how many rows are shown at once,
+# `info_text` to add any information you wish describe about the table, and
+# `heatmap` parameter if you want to color-code any numeric values across the
+# table. See [set_heatmap()].
 #
 d |>
  robotable(heatmap = set_heatmap(),
            pagelength = 50,
            info_text = "Testing the info button.")
 
-# You can use class parameter to control the appearance of the table, providing.
-# a character vector of classes used by the table. Available options are
-# "cell-border", "compact", "hover", "nowrap", "row-border" and "stripe", with
-# the default being "stripe", "hover" and "row-border". Column widths can be
-# specified by giving a named vector where the values are percentages of total
-# width the column will take ([roboplot()] will divide the remaining space
-# evenly between columns not named in the parameter). Navigating options for
-# search and sort can be disabled by 'searchable' and 'sortable'.
+# You can use `class` to control visuals, providing a character vector of html
+# classes used by the table. Available options are "cell-border", "compact",
+# "hover", "nowrap", "row-border" and "stripe", with the default being "stripe",
+# "hover" and "row-border". Column widths can be specified by giving a named
+# vector where the values are percentages of total width. Navigating options
+# can be disabled by 'searchable' and 'sortable'.
 
 d |> robotable(
   class = c("compact", "nowrap"),

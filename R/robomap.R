@@ -108,7 +108,6 @@ roboplotr_map_markerlayer <- function(map, d, markers, size_scale = c(1,12)) {
 
 #' @importFrom leaflet addPolygons labelOptions
 roboplotr_map_polygonlayer <- function(map, data_contour, map_opacity, robomap_palette, border_width) {
-# browser()
 # for timeslider maps, doesn't really work
 #   map_data2 <- map_data2 |> mutate(robomap.value = log(value+1))
 #
@@ -200,28 +199,35 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 
 }
 
-#' Automated leaflet maps.
+#' Comprehensive leaflet wrapper function
 #'
-#' Wrapper for [leaflet::leaflet] for shorthand declaration of many map layout arguments.
-#' Automates many formatting options.
+#' This function wraps numerous [Leaflet](https://rstudio.github.io/leaflet/articles/leaflet.html)
+#' features into a single, well-parametrized interface.
 #'
-#' @param d Data frame. Data to be created a table from.
-#' @param area Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use to identify the areas described by the map. This must be of class sfc_MULTIPOLYGON.
-#' @param title,subtitle Characters. Labels for plot elements. Optionally, use [set_title()] for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.
+#' @param d Data frame. Data to be created a map from.
+#' @param area Symbol or string. Variable from argument 'd' to use to identify the
+#' areas described by the map. This must be of class sfc_MULTIPOLYGON.
+#' @param title,subtitle Characters. Labels for plot elements.
 #' @param caption Function or character. Use a string, or [set_caption()].
-#' @param map_opacity,tile_opacity Double. Value from 0 to 1, defining how opaque the map polygon fill color or underlying map tiles are. 0 removes the tile layer, but retains the polygon borders if any.
-#' @param map_palette Character or function. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings, or use [set_heatmap()] if specifying color breakpoints.
-#' @param hovertext List. Use a list with named items flag and unit.
-#' @param border_width Integer. The width of polygon borders. Default is the trace border width set with [set_roboplot_options()].
-#' @param legend Function. Use [set_robomap_legend()].
-#' @param data_contour Logical. Experimental. If TRUE, [robomap()] will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
-#' This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.
+#' @param map_opacity,tile_opacity Numeric. Values from 0 to 1, defining how opaque
+#' the map polygon fill color or underlying map tiles are. 0 removes the tile layer,
+#' but retains the polygon borders if any.
+#' @param map_palette Character or function. Must be a hexadecimal colors or valid
+#' css colors, or use [set_heatmap()] if specifying color breakpoints.
+#' @param hovertext List. Use a list with named characters flag and unit.
+#' @param border_width Integer. The width of polygon borders.
+#' @param legend Function. Use [set_legend()].
+#' @param data_contour Logical. Experimental. If TRUE, [robomap()] will produce
+#' a contour-like representation of the data, which does not conform to the boundaries
+#' of the polygons. This provides a smoother transition and helps in visualizing
+#' general trends across regions. Default is FALSE.
 #' @param log_colors Logical. Whether the colors scales is log or not.
 #' @param zoom Logical. Whether the map is zoomable or not.
 #' @param rounding Numeric. How [robomap()] rounds numeric values.
-#' @param markers Logical. Experimental. Whether markers will be added on the map based on the columns "lat" and "lon". Default is FALSE.
+#' @param markers Logical. Experimental. Whether markers will be added on the map
+#' based on the columns "lat" and "lon". Default is FALSE.
 #' @param ... Placeholder for other parameters.
-#' @return A list of classes "leaflet" and "htmlwidget"
+#' @returns A list of classes leaflet, htmlwidget and roboplot.robomap
 #' @importFrom htmltools HTML tags
 #' @importFrom leaflet addControl addLegend leaflet leafletOptions
 #' @importFrom purrr map
@@ -229,17 +235,15 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @importFrom utils head tail
 #' @export
 #' @examples
-#' # You can use roboplotr::robomap() to create html maps. Note that very large
+#' # You can use `robomap()` to create interactive maps. Note that very large
 #' # number of map polygons makes for slow rendering maps.
-#'
-#' # Currently robomap() only supports very little customization.
 #' vaesto_postinumeroittain |>
 #'   dplyr::filter(Alue == "Espoo") |>
 #'   robomap(Postinumeroalue, title = "V\u00e4est\u00f6 Espoossa", caption = "Tilastokeskus")
 #'
 #' # Default polygon colors are picked from trace colors set with
-#' # set_roboplot_options(), based on luminosity. Control polygon colors with
-#' # map_palette. robomap() expands upon this as necessary.
+#' # `set_roboplot_options()` based on luminosity. Control polygon colors with
+#' # `map_palette`. `robomap()` expands upon this as necessary.
 #'
 #' vaesto_postinumeroittain |>
 #'   robomap(
@@ -261,8 +265,8 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'     zoom = FALSE
 #'   )
 #'
-#' # robomap() automatically scales the values to differentiate large differences
-#' # in maximum and minimum values. Control this with log_colors
+#' # When necessary `robomap()` automatically logarithmically scales values to
+#' # add map readability. Control this with log_colors
 #'
 #' vaesto_postinumeroittain |>
 #'   robomap(
@@ -273,8 +277,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'     log_colors = FALSE
 #'   )
 #'
-#' # Control background tile opacity with 'tile_opacity', polygon opacity with
-#' # 'map_opacity' and borders with 'border_width'.
+#' # Other controls you might need.
 #'
 #' vaesto_postinumeroittain |>
 #'   robomap(
@@ -287,16 +290,16 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'     map_opacity = 0.5
 #'   )
 #'
-#' # Control the story you want to tell by using set_heatmap() with 'map_palette',
-#' # setting the colors and breakpoints. Use legend_breaks to control how many
-#' # entries the legend is split to.
+#' # Control the story you want to tell by using `set_heatmap()` with `map_palette`,
+#' # setting the colors and breakpoints. Use `legend` with `set_legend(breaks)`
+#' # to control how many entries the legend is split to.
 #' vaesto_postinumeroittain |>
 #'   robomap(
 #'     Postinumeroalue,
 #'     title = "V\u00e4est\u00f6 postinumeroittain",
 #'     caption = "Tilastokeskus",
 #'     map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
-#'     legend_breaks = 3,
+#'     legend = set_legend(breaks = 3),
 #'     map_opacity = 1,
 #'     border_width = 0
 #'   )
@@ -307,7 +310,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'     title = "V\u00e4est\u00f6 postinumeroittain",
 #'     caption = "Tilastokeskus",
 #'     # map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
-#'     legend_breaks = c(3001, 6001, 9001),
+#'     legend = set_legend(breaks = c(3001, 6001, 9001)),
 #'     map_opacity = 1,
 #'     border_width = 0
 #'   )
@@ -323,7 +326,7 @@ robomap <-
            tile_opacity = 0.7,
            map_palette = NULL,
            border_width = getOption("roboplot.trace.border")$width,
-           legend = set_robomap_legend(),
+           legend = set_legend(),
            data_contour = FALSE,
            markers = FALSE,
            log_colors = NULL,
@@ -332,50 +335,19 @@ robomap <-
            ...
            ) {
 
-    roboplotr_typecheck(title, c("set_title" = "list","character"), extra = "in robomap()")
+    title <- roboplotr_set_title(title, d, "in `robomap()`")
 
-    if (is.null(title)) {
-      title <- attributes(d)[c("title", "robonomist_title")]
-      if (!is.null(title$robonomist_title)) {
-        roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
-        title <- set_title(title$robonomist_title, .extra = "in robomap(title = set_title())")
-      } else if (!is.null(title$title) & length(title$title != 1)) {
-        roboplotr_alert("Using the attribute \"title\" as plot title.")
-        title <- set_title(title$title, .extra = "in robomap(title = set_title())")
-      } else {
-        roboplotr_alert("Missing the title, using placeholder.")
-        title <- set_title("PLACEHOLDER")
-      }
-    } else if (!"roboplotr.set_title" %in% class(title)) {
-      title <- set_title(title = as.character(title), include = TRUE, .extra = "in robomap(title = set_title())")
+    roboplotr_typecheck(legend, c("numeric","set_legend"), allow_null = F, extra = "in robomap()")
+
+    if(!is.list(legend)) {
+      legend <- set_legend(breaks = legend)
     }
-
-    roboplotr_typecheck(caption, c("character", "set_caption" = "glue"), extra = "in robomap()")
-
-    roboplotr_typecheck(legend, c("set_robomap_legend"="list"), extra = "in robomap()")
 
     roboplotr_typecheck(zoom, "logical", allow_null = F, extra = "in robomap()")
 
-    if (!is.null(caption)) {
-      if (!is(substitute(caption)[1], "call")) {
-        caption <- set_caption(text = caption)
-      }
-    } else {
-      cpt <- attributes(d)$source
-      if (length(cpt) == 1) {
-        roboplotr_message("Using the attribute \"source\" for plot caption.")
-        caption <- set_caption(text = unlist(cpt)[1])
-      } else if (!is.null(cpt[[getOption("roboplot.locale")$locale]])) {
-        roboplotr_message("Using the attribute \"source\" as plot caption.")
-        caption <-
-          set_caption(text = cpt[[getOption("roboplot.locale")$locale]][1])
-      } else {
-        roboplotr_alert("Missing the caption, using placeholder.")
-        caption <- set_caption(text = "PLACEHOLDER")
-      }
-    }
+    caption <- roboplotr_set_caption(caption, d, "in `robomap()`")
 
-    roboplotr_typecheck(map_palette, c("character","set_heatmap" = "list"), size = NULL, extra = "in robomap()")
+    roboplotr_typecheck(map_palette, c("character","set_heatmap"), size = NULL, extra = "in robomap()")
 
     if(!is.null(map_palette)) {
       if(all(is.character(map_palette))) {
@@ -497,7 +469,7 @@ robomap <-
           str_glue(".{robomap_id}-info"),
           "width" = "fit-content",
           "background" = getOption("roboplot.colors.background"),
-          "opacity" = "1", ## mikä on sopiva..?
+          "opacity" = as.character(legend$opacity), ## mikä on sopiva..?
           "font-size" = str_glue('{getOption("roboplot.font.main")$size}px'),
           "font-family" = getOption("roboplot.font.main")$family,
           "color" = getOption("roboplot.font.main")$color,
@@ -627,13 +599,13 @@ robomap <-
           cuts <- bins |> roboplotr_round_magnitude(rounding, round)
           .magnitude <- NA
           if(all.equal(sort(cuts),sort(unique(d$robomap.value))) == T) {
-            labs <- map(cuts, ~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
+            labs <- map(cuts, ~ tags$span(.x, style = "white-space: nowrap;") |> as.character()) |>
               reduce(c)
-            if(!is.null(legend$labels)) {
-              if(is.numeric(legend$labels)) {
-                labs <- sparsify_legend(labs, legend$labels) |> map(HTML)
+            if(length(legend$labels) == length(labs)) {
+              if(is.logical(legend$labels)) {
+                labs <- map2(labs,legend$labels, ~ ifelse(.y, .x, "")) |> reduce(c)
               } else {
-                labs <- rev(legend$labels) |> map(HTML)
+                labs <- rev(legend$labels)
               }
             }
             colors <- robomap_palette(cuts)
@@ -663,13 +635,13 @@ robomap <-
               labs <- hi_end
             }
             labs <- labs |>
-              map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character() |> HTML()) |>
+              map(~ tags$span(.x, style = "white-space: nowrap;") |> as.character()) |>
               reduce(c)
-            if(!is.null(legend$labels)) {
-              if(is.numeric(legend$labels)) {
-                labs <- sparsify_legend(labs, legend$labels) |> map(HTML)
+            if(length(legend$labels) == length(labs)) {
+              if(is.logical(legend$labels)) {
+                labs <- map2(labs,legend$labels, ~ ifelse(.y, .x, "")) |> reduce(c)
               } else {
-                labs <- rev(legend$labels) |> map(HTML)
+                labs <- rev(legend$labels)
               }
             }
           }
@@ -689,6 +661,8 @@ robomap <-
       }
     }
 
+    this_map <- structure(this_map, class = c("roboplotr","roboplotr.robomap", class(this_map)))
+
     this_map |>
       onRender(
         str_glue(
@@ -703,27 +677,27 @@ robomap <-
 #
 # robomap(this, Postinumeroalue)
 
-sparsify_legend <- function(char_vector, retain_fraction) {
-
-  n <- length(char_vector)
-
-  retain_count <- max(2, ceiling(retain_fraction * n))
-
-  if (retain_count >= n) {
-    return(char_vector)
-  }
-
-  retain_positions <- rep(FALSE, n)
-
-  retain_positions[c(1, n)] <- TRUE
-
-  interval <- (n - 1) / (retain_count - 1)
-
-  for (i in 2:(retain_count - 1)) {
-    position <- round(1 + (i - 1) * interval)
-    retain_positions[position] <- TRUE
-  }
-
-  res <- ifelse(retain_positions, char_vector, "")
-  res
-}
+# sparsify_legend <- function(char_vector, retain_fraction) {
+#
+#   n <- length(char_vector)
+#
+#   retain_count <- max(2, ceiling(retain_fraction * n))
+#
+#   if (retain_count >= n) {
+#     return(char_vector)
+#   }
+#
+#   retain_positions <- rep(FALSE, n)
+#
+#   retain_positions[c(1, n)] <- TRUE
+#
+#   interval <- (n - 1) / (retain_count - 1)
+#
+#   for (i in 2:(retain_count - 1)) {
+#     position <- round(1 + (i - 1) * interval)
+#     retain_positions[position] <- TRUE
+#   }
+#
+#   res <- ifelse(retain_positions, char_vector, "")
+#   res
+# }

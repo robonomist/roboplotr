@@ -2,7 +2,7 @@
 % Please edit documentation in R/robomap.R
 \name{robomap}
 \alias{robomap}
-\title{Automated leaflet maps.}
+\title{Comprehensive leaflet wrapper function}
 \usage{
 robomap(
   d,
@@ -15,7 +15,7 @@ robomap(
   tile_opacity = 0.7,
   map_palette = NULL,
   border_width = getOption("roboplot.trace.border")$width,
-  legend = set_robomap_legend(),
+  legend = set_legend(),
   data_contour = FALSE,
   markers = FALSE,
   log_colors = NULL,
@@ -25,28 +25,35 @@ robomap(
 )
 }
 \arguments{
-\item{d}{Data frame. Data to be created a table from.}
+\item{d}{Data frame. Data to be created a map from.}
 
-\item{area}{Symbol, string, or function resulting in symbol or string. Variable from argument 'd' to use to identify the areas described by the map. This must be of class sfc_MULTIPOLYGON.}
+\item{area}{Symbol or string. Variable from argument 'd' to use to identify the
+areas described by the map. This must be of class sfc_MULTIPOLYGON.}
 
-\item{title, subtitle}{Characters. Labels for plot elements. Optionally, use \code{\link[=set_title]{set_title()}} for the title if you want to omit the title from the displayed plot, but include it for any downloads through the modebar.}
+\item{title, subtitle}{Characters. Labels for plot elements.}
 
 \item{caption}{Function or character. Use a string, or \code{\link[=set_caption]{set_caption()}}.}
 
-\item{hovertext}{List. Use a list with named items flag and unit.}
+\item{hovertext}{List. Use a list with named characters flag and unit.}
 
-\item{map_opacity, tile_opacity}{Double. Value from 0 to 1, defining how opaque the map polygon fill color or underlying map tiles are. 0 removes the tile layer, but retains the polygon borders if any.}
+\item{map_opacity, tile_opacity}{Numeric. Values from 0 to 1, defining how opaque
+the map polygon fill color or underlying map tiles are. 0 removes the tile layer,
+but retains the polygon borders if any.}
 
-\item{map_palette}{Character or function. Colors used for heatmap color range. Must be a hexadecimal color strings or a valid css color strings, or use \code{\link[=set_heatmap]{set_heatmap()}} if specifying color breakpoints.}
+\item{map_palette}{Character or function. Must be a hexadecimal colors or valid
+css colors, or use \code{\link[=set_heatmap]{set_heatmap()}} if specifying color breakpoints.}
 
-\item{border_width}{Integer. The width of polygon borders. Default is the trace border width set with \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
+\item{border_width}{Integer. The width of polygon borders.}
 
-\item{legend}{Function. Use \code{\link[=set_robomap_legend]{set_robomap_legend()}}.}
+\item{legend}{Function. Use \code{\link[=set_legend]{set_legend()}}.}
 
-\item{data_contour}{Logical. Experimental. If TRUE, \code{\link[=robomap]{robomap()}} will produce a contour-like representation of the data, which does not conform to the boundaries of the polygons.
-This provides a smoother transition and helps in visualizing general trends across regions. Default is FALSE.}
+\item{data_contour}{Logical. Experimental. If TRUE, \code{\link[=robomap]{robomap()}} will produce
+a contour-like representation of the data, which does not conform to the boundaries
+of the polygons. This provides a smoother transition and helps in visualizing
+general trends across regions. Default is FALSE.}
 
-\item{markers}{Logical. Experimental. Whether markers will be added on the map based on the columns "lat" and "lon". Default is FALSE.}
+\item{markers}{Logical. Experimental. Whether markers will be added on the map
+based on the columns "lat" and "lon". Default is FALSE.}
 
 \item{log_colors}{Logical. Whether the colors scales is log or not.}
 
@@ -57,24 +64,22 @@ This provides a smoother transition and helps in visualizing general trends acro
 \item{...}{Placeholder for other parameters.}
 }
 \value{
-A list of classes "leaflet" and "htmlwidget"
+A list of classes leaflet, htmlwidget and roboplot.robomap
 }
 \description{
-Wrapper for \link[leaflet:leaflet]{leaflet::leaflet} for shorthand declaration of many map layout arguments.
-Automates many formatting options.
+This function wraps numerous \href{https://rstudio.github.io/leaflet/articles/leaflet.html}{Leaflet}
+features into a single, well-parametrized interface.
 }
 \examples{
-# You can use roboplotr::robomap() to create html maps. Note that very large
+# You can use `robomap()` to create interactive maps. Note that very large
 # number of map polygons makes for slow rendering maps.
-
-# Currently robomap() only supports very little customization.
 vaesto_postinumeroittain |>
   dplyr::filter(Alue == "Espoo") |>
   robomap(Postinumeroalue, title = "V\u00e4est\u00f6 Espoossa", caption = "Tilastokeskus")
 
 # Default polygon colors are picked from trace colors set with
-# set_roboplot_options(), based on luminosity. Control polygon colors with
-# map_palette. robomap() expands upon this as necessary.
+# `set_roboplot_options()` based on luminosity. Control polygon colors with
+# `map_palette`. `robomap()` expands upon this as necessary.
 
 vaesto_postinumeroittain |>
   robomap(
@@ -96,8 +101,8 @@ vaesto_postinumeroittain |>
     zoom = FALSE
   )
 
-# robomap() automatically scales the values to differentiate large differences
-# in maximum and minimum values. Control this with log_colors
+# When necessary `robomap()` automatically logarithmically scales values to
+# add map readability. Control this with log_colors
 
 vaesto_postinumeroittain |>
   robomap(
@@ -108,8 +113,7 @@ vaesto_postinumeroittain |>
     log_colors = FALSE
   )
 
-# Control background tile opacity with 'tile_opacity', polygon opacity with
-# 'map_opacity' and borders with 'border_width'.
+# Other controls you might need.
 
 vaesto_postinumeroittain |>
   robomap(
@@ -122,16 +126,16 @@ vaesto_postinumeroittain |>
     map_opacity = 0.5
   )
 
-# Control the story you want to tell by using set_heatmap() with 'map_palette',
-# setting the colors and breakpoints. Use legend_breaks to control how many
-# entries the legend is split to.
+# Control the story you want to tell by using `set_heatmap()` with `map_palette`,
+# setting the colors and breakpoints. Use `legend` with `set_legend(breaks)`
+# to control how many entries the legend is split to.
 vaesto_postinumeroittain |>
   robomap(
     Postinumeroalue,
     title = "V\u00e4est\u00f6 postinumeroittain",
     caption = "Tilastokeskus",
     map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
-    legend_breaks = 3,
+    legend = set_legend(breaks = 3),
     map_opacity = 1,
     border_width = 0
   )
@@ -142,7 +146,7 @@ vaesto_postinumeroittain |>
     title = "V\u00e4est\u00f6 postinumeroittain",
     caption = "Tilastokeskus",
     # map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
-    legend_breaks = c(3001, 6001, 9001),
+    legend = set_legend(breaks = c(3001, 6001, 9001)),
     map_opacity = 1,
     border_width = 0
   )

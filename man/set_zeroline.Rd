@@ -2,8 +2,7 @@
 % Please edit documentation in R/rangeslider_zeroline.R
 \name{set_zeroline}
 \alias{set_zeroline}
-\title{Set global defaults for \code{\link[=roboplot]{roboplot()}} zerolines
-Only relevant when a zeroline is set with \code{\link[=roboplot]{roboplot()}}}
+\title{Zeroline configuration}
 \usage{
 set_zeroline(
   position,
@@ -12,15 +11,17 @@ set_zeroline(
 )
 }
 \arguments{
-\item{position}{Numeric. Zeroline location.}
+\item{position}{Numeric.}
 
-\item{color}{Character. Zeroline color. Must be a hexadecimal color strings or a valid css color strings.}
+\item{color}{Character. Must be a hexadecimal color or a valid css color.}
 
-\item{width}{Numeric. Zeroline width.}
+\item{width}{Numeric.}
+}
+\value{
+A list of class roboplotr.set_zeroline
 }
 \description{
-Set global defaults for \code{\link[=roboplot]{roboplot()}} zerolines
-Only relevant when a zeroline is set with \code{\link[=roboplot]{roboplot()}}
+Parameters to customize zeroline in \link[=roboplot]{roboplots}.
 }
 \examples{
 set_roboplot_options(zeroline = set_zeroline(color = "aliceblue", width = 4))

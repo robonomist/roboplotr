@@ -3,17 +3,18 @@
 \docType{data}
 \name{vaesto_postinumeroittain}
 \alias{vaesto_postinumeroittain}
-\title{Energian tuonti ja vienti alkuperämaittain}
+\title{Population by Postal Code Area}
 \format{
 \subsection{\code{vaesto_postinumeroittain}}{
 
-Kehys jossa 886 riviä and 5 saraketta:
+Data frame with 886 rows and 6 columns:
 \describe{
-\item{Postinumeroalue}{Postinumeroalueen nimi}
-\item{Alue}{Postinumeroalueen kunta}
-\item{geom}{Monikulmiokohde}
-\item{time}{Vuosi}
-\item{value}{Väkiluku}
+\item{geom}{Multipolygon object}
+\item{Postinumero}{Postal Code}
+\item{Postinumeroalue}{Name of the Postal Code Area}
+\item{Alue}{Municipality of the Postal Code Area}
+\item{time}{Year}
+\item{value}{Population}
 ...
 }
 }
@@ -25,6 +26,6 @@ Kehys jossa 886 riviä and 5 saraketta:
 vaesto_postinumeroittain
 }
 \description{
-Otos postinumeroittaisesta väkiluvusta Tilastokeskuksen Paavo-tilastotaulusta.
+A sample of population data by postal code area from Statistics Finland's Paavo statistics table.
 }
 \keyword{datasets}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/frame.R
 \name{set_grid}
 \alias{set_grid}
-\title{Plot grid for \code{\link[=roboplot]{roboplot()}}}
+\title{Grid configuration.}
 \usage{
 set_grid(
   xcolor = getOption("roboplot.grid")$xcolor,
@@ -10,29 +10,33 @@ set_grid(
   xwidth = getOption("roboplot.grid")$xwidth,
   ywidth = getOption("roboplot.grid")$ywidth,
   xdash = getOption("roboplot.grid")$xdash,
-  ydash = getOption("roboplot.grid")$ydash
+  ydash = getOption("roboplot.grid")$ydash,
+  xtick = NULL,
+  ytick = NULL
 )
 }
 \arguments{
-\item{xcolor, ycolor}{Characters. Plot gridline colors. Must be a hexadecimal color strings or a valid css color strings.}
+\item{xcolor, ycolor, xtick, ytick}{Characters. Plot gridline colors. Must be hexadecimal
+colors or a valid css colors.}
 
 \item{xwidth, ywidth}{Numerics. Plot gridline widths.}
 
-\item{xdash, ydash}{Not currently supported by \link{plot_ly}. Characters. Plot gridline linetypes. Must contain one of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
+\item{xdash, ydash}{Characters. Plot gridline linetypes. Must contain one of
+"solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
 }
 \value{
-A list.
+A list of class roboplot.set_grid
 }
 \description{
-Set global parameters in \code{\link[=set_roboplot_options]{set_roboplot_options()}} for plot grid
-of \code{\link[=roboplot]{roboplot()}} plots.
+Parameters to customize grids in \link[=roboplot]{roboplots}.
 }
 \examples{
 # You can control x- and y-grid color, width and linetype by using
-# set_grid() inside set_roboplot_options().
+# `set_grid()` inside `set_roboplot_options()`.
 
 set_roboplot_options(
-  grid = set_grid(ycolor = "green", ydash = "longdash", xwidth = 3))
+  grid = set_grid(ycolor = "green", ydash = "longdash", xwidth = 3),
+  )
 
 energiantuonti |> dplyr::filter(Alue == "Venäjä") |> roboplot(Suunta)
 

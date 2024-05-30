@@ -2,15 +2,15 @@
 % Please edit documentation in R/robotable.R
 \name{set_robotable_labels}
 \alias{set_robotable_labels}
-\title{Set labels for robotable items like search box and pagination.}
+\title{Table label configuration}
 \usage{
 set_robotable_labels(
-  search = "Etsi:",
-  info = "Näytetään rivit _START_-_END_ / _TOTAL_",
-  lengthMenu = "Näytä _MENU_ riviä per sivu",
-  emptyTable = "Tietoja ei saatavilla",
-  first = "Ensimmäinen",
-  last = "Viimeinen",
+  search = getOption("roboplot.locale")$robotable_labels$search,
+  info = getOption("roboplot.locale")$robotable_labels$info,
+  lengthMenu = getOption("roboplot.locale")$robotable_labels$lengthMenu,
+  emptyTable = getOption("roboplot.locale")$robotable_labels$emptyTable,
+  first = getOption("roboplot.locale")$robotable_labels$first,
+  last = getOption("roboplot.locale")$robotable_labels$last,
   `next` = ">>",
   previous = "<<"
 )
@@ -23,5 +23,5 @@ set_robotable_labels(
 \item{emptyTable}{Character. The text shown when the table is empty.}
 }
 \description{
-Set labels for robotable items like search box and pagination.
+Parameters to add and customize labeling in \link[=robotable]{robotables}.
 }

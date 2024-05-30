@@ -4,13 +4,13 @@
 roboplotr_rangeslider <- function(p, enable_rangeslider, height = 0.1) {
 
   `enable_rangeslider$rangeslider` <- enable_rangeslider$rangeslider
-  roboplotr_check_param(`enable_rangeslider$rangeslider`, c("date","Date","logical","character"))
+  roboplotr_typecheck(`enable_rangeslider$rangeslider`, c("date","Date","logical","character"))
   if(is.logical(enable_rangeslider$rangeslider)) {
     enable <- enable_rangeslider$rangeslider
     slider_range <- NULL
   } else {
     `enable_rangeslider$max` <- enable_rangeslider$max
-    roboplotr_check_param(`enable_rangeslider$max`, c("date","Date","character","numeric"))
+    roboplotr_typecheck(`enable_rangeslider$max`, c("date","Date","character","numeric"))
     slider_range <- map(enable_rangeslider, ~ as_date(.x) |> as.character()) |> unname()
     enable <- T
   }
@@ -56,7 +56,7 @@ roboplotr_add_shapes <- function(p, zeroline, shadearea) {
 #' @importFrom plotly layout
 roboplotr_zeroline <- function(z) {
   zeroline <- z$zeroline
-  roboplotr_check_param(zeroline, c("logical", "numeric"))
+  roboplotr_typecheck(zeroline, c("logical", "numeric"))
 
   if (z$zeroline == F & !is.numeric(z$zeroline)) {
     NULL
@@ -115,23 +115,26 @@ roboplotr_shadearea <- function(d, shadearea = set_shadearea()) {
 
 }
 
-#' Set up a shade area to highlight a part of [roboplot()] background
-#' @param xmin,xmax Currently not validated. These need
-#' to be of the same type as the respective axis for the shade area to work. If
-#' none are provided, no shade area will be displayed.
+#' Shade configuration
+#'
+#' Parameters to add and customize shadeareas in [roboplots][roboplot()].
+#'
+#' @param xmin,xmax Currently not validated. These need to be of the same type as
+#' the respective axis for the shade area to work.
 #' @param border,color Characters. The color for the shade area. Must be a
-#' hexadecimal color strings or a valid css color strings.
+#' hexadecimal color or a valid css color.
 #' @param opacity Numeric. Controls the opacity of the shade area. Use a value
-#' that is between > 0 and 1.
+#' between 0 and 1.
 #' @param layer Character. Whether the shade area is above or below the plot
 #' traces. Use "above" or "below".
 #' @examples
-#' # You can use shadearea when the x-axis is numeric or date, to highlight areas of
-#' # the plot.
+#' # You can use` shadearea` when the x-axis is numeric or date to highlight areas
+#' # of the plot.
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue == "Venäjä")
 #' d |> roboplot(Suunta, shadearea = set_shadearea(xmin = "2018-01-01"))
-#' # Use the other parameters to fine-tune the appearance of the shade area
+#'
+#' # Use the other parameters to fine-tune the appearance of the `shadearea`.
 #' d |> roboplot(
 #'   Suunta,
 #'   shadearea = set_shadearea(
@@ -144,6 +147,7 @@ roboplotr_shadearea <- function(d, shadearea = set_shadearea()) {
 #' )
 #'
 #' @export
+#' @returns A list of class roboplotr.set_shadearea
 set_shadearea <-
   function(xmin = NULL,
            xmax = NULL,
@@ -151,42 +155,51 @@ set_shadearea <-
            color = getOption("roboplot.colors.traces")[1],
            opacity = 0.2,
            layer = "above") {
-    roboplotr_check_param(opacity, "numeric")
+    roboplotr_typecheck(opacity, "numeric", allow_null = F)
     if (!all(opacity > 0, opacity <= 1)) {
-      stop("Shade area opacity must be between 0 and 1!", call. = F)
+      stop("set_shadearea() `opacity` must be between 0 and 1!", call. = F)
     }
     roboplotr_valid_colors(c(color, border), "Shade area color and border")
-    roboplotr_check_param(layer, "character")
-    roboplotr_valid_strings(layer, c("below","above"), any, msg = "shadearea 'layer'")
-    list(
+    roboplotr_typecheck(layer, "character", allow_null = F)
+    roboplotr_valid_strings(layer, c("below","above"), any, msg = "set_shadearea() `layer`")
+
+    .res <- list(
       xmin = xmin,
       xmax = xmax,
-      ymin = NULL,#ymin,
-      ymax = NULL,#ymax,
+      ymin = NULL,
+      ymax = NULL,
       border = border,
       color = color,
       opacity = opacity,
       layer = layer
     )
+
+    .res <- structure(.res, class = c("roboplotr", "roboplotr.set_shadearea", class(.res)))
+
+    .res
+
   }
 
 
-#' Set global defaults for [roboplot()] zerolines
-#' Only relevant when a zeroline is set with [roboplot()]
-#' @param position Numeric. Zeroline location.
-#' @param color Character. Zeroline color. Must be a hexadecimal color strings or a valid css color strings.
-#' @param width Numeric. Zeroline width.
+#' Zeroline configuration
+#'
+#' Parameters to customize zeroline in [roboplots][roboplot()].
+#'
+#' @param position Numeric.
+#' @param color Character. Must be a hexadecimal color or a valid css color.
+#' @param width Numeric.
 #' @examples
 #' set_roboplot_options(zeroline = set_zeroline(color = "aliceblue", width = 4))
 #' energiantuonti |> dplyr::filter(Alue == "Venäjä") |> roboplot(Suunta, zeroline = 200)
 #' @export
+#' @returns A list of class roboplotr.set_zeroline
 set_zeroline <-
   function(position,
            color = getOption("roboplot.zeroline")$color,
            width  = getOption("roboplot.zeroline")$width) {
-    roboplotr_check_param(width, "numeric")
-    roboplotr_check_param(color, "character")
-    roboplotr_valid_colors(color, "Zeroline color")
+    roboplotr_typecheck(width, "numeric", allow_null = F)
+    roboplotr_typecheck(color, "character", allow_null = F)
+    roboplotr_valid_colors(color, "set_zeroline() color")
 
     .res <- list(color = color, width = width)
 

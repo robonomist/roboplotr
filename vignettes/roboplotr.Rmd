@@ -244,7 +244,7 @@ d |> roboplot(
   plot_type = "bar",
   plot_mode = "horizontal",
   plot_axes = set_axes(y = "CPA"),
-  legend_maxwidth = 45
+  legend = set_legend(maxwidth = 45)
   )
 ```
 
@@ -267,12 +267,12 @@ As we *didn't* want to color-code the bars, we skipped providing
 `color` for `roboplot()`. As there is now only a single trace color, `roboplot()` 
 omitted the legend. We could also have provided another column for `color` that
 only has a single observation, and the result would have been the same. We could
-have also included the legend with setting `legend_position` to `"bottom"` 
-(currently the only option), or forced legend to be omitted by using
-`legend_position = NA`.
+have also included the legend with setting `legend` with `set_legend()` `position`
+to `"bottom"`  (currently the only option), or forced legend to be omitted by using
+`position` `NA`.
 
 As many of the tick labels would have been very long and would have made the 
-plot area are very narrow, we also provided `legend_maxwidth`. This would 
+plot area are very narrow, we also provided `maxwidth` with `set_legend()`. This would 
 normally cut legend items shorter, but with character strings in y-axis, it 
 shortens those too with an ellipsis to a maximum character length we provided. 
 Full texts can still be seen on hover.
