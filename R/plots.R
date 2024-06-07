@@ -1093,17 +1093,17 @@ roboplot <- function(d = NULL,
   #     )
   #   ))
 
-  # if (getOption("roboplot.shinyapp") == F) {
-  #   p <- partial_bundle(p, "basic")
-  #   roboplotly_dep <- p$dependencies |>
-  #     imap( ~ if (.x$name == "plotly-basic") {
-  #       .y
-  #     }) |>
-  #     roboplotr_compact() |>
-  #     unlist()
-  #   p$dependencies[[roboplotly_dep]]$version <- "2.28.0"
-  #   p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.28.0.min.js"
-  # }
+  if (getOption("roboplot.shinyapp") == F) {
+    p <- partial_bundle(p, "basic")
+    roboplotly_dep <- p$dependencies |>
+      imap( ~ if (.x$name == "plotly-basic") {
+        .y
+      }) |>
+      roboplotr_compact() |>
+      unlist()
+    p$dependencies[[roboplotly_dep]]$version <- "2.28.0"
+    p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.28.0.min.js"
+  }
 
   p <- structure(p, class = c("roboplotr","roboplotr.roboplot", class(p)))
   ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.
