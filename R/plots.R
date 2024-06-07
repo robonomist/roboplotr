@@ -28,7 +28,7 @@ roboplotr_config <- function(p,
   }
 
   p |>
-    roboplotr_dependencies(title, subtitle, ticktypes, legend$tidy) |>
+    roboplotr_dependencies(title, subtitle, ticktypes, legend) |>
     roboplotr_grid() |>
     roboplotr_set_background() |>
     roboplotr_modebar(title,
@@ -38,7 +38,9 @@ roboplotr_config <- function(p,
                       width,
                       ticktypes$dateformat,
                       info_text,
-                      modebar) |>
+                      modebar,
+                      legend
+                      ) |>
     roboplotr_set_ticks(ticktypes) |>
     roboplotr_set_margin(margin) |>
     roboplotr_logo() |>
@@ -62,7 +64,7 @@ roboplotr_dependencies <- function(p,
                                    title,
                                    subtitle,
                                    ticktypes,
-                                   tidy_legend = T) {
+                                   legend) {
   if (title$include == T) {
     plot_title <-
       list(title$title,
@@ -114,10 +116,10 @@ roboplotr_dependencies <- function(p,
                         let roboplot_logo = new Image();
                         roboplot_logo.src = gd.layout.images[0].source;
                         roboplot_logo = roboplot_logo.width / roboplot_logo.height
-                        setVerticalLayout({'width': true}, gd, data.fonts, plot_title, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend);
+                        setVerticalLayout({'width': true}, gd, data.fonts, plot_title, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend, legend_position = data.legendPosition);
                         setYPositions({'width': true}, gd, data.piePlot);
                         gd.on('plotly_relayout',function(eventdata) {
-                        plotlyRelayoutEventFunction(eventdata, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend);
+                        plotlyRelayoutEventFunction(eventdata, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend, legend_position = data.legendPosition);
                         })
 
 
@@ -126,7 +128,7 @@ roboplotr_dependencies <- function(p,
                               if(entries[0].isIntersecting) {
                                 // Element is visible, handle the plot rendering or adjustment
                                 console.log('relayout fired!');
-                                plotlyRelayoutEventFunction({width: true}, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend);
+                                plotlyRelayoutEventFunction({width: true}, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend, legend_position = data.legendPosition);
                                 observer.disconnect();
                               }
                             }, { threshold: [0.1] });  // Adjust the threshold as needed
@@ -161,7 +163,8 @@ roboplotr_dependencies <- function(p,
           y = ticktypes$yfont$size
         ),
         piePlot = pie_plot,
-        tidyLegend = tidy_legend
+        tidyLegend = legend$tidy,
+        legendPosition = legend$position
       )
     )
 }
@@ -806,7 +809,7 @@ roboplot <- function(d = NULL,
       if(length(levels(d[[as_label(color)]])) > 1) {
         roboplotr_message(
           str_glue(
-            "roboplotr arranged data 'd' column `{as_label(color)}` using mean of '{plot_axes$y}' by group. Relevel `{as_label(color)}` as factor with levels of your liking to control trace order."
+            "roboplotr arranged data 'd' column `{as_label(color)}` using mean of '{plot_axes$y}'. Relevel `{as_label(color)}` as factor with levels of your liking to control trace order."
           )
         )
       }
@@ -916,7 +919,6 @@ roboplot <- function(d = NULL,
     legend <- set_legend(legend)
   }
 
-
   if(is_present(legend_position)) {
     deprecate_warn("2.0.0", "roboplotr::roboplot(legend_position = )", "roboplotr::roboplot(legend = )")
     roboplotr_typecheck(legend_position, "character", allow_na = T)
@@ -943,13 +945,12 @@ roboplot <- function(d = NULL,
 
   pattern_showlegend <- roboplotr_get_pattern_showlegend(d, pattern, pattern_showlegend, legend$position)
 
-  legend$title <-
     if (legend$title == F) {
-      NULL
+      legend$title <- NULL
     } else if (is.character(legend$title)) {
-      str_c("<b>", legend$title, "</b>")
+      legend$title <- str_c("<b>", legend$title, "</b>")
     } else {
-      str_c("<b>", as_name(color), "</b>")
+      legend$title <- str_c("<b>", as_name(color), "</b>")
     }
 
   p <-
@@ -998,10 +999,10 @@ roboplot <- function(d = NULL,
   } else {
     maxtime <- NULL
   }
-  mintime <- if ("time" %in% d_names) {
-    min(d$time)
+  if ("time" %in% d_names) {
+    mintime <-   min(d$time)
   } else {
-    NULL
+    mintime <- NULL
   }
   # if only one group for color, remove legend as default
   if (!is.null(secondary_yaxis)) {
@@ -1092,17 +1093,17 @@ roboplot <- function(d = NULL,
   #     )
   #   ))
 
-  if (getOption("roboplot.shinyapp") == F) {
-    p <- partial_bundle(p, "basic")
-    roboplotly_dep <- p$dependencies |>
-      imap( ~ if (.x$name == "plotly-basic") {
-        .y
-      }) |>
-      roboplotr_compact() |>
-      unlist()
-    p$dependencies[[roboplotly_dep]]$version <- "2.28.0"
-    p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.28.0.min.js"
-  }
+  # if (getOption("roboplot.shinyapp") == F) {
+  #   p <- partial_bundle(p, "basic")
+  #   roboplotly_dep <- p$dependencies |>
+  #     imap( ~ if (.x$name == "plotly-basic") {
+  #       .y
+  #     }) |>
+  #     roboplotr_compact() |>
+  #     unlist()
+  #   p$dependencies[[roboplotly_dep]]$version <- "2.28.0"
+  #   p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.28.0.min.js"
+  # }
 
   p <- structure(p, class = c("roboplotr","roboplotr.roboplot", class(p)))
   ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.

@@ -123,9 +123,8 @@ create_widget <- function(
 
   widget_title <- title
   title <- roboplotr_string2filename(title)
-  detached_p <- p
+  detached_p <- structure(p, class = str_subset(class(p), "roboplotr", negate = T))
   if(!is.robotable) {
-    detached_p <- p
     detached_p$append <- NULL
     if("html" %in% artefacts) {
       roboplotr_widget_deps(filepath = file.path(filepath,"plot_dependencies"))

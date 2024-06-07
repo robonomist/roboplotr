@@ -5,8 +5,6 @@ roboplotr_legend <- function(p, legend) {
 # print(legend_order)
   if(!is.null(legend$orientation)) { roboplotr_message("The set_legend() argument `legend_orientation` is currently ignored.") }
 
-  if(is.null(legend$position)) { legend$position <- "bottom" }
-
     if (is.null(legend$title)) {
       .legend_title <- NULL
     } else if (is.character(legend$title)) {
@@ -28,8 +26,6 @@ roboplotr_legend <- function(p, legend) {
                     yanchor = "top",
                     traceorder = legend$order
       ))
-  } else if (!legend$position %in% c("bottom")) {
-    stop("set_legend() `position` must be \"bottom\", or NA for no legend!", call. = F)
   } else {
     x.pos <- ifelse(legend$position == "right", 100, 0)
     y.pos <- ifelse(legend$position == "right", 1, 0) #-0.05
@@ -39,7 +35,7 @@ roboplotr_legend <- function(p, legend) {
       legend = list(font = getOption("roboplot.font.main")[c("color","family","size")],
                     bgcolor = getOption("roboplot.colors.background") |> decode_colour() |> encode_colour(alpha = 0.1),
                     x = x.pos, y = y.pos,
-                    orientation = "h",
+                    orientation = ifelse(legend$position == "right", "v","h"),
                     xanchor = "left",
                     yanchor = "top",
                     title = list(text = .legend_title, font = getOption("roboplot.font.main")),
@@ -564,6 +560,14 @@ set_plot_legend <- function(position = NULL,
 
 
   roboplotr_typecheck(position, "character", allow_na = T)
+  if(!is.null(position)) {
+    if(!is.na(position)) {
+      roboplotr_valid_strings(position, c("bottom","right"), any, "set_legend() param 'position'")
+    }
+  } else {
+    position <- "bottom"
+  }
+
   roboplotr_typecheck(orientation, "character")
   roboplotr_typecheck(maxwidth, "numeric")
   roboplotr_typecheck(title, c("logical","character"), allow_null = F)

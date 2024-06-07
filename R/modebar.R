@@ -6,7 +6,7 @@
 #' @importFrom purrr pmap
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
 #' @importFrom tidyr drop_na
-roboplotr_modebar <- function(p, title, subtitle, caption, height, width, dateformat, info_text = NULL, modebar) {
+roboplotr_modebar <- function(p, title, subtitle, caption, height, width, dateformat, info_text = NULL, modebar, legend) {
 
   if(is.null(modebar)) {
     modebar <- getOption("roboplot.modebar")
@@ -29,6 +29,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     ht <- ifelse(is.null(height), 'null', as.character(height))
     wt <- ifelse(is.null(width), 'null', as.character(width))
     pie <-ifelse(all(p$trace_types == "pie"),"true","false")
+    tidy <-ifelse(legend$tidy,"true","false")
     str_glue('
           function(gd, params) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
@@ -44,7 +45,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
           roboplot_logo.src = gd.layout.images[0].source;
           roboplot_logo = roboplot_logo.width / roboplot_logo.height
           $(gd).find("div.modebar").css("display","none")
-          setVerticalLayout({"width": true}, gd, {legend: <{layout$main}, x: <{layout$main}, y: <{layout$main}}, ["<{plot_title[[1]]}","<{plot_title[[2]]}",<{tolower(plot_title[[3]])}], pie_plot = <{pie}, logo = roboplot_logo)
+          setVerticalLayout({"width": true}, gd, {legend: <{layout$main}, x: <{layout$main}, y: <{layout$main}}, ["<{plot_title[[1]]}","<{plot_title[[2]]}",<{tolower(plot_title[[3]])}], pie_plot = <{pie}, logo = roboplot_logo, tidy_legend = <{tidy}, legend_position = "<{legend$position}")
           setYPositions({"width": true}, gd, <{pie});
           Plotly.downloadImage(gd, {scale: "1", format: "<{layout$type}", width: <{layout$x}, height: <{layout$y}, filename: "<{ttl}<{layout$suffix}"});
           $(gd).find("div.modebar").css("display","initial")
