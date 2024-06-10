@@ -77,8 +77,6 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
   if (elplot.length > 0) {elplot = elplot[0].getBBox()};
   // console.log("margin b: " + margin_bottom)
-  if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
-  if (elplot.height == 0) { elplot.height = 1}
   if(legend_position == "auto") {
     if(el.layout.legend.position == "right") {
       legend_position = elplot.width / elcontainer.width < 0.67 || elplot.width / ellegend.width < 0.75 ? "bottom" : "right"
@@ -100,6 +98,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   //console.log("legend position: " + legend_position, "; legend orientation: " + legend_orientation + "; legend height: " + ellegend.height)
   let legend_x = legend_position == "bottom" ? 0 : 1.02
   let margin_bottom = ellegend.height + 15 + (elcaption + elxticks + elxtitle);
+  if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
+  if (elplot.height == 0) { elplot.height = 1}
   let elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
   let logospace = logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend, legend_orientation);
   margin_bottom = margin_bottom + logospace;
