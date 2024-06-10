@@ -1105,7 +1105,7 @@ roboplot <- function(d = NULL,
     p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.28.0.min.js"
   }
 
-  p <- structure(p, class = c("roboplotr","roboplotr.roboplot", class(p)))
+  p <- structure(p, class = c(class(p), "roboplotr","roboplotr.roboplot"))
   ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.
   # if(!is.null(facet_split)) {
   #   yloc <- max(d$value)
