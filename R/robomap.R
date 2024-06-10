@@ -661,7 +661,7 @@ robomap <-
       }
     }
 
-    this_map <- structure(this_map, class = c("roboplotr","roboplotr.robomap", class(this_map)))
+    this_map <- structure(this_map, class = c(class(this_map), "roboplotr","roboplotr.robomap"))
 
     this_map |>
       onRender(

@@ -697,7 +697,7 @@ function preInitFunction(settings, json) {
 
     dt <- roboplotr_tbl_heatmap(d, dt, heatmap)
 
-    dt <- structure(dt, class = c("roboplotr","roboplotr.robotable", class(dt)))
+    dt <- structure(dt, class = c(class(dt), "roboplotr","roboplotr.robotable"))
 
     roboplotr_typecheck(artefacts, c("logical","set_artefacts"))
 
