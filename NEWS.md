@@ -5,7 +5,7 @@
 * Fix for Google fonts not showing on robotable(). Loosened font restrictions.
 * Added preDraw callback to robotable() that forces core DataTables css to load properly.
 * Improved roboplot() logo handling when set to "none".
-* Added robomap_legend() for specifying robomap() legend appearance.
+* Added set_legend() for specifying robomap() and roboplot() legend appearance.
 * Added support for legend_position = "right" for roboplot().
 
 # roboplotr 1.8.3

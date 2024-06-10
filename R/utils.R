@@ -345,8 +345,8 @@ set_roboplot_options <- function(
 
     roboplotr_typecheck(trace_border, "list", allow_null = T)
     if(!is.null(trace_border)) {
-      if(!is.null(trace_border$color) | is.null(trace_border$width)) {
-        stop("set_roboplot_options() `trace_border` must have character names `color` and numeric named `width`!", call. = F)
+      if(is.null(trace_border$color) | is.null(trace_border$width)) {
+        stop("set_roboplot_options() `trace_border` must have character named `color` and numeric named `width`!", call. = F)
       }
       `trace_border$color` <- trace_border$color
       `trace_border$width` <- trace_border$width
