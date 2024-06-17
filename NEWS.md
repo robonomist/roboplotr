@@ -1,4 +1,4 @@
-# roboplotr 2.0
+# roboplotr 2.0.0
 
 * `shinyapp`-parameter in roboplot() and set_roboplot_options() has been reworked to align with how it actually works. This is a breaking change.
 * Changes in roboplotr internal validation. This is a breaking change.
