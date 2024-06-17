@@ -37,9 +37,6 @@
     <loc>https://robonomist.github.io/roboplotr/reference/roboplot.html</loc>
   </url>
   <url>
-    <loc>https://robonomist.github.io/roboplotr/reference/roboplot_create_widget.html</loc>
-  </url>
-  <url>
     <loc>https://robonomist.github.io/roboplotr/reference/robotable.html</loc>
   </url>
   <url>
@@ -74,6 +71,9 @@
   </url>
   <url>
     <loc>https://robonomist.github.io/roboplotr/reference/set_infobox.html</loc>
+  </url>
+  <url>
+    <loc>https://robonomist.github.io/roboplotr/reference/set_legend.html</loc>
   </url>
   <url>
     <loc>https://robonomist.github.io/roboplotr/reference/set_locale.html</loc>
