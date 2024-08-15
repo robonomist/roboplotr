@@ -1,3 +1,8 @@
+# roboplotr 2.0.1
+
+* Fix for set_hovertext param `text_col` affecting legend labeling.
+* Fix for robotable rounding dropping decimals from whole numbers instead of using the given rounding.
+
 # roboplotr 2.0.0
 
 * `shinyapp`-parameter in roboplot() and set_roboplot_options() has been reworked to align with how it actually works. This is a breaking change.

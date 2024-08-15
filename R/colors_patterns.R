@@ -79,7 +79,7 @@ roboplotr_set_colors <- function(trace_color,
     }
 
   } else if (!is.null(highlight)) {
-    if (is.double(highlight)) {
+    if (is.numeric(highlight)) {
       un_groups <- d |> group_by(!!color) |> summarize(value = max(.data$value, na.rm = T),
                                                        .groups = "drop") |> filter(.data$value >= highlight) |> pull(!!color)
     } else if (is.list(highlight)) {
@@ -93,7 +93,7 @@ roboplotr_set_colors <- function(trace_color,
       }
     } else {
       stop(
-        "Highlight must be NA, double, or a list with \"value\" and \".fun\"!\n Value limits what is shown in legend and given a color, .fun is the function used (default is max)."
+        "Highlight must be NA, numeric, or a list with \"value\" and \".fun\"!\n Value limits what is shown in legend and given a color, .fun is the function used (default is max)."
       )
     }
     un_groups <- unique_groups |> subset(unique_groups %in% un_groups) |> droplevels()

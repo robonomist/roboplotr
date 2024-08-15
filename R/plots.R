@@ -821,9 +821,11 @@ roboplot <- function(d = NULL,
     }
   }
 
-  d <-
-    d |> group_by(!!color) |> filter(!all(is.na(.data$value))) |> ungroup() |> droplevels()
+  if("value" %in% names(d)) {
+    d <-
+      d |> group_by(!!color) |> filter(!all(is.na(.data$value))) |> ungroup() |> droplevels()
 
+  }
 
   if (!all(plot_type %in% c("scatter", "bar", "pie"))) {
     stop(
@@ -1265,9 +1267,7 @@ roboplotr_get_plot <-
     d <- d |>
       mutate(
         roboplot.plot.text =
-          if (!quo_is_null(hovertext$col)) {
-            !!hovertext$col
-          } else if (is.na(pattern_sep)) {
+          if (is.na(pattern_sep)) {
             !!color
           } else if (!is.null(pattern) &
                      !all(quo_name(color) == quo_name(pattern))) {
@@ -1426,7 +1426,10 @@ roboplotr_get_plot <-
       plotting_params <- list(
         color = color,
         #!pie
-        customdata = if (any(
+        customdata =
+          if (!quo_is_null(hovertext$col)) {
+          as.formula(str_c("~", as_label(hovertext$col)))
+          } else if (any(
           c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode
         )) {
           ~ roboplot.horizontal.label

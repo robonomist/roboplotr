@@ -69,9 +69,9 @@ roboplotr_format_robotable_numeric <-
            unit = "",
            na_value = ""
            ) {
-    dplyr::if_else(is.na(num), na_value,
+    if_else(is.na(num), na_value,
               str_glue(
-                '{formatC(round(num, rounding), big.mark = " ", decimal.mark = ",", format = "fg", flag = flag)}{unit}'
+                '{formatC(round(num, rounding), big.mark = " ", decimal.mark = ",", format = "f", digits = rounding, flag = flag)}{unit}'
               ))
   }
 
