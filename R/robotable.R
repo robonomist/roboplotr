@@ -78,6 +78,8 @@ roboplotr_format_robotable_numeric <-
 #' @importFrom dplyr across bind_cols bind_rows cur_column mutate rename_with where
 roboplotr_robotable_cellformat <-
   function(d, rounding, flag, unit, na_value, dateformat) {
+
+    # Check if the rounding, flag, and unit parameters are valid
     if (!is.null(names(unit))) {
       if (!all(names(d) %in% c(names(unit))) &
           !".default" %in% names(unit)) {
@@ -86,9 +88,28 @@ roboplotr_robotable_cellformat <-
       unitless_cols <-
         names(d) |> subset(!names(d) %in% names(unit))
       unit <-
-        unit |> subset(!".default" == names(unit)) |> c(rep(unit[[".default"]], length(unitless_cols)) |> setNames(unitless_cols))
+        unit |> subset(!".default" == names(unit)) |> c(rep(subset(unit, names(unit) == ".default"), length(unitless_cols)) |> setNames(unitless_cols))
     }  else {
       unit <- rep(unit, length(names(d))) |> setNames(names(d))
+    }
+
+    if (!is.null(names(rounding))) {
+      roboplotr_typecheck(rounding, "numeric",size = NULL)
+      .num_cols <- d |> select(where(is.numeric)) |> names()
+      rounding <- setNames(as.numeric(rounding), names(rounding))
+      if (!all(.num_cols %in% names(rounding)) &
+          !".default" %in% names(rounding)) {
+        roboplotr_message(str_glue("Some numeric columns specified in robotable() data `d` were not provided `rounding`! robotable() used {round(getOption('roboplot.rounding'))} (reset the global default with `set_roboplot_options(rounding)`) for those columns. Use \".default\" to set a default value for all numeric columns not specified in `rounding`."))
+        rounding <- c(rounding, ".default" = round(getOption("roboplot.rounding")))
+      }
+      roundless_cols <-
+        .num_cols |> subset(!.num_cols %in% names(rounding))
+      rounding <-
+        rounding |> subset(!".default" == names(rounding)) |> c(rep(subset(rounding, names(rounding) == ".default"), length(roundless_cols)) |> setNames(roundless_cols))
+    }  else {
+      roboplotr_typecheck(rounding, "numeric", 1)
+      .num_cols <- d |> select(where(is.numeric)) |> names()
+      rounding <- rep(as.numeric(rounding),length(.num_cols)) |> setNames(.num_cols)
     }
 
     if (!is.null(names(flag))) {
@@ -99,7 +120,7 @@ roboplotr_robotable_cellformat <-
       flagless_cols <-
         names(d) |> subset(!names(d) %in% names(flag))
       flag <-
-        flag |> subset(!".default" == names(flag)) |> c(rep(flag[[".default"]], length(flagless_cols)) |> setNames(flagless_cols))
+        flag |> subset(!".default" == names(flag)) |> c(rep(subset(flag, names(flag) == ".default"), length(flagless_cols)) |> setNames(flagless_cols))
     } else {
       flag <- rep(flag, length(names(d))) |> setNames(names(d))
     }
@@ -114,7 +135,10 @@ roboplotr_robotable_cellformat <-
     d <- d |>
       mutate(across(
         where(is.numeric),
-        ~ roboplotr_format_robotable_numeric(., rounding, flag[[cur_column()]], unit[[cur_column()]], na_value)
+        ~ {
+          .cur <- cur_column()
+          roboplotr_format_robotable_numeric(., rounding[[.cur]], flag[[.cur]], unit[[.cur]], na_value)
+        }
       )) |>
       bind_cols(order_cols)
 
@@ -397,7 +421,7 @@ robotable <-
            title = NULL,
            subtitle = "",
            caption = NULL,
-           rounding = 1,
+           rounding = getOption("roboplot.rounding"),
            width = getOption("roboplot.width"),
            height = NULL,
            flag = "",

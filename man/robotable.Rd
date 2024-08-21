@@ -9,7 +9,7 @@ robotable(
   title = NULL,
   subtitle = "",
   caption = NULL,
-  rounding = 1,
+  rounding = getOption("roboplot.rounding"),
   width = getOption("roboplot.width"),
   height = NULL,
   flag = "",

@@ -26,6 +26,7 @@ set_roboplot_options(
   markers = NULL,
   modebar = NULL,
   patterns = NULL,
+  rounding = NULL,
   tidy_legend = NULL,
   trace_border = NULL,
   trace_colors = NULL,
@@ -58,7 +59,7 @@ contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" 
 
 \item{grid}{Function. Control the grid behind the traces. Use \code{\link[=set_grid]{set_grid()}}.}
 
-\item{height, width}{Numerics. Height and width of roboplotr plots in pixels.
+\item{height, width}{Double. Height and width of roboplotr plots in pixels.
 Use NA for viewport size.}
 
 \item{imgdl_wide, imgdl_narrow, imgdl_small}{Functions. Use \link{set_imgdl_layout}.
@@ -84,6 +85,8 @@ and "robonomist" in any order.}
 
 \item{patterns}{Character vector. Line trace linetypes in order of usage. Must
 contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
+
+\item{rounding}{Double. Default rounding for numeric values across various roboplotr functions.}
 
 \item{tidy_legend}{Logical. Controls whether the legend items will have matching
 widths, making for neater legends, or containing text widths, saving space.}

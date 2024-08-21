@@ -19,7 +19,7 @@ robomap(
   data_contour = FALSE,
   markers = FALSE,
   log_colors = NULL,
-  rounding = 1,
+  rounding = round(getOption("roboplot.rounding")),
   zoom = TRUE,
   ...
 )

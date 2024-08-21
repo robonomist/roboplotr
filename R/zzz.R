@@ -38,6 +38,7 @@
     roboplot.imgdl.wide = list(x = 1280, y = 720, title = 18, main = 15, caption = 11, suffix = "_levea", type = "png"),
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 18, main = 15, caption = 11, suffix = "_kapea", type = "png"),
     roboplot.imgdl.small = list(x = 889, y = 500, title = 16, main = 13, caption = 10, suffix = "_pieni", type = "png"),
+    roboplot.rounding = 1,
     roboplot.trace.border = list(color = "#E8E8E8", width = 1),
     roboplot.width = NA,
     roboplot.shinyapp = FALSE,

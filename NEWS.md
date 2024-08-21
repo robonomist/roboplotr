@@ -1,17 +1,21 @@
+# roboplotr 2.0.2
+
+* Added option of providing column-speficic rounding for `robotable()`. Global defaults for rounding can now be specified with `set_roboplot_options()`.
+
 # roboplotr 2.0.1
 
-* Fix for set_hovertext param `text_col` affecting legend labeling.
-* Fix for robotable rounding dropping decimals from whole numbers instead of using the given rounding.
+* Fix for `set_hovertext()` param `text_col` affecting legend labeling.
+* Fix for `robotable()` rounding dropping decimals from whole numbers instead of using the given rounding.
 
 # roboplotr 2.0.0
 
-* `shinyapp`-parameter in roboplot() and set_roboplot_options() has been reworked to align with how it actually works. This is a breaking change.
-* Changes in roboplotr internal validation. This is a breaking change.
-* Fix for Google fonts not showing on robotable(). Loosened font restrictions.
-* Added preDraw callback to robotable() that forces core DataTables css to load properly.
-* Improved roboplot() logo handling when set to "none".
-* Added set_legend() for specifying robomap() and roboplot() legend appearance.
-* Added support for legend_position = "right" for roboplot().
+* `shinyapp`-parameter in `roboplot()` and `set_roboplot_options()` has been reworked to align with how it actually works. This is a breaking change.
+* Changes in `roboplotr``` internal validation. This is a breaking change.
+* Fix for Google fonts not showing on `robotable()```. Loosened font restrictions.
+* Added preDraw callback to `robotable()` that forces core DataTables css to load properly.
+* Improved `roboplot()` logo handling when set to "none".
+* Added `set_legend()` for specifying `robomap()` and `roboplot()` legend appearance.
+* Added support for `legend_position` = "right" for `roboplot()`.
 
 # roboplotr 1.8.3
 
@@ -19,7 +23,7 @@
 
 # roboplotr 1.8.2
 
-* Fixes roboplot pie plots erroneously trying to use secondary_yaxis
+* Fixes `roboplot()` pie plots erroneously trying to use a secondary_yaxis.
 
 # roboplotr 1.8.1
 

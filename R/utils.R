@@ -13,7 +13,7 @@
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must
 #' contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @param font_main,font_title,font_caption Functions. Use [set_font()].
-#' @param height,width Numerics. Height and width of roboplotr plots in pixels.
+#' @param height,width Double. Height and width of roboplotr plots in pixels.
 #' Use NA for viewport size.
 #' @param imgdl_wide,imgdl_narrow,imgdl_small Functions. Use [set_imgdl_layout].
 #' Controls the dimensions and fonts of exports through modebar.
@@ -31,6 +31,7 @@
 #' and "robonomist" in any order.
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must
 #' contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
+#' @param rounding Double. Default rounding for numeric values across various roboplotr functions.
 #' @param trace_border List. Borders for bars, pies and markers. Values must be
 #' named "color" and "width". "color" needs to be a hexadecimal color or a
 #' valid css color, "width" needs to be numeric.
@@ -220,6 +221,7 @@ set_roboplot_options <- function(
     markers = NULL,
     modebar = NULL,
     patterns = NULL,
+    rounding = NULL,
     tidy_legend = NULL,
     trace_border = NULL,
     trace_colors = NULL,
@@ -340,6 +342,8 @@ set_roboplot_options <- function(
     roboplotr_typecheck(imgdl_wide, "set_imgdl_layout")
     roboplotr_typecheck(imgdl_narrow, "set_imgdl_layout")
     roboplotr_typecheck(imgdl_small, "set_imgdl_layout")
+
+    roboplotr_typecheck(rounding, "numeric", allow_na = F)
 
     roboplotr_typecheck(tidy_legend, "logical")
 

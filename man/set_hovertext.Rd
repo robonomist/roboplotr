@@ -6,7 +6,7 @@
 \usage{
 set_hovertext(
   frequency = NULL,
-  rounding = 1,
+  rounding = getOption("roboplot.rounding"),
   unit = "",
   text_col = NULL,
   extra = NULL
@@ -17,8 +17,7 @@ set_hovertext(
 of "Annual", "Quarterly", "Monthly", "Weekly", "Daily", or NULL. Defaults to
 NULL, where \code{\link[=roboplot]{roboplot()}} infers the format from \code{d}.}
 
-\item{rounding}{Double. Number of decimal places for hovertemplate values. Defaults
-to 1.}
+\item{rounding}{Double. Number of decimal places for hovertemplate values.}
 
 \item{unit}{Character. Unit displayed.}
 

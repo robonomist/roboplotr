@@ -34,8 +34,7 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #' @param frequency Character. Determines the format of hovertemplate dates. One
 #' of "Annual", "Quarterly", "Monthly", "Weekly", "Daily", or NULL. Defaults to
 #' NULL, where [roboplot()] infers the format from `d`.
-#' @param rounding Double. Number of decimal places for hovertemplate values. Defaults
-#' to 1.
+#' @param rounding Double. Number of decimal places for hovertemplate values.
 #' @param unit Character. Unit displayed.
 #' @param text_col Symbol or character. Column used from `d` in a [roboplot][roboplot()]
 #' for labeling. If NULL, the column used for `color` (and, if given, `pattern`)
@@ -72,7 +71,7 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #' @returns A list of class roboplotr.set_hovertext
 #' @export
 set_hovertext <- function(frequency = NULL,
-                          rounding = 1,
+                          rounding = getOption("roboplot.rounding"),
                           unit = "",
                           text_col = NULL,
                           extra = NULL) {
