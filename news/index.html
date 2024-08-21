@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -34,20 +34,24 @@
     </div>
 
     <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.0.2" id="roboplotr-202">roboplotr 2.0.2<a class="anchor" aria-label="anchor" href="#roboplotr-202"></a></h2>
+<ul><li>Added option of providing column-speficic rounding for <code><a href="../reference/robotable.html">robotable()</a></code>. Global defaults for rounding can now be specified with <code><a href="../reference/set_roboplot_options.html">set_roboplot_options()</a></code>.</li>
+</ul></div>
+    <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.1" id="roboplotr-201">roboplotr 2.0.1<a class="anchor" aria-label="anchor" href="#roboplotr-201"></a></h2>
-<ul><li>Fix for set_hovertext param <code>text_col</code> affecting legend labeling.</li>
-<li>Fix for robotable rounding dropping decimals from whole numbers instead of using the given rounding.</li>
+<ul><li>Fix for <code><a href="../reference/set_hovertext.html">set_hovertext()</a></code> param <code>text_col</code> affecting legend labeling.</li>
+<li>Fix for <code><a href="../reference/robotable.html">robotable()</a></code> rounding dropping decimals from whole numbers instead of using the given rounding.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.0.0" id="roboplotr-200">roboplotr 2.0.0<a class="anchor" aria-label="anchor" href="#roboplotr-200"></a></h2>
 <ul><li>
-<code>shinyapp</code>-parameter in roboplot() and set_roboplot_options() has been reworked to align with how it actually works. This is a breaking change.</li>
-<li>Changes in roboplotr internal validation. This is a breaking change.</li>
-<li>Fix for Google fonts not showing on robotable(). Loosened font restrictions.</li>
-<li>Added preDraw callback to robotable() that forces core DataTables css to load properly.</li>
-<li>Improved roboplot() logo handling when set to “none”.</li>
-<li>Added set_legend() for specifying robomap() and roboplot() legend appearance.</li>
-<li>Added support for legend_position = “right” for roboplot().</li>
+<code>shinyapp</code>-parameter in <code><a href="../reference/roboplot.html">roboplot()</a></code> and <code><a href="../reference/set_roboplot_options.html">set_roboplot_options()</a></code> has been reworked to align with how it actually works. This is a breaking change.</li>
+<li>Changes in `roboplotr``` internal validation. This is a breaking change.</li>
+<li>Fix for Google fonts not showing on `robotable()```. Loosened font restrictions.</li>
+<li>Added preDraw callback to <code><a href="../reference/robotable.html">robotable()</a></code> that forces core DataTables css to load properly.</li>
+<li>Improved <code><a href="../reference/roboplot.html">roboplot()</a></code> logo handling when set to “none”.</li>
+<li>Added <code><a href="../reference/set_legend.html">set_legend()</a></code> for specifying <code><a href="../reference/robomap.html">robomap()</a></code> and <code><a href="../reference/roboplot.html">roboplot()</a></code> legend appearance.</li>
+<li>Added support for <code>legend_position</code> = “right” for <code><a href="../reference/roboplot.html">roboplot()</a></code>.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.8.3" id="roboplotr-183">roboplotr 1.8.3<a class="anchor" aria-label="anchor" href="#roboplotr-183"></a></h2>
@@ -55,7 +59,7 @@
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.8.2" id="roboplotr-182">roboplotr 1.8.2<a class="anchor" aria-label="anchor" href="#roboplotr-182"></a></h2>
-<ul><li>Fixes roboplot pie plots erroneously trying to use secondary_yaxis</li>
+<ul><li>Fixes <code><a href="../reference/roboplot.html">roboplot()</a></code> pie plots erroneously trying to use a secondary_yaxis.</li>
 </ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="1.8.1" id="roboplotr-181">roboplotr 1.8.1<a class="anchor" aria-label="anchor" href="#roboplotr-181"></a></h2>
