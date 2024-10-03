@@ -14,8 +14,8 @@ set_font(
 )
 }
 \arguments{
-\item{font}{Character. One of your system fonts if \code{systemfonts} package is available.
-"Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond",
+\item{font}{Character. One of your system fonts if \code{systemfonts} package is available,
+or "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond",
 "Courier New", "Brush Script MT", a Google font, or a path to an .otf or .ttf file.}
 
 \item{fallback}{Character. Only used when a file path is used with \code{font}. Fallback

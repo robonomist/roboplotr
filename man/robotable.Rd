@@ -34,7 +34,8 @@ robotable(
 
 \item{caption}{Function or character. Use \code{\link[=set_caption]{set_caption()}}.}
 
-\item{rounding}{Numeric. Controls the rounding of numeric columns.}
+\item{rounding}{Double, named if vector. Controls the rounding of numeric columns.
+Give a named vector for specific columns. Default is set with \code{\link[=set_roboplot_options]{set_roboplot_options()}}}
 
 \item{height, width}{Numeric. Height and width of the table. Default width is
 NULL for responsive tables, give a value for static table dimensions.}

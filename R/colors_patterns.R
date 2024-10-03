@@ -829,7 +829,8 @@ roboplotr_get_pattern_showlegend <- function(d,
   if (is.null(pattern_showlegend)) {
     return(NULL)
   }
-  if (!rlang::is_quosure(pattern)) {
+
+  if (!is_quosure(pattern)) {
     pattern <- enquo(pattern)
   }
   if ((!quo_is_null(pattern) & !is.null(pattern_showlegend))) {
@@ -912,3 +913,31 @@ set_markers <-
     .res
 
   }
+
+#' [roboplot()] attempts to bind patterns for continuous line for certain plots
+#' @importFrom dplyr arrange bind_rows filter group_by group_split left_join mutate pull select
+#' @importFrom purrr imap_dfr
+#' @noRd
+#'
+roboplotr_continuous_pattern <- function(d, along, pattern, group) {
+  split <- d |>
+    arrange({{pattern}}) |>
+    group_by({{pattern}}) |>
+    group_split()
+  imap_dfr(split, function(.group, i) {
+    if(i == 1) {
+      .group
+    } else {
+      prev <- split[[i-1]] |>
+        group_by({{group}}) |>
+        filter({{along}} == max({{along}})) |>
+        ungroup() |>
+        select(-starts_with("roboplot."), -{{pattern}})
+      .first <- .group |> group_by({{group}}) |> filter({{along}} == min({{along}})) |> select(-{{along}}, -.data$value) |> ungroup()
+      prev |> left_join(.first, by = as_label(group)) |>
+        drop_na() |>
+        bind_rows(.group)
+    }
+  }) |>
+    arrange({{along}})
+}

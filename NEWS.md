@@ -1,3 +1,10 @@
+# roboplotr 2.1.0
+
+* Deprecation of `error_bars` param in `roboplot()` and the related function `set_errorbars()` in favor of `confidence_interval` and `set_confidence_interval()`. The new function handles both error bars and continuous areas. 
+* Added `set_updatemenus()` for `roboplot()` to allow for more dropdowns for controlling displayed traces. Especially useful with a large number of legend items.
+* Fixes `set_pattern()` param `pattern_along` not working properly in all use cases.
+* Moved several Imports to Suggests, mainly for `robomap()`.
+
 # roboplotr 2.0.2
 
 * Added option of providing column-speficic rounding for `robotable()`. Global defaults for rounding can now be specified with `set_roboplot_options()`.

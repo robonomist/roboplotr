@@ -313,8 +313,25 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
     Plotly.relayout(gd, relayout_array);
     relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
     Plotly.relayout(gd, relayout_array);
+    setUpdatemenuPosition(gd);
 
   }
+}
+
+function setUpdatemenuPosition(gd) {
+    if($(gd).find("g.updatemenu-container").length > 0) {
+      let plot = $(gd).find('.nsewdrag')[0].getBBox();
+      let updatemenu = $(gd).find("g.updatemenu-container")[0].getBBox();
+      let updatemenu_y = gd.layout.updatemenus[0].yanchor == "top" ? 0.98 : 0.02;
+      console.log(gd.layout.updatemenus[0].xanchor)
+      console.log(plot.width)
+      let updatemenu_x = gd.layout.updatemenus[0].xanchor == "left" ? 0.02 : 0.98;
+//      let updatemenu_x = 0.9
+      Plotly.relayout(gd, {
+        "updatemenus[0].y": updatemenu_y, 
+        "updatemenus[0].x": updatemenu_x
+      });
+    }
 }
 
 function setYPositions(eventdata, gd, pie_chart = false) {

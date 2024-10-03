@@ -52,6 +52,7 @@ roboplotr_check_valid_var <- function(var,names,where = NULL) {
 
 }
 
+#' @importFrom methods as
 #' @importFrom purrr map2_chr
 #' @importFrom stringr str_c str_glue str_remove
 roboplotr_typecheck <- function(var, types, size = 1, allow_null = TRUE, allow_na = FALSE, extra = NULL) {
@@ -122,7 +123,7 @@ roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = al
       if(is.null(msg)) {
         msg <- str_glue("'{deparse(substitute(strings_to_validate))}'")
       }
-      .valids <- roboplotr_combine_words(str_replace_all(valid_values,'\\\\', '\\\\\\\\'))
+      .valids <- roboplotr_combine_words(str_replace_all(str_c("'",valid_values,"'"),'\\\\', '\\\\\\\\'))
       stop (str_glue("{msg} must be among {.valids}!"), call. = F)
     }
   }
@@ -137,5 +138,12 @@ roboplotr_valid_colors <- function(colors_to_validate, message = NULL) {
       }
       stop (str_glue("{message} must be hexadecimal colors or valid css colors!"), call. = F)
     }
+  }
+}
+
+roboplotr_is_between <- function(check, where, lims = c(0,1)) {
+  what <- as_name(substitute(check))
+  if(!between(check, min(lims), max(lims))) {
+    stop(str_glue("{where} param '{what}' must be between {min(lims)} and max(lims)!"), call. = F)
   }
 }

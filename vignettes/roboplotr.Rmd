@@ -334,8 +334,8 @@ a specific format in mind, and we'll cover these next.
 ```{r petrol}
 data_get("tidy/ec_oil_bulletin") |>
   filter(
-    Country %in% c("FI","SE", "DE"), 
-    Variable == "Euro-super 95  (I), 1000L", 
+    Country %in% c("Finland","Sweden", "Denmark"), 
+    Variable == "Euro-super 95", 
     Taxes == T, 
     time >= "2018-01-01") |>
   mutate(
@@ -432,26 +432,27 @@ Note that `forcats::fct_relevel2()` from forcats behaves differently than `forca
 
 ```{r consumer_confidence}
 d <-
-  data_get("oecd/KEI", dl_filter = "CSCICP02.FIN+CHN+USA+EA19+JPN") |>
-  filter(FREQUENCY == "Monthly")
+  data_get("oecd/DSD_KEI@DF_KEI",
+         dl_filter = "FIN+CHN+USA+EA19+JPN.M.CCICP....") |>
+  filter(FREQ == "Monthly")
 attr(d, "frequency") <- "Monthly"
 
 d |>
-  select(LOCATION, time, value) |>
+  select(REF_AREA, time, value) |>
   filter(time >= "2000-01-01") |>
-  mutate(LOCATION = recode(LOCATION,
+  mutate(REF_AREA = recode(REF_AREA,
     "United States" = "USA",
     "China (People's Republic of)" = "China",
     "Euro area (19 countries)" = "Euro area"
   )) |>
-  with_groups(LOCATION, mutate,
+  with_groups(REF_AREA, mutate,
     value = 10 * scale(value)[, 1] + 100,
     value = 100 * value / mean(value[year(time) == 2019])
   ) |>
   filter(time >= "2018-01-01") |>
-  mutate(LOCATION = fct_reorder2(LOCATION, value, time,.desc = F)) |> 
+  mutate(REF_AREA = fct_reorder2(REF_AREA, value, time,.desc = F)) |> 
   roboplot(
-    LOCATION,"Consumer Confidence Indicator","Index, 2019 = 100","OECD"
+    REF_AREA,"Consumer Confidence Indicator","Index, 2019 = 100","OECD"
     )
 ```
 

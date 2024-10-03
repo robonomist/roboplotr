@@ -231,7 +231,8 @@ roboplotr_dependencies <- function(p,
 #' @param facet_split Currently unused. Variable from `d` for facet splits.
 #' @param shadearea Date, numeric or function. Highlight an area on the plot. Use
 #' [set_shadearea()] for detailed control. Works with numeric or date x-axis and numeric y-axis.
-#' @param error_bars Function. Error bar configuration. Use [set_errorbars()].
+#' @param error_bars Deprecated. Use `confidence_interval` instead. 
+#' @param confidence_interval Function. Confidence layer configuration. Use [set_confidence_interval()].
 #' @param secondary_yaxis Character vector. Observations from `color` using a secondary
 #' y-axis. Use `plot_axes` with [set_axes()] for more control.
 #' @param xaxis_ceiling Character or date. Sets or rounds the upper bound of the
@@ -240,6 +241,7 @@ roboplotr_dependencies <- function(p,
 #' TRUE for automated artefact creation based on [set_roboplot_options()].
 #' @param modebar Function. Use [set_modebar()].
 #' @param info_text Character. Adds an info button to the modebar with this text, along with plot title and caption.
+#' @param updatemenu Function. Use [set_updatemenu()] for detailed control.
 #' @param ... Placeholder for other parameters.
 #' @returns A list of classes "htmlwidget", "plotly", and  "roboplotr.roboplot"
 #' @examples
@@ -292,6 +294,11 @@ roboplotr_dependencies <- function(p,
 #'                width = 400
 #' )
 #'
+#' # For a long list of legend items, use `updatemenu`. See the documentation
+#' # of `set_updatemenu()` function for more control.
+#' energiantuonti |> roboplot(color = Suunta, updatemenu = Alue)
+#'
+#' 
 #' # `pattern` can be used in addition to color and you can control the ordering of
 #' # the traces by transforming your variables to factors. You can also let
 #' # `roboplot()` guess how much space is given to yaxis end in line plots, or give a
@@ -415,7 +422,7 @@ roboplotr_dependencies <- function(p,
 #'              xticktype = "numeric")
 #'   )
 #'
-#' # You can use `secondary_uaxis` to define which observations from 'color' use
+#' # You can use `secondary_yaxis` to define which observations from 'color' use
 #' # go to a secondary yaxis on the right.
 #' d2 |>
 #'   dplyr::filter(Suunta == "Tuonti", Alue %in% c("Yhdistynyt kuningaskunta", "Kanada", "Norja")) |>
@@ -448,19 +455,19 @@ roboplotr_dependencies <- function(p,
 #' )
 #'
 #' # Aside from `pattern`, you might want to change `markers` used on "scatter"
-#' # plots by using `set_markers()`. You can also include `error_bars` on any
-#' # numeric axis by specifying them with `set_errorbars()`. See both functions
+#' # plots by using `set_markers()`. You can also include `confidence_interval` on any
+#' # numeric axis by specifying them with `set_confidence_interval()`. See both functions
 #' # for more details.
 #' d2 |>
 #' dplyr::filter(Alue == "Norja") |>
 #'   dplyr::group_by(Suunta) |>
-#'   dplyr::mutate(sd = sd(value)) |>
+#'   dplyr::mutate(confidence_interval = sd(value)) |>
 #'   dplyr::ungroup() |>
 #'   roboplot(Suunta,
 #'            plot_type = "scatter",
 #'            plot_mode = "scatter",
 #'            markers = set_markers("star", 12),
-#'            error_bars = set_errorbars(error_y = sd)
+#'            confidence_interval = set_confidence_interval(type = "bars")
 #'   )
 #' # Pie plot can be centered to the first factor level of argument `color` with
 #' # with `plot_mode` "rotated".
@@ -567,7 +574,8 @@ roboplot <- function(d = NULL,
                      plot_axes = set_axes(),
                      markers = set_markers(),
                      height = getOption("roboplot.height"),
-                     error_bars = NULL,
+                     error_bars = deprecated(),
+                     confidence_interval = NULL,
                      facet_split = NULL,
                      xaxis_ceiling = getOption("roboplot.xaxis.ceiling"),
                      width = getOption("roboplot.width"),
@@ -576,6 +584,7 @@ roboplot <- function(d = NULL,
                      modebar = NULL,
                      artefacts = getOption("roboplot.artefacts")$auto,
                      info_text = NULL,
+                     updatemenu = NULL,
                      legend_position = deprecated(),
                      legend_maxwidth = deprecated(),
                      ...) {
@@ -699,8 +708,20 @@ roboplot <- function(d = NULL,
     }
   }
 
-  roboplotr_typecheck(error_bars, "set_errorbars")
-  roboplotr_validate_errorbars(error_bars, d)
+  if(is_present(error_bars)) {
+    deprecate_warn("2.1.0", "roboplotr::roboplot(error_bars)", "roboplotr::roboplot(set_confidence_interval)")
+    confidence_interval <- error_bars
+  }
+  
+
+  if(!is.null(confidence_interval)) {
+    if(all(is.logical(confidence_interval))) {
+      confidence_interval <- set_confidence_interval("area")
+    } 
+  }
+  roboplotr_typecheck(confidence_interval, "set_confidence_interval")
+  roboplotr_validate_confidence(confidence_interval, d, plot_axes)
+  
 
   roboplotr_typecheck(modebar, "set_modebar")
 
@@ -910,10 +931,9 @@ roboplot <- function(d = NULL,
           "Be sure to arrange the data in proper order. For complex data you are better off handling the data manipulation outside of roboplot()."
         )
       )
-      d <- roboplotr_continuous_pattern(d, {{pattern_along}}, {{pattern}})
+      d <- roboplotr_continuous_pattern(d, {{pattern_along}}, {{pattern}}, {{color}})
     }
   }
-
 
   roboplotr_typecheck(legend, c("character","set_legend"), allow_na = T)
 
@@ -954,7 +974,9 @@ roboplot <- function(d = NULL,
     } else {
       legend$title <- str_c("<b>", as_name(color), "</b>")
     }
-
+  
+  updatemenu <- roboplotr_get_updatemenu(enquo(updatemenu), d_names)
+  
   p <-
     roboplotr_get_plot(
       d,
@@ -971,8 +993,9 @@ roboplot <- function(d = NULL,
       width,
       pattern_showlegend,
       pattern_sep,
-      error_bars,
-      markers
+      confidence_interval,
+      markers,
+      updatemenu
     )
   # }
   p$data <-
@@ -1081,20 +1104,6 @@ roboplot <- function(d = NULL,
       modebar = modebar
     )
 
-  # p <- p |>
-  #   layout(shapes = list(
-  #     list(
-  #       type = "rect",
-  #       fillcolor = "red",
-  #       line = list(color = "red"),
-  #       opacity = 0.2,
-  #       y0 = min(d$value),
-  #       y1 = max(d$value),
-  #       x0 = "2020-01-01",
-  #       x1 = max(d$time)
-  #     )
-  #   ))
-
   if (getOption("roboplot.shinyapp") == F) {
     p <- partial_bundle(p, "basic")
     roboplotly_dep <- p$dependencies |>
@@ -1108,18 +1117,7 @@ roboplot <- function(d = NULL,
   }
 
   p <- structure(p, class = c(class(p), "roboplotr","roboplotr.roboplot"))
-  ## add labels for facet plot. Has to be done here for the relayout js to work properly for captions.
-  # if(!is.null(facet_split)) {
-  #   yloc <- max(d$value)
-  #   split_facet <- group_split(d,!!facet_split)
-  #   for(i in seq(length(split_facet))) {
-  #     xloc <- split_facet[[i]]$time |> unique() |> sort() |> median()
-  #     ann_text <- split_facet[[i]][[as_name(facet_split)]] |> unique() |> str_pad(width = 10, side = "both", pad = " ")
-  #     p <- p |>
-  #       layout(annotations =
-  #                list(text = ann_text, yref = str_c("y",i), xref = str_c("x",i), showarrow = F, y = yloc, x = xloc, bgcolor = "white", borderwidth = 1, borderpad = 4, bordercolor = "black"))
-  #   }
-  # }
+
   roboplotr_typecheck(artefacts, c("logical","set_artefacts"), allow_null = F)
 
   if (is.logical(artefacts)) {
@@ -1155,64 +1153,6 @@ roboplot <- function(d = NULL,
 
 }
 
-
-# #' @importFrom dplyr filter group_split
-# #' @importFrom purrr map2
-# #' @importFrom plotly add_trace layout plot_ly subplot
-# #' @importFrom stringr str_replace_all
-# roboplotr_get_facet_plot <- function(d, facet_split, height, color, pattern, plot_type, trace_color, highlight, hovertext, plot_mode, ticktypes, plot_axes) {
-#
-#   split_facet <- d |> group_split(!!facet_split)
-#
-#   p <- map2(split_facet,seq(length(split_facet)), function(facet, i) {
-#
-#     p <- plot_ly(facet, x = ~time, height = height, colors = pull(distinct(d,.data$roboplot.trace.color)))
-#
-#     split_d <- group_split(facet, !!color, !!pattern)
-#     split_d <- if(any(plot_type == "scatter")) { rev(split_d) } else { split_d }
-#
-#     for (g in split_d) {
-#       g.dash <- unique(d$roboplot.dash)
-#       g.name <- unique(g[[as_name(color)]])
-#       g.level <-  which(g.name == levels(g.name))
-#       g.type <- unique(g$roboplot.plot.type)
-#       g.linewidth <- unique(g$roboplot.linewidth)
-#       legend.rank <- g.level * 100  + ( if(!is.null(pattern)){ which(g.dash == levels(g.dash)) * 10 } else  { 0 } )
-#       show.legend <- if (i > 1) {F} else if(!is.null(trace_color)) { T } else { roboplotr_highlight_legend(highlight, filter(d, !!color == g.name)) }
-#       p <- p |>
-#         add_trace(data=g, y = ~value, text = g.name,
-#                   texttemplate = NA,
-#                   hovertemplate = roboplotr_hovertemplate(hovertext),
-#                   line = if(g.type == "scatter") { list(width = g.linewidth, dash = g.dash) } else { NULL },
-#                   offsetgroup = if(g.type == "bar") { g.name } else { NULL },
-#                   legendgroup = g.name,
-#                   legendrank = legend.rank,
-#                   showlegend = show.legend,
-#                   name = g.name,
-#                   color = color,
-#                   type = g.type, mode = if(g.type == "scatter") { "lines" } else { NULL }
-#         )
-#     }
-#
-#     if(any(!plot_mode %in% c("dodge","line","stack","horizontal"))) {
-#       stop("Plot mode must be \"dodge\", \"line\", \"stack\" or \"horizontal\"!", call. = F)
-#     } else {
-#       p_mode <- ifelse(str_detect(plot_mode, "dodge|horizontal"), "group","relative")
-#       p  <- layout(p, barmode = p_mode)
-#     }
-#     if(i > 1) {
-#       p <- p |>
-#         roboplotr_set_ticks(ticktypes = ticktypes) |>
-#         layout(yaxis = list(range = plot_axes$ylim, showticklabels = F, showline = getOption("roboplot.colors.background")$y != getOption("roboplot.colors.border")$y))
-#     }
-#
-#     p
-#
-#   })
-#
-#   subplot(p)
-# }
-
 #' @importFrom dplyr arrange desc distinct first group_split mutate pull slice_min summarize
 #' @importFrom forcats fct_inorder
 #' @importFrom plotly plot_ly layout subplot
@@ -1234,8 +1174,11 @@ roboplotr_get_plot <-
            width,
            pattern_showlegend,
            pattern_sep,
-           error_bars,
-           markers) {
+           confidence,
+           markers,
+           updatemenu
+           ) {
+
     plot_colors <-
       pull(
         distinct(d, .data$roboplot.trace.color, !!color),
@@ -1243,15 +1186,13 @@ roboplotr_get_plot <-
         name = !!color
       )
 
-    trace_showlegend <-
       if (is.null(legend$position)) {
-        T
+        trace_showlegend <-T
       } else if (is.na(legend$position)) {
-        F
+        trace_showlegend <-F
       } else {
-        T
+        trace_showlegend <-T
       }
-
     p <-
       plot_ly(d,
               height = height,
@@ -1306,25 +1247,35 @@ roboplotr_get_plot <-
     if ("pie" %in% plot_type) {
       split_d <-
         d |> arrange(!!color) |> group_split(.data$roboplot.plot.type, .data$roboplot.dash)
+      updatemenu <- NULL
     } else {
       split_d <-
         d |>
         mutate(arranger = as.numeric(!!color)) |>
-        # mutate(roboplot.plot.type = ifelse(Alue == "Venäjä", "bar",roboplot.plot.type)) |>
         mutate(arranger = ifelse(
           .data$roboplot.plot.type == "bar",
-          # arranger + max(arranger),
           (max(.data$arranger[.data$roboplot.plot.type == "bar"]) + 1 -
              .data$arranger) + max(.data$arranger),
           .data$arranger
         ))
+      
+      if (!quo_is_null(updatemenu$buttons)) {
+        split_d <- split_d |> mutate(roboplot.update.menu = !!updatemenu$buttons)
+      } else {
+        split_d <- split_d |> mutate(roboplot.update.menu = NA)
+      }
 
       split_d <- split_d |>
         group_split(.data$arranger,
                     .data$roboplot.plot.type,
-                    .data$roboplot.dash)
+                    .data$roboplot.dash,
+                    .data$roboplot.update.menu
+                    )
 
       split_d <- rev(split_d)
+
+      split_d <- roboplotr_get_confidence_areas(split_d, confidence, ticktypes)
+      updatemenu <- roboplotr_set_updatemenu(d, split_d, updatemenu)
     }
 
 
@@ -1337,10 +1288,10 @@ roboplotr_get_plot <-
     }
 
     if (!is.null(height) & !is.null(legend$position)) {
-      if (length(split_d) > height / 50 & !is.na(legend$position)) {
+      if ((length(split_d) > height / 50 & !is.na(legend$position)) & is.null(updatemenu)) {
         roboplotr_alert(
           str_glue(
-            "You have many legend items, you might want to use 'height' of {length(split_d) * 50}."
+            "You have many legend items, you might want to use 'height' of {length(split_d) * 50}, or use param `updatemenu`."
           )
         )
       }
@@ -1362,7 +1313,6 @@ roboplotr_get_plot <-
       } else {
         legend_rank <- mean(g$roboplot.legend.rank)
       }
-
       .fontsize <- getOption("roboplot.font.main")$size
       g <-
         mutate(
@@ -1379,16 +1329,35 @@ roboplotr_get_plot <-
                  ))
       }
 
-      if (is.null(highlight)) {
-        if (!is.null(pattern_showlegend) & trace_showlegend) {
-          show.legend <- pattern_showlegend[unique(g[[as_name(pattern)]]) |> as.character()]
-
+      if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
+        show.legend <- attributes(g)$`roboplot.confidence.area`$show_legend
+        g <- g |> 
+          mutate(
+            roboplot.confidence.label = str_c(
+              .data$roboplot.plot.text,
+              "\n",
+              .data[[attributes(g)$roboplot.confidence.area$col]]
+            ),
+            roboplot.plot.text = .data[[attributes(g)$roboplot.confidence.area$col]],
+                 )
+        if(!is.character(g[[attributes(g)$roboplot.confidence.area$col]])) {
+          legend_rank <- legend_rank + 10 + as.numeric(unique(g[[attributes(g)$roboplot.confidence.area$col]])) 
         } else {
-          show.legend <- trace_showlegend
+          legend_rank <- legend_rank + 10 + 1
         }
       } else {
-        show.legend <- roboplotr_highlight_legend(highlight, g)
+        if (is.null(highlight)) {
+          if (!is.null(pattern_showlegend) & trace_showlegend) {
+            show.legend <- pattern_showlegend[unique(g[[as_name(pattern)]]) |> as.character()]
+            
+          } else {
+            show.legend <- trace_showlegend
+          }
+        } else {
+          show.legend <- roboplotr_highlight_legend(highlight, g)
+        }
       }
+
 
       .legendgrouptitle <- NULL
       .legendgroup <- if ("pie" %in% plot_type) {
@@ -1406,28 +1375,32 @@ roboplotr_get_plot <-
         }
       }
 
-
-      if (!is.null(error_bars)) {
-        if (quo_is_null(error_bars$error_x)) {
-          error_x <- NULL
-        } else {
-          error_x <- list(array = error_bars$error_x, color = error_bars$xcolor)
+      error_x <- NULL
+      error_y <- NULL
+      if (!is.null(confidence$type)) {
+        if (confidence$type == "bars") {
+          if (!quo_is_null(confidence$error_x)) {
+            error_x <- list(array = confidence$error_x, color = confidence$xcolor)
+          }
+          if (!quo_is_null(confidence$error_y)) {
+            error_y <- list(array = g[["roboplot.errorbar.max"]], arrayminus = g[["roboplot.errorbar.min"]], color = confidence$ycolor)
+          }
         }
-        if (quo_is_null(error_bars$error_y)) {
-          error_y <- NULL
-        } else {
-          error_y <- list(array = error_bars$error_y, color = error_bars$ycolor)
-        }
+      }
+      
+      if(is.null(updatemenu)) {
+        trace_visible <- T
       } else {
-        error_x <- NULL
-        error_y <- NULL
+        trace_visible <- unique(g$roboplot.update.menu) == updatemenu$selected
       }
 
       plotting_params <- list(
         color = color,
         #!pie
         customdata =
-          if (!quo_is_null(hovertext$col)) {
+          if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
+            ~ roboplot.confidence.label
+          } else if (!quo_is_null(hovertext$col)) {
           as.formula(str_c("~", as_label(hovertext$col)))
           } else if (any(
           c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode
@@ -1440,6 +1413,9 @@ roboplotr_get_plot <-
         direction = "clockwise",
         error_x = error_x,
         error_y = error_y,
+        #error area fill
+        fill = unlist(ifelse(!is.null(attributes(g)$`roboplot.confidence.area`), list("toself"),list(NULL))),
+        fillcolor ~ color,
         hoverlabel = list(
           bgcolor = ~ roboplot.bg.color,
           bordercolor = first(unique(getOption(
@@ -1450,6 +1426,7 @@ roboplotr_get_plot <-
             list(color = roboplot.tx.color)
           )
         ),
+        hoveron = "points+fills",
         #pie
         hovertemplate = hovertemplate,
         #if(length(unique(g$tFime))==1 & plot_mode != "horizontal") { ~ str_c(.data$roboplot.plot.text,"\n",format(round(.data$value,hovertext$rounding), scientific = F, big.mark = " ", decimal.mark = ","),hovertext$unit,"<extra></extra>") } else { hovertemplate },
@@ -1467,8 +1444,9 @@ roboplotr_get_plot <-
         line = ~ list(
           width = roboplot.linewidth,
           dash = roboplot.dash,
-          smoothing = 0.5,
+          smoothing = attributes(g)$roboplot.confidence.area$smoothing %||% 0.5,
           shape = case_when(
+            !is.null(attributes(g)$`roboplot.confidence.area`) ~ "spline",
             roboplot.plot.mode == "step" ~ "hv",
             roboplot.plot.mode == "smooth" ~ "spline",
             TRUE ~ "linear"
@@ -1512,6 +1490,8 @@ roboplotr_get_plot <-
         },
         #horizontal bar
         offsetgroup = ~ str_c(roboplot.pattern, roboplot.trace.color),
+        # error area fill
+        opacity = attributes(g)$`roboplot.confidence.area`$opacity,
         #bar ## onko ok?? mieti
         orientation = ifelse(
           any(
@@ -1549,6 +1529,8 @@ roboplotr_get_plot <-
         },
         type = ~ tracetype,
         values = as.formula(str_c("~", ticktypes$y)),
+        #updatemenus
+        visible = trace_visible,
         # pie
         width = if ("horizontalfill" %in% g$roboplot.plot.mode) {
           ~ roboplot.bar.width
@@ -1583,8 +1565,13 @@ roboplotr_get_plot <-
           "legendgrouptitle",
           "customdata",
           "error_y",
-          "error_x"
+          "error_x",
+          "visible"
         )
+      
+      if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
+        shared_params <- c(shared_params, "fill","fillcolor","opacity","hoveron")
+      }
 
       if (tracetype %in% "scatter" &
           any(c("line", "step", "smooth") %in% g$roboplot.plot.mode)) {
@@ -1666,9 +1653,9 @@ roboplotr_get_plot <-
           plotting_params$yaxis <- "y2"
         }
       }
+      
       plotting_params
     })
-
 
     for (par in trace_params) {
       p <- p |> roboplotr_add_trace(!!!par)
@@ -1696,9 +1683,12 @@ roboplotr_get_plot <-
         )
 
       p <- p |> layout(yaxis2 = y2)
+      
     }
 
-    p |> config(responsive = ifelse(isRunning(), F, T))
+    p |> 
+      layout(updatemenus = updatemenu$menu) |>
+      config(responsive = ifelse(isRunning(), F, T))
 
   }
 
@@ -1794,93 +1784,4 @@ roboplotr_set_plot_mode <- function(d, color, plot_mode, groups) {
     stop(msg, call. = F)
   }
   d
-}
-
-#' Error bar configuration
-#'
-#' Parameters to add and customize error bars in [roboplots][roboplot()].
-#'
-#' @param error_x,error_y Symbol or character. Columns from `d` in `roboplot()`
-#' for error bars.
-#' @param xcolor,ycolor Characters. Colors for error bars. Must be hexadecimal colors
-#' or valid CSS colors.
-#' @examples
-#' # You need a column for error bar values to add error bars. Then refer to that
-#' # numeric column by `set_errorbars()` on the proper axis.
-#' d <- energiantuonti |>
-#'   dplyr::filter(Suunta == "Tuonti", Alue == "Venäjä", lubridate::year(time) > 2016) |>
-#'   dplyr::group_by(Alue) |>
-#'   dplyr::mutate(sd = sd(value)) |>
-#'   dplyr::ungroup()
-#' d |> roboplot(Alue,
-#'               plot_type = "bar",
-#'               error_bars = set_errorbars(error_y = sd))
-#' # You can change the color by providing the proper reference.
-#' d |> roboplot(Alue,
-#'               plot_type = "bar",
-#'               error_bars = set_errorbars(error_y = sd, ycolor = "green"))
-#'
-#' # Remember to refer to proper axis.
-#' d |> roboplot(Alue,
-#'               plot_type = "bar",
-#'               plot_mode = "horizontal",
-#'               plot_axes = set_axes(y = "time", yticktype = "date"),
-#'               error_bars = set_errorbars(error_x = sd, xcolor = "pink"))
-#'
-#'
-#' @export
-#' @returns A list of class roboplot.set_errorbars
-set_errorbars <-
-  function(error_x = NULL,
-           error_y = NULL,
-           xcolor = getOption("roboplot.errorbars")$xcolor,
-           ycolor = getOption("roboplot.errorbars")$xcolor) {
-    error_x <- enquo(error_x)
-    error_y <- enquo(error_y)
-    roboplotr_typecheck(xcolor, "character", allow_null = F)
-    roboplotr_typecheck(ycolor, "character", allow_null = F)
-    roboplotr_valid_colors(c(xcolor, ycolor), "colors in set_errorbars()")
-
-    .res <- list(
-      error_x = error_x,
-      error_y = error_y,
-      xcolor = xcolor,
-      ycolor = ycolor
-    )
-
-    .res <- structure(.res, class = c("roboplotr", "roboplotr.set_errorbars", class(.res)))
-
-    .res
-  }
-
-#' @importFrom rlang as_name quo_is_null
-#' @importFrom stringr str_glue
-roboplotr_validate_errorbars <- function(error_bars, d) {
-  if (!is.null(error_bars)) {
-    d_names <- names(d)
-    error_x <- error_bars$error_x
-    error_y <- error_bars$error_y
-    roboplotr_check_valid_var(error_x, d_names, "set_errorbars")
-    roboplotr_check_valid_var(error_y, d_names, "set_errorbars")
-    if (!quo_is_null(error_x)) {
-      if (!"numeric" %in% class(d[[as_name(error_x)]])) {
-        stop(
-          str_glue(
-            "To display an error bar, the column '{as_name(error_x)}' from roboplotr::roboplot() param 'd' must be numeric!"
-          ),
-          call. = FALSE
-        )
-      }
-    }
-    if (!quo_is_null(error_y)) {
-      if (!"numeric" %in% class(d[[as_name(error_y)]])) {
-        stop(
-          str_glue(
-            "To display an error bar, the column '{as_name(error_x)}' from roboplotr::roboplot() param 'd' must be numeric!"
-          ),
-          call. = FALSE
-        )
-      }
-    }
-  }
 }

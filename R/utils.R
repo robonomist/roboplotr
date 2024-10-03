@@ -759,32 +759,6 @@ roboplotr_compact <- function (l)
   Filter(Negate(is.null), l)
 }
 
-#' [roboplot()] attempts to bind patterns for continuous line for certain plots
-#' @importFrom dplyr arrange bind_rows filter group_by group_split left_join mutate pull select
-#' @importFrom purrr imap_dfr
-#' @noRd
-#'
-roboplotr_continuous_pattern <- function(d, along, pattern) {
-  split <- d |>
-    arrange({{pattern}}) |>
-    group_by({{pattern}}) |>
-    group_split()
-  imap_dfr(split, function(.group, i) {
-    if(i == 1) {
-      .group
-    } else {
-      prev <- split[[i-1]] |>
-        filter({{along}} == max({{along}})) |>
-        select(-starts_with("roboplot."), -{{pattern}})
-      .first <- .group |> filter({{along}} == min({{along}})) |> select(-{{along}}, -.data$value)
-      .names <- names(prev)[names(prev) %in% names(.first)]
-      prev |> bind_cols(.first |> select(-.names)) |>
-        bind_rows(.group)
-    }
-  }) |>
-    arrange({{along}})
-}
-
 #' Rounding helper to preserve sums
 #' @importFrom utils tail
 #' @noRd
@@ -795,4 +769,23 @@ roboplotr_round <- function(x, digits = 0) {
   indices <- tail(order(x-y), round(sum(x)) - sum(y))
   y[indices] <- y[indices] + 1
   y / up
+}
+
+#' @importFrom stringr str_glue
+roboplotr_ns_alert <- function(packages, msg) {
+  .is <- map_lgl(packages, requireNamespace, quietly = TRUE)
+  if (!all(.is)) {
+    packages <- str_c("'", packages[!.is], "'")
+    .many <- length(.is[!.is]) > 1
+    .install <- ifelse(.many, str_glue("c({str_c(packages, collapse = ',')})"), str_c(packages, collapse = ','))
+    .msg <- ifelse(is.null(msg), "this function", msg)
+    stop(
+      str_glue(
+        "Package{ifelse(.many, 's','')} {roboplotr_combine_words(packages)} {ifelse(.many, 'are','is')} required for {.msg}. ",
+        "Please install {ifelse(.many, 'them','it')} with install.packages({.install})."
+      ),
+      call. = F
+    )
+  }
+  
 }

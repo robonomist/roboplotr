@@ -247,8 +247,8 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'
 #' Parameters to customize fonts in various `roboplotr` contexts.
 #'
-#' @param font Character. One of your system fonts if `systemfonts` package is available.
-#' "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond",
+#' @param font Character. One of your system fonts if `systemfonts` package is available, 
+#' or "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond",
 #' "Courier New", "Brush Script MT", a Google font, or a path to an .otf or .ttf file.
 #' @param fallback Character. Only used when a file path is used with `font`. Fallback
 #' font when the defined font is unavailable. Especially concerns image downloads.
@@ -257,7 +257,6 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' @param bold_title Logical. Only used for font of type `title`. Determines if
 #' the title is bolded.
 #' @param type Character. One of "main", "title" or "caption".
-#' @importFrom httr content GET status_code
 #' @importFrom stringr str_c str_extract
 #' @returns A list of class roboplot.set_font
 #' @examples
@@ -335,14 +334,15 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
 
   google_font <- NULL
   if (!font %in% .fonts & !str_detect(tolower(font), "(ttf|otf)$")) {
+    roboplotr_ns_alert("httr", "usage of Google Fonts with `set_font()`")
     google_font <- (function(font_name = font) {
 
       font_name <- str_replace_all(font_name, ' ','+')
       font_url <- str_glue("https://fonts.googleapis.com/css2?family={font_name}")
-      resp <- GET(font_url)
+      resp <- httr::GET(font_url)
 
-      if(status_code(resp) == 200) {
-       google_font <- content(resp)
+      if(httr::status_code(resp) == 200) {
+       google_font <- httr::content(resp)
        google_font <- list(url = str_extract(google_font, "(?<=url\\()[^\\)]*(?=\\))"), format = str_extract(google_font, "(?<=format\\()[^\\)]*(?=\\))"))
       } else {
           NULL

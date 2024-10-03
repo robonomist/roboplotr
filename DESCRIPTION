@@ -1,6 +1,6 @@
 Package: roboplotr
 Title: Robonomist Automated Plotly Plotter
-Version: 2.0.2
+Version: 2.1.0
 Authors@R: 
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
 Description: Comprehensive plotly wrapper function simplifying the creation and customization of advanced visualizations.
@@ -16,26 +16,19 @@ Imports:
     forcats,
     htmltools,
     htmlwidgets, 
-    httr,
     lubridate,
+    methods,
     padr,
     plotly,
-    progress,
     purrr,
     rlang,
     shiny,
     stringr,
     tidyr,
     stats,
-    methods,
     widgetframe,
     DT,
     leaflet,
-    sf,
-    sp,
-    gstat,
-    raster,
-    scales,
     tibble,
     webshot2,
     lifecycle
@@ -48,7 +41,14 @@ Suggests:
     slider,
     knitr,
     tidyverse,
-    systemfonts
+    systemfonts,
+    httr,
+    scales,
+    progress,
+    sf,
+    sp,
+    gstat,
+    raster
 Remotes: robonomist/robonomistClient
 Config/testthat/edition: 3
 Depends: 

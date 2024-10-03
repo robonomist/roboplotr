@@ -23,7 +23,8 @@ roboplot(
   plot_axes = set_axes(),
   markers = set_markers(),
   height = getOption("roboplot.height"),
-  error_bars = NULL,
+  error_bars = deprecated(),
+  confidence_interval = NULL,
   facet_split = NULL,
   xaxis_ceiling = getOption("roboplot.xaxis.ceiling"),
   width = getOption("roboplot.width"),
@@ -32,6 +33,7 @@ roboplot(
   modebar = NULL,
   artefacts = getOption("roboplot.artefacts")$auto,
   info_text = NULL,
+  updatemenu = NULL,
   legend_position = deprecated(),
   legend_maxwidth = deprecated(),
   ...
@@ -95,7 +97,9 @@ modes are "normal" and "rotated".}
 \item{height, width}{Numeric. Height and width of the plot. Default width is NA
 for responsive plots.}
 
-\item{error_bars}{Function. Error bar configuration. Use \code{\link[=set_errorbars]{set_errorbars()}}.}
+\item{error_bars}{Deprecated. Use \code{confidence_interval} instead.}
+
+\item{confidence_interval}{Function. Confidence layer configuration. Use \code{\link[=set_confidence_interval]{set_confidence_interval()}}.}
 
 \item{facet_split}{Currently unused. Variable from \code{d} for facet splits.}
 
@@ -113,6 +117,8 @@ y-axis. Use \code{plot_axes} with \code{\link[=set_axes]{set_axes()}} for more c
 TRUE for automated artefact creation based on \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
 \item{info_text}{Character. Adds an info button to the modebar with this text, along with plot title and caption.}
+
+\item{updatemenu}{Function. Use \code{\link[=set_updatemenu]{set_updatemenu()}} for detailed control.}
 
 \item{legend_position}{Deprecated. Character. Use \code{legend} instead.}
 
@@ -177,6 +183,11 @@ d1 |> roboplot(Alue,"Energian tuonti","Milj. \u20AC","Tilastokeskus",
                height = 600,
                width = 400
 )
+
+# For a long list of legend items, use `updatemenu`. See the documentation
+# of `set_updatemenu()` function for more control.
+energiantuonti |> roboplot(color = Suunta, updatemenu = Alue)
+
 
 # `pattern` can be used in addition to color and you can control the ordering of
 # the traces by transforming your variables to factors. You can also let
@@ -301,7 +312,7 @@ d3 |>
              xticktype = "numeric")
   )
 
-# You can use `secondary_uaxis` to define which observations from 'color' use
+# You can use `secondary_yaxis` to define which observations from 'color' use
 # go to a secondary yaxis on the right.
 d2 |>
   dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Yhdistynyt kuningaskunta", "Kanada", "Norja")) |>
@@ -334,19 +345,19 @@ d3 |> roboplot(
 )
 
 # Aside from `pattern`, you might want to change `markers` used on "scatter"
-# plots by using `set_markers()`. You can also include `error_bars` on any
-# numeric axis by specifying them with `set_errorbars()`. See both functions
+# plots by using `set_markers()`. You can also include `confidence_interval` on any
+# numeric axis by specifying them with `set_confidence_interval()`. See both functions
 # for more details.
 d2 |>
 dplyr::filter(Alue == "Norja") |>
   dplyr::group_by(Suunta) |>
-  dplyr::mutate(sd = sd(value)) |>
+  dplyr::mutate(confidence_interval = sd(value)) |>
   dplyr::ungroup() |>
   roboplot(Suunta,
            plot_type = "scatter",
            plot_mode = "scatter",
            markers = set_markers("star", 12),
-           error_bars = set_errorbars(error_y = sd)
+           confidence_interval = set_confidence_interval(type = "bars")
   )
 # Pie plot can be centered to the first factor level of argument `color` with
 # with `plot_mode` "rotated".

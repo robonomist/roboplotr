@@ -71,84 +71,87 @@ This function wraps numerous \href{https://rstudio.github.io/leaflet/articles/le
 features into a single, well-parametrized interface.
 }
 \examples{
-# You can use `robomap()` to create interactive maps. Note that very large
-# number of map polygons makes for slow rendering maps.
-vaesto_postinumeroittain |>
-  dplyr::filter(Alue == "Espoo") |>
-  robomap(Postinumeroalue, title = "V\u00e4est\u00f6 Espoossa", caption = "Tilastokeskus")
 
-# Default polygon colors are picked from trace colors set with
-# `set_roboplot_options()` based on luminosity. Control polygon colors with
-# `map_palette`. `robomap()` expands upon this as necessary.
+if(requireNamespace("sf", quietly = TRUE)) {
 
-vaesto_postinumeroittain |>
-  robomap(
-    Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
-    subtitle = "Otanta",
-    caption = "Tilastokeskus",
-    map_palette = c("lightgreen", "darkred")
-  )
-# You might want to disallow zooming for some reason. The map will be draggable,
-# but zoom by buttons or scrolling is disabled.
+  # You can use `robomap()` to create interactive maps. Note that very large
+  # number of map polygons makes for slow rendering maps.
+  vaesto_postinumeroittain["Espoo" \%in\% vaesto_postinumeroittain$Alue] |>
+    robomap(Postinumeroalue, title = "V\u00e4est\u00f6 Espoossa", caption = "Tilastokeskus")
 
-vaesto_postinumeroittain |>
-  robomap(
-    Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
-    subtitle = "Otanta",
-    caption = "Tilastokeskus",
-    zoom = FALSE
-  )
+  # Default polygon colors are picked from trace colors set with
+  # `set_roboplot_options()` based on luminosity. Control polygon colors with
+  # `map_palette`. `robomap()` expands upon this as necessary.
 
-# When necessary `robomap()` automatically logarithmically scales values to
-# add map readability. Control this with log_colors
+  vaesto_postinumeroittain |>
+    robomap(
+      Postinumeroalue,
+      title = "V\u00e4est\u00f6 postinumeroittain",
+      subtitle = "Otanta",
+      caption = "Tilastokeskus",
+      map_palette = c("lightgreen", "darkred")
+    )
+  # You might want to disallow zooming for some reason. The map will be draggable,
+  # but zoom by buttons or scrolling is disabled.
 
-vaesto_postinumeroittain |>
-  robomap(
-    Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
-    caption = "Tilastokeskus",
-    map_palette = c("lightgreen", "darkred"),
-    log_colors = FALSE
-  )
+  vaesto_postinumeroittain |>
+    robomap(
+      Postinumeroalue,
+      title = "V\u00e4est\u00f6 postinumeroittain",
+      subtitle = "Otanta",
+      caption = "Tilastokeskus",
+      zoom = FALSE
+    )
 
-# Other controls you might need.
+  # When necessary `robomap()` automatically logarithmically scales values to
+  # add map readability. Control this with log_colors
 
-vaesto_postinumeroittain |>
-  robomap(
-    Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
-    caption = "Tilastokeskus",
-    map_palette = c("lightgreen", "darkred"),
-    border_width = 2,
-    tile_opacity = 0.2,
-    map_opacity = 0.5
-  )
+  vaesto_postinumeroittain |>
+    robomap(
+      Postinumeroalue,
+      title = "V\u00e4est\u00f6 postinumeroittain",
+      caption = "Tilastokeskus",
+      map_palette = c("lightgreen", "darkred"),
+      log_colors = FALSE
+    )
 
-# Control the story you want to tell by using `set_heatmap()` with `map_palette`,
-# setting the colors and breakpoints. Use `legend` with `set_legend(breaks)`
-# to control how many entries the legend is split to.
-vaesto_postinumeroittain |>
-  robomap(
-    Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
-    caption = "Tilastokeskus",
-    map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
-    legend = set_legend(breaks = 3),
-    map_opacity = 1,
-    border_width = 0
-  )
-# Or just give the legend breaks
-vaesto_postinumeroittain |>
-  robomap(
-    Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
-    caption = "Tilastokeskus",
-    # map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
-    legend = set_legend(breaks = c(3001, 6001, 9001)),
-    map_opacity = 1,
-    border_width = 0
-  )
+  # Other controls you might need.
 
+  vaesto_postinumeroittain |>
+    robomap(
+      Postinumeroalue,
+      title = "V\u00e4est\u00f6 postinumeroittain",
+      caption = "Tilastokeskus",
+      map_palette = c("lightgreen", "darkred"),
+      border_width = 2,
+      tile_opacity = 0.2,
+      map_opacity = 0.5
+    )
+
+  # Control the story you want to tell by using `set_heatmap()` with `map_palette`,
+  # setting the colors and breakpoints. Use `legend` with `set_legend(breaks)`
+  # to control how many entries the legend is split to.
+  vaesto_postinumeroittain |>
+    robomap(
+      Postinumeroalue,
+      title = "V\u00e4est\u00f6 postinumeroittain",
+      caption = "Tilastokeskus",
+      map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
+      legend = set_legend(breaks = 3),
+      map_opacity = 1,
+      border_width = 0
+    )
+  # Or just give the legend breaks
+  vaesto_postinumeroittain |>
+    robomap(
+      Postinumeroalue,
+      title = "V\u00e4est\u00f6 postinumeroittain",
+      caption = "Tilastokeskus",
+      # map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
+      legend = set_legend(breaks = c(3001, 6001, 9001)),
+      map_opacity = 1,
+      border_width = 0
+    )
+
+}
 }

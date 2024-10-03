@@ -350,7 +350,8 @@ roboplotr_set_robotable_fonts <-
 #' @param flag,unit Character vectors. Use "+" for flag if you want to flag a numeric
 #' column for positive values. Unit is prepended to values in a numeric column.
 #' Name the units with column names from `d` if you want to target specific columns.
-#' @param rounding Numeric. Controls the rounding of numeric columns.
+#' @param rounding Double, named if vector. Controls the rounding of numeric columns.
+#' Give a named vector for specific columns. Default is set with [set_roboplot_options()]
 #' @param dateformat Character. Controls how to format dates displayed on the table.
 #' `robotable()` attempts to determine the proper format if left NULL.
 #' @param na_value Character. How NA values are displayed.
