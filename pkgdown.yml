@@ -3,7 +3,7 @@ pkgdown: 2.1.1
 pkgdown_sha: ~
 articles:
   roboplotr: roboplotr.html
-last_built: 2024-10-03T13:09Z
+last_built: 2024-10-11T08:26Z
 urls:
   reference: https://robonomist.github.io/roboplotr/reference
   article: https://robonomist.github.io/roboplotr/articles

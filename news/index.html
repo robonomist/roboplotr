@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.0</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.1</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,12 @@
       <small>Source: <a href="https://github.com/robonomist/roboplotr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.1.1" id="roboplotr-211">roboplotr 2.1.1<a class="anchor" aria-label="anchor" href="#roboplotr-211"></a></h2>
+<ul><li>
+<code><a href="../reference/roboplot.html">roboplot()</a></code> <code>confidence_interval</code>s now accepts column labeling the y-axis values as a factor level for the intervals, allowing for just pivoting your data. You can still use NA for the label referring to baseline.</li>
+<li>Various visual changes in <code><a href="../reference/robomap.html">robomap()</a></code> to better align it with visuals of <code>roboplot</code>s and <code>robotable</code>s.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.1.0" id="roboplotr-210">roboplotr 2.1.0<a class="anchor" aria-label="anchor" href="#roboplotr-210"></a></h2>
 <ul><li>Deprecation of <code>error_bars</code> param in <code><a href="../reference/roboplot.html">roboplot()</a></code> and the related function <code><a href="../reference/set_errorbars.html">set_errorbars()</a></code> in favor of <code>confidence_interval</code> and <code><a href="../reference/set_confidence_interval.html">set_confidence_interval()</a></code>. The new function handles both error bars and continuous areas.</li>
