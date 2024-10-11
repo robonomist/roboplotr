@@ -589,6 +589,22 @@ roboplotr_tbl_heatmap_colorfun <- function(d,
   }
 
   .color_mapping <- function(values) {
+    # map_chr(values, function(value) {
+    #   if (is.na(value)) {
+    #     na_color
+    #   } else if (value < anchor_min) {
+    #     names(anchor_min)
+    #   } else if (value > anchor_max) {
+    #     names(anchor_max)
+    #   } else if (value <= anchor_mid) {
+    #     col <- colorRamp(names(c(anchor_min, anchor_mid)))((value - anchor_min) / (anchor_mid - anchor_min))
+    #     rgb(col[, 1L], col[, 2L], col[, 3L], maxColorValue = 255)
+    #   } else {
+    #     col <- colorRamp(names(c(anchor_mid, anchor_max)))((value - anchor_mid) / (anchor_max - anchor_mid))
+    #     rgb(col[, 1L], col[, 2L], col[, 3L], maxColorValue = 255)
+    #   }
+    # 
+    # })
     map_chr(values, function(value) {
       if (is.na(value)) {
         na_color
@@ -597,15 +613,16 @@ roboplotr_tbl_heatmap_colorfun <- function(d,
       } else if (value > anchor_max) {
         names(anchor_max)
       } else if (value <= anchor_mid) {
-        col <- colorRamp(names(c(anchor_min, anchor_mid)))((value - anchor_min) / (anchor_mid - anchor_min))
-        rgb(col[, 1L], col[, 2L], col[, 3L], maxColorValue = 255)
+        col <- colorRamp(c(names(anchor_min), names(anchor_mid)))((value - anchor_min) / (anchor_mid - anchor_min))
+        rgb(col[1L], col[2L], col[3L], maxColorValue = 255)
       } else {
-        col <- colorRamp(names(c(anchor_mid, anchor_max)))((value - anchor_mid) / (anchor_max - anchor_mid))
-        rgb(col[, 1L], col[, 2L], col[, 3L], maxColorValue = 255)
+        col <- colorRamp(c(names(anchor_mid), names(anchor_max)))((value - anchor_mid) / (anchor_max - anchor_mid))
+        rgb(col[1L], col[2L], col[3L], maxColorValue = 255)
       }
-
     })
   }
+  attr(.color_mapping, "colorType") <- "numeric"
+  attr(.color_mapping, "colorArgs") <- list(na.color = na_color)
   .color_mapping
 }
 

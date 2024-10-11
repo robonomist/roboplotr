@@ -69,7 +69,7 @@ set_errorbars <- function (...) {
 #'   )
 #' 
 #' # Change opacity and smoothing of the confidence area, hide the area from legend, 
-#' # and pass the column nameexplicitly if it not called "confidence_interval".
+#' # and pass the column name explicitly if it not called "confidence_interval".
 #' d |>
 #'   dplyr::rename(conf = confidence_interval) |>
 #'   roboplot(
@@ -87,59 +87,35 @@ set_errorbars <- function (...) {
 #'   )
 #' 
 #' 
-#' # For more complex confidence intervals, use `set_confidence_interval()` to create 
-#' # a custom confidence interval. The column that is intended to be used for confidence 
-#' # interval is a character or factor column describing the labels of the confidence areas, 
-#' # and the relating values are in the same numeric column as the y-axis of the trace 
-#' # specified in param `color` of roboplot. For this example, we will simulate a range of values.
+#' # Create custom confidence intervals using `set_confidence_interval()`.
+#' # The column used for the confidence interval should be a character or factor, 
+#' # describing the labels of the confidence areas. The color of the areas correspond
+#' # to the `color` parameter of `roboplot`. The main trace should be refererred 
+#' # either as `NA` or the name of your y-axis column. For this example, arbitrary 
+#' # confidence areas are created.
 #' d <- energiantuonti  |>
 #'   dplyr::filter(Alue == "Venäjä") |>
-#'   dplyr::filter(lubridate::year(time) >= "2020") |>
-#'   dplyr::group_split(Suunta) |>
-#'   purrr::map(~ {
-#'     this <- .x
-#'     upper_bound <- purrr::imap(c(0.5, 1, 2), function(x, y) {
-#'       tibble::tibble(this$value + (this$value * runif(1) * x)) |> stats::setNames(as.character(y))
-#'     }) |>
-#'       purrr::list_cbind() |>
-#'       dplyr::rowwise() |>
-#'       dplyr::mutate(`70%` = max(c(`1`, `2`, `3`)),
-#'                     `85%` = mean(c(`1`, `2`, `3`)),
-#'                     `95%` = min(c(`1`, `2`, `3`))) |>
-#'       dplyr::ungroup() |>
-#'       dplyr::select(-1, -2, -3) |>
-#'       dplyr::bind_cols(dplyr::select(this, -value)) |>
-#'       tidyr::pivot_longer(ends_with("%"), names_to = "confidence_interval")
-#'     lower_bound <- purrr::imap(c(0.5, 1, 2), function(x, y) {
-#'       tibble::tibble(this$value - (this$value * runif(1) * x)) |> stats::setNames(as.character(y))
-#'     }) |>
-#'       purrr::list_cbind() |>
-#'       dplyr::rowwise() |>
-#'       dplyr::mutate(`70%` = min(c(`1`, `2`, `3`)),
-#'                     `85%` = mean(c(`1`, `2`, `3`)),
-#'                     `95%` = max(c(`1`, `2`, `3`))) |>
-#'       dplyr::ungroup() |>
-#'       dplyr::select(-1, -2, -3) |>
-#'       dplyr::bind_cols(dplyr::select(this, -value)) |>
-#'       tidyr::pivot_longer(dplyr::ends_with("%"), names_to = "confidence_interval")
-#'     
-#'     dplyr::bind_rows(this, upper_bound, lower_bound)
-#'   }) |>
-#'   purrr::list_rbind() |>
-#'   dplyr::mutate(confidence_interval = forcats::fct_relevel(confidence_interval, c("95%", "85%"))) |>
-#'   dplyr::bind_rows(energiantuonti  |>
-#'                      dplyr::filter(Alue %in% c("Venäjä"), lubridate::year(time) < 2020)) |>
-#'   dplyr::arrange(time)
+#'   dplyr::mutate(`95%hi` = purrr::map_dbl(value,~ .x + .x * runif(1) * 0.2),
+#'          `95%lo` = purrr::map_dbl(value,~ .x - .x * runif(1) * 0.2),
+#'          `95%` = purrr::map2_dbl(`95%hi`,`95%lo`,mean),
+#'          `70%hi` = purrr::map_dbl(`95%hi`, ~ .x + .x * runif(1) * 0.3),
+#'          `70%lo` = purrr::map_dbl(`95%lo`, ~ .x - .x * runif(1) * 0.3),
+#'          `70%` = purrr::map2_dbl(`70%hi`,`70%lo`,mean)
+#'   ) |>
+#'   tidyr::pivot_longer(dplyr::where(is.numeric), names_to = "confidence_interval") |>
+#'   dplyr::mutate(confidence_interval = confidence_interval |>
+#'                   stringr::str_remove("(hi|lo)$") |>
+#'                   forcats::fct_relevel(c("95%"))
+#'   ) |>
+#'   dplyr::filter(confidence_interval == "value" | time >= "2020-01-01")
 #' 
-#' # The labels of the confidence intervals are from the column `confidence_interval`,
-#' # arranged in the order of the levels of the factor, or in the order of appearance 
-#' # if character.
-#' d |> roboplot(
-#'   Suunta,
-#'   "Confidence interval",
-#'   caption = "Tilastokeskus",
-#'   confidence_interval = set_confidence_interval("area")
-#' )
+#' d |>  
+#'   roboplot(
+#'     Suunta,
+#'     "Confidence interval",
+#'     caption = "Tilastokeskus",
+#'     confidence_interval = set_confidence_interval("area", start_type = "point")
+#'   )
 #' 
 #' # Start the area from the last point of the trace where you have no confidence interval values.
 #' d |> 
@@ -151,7 +127,7 @@ set_errorbars <- function (...) {
 #' )
 #' # Works when you want to skip the line of the trace, only draw the area.
 #' d |>
-#'   dplyr::filter(Suunta == "Tuonti", !is.na(confidence_interval)) |>
+#'   dplyr::filter(Suunta == "Tuonti", confidence_interval != "value") |>
 #'   roboplot(
 #'   Suunta,
 #'   "Confidence interval",
@@ -159,10 +135,11 @@ set_errorbars <- function (...) {
 #'   confidence_interval = set_confidence_interval("area")
 #' )
 #' 
-#' # For error_bars, you can also use a character or factor column if the values are
-#' # won't be symmetrical for each time point.
+#' # For error_bars, you can also use a character or factor column if the values
+#' # won't be symmetrical for each time point. For more than one level of confidence,
+#' # use `type = "area"`.
 #' d |>
-#'   dplyr::filter(confidence_interval == "95%" | is.na(confidence_interval)) |>
+#'   dplyr::filter(confidence_interval %in% c("value","95%")) |>
 #'   roboplot(
 #'     Suunta,
 #'     "Confidence interval",
@@ -278,6 +255,7 @@ roboplotr_validate_confidence <- function(confidence, d, plot_axes) {
   
 }
 
+#' @importFrom dplyr if_else
 roboplotr_cumulative_alphas <- function(alphas) {
   if (any(alphas < 0 | alphas > 1)) {
     stop("Alpha values should be between 0 and 1", call.= F)
@@ -330,6 +308,9 @@ roboplotr_get_confidence_areas <- function(split_d, confidence, ticktypes) {
           d
           
         } else { # handle other types of confidence intervals
+
+          d <- d  |> mutate(!!confidence$error_y := if_else(!!confidence$error_y == as_label(ycol), NA, !!confidence$error_y))
+          
           if (length(d[[xcol]][!is.na(d[[as_label(confidence$error_y)]])]) > 0) {
             first_nona <- d |> 
               filter(.data[[xcol]] < min(.data[[xcol]][!is.na(.data[[as_label(confidence$error_y)]])])) 
@@ -339,6 +320,7 @@ roboplotr_get_confidence_areas <- function(split_d, confidence, ticktypes) {
           if (nrow(first_nona) > 0) {
             first_nona <- first_nona |> filter({{xcol}} == max(!!xcol))
           }
+          
           d <- d |> filter(!is.na(!!confidence$error_y))
           
           if(!is.factor(d[[as_label(confidence$error_y)]])) {
@@ -351,8 +333,8 @@ roboplotr_get_confidence_areas <- function(split_d, confidence, ticktypes) {
             opacity <- (.levels - (.this_level-1)) * opacity / .levels
             opacity
           }
-          
           confidence_levels <- levels(d[[as_label(confidence$error_y)]])
+          confidence_levels <- confidence_levels |> subset(confidence_levels != as_label(ycol))
           confidence_opacity <- get_opacity(as.numeric(sort(unique(d[[as_label(confidence$error_y)]])))) |> 
             setNames(confidence_levels)
           legend_opacity <- confidence_opacity |> roboplotr_cumulative_alphas() |>
@@ -442,7 +424,9 @@ roboplotr_get_confidence_areas <- function(split_d, confidence, ticktypes) {
         if(is.numeric(.x[[as_label(confidence$error_y)]])) {
           .x
         } else {
-          .res <- filter(.x, is.na(!!confidence$error_y))
+          .res <- .x |> 
+            mutate(!!confidence$error_y := if_else(!!confidence$error_y == ticktypes$y, NA, !!confidence$error_y)) |> 
+            filter(is.na(!!confidence$error_y))
           if(nrow(.res) > 0) {
             .res
           } 
@@ -465,11 +449,14 @@ roboplotr_get_confidence_areas <- function(split_d, confidence, ticktypes) {
             select(-as_label(confidence$error_y))
           bar_data <- append(bar_data, list(d))
         } else {
+
+          d <- d  |> mutate(!!confidence$error_y := if_else(!!confidence$error_y == ticktypes$y, NA, !!confidence$error_y))
           if(!is.factor(d[[as_label(confidence$error_y)]])) {
             d[[as_label(confidence$error_y)]] <- fct_inorder(d[[as_label(confidence$error_y)]])
           }
-          if(nlevels(d[[as_label(confidence$error_y)]]) > 1) {
-            stop("Error bars can only be used with a single level of confidence intervals, or you can pass a numeric column.", call. = FALSE)
+          .levels <- levels(d[[as_label(confidence$error_y)]])
+          if(length(subset(.levels, .levels != ticktypes$y)) > 1) {
+            stop(str_glue("Error bars can only be used with a single level of confidence intervals not including \"{ticktypes$y}\", or you can pass a numeric column."), call. = FALSE)
           }
           .errorbar_data <- 
             d |> 

@@ -1,3 +1,8 @@
+# roboplotr 2.1.1
+
+* `roboplot()` `confidence_interval`s now accepts column labeling the y-axis values as a factor level for the intervals, allowing for just pivoting your data. You can still use NA for the label referring to baseline.
+* Various visual changes in `robomap()` to better align it with visuals of `roboplot`s and `robotable`s.
+
 # roboplotr 2.1.0
 
 * Deprecation of `error_bars` param in `roboplot()` and the related function `set_errorbars()` in favor of `confidence_interval` and `set_confidence_interval()`. The new function handles both error bars and continuous areas. 

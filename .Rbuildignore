@@ -7,4 +7,5 @@
 ^\.github$
 ^README\.Rmd$
 ^inst/raw$
+^R/new_robomap\.R$
 ^vignettes/.*\.html$
