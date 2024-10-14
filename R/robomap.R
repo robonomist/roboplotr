@@ -515,6 +515,7 @@ robomap <-
           "display" = "flex",
           "flex-direction" = "row",
           "align-items" = "flex-end",
+          "margin-top" = "9px",
           "margin-right" = "5px",
           "height" = "20px",
           "width" = "fit-content",
@@ -542,7 +543,7 @@ robomap <-
           "width" = "18px",
           "padding-left" = " 0px",
           "padding-top" = "0px",
-          "margin" = "1px 2px 4px 3px",
+          "margin" = "5px 2px 4px 3px",
           "outline" = "none",
           "box-shadow" = "none",
           "cursor" = "pointer",
@@ -610,9 +611,9 @@ robomap <-
     get_map_title <- function() {
       titlefun <-
         if (getOption("roboplot.font.title")$bold == T) {
-          title <- tags$b(title$title)
+          title <- tags$b(HTML(title$title))
         } else {
-          title <- title$title
+          title <- HTML(title$title)
         }
       
       ifelse(
@@ -631,7 +632,7 @@ robomap <-
         easyButton(
           id = "reset-view",
           icon = "fa-home",
-          title = "Reset View",
+          title = "Kohdista",
           position = "topright",
           onClick = JS(
             "function(btn, map) {
@@ -645,7 +646,7 @@ robomap <-
         easyButton(
           id = "download-map",
           icon = fa("file-image", vertical_align = "0em"),
-          title = "Download Map",
+          title = "Lataa kartta",
           position = "topright",
           onClick = JS(
             str_c(
@@ -691,7 +692,7 @@ robomap <-
               var link = document.createElement('a');
               link.href = canvas.toDataURL('image/png');
               link.download = '",
-              roboplotr_string2filename(title$title),
+              roboplotr_string2filename(str_remove_all(title$title,"<[^>]*>")),
               ".png';  // Filename for the download
               link.click();  // Trigger the download
             }).finally(function() {
@@ -719,7 +720,7 @@ robomap <-
             # Add zoom controls manually
             id = "map-plus",
             icon = "fa-plus",
-            title = "Zoom in",
+            title = "Lähennä",
             onClick = JS("function(btn, map){ map.zoomIn(); }"),
             position = "topright"
           )
@@ -728,7 +729,7 @@ robomap <-
           easyButton(
             id = "map-minus",
             icon = "fa-minus",
-            title = "Zoom out",
+            title = "Loitonna",
             onClick = JS("function(btn, map){ map.zoomOut(); }"),
             position = "topright"
           )
