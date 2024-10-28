@@ -10,9 +10,11 @@ robomap(
   title = NULL,
   subtitle = "",
   caption = NULL,
-  hovertext = list(flag = "", unit = ""),
+  hovertext = set_hovertext(),
   map_opacity = 0.9,
   tile_opacity = 0.7,
+  wrap = TRUE,
+  tile_style = NULL,
   map_palette = NULL,
   border_width = getOption("roboplot.trace.border")$width,
   height = getOption("roboplot.height"),
@@ -20,7 +22,6 @@ robomap(
   legend = set_legend(),
   data_contour = FALSE,
   markers = FALSE,
-  rounding = round(getOption("roboplot.rounding")),
   zoom = TRUE,
   ...
 )
@@ -35,11 +36,25 @@ areas described by the map. This must be of class sfc_MULTIPOLYGON.}
 
 \item{caption}{Function or character. Use a string, or \code{\link[=set_caption]{set_caption()}}.}
 
-\item{hovertext}{List. Use a list with named characters flag and unit.}
+\item{hovertext}{Function. Use \code{\link[=set_hovertext]{set_hovertext()}}.}
 
 \item{map_opacity, tile_opacity}{Numeric. Values from 0 to 1, defining how opaque
 the map polygon fill color or underlying map tiles are. 0 removes the tile layer,
 but retains the polygon borders if any.}
+
+\item{wrap}{Logical. Whether the map should wrap around the globe. Default is TRUE.}
+
+\item{tile_style}{Character string specifying the map style to use. Options include:
+\describe{
+\item{"normal"}{A standard, detailed map suitable for most general-purpose use.}
+\item{"minimalist"}{A clean, modern map with minimal design, focused on clarity and smooth rendering.}
+\item{"dark"}{A dark-themed map, ideal for nighttime or high-contrast visualizations.}
+\item{"topo"}{An outdoor-focused map, highlighting features relevant for activities like hiking and exploration.}
+\item{"bw"}{A high-contrast, black-and-white map, useful for bold, minimalist visuals.}
+\item{"street"}{A detailed street map, with emphasis on urban and road networks for navigation and infrastructure insights.}
+\item{"satellite"}{High-resolution satellite imagery, offering detailed aerial views for geographic analysis.}
+\item{"grayscale"}{A minimalist grayscale map, often used for background or overlay purposes in more complex visualizations.}
+}}
 
 \item{map_palette}{Character or function. Must be hexadecimal colors or valid
 css colors, or use \code{\link[=set_heatmap]{set_heatmap()}} if specifying color breakpoints.}
@@ -59,8 +74,6 @@ general trends across regions. Default is FALSE.}
 \item{markers}{Logical. Experimental. Whether markers will be added on the map
 based on the columns "lat" and "lon". Default is FALSE.}
 
-\item{rounding}{Numeric. How \code{\link[=robomap]{robomap()}} rounds numeric values.}
-
 \item{zoom}{Logical. Whether the map is zoomable or not.}
 
 \item{...}{Placeholder for other parameters.}
@@ -76,17 +89,17 @@ features into a single, well-parametrized interface.
 # You can use `robomap()` to create interactive maps. Note that very large
 # number of map polygons makes for slow rendering maps.
 vaesto_postinumeroittain |>
-  dplyr::filter(Alue == "Espoo") |>
-  robomap(Postinumeroalue, title = "V\u00e4kiluku Espoossa", caption = "Tilastokeskus")
+  robomap(Postinumeroalue, title = "V\u00e4kiluku postinumeroalueittain", caption = "Tilastokeskus")
 
 # Default polygon colors are picked from trace colors set with
 # `set_roboplot_options()` based on luminosity. Control polygon colors with
 # `map_palette`. `robomap()` expands upon this as necessary.
 
 vaesto_postinumeroittain |>
+  dplyr::filter(Alue == "Espoo") |>
   robomap(
     Postinumeroalue,
-    title = "V\u00e4kiluku postinumeroittain",
+    title = "V\u00e4kiluku Espoossa",
     subtitle = "Otanta",
     caption = "Tilastokeskus",
     map_palette = c("lightgreen", "darkred")
@@ -95,54 +108,110 @@ vaesto_postinumeroittain |>
 # but zoom by buttons or scrolling is disabled.
 
 vaesto_postinumeroittain |>
+  dplyr::filter(Alue == "Espoo") |>
   robomap(
     Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
+    title = "V\u00e4est\u00f6 Espoossa",
     subtitle = "Otanta",
     caption = "Tilastokeskus",
     zoom = FALSE
   )
 
-# Other controls you might need.
+# Set polygon border width with `border_width", polygon opacity with `map_opacity`,
+# and the opacity of the underlying map tiles with `tile_opacity`. Use `set_legend()`
+# to control legend specifics.
 
 vaesto_postinumeroittain |>
+  dplyr::filter(Alue == "Espoo") |>
   robomap(
     Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
+    title = "V\u00e4est\u00f6 Espoossa",
     caption = "Tilastokeskus",
-    map_palette = c("lightgreen", "darkred"),
     border_width = 2,
     tile_opacity = 0.2,
-    map_opacity = 0.5
+    map_opacity = 0.5,
+    legend = set_legend(gradient = FALSE)
   )
 
 # Control the story you want to tell by using `set_heatmap()` with `map_palette`,
 # setting the colors and breakpoints. Use `legend` with `set_legend(breaks)`
-# to control how many entries the legend is split to.
+# to control how many entries the legend is split to. Heatmap maps cannot have a
+# gradient legend. `robomap()` will detect it, but you can also set it manually
+# to avoid unnecessary messages.
 vaesto_postinumeroittain |>
+  dplyr::filter(Alue == "Espoo") |>
   robomap(
     Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
+    title = "V\u00e4est\u00f6 Espoossa",
     caption = "Tilastokeskus",
     map_palette = set_heatmap(
       midvalue = 6000,
       midcolor = "yellow",
       maxcolor = "red"
     ),
-    legend = set_legend(breaks = 3),
-    map_opacity = 1,
-    border_width = 0
-  )
-# Or just give the legend breaks
-vaesto_postinumeroittain |>
-  robomap(
-    Postinumeroalue,
-    title = "V\u00e4est\u00f6 postinumeroittain",
-    caption = "Tilastokeskus",
-    map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
-    legend = set_legend(breaks = c(3000, 6000, 9000)),
+    legend = set_legend(breaks = 3, gradient = FALSE),
     map_opacity = 1,
     border_width = 0
   )
 
+# Or just give the legend breaks
+vaesto_postinumeroittain |>
+  dplyr::filter(Alue == "Espoo") |>
+  robomap(
+    Postinumeroalue,
+    title = "V\u00e4est\u00f6 Espoossa",
+    caption = "Tilastokeskus",
+    map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
+    legend = set_legend(breaks = c(3000, 6000, 9000), gradient = FALSE),
+    map_opacity = 1,
+    border_width = 0
+  )
+
+# Use labformat to format your labels to your liking. You probably want to be
+# quite specific with the breaks in this case, or create the labformat function
+# dynamically.
+vaesto_postinumeroittain |>
+  dplyr::filter(stringr::str_detect(Postinumero, "^009")) |>
+  robomap(Postinumeroalue,
+          "V\u00e4kiluku Itä-Helsingissä",
+          tile_opacity = 1,
+          map_opacity = 1,
+          rounding = 0,
+          legend = set_legend(
+            title = "Suuruusluokka",
+            breaks = 2,
+            labformat = function(x) {
+              dplyr::case_when(x > 16000 ~ "Suuri", x > 6000 ~ "Keskiverto", TRUE ~ "Pieni")
+            }
+          )
+  )
+
+# You might have categorial data instead.
+vaesto_postinumeroittain |>
+  dplyr::filter(stringr::str_detect(Postinumero, "^009")) |>
+  dplyr::mutate(
+    value = dplyr::case_when(
+      value >= quantile(vaesto_postinumeroittain$value)["75\%"] ~ "Suuri",
+      value <= quantile(vaesto_postinumeroittain$value)["25\%"] ~ "Pieni",
+      TRUE ~ "Normaali"
+    ) |>
+      forcats::fct_relevel("Pieni", "Normaali", "Suuri")
+  ) |>
+  robomap(
+    Postinumeroalue,
+    "V\u00e4kiluku Itä-Helsingissä",
+    "Suuruusluokittain",
+    legend = set_legend(title = "Suuruusluokka")
+  )
+
+# Control map style with `tile_style`. Some options are "dark", "minimalist",
+# "satellite" etc. See `robomap()` documentation for full list.
+vaesto_postinumeroittain |>
+  dplyr::filter(stringr::str_detect(Postinumero, "^009")) |>
+  robomap(Postinumeroalue,
+          "V\u00e4kiluku It\u00e4-Helsingiss\u00e4",
+          tile_opacity = 1,
+          map_opacity = 1,
+          tile_style = "dark"
+  )
 }

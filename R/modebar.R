@@ -460,3 +460,130 @@ set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons, display
   .res
 
 }
+
+roboplotr_robomap_modebar <- function(map, title, zoom) {
+
+  map <- map |>
+    addEasyButton(
+      easyButton(
+        id = "reset-view",
+        icon = "fa-home",
+        title = "Kohdista",
+        position = "topright",
+        onClick = JS(
+          "function(btn, map) {
+          // Reset to the initial view
+          map.setView(map.initialCenter, map.initialZoom);
+        }"
+        )
+      )
+    ) |>
+    addEasyButton(
+      easyButton(
+        id = "download-map",
+        icon = fa("file-image", vertical_align = "0em"),
+        title = "Lataa kartta",
+        position = "topright",
+        onClick = JS(
+          str_c(
+            "function(btn, map) {
+          // Check if html2canvas is already loaded
+          if (typeof html2canvas === 'undefined') {
+            // Load html2canvas script if it's not already included
+            var scriptHtml2Canvas = document.createElement('script');
+            scriptHtml2Canvas.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+            document.head.appendChild(scriptHtml2Canvas);
+
+            // Wait for the script to load before proceeding
+            scriptHtml2Canvas.onload = function() {
+              captureMap();
+            };
+          } else {
+            captureMap();
+          }
+
+          // Function to capture the map and download as PNG
+          function captureMap() {
+            // Hide navigation controls before capture
+            var controls = document.querySelectorAll('.leaflet-top.leaflet-right');
+            controls.forEach(function(control) {
+              control.style.display = 'none';
+            });
+
+            // Set the map container style to avoid shifting during capture
+            var mapContainer = document.querySelector('.leaflet-container');
+            var originalPosition = mapContainer.style.position;
+            var originalTop = mapContainer.style.top;
+            var originalLeft = mapContainer.style.left;
+            mapContainer.style.position = 'absolute';
+            mapContainer.style.top = '0px';
+            mapContainer.style.left = '0px';
+
+            // Use html2canvas to capture the map
+            html2canvas(mapContainer, {
+              useCORS: true,  // Enable CORS to capture tiles from other domains
+              allowTaint: true
+            }).then(function(canvas) {
+              // Create a download link
+              var link = document.createElement('a');
+              link.href = canvas.toDataURL('image/png');
+              link.download = '",
+            roboplotr_string2filename(str_remove_all(title,"<[^>]*>")),
+            ".png';  // Filename for the download
+              link.click();  // Trigger the download
+            }).finally(function() {
+              // Restore visibility of navigation controls after capture
+              controls.forEach(function(control) {
+                control.style.display = 'flex';
+              });
+              // Restore the original position style of the map container
+              mapContainer.style.position = originalPosition;
+              mapContainer.style.top = originalTop;
+              mapContainer.style.left = originalLeft;
+            });
+          }
+        }
+      "
+          )
+        )
+      )
+    )
+
+  if (zoom) {
+    map <- map |>
+      addEasyButton(
+        easyButton(
+          # Add zoom controls manually
+          id = "map-plus",
+          icon = "fa-plus",
+          title = "L\u00e4henn\u00e4",
+          onClick = JS("function(btn, map){ map.zoomIn(); }"),
+          position = "topright"
+        )
+      ) |>
+      addEasyButton(
+        easyButton(
+          id = "map-minus",
+          icon = "fa-minus",
+          title = "Loitonna",
+          onClick = JS("function(btn, map){ map.zoomOut(); }"),
+          position = "topright"
+        )
+      )
+  }
+
+  map <-  map |>
+    addEasyButton(
+      easyButton(
+        id = "robonomist-link",
+        icon = '<svg version="1.1" viewBox="0 0 71.447 32" style = "width: 12pt;padding-bottom: 2px" xmlns="http://www.w3.org/2000/svg"><path transform="scale(.31159)"  d="M 229.3 53.2 L 174.3 90.1 L 174.3 69.1 L 199.5 53.2 L 174.3 37.3 L 174.3 16.3 M112 0c14.2 0 23.3 1.8 30.7 7 6.3 4.4 10.3 10.8 10.3 20.5 0 11.3-6.4 22.8-22.3 26.5l18.4 32.5c5 8.7 7.7 9.7 12.5 9.7v6.5h-27.3l-23.7-45.8h-7v27.6c0 10.5 0.7 11.7 9.9 11.7v6.5h-43.2v-6.7c10.3 0 11.3-1.6 11.3-11.9v-65.7c0-10.2-1-11.7-11.3-11.7v-6.7zm-4.8 7.9c-3.3 0-3.6 1.5-3.6 8.6v32.3h6.4c15.8 0 20.2-8.7 20.2-21.3 0-6.3-1.7-11.5-5-15-2.9-3-7-4.6-13-4.6z M 0 53.2 L 55 16.3 L 55 37.3 L 29.8 53.2 L 55 69.1 L 55 90.1"/></svg>',
+        title = "Robonomist",
+        onClick = JS(
+          "function(btn, map) {window.open(\"https://robonomist.com\")  }"
+        ),
+        position = "topright"
+      )
+    )
+
+  map
+}

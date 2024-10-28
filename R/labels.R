@@ -122,7 +122,7 @@ set_title <- function(title = NULL, include = T, ...) {
 
 
 #' @importFrom plotly layout
-#' @importFrom htmltools tag HTML
+#' @importFrom htmltools tags HTML
 #' @importFrom stringr str_c
 roboplotr_title <- function(p, title, subtitle) {
 
@@ -247,7 +247,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'
 #' Parameters to customize fonts in various `roboplotr` contexts.
 #'
-#' @param font Character. One of your system fonts if `systemfonts` package is available, 
+#' @param font Character. One of your system fonts if `systemfonts` package is available,
 #' or "Arial", "Verdana", "Tahoma", "Trebuchet", "Times New Roman", "Georgia", "Garamond",
 #' "Courier New", "Brush Script MT", a Google font, or a path to an .otf or .ttf file.
 #' @param fallback Character. Only used when a file path is used with `font`. Fallback
@@ -427,11 +427,7 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
 #'
 #' # Use `position` NA to remove the legend.
 #' d |>
-#'   roboplot(Suunta,
-#'            legend = set_legend(
-#'              position = NA
-#'            )
-#'            )
+#'   roboplot(Suunta, legend = set_legend(position = NA))
 #'
 #' # `roboplot()` omits the legend to give more space for the plot area, when there
 #' # is only a single trace for `color`. Use `position` to force the legend to show.
@@ -467,61 +463,41 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
 #'   )
 #'
 #' # `set_legend()` works with `robomap()` too, but with a bit different parameters.
-#' # Control number of legend items with `breaks`.
+#' if (requireNamespace("sf", quietly = TRUE)) {
 #'
 #' d <- vaesto_postinumeroittain |>
 #'   dplyr::filter(stringr::str_detect(Postinumero, "^00(8|9)"))
 #'
-#' d |>
-#'   robomap(Postinumero, "Väkiluku", legend = set_legend(breaks = 3))
+#' # Control number of legend items with `breaks`. `robomap()` attempts to use that
+#' # many items, but might settle for a near value.
 #'
-#' # Or give speficic breakpoints (minimum of two breakpoints). Omit ranges from
-#' # labeling by using `range`.
+#' d |> robomap(Postinumero, "Väkiluku", legend = set_legend(breaks = 5))
 #'
+#' # If your legend won't be gradient, you can set specific breakpoints
 #' d |>
-#'   robomap(Postinumero, "Väkiluku", legend = set_legend(breaks = c(9000, 18000), range = FALSE))
+#'   robomap(Postinumero,
+#'           "V\u00e4kiluku",
+#'           legend = set_legend(breaks = c(9000, 12000, 18000), gradient = FALSE))
 #'
 #' # Adjust position and opacity.
 #' d |>
 #'   robomap(Postinumero,
-#'           "Väkiluku",
-#'           legend = set_legend(position = "bottomleft", opacity = 0.3))
+#'           "V\u00e4kiluku",
+#'           legend = set_legend(position = "bottomright", opacity = 0.3))
 #'
-#' # Give a character vector for labels when specific breaks are given. The length
-#' # of labels must be one more than the length of breaks.
+#' # Use factor column as value to have labeled legend.
 #' d |>
-#'   robomap(Postinumero, "Väkiluku",
-#'           legend = set_legend(
-#'     breaks = c(9000, 18000),
-#'     labels = c("Vähän", "Keskiverto", "Paljon")
-#'   ))
+#'   dplyr::mutate(
+#'     value = dplyr::case_when(
+#'       value >= stats::quantile(d$value)["75%"] ~ "Suuri",
+#'       value <= stats::quantile(d$value)["25%"] ~ "Pieni",
+#'       TRUE ~ "Normaali"
+#'   ),
+#'   value = forcats::fct_relevel(value, "Pieni","Normaali","Suuri")
+#'   ) |>
+#'   robomap(Postinumero, "V\u00e4kiluku")
 #'
-#' # Or when breaks is a single value, giving the number of legend items, you
-#' # can give a logical vector of that length, controlling legend item visibility.
-#' # This way you can approximate a gradient legend.
-#' d |> robomap(
-#'   area = Postinumero,
-#'   title = "Väkiluku",
-#'   legend = set_legend(
-#'     breaks = 13,
-#'     labels = c(
-#'       TRUE,
-#'       FALSE,
-#'       TRUE,
-#'       FALSE,
-#'       TRUE,
-#'       FALSE,
-#'       TRUE,
-#'       FALSE,
-#'       TRUE,
-#'       FALSE,
-#'       TRUE,
-#'       FALSE,
-#'       TRUE
-#'     ),
-#'     range = FALSE
-#'   )
-#' )
+#' }
 set_legend <- function(...) {
   arggs <- list(...)
   purpose <- arggs$purpose
@@ -585,24 +561,23 @@ set_plot_legend <- function(position = NULL,
 #' @param breaks Numeric vector. A length 1 vector attempts to make that many
 #' [robomap][robomap()] legend entries. Length 2+ vector should be the breaks in
 #' values of param `d` of [robomap][robomap()] where the legend should be split.
-#' @param labels Character or logical vector. If [robomap][robomap()] `breaks` is
-#' of length 1, a logical vector of length equal to value of `breaks`, controlling
-#' which legend items are shown. If `breaks` is of length 2+, provide a character
-#' vector of length 1 + length of `breaks`.
-#' @param range Logical. Whether [robomap][robomap()] shows single values or ranges.
-#' Ignored if `labels` are provided as characters.
 #' @param opacity Numeric. The opacity of the [robomap][robomap()] legend, ranging
 #' from  0 to 1.
+#' @param gradient Logical. If TRUE, the legend will be a gradient. Default TRUE
+#' for numeric data, FALSE for factor data.
+#' @param labformat Function. Specify custom label formatting function. The function
+#' must take a numeric vector of labels the map legend might have. Mostly useful for
+#' small number of specific labels.
 #' @importFrom dplyr between
 #' @rdname set_legend
 set_map_legend <- function(
     breaks = 5,
-    labels = NULL,
-    range = T,
-    position = "bottomright",
+    position = "bottomleft",
     orientation = "vertical",
     title = NULL,
     opacity = 1,
+    labformat = NULL,
+    gradient = NULL,
     ...
 ) {
 
@@ -614,21 +589,21 @@ set_map_legend <- function(
   # muuta myös legend titleä.. pitäisikö tulla ylös
   roboplotr_typecheck(title, "character")
   roboplotr_typecheck(breaks, "numeric", size = NULL, allow_null = F)
-  roboplotr_typecheck(range, "logical", allow_null = F)
   roboplotr_typecheck(opacity, "numeric", allow_null = F)
-  if(length(breaks) == 1) {
-    labtype <- "logical"
-    labsize <- as.numeric(breaks)
-  } else {
-    labtype <- "character"
-    labsize <- length(breaks) + 1
-  }
-  roboplotr_typecheck(labels, labtype, size = labsize)
+  roboplotr_typecheck(gradient, "logical", allow_null = T)
 
   if(!between(opacity, 0, 1)) {
     stop("set_legend() param 'opacity' must be between 0 and 1!", call. = F)
   }
-  .res <- list(position = position, breaks = breaks, position = position, labels = labels, opacity = opacity, title = title, range = range)
+  .res <- list(
+    position = position,
+    breaks = breaks,
+    position = position,
+    opacity = opacity,
+    title = title,
+    labformat = labformat,
+    gradient = gradient
+  )
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_legend", class(.res)))
 

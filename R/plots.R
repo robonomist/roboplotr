@@ -231,7 +231,7 @@ roboplotr_dependencies <- function(p,
 #' @param facet_split Currently unused. Variable from `d` for facet splits.
 #' @param shadearea Date, numeric or function. Highlight an area on the plot. Use
 #' [set_shadearea()] for detailed control. Works with numeric or date x-axis and numeric y-axis.
-#' @param error_bars Deprecated. Use `confidence_interval` instead. 
+#' @param error_bars Deprecated. Use `confidence_interval` instead.
 #' @param confidence_interval Function. Confidence layer configuration. Use [set_confidence_interval()].
 #' @param secondary_yaxis Character vector. Observations from `color` using a secondary
 #' y-axis. Use `plot_axes` with [set_axes()] for more control.
@@ -298,7 +298,7 @@ roboplotr_dependencies <- function(p,
 #' # of `set_updatemenu()` function for more control.
 #' energiantuonti |> roboplot(color = Suunta, updatemenu = Alue)
 #'
-#' 
+#'
 #' # `pattern` can be used in addition to color and you can control the ordering of
 #' # the traces by transforming your variables to factors. You can also let
 #' # `roboplot()` guess how much space is given to yaxis end in line plots, or give a
@@ -712,16 +712,16 @@ roboplot <- function(d = NULL,
     deprecate_warn("2.1.0", "roboplotr::roboplot(error_bars)", "roboplotr::roboplot(set_confidence_interval)")
     confidence_interval <- error_bars
   }
-  
+
 
   if(!is.null(confidence_interval)) {
     if(all(is.logical(confidence_interval))) {
       confidence_interval <- set_confidence_interval("area")
-    } 
+    }
   }
   roboplotr_typecheck(confidence_interval, "set_confidence_interval")
   roboplotr_validate_confidence(confidence_interval, d, plot_axes)
-  
+
 
   roboplotr_typecheck(modebar, "set_modebar")
 
@@ -974,9 +974,9 @@ roboplot <- function(d = NULL,
     } else {
       legend$title <- str_c("<b>", as_name(color), "</b>")
     }
-  
+
   updatemenu <- roboplotr_get_updatemenu(enquo(updatemenu), d_names)
-  
+
   p <-
     roboplotr_get_plot(
       d,
@@ -1131,8 +1131,8 @@ roboplot <- function(d = NULL,
         self_contained = params$self_contained,
         zoom = params$zoom,
         artefacts = params$artefacts,
-        height = height,
-        width = width
+        height = params$height,
+        width = params$width
       )
     } else {
       p
@@ -1146,8 +1146,8 @@ roboplot <- function(d = NULL,
       self_contained = artefacts$self_contained,
       zoom = artefacts$zoom,
       artefacts = artefacts$artefacts,
-      height = height,
-      width = width
+      height = artefacts$height,
+      width = artefacts$width
     )
   }
 
@@ -1258,7 +1258,7 @@ roboplotr_get_plot <-
              .data$arranger) + max(.data$arranger),
           .data$arranger
         ))
-      
+
       if (!quo_is_null(updatemenu$buttons)) {
         split_d <- split_d |> mutate(roboplot.update.menu = !!updatemenu$buttons)
       } else {
@@ -1331,7 +1331,7 @@ roboplotr_get_plot <-
 
       if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
         show.legend <- attributes(g)$`roboplot.confidence.area`$show_legend
-        g <- g |> 
+        g <- g |>
           mutate(
             roboplot.confidence.label = str_c(
               .data$roboplot.plot.text,
@@ -1341,7 +1341,7 @@ roboplotr_get_plot <-
             roboplot.plot.text = .data[[attributes(g)$roboplot.confidence.area$col]],
                  )
         if(!is.character(g[[attributes(g)$roboplot.confidence.area$col]])) {
-          legend_rank <- legend_rank + 10 + as.numeric(unique(g[[attributes(g)$roboplot.confidence.area$col]])) 
+          legend_rank <- legend_rank + 10 + as.numeric(unique(g[[attributes(g)$roboplot.confidence.area$col]]))
         } else {
           legend_rank <- legend_rank + 10 + 1
         }
@@ -1349,7 +1349,7 @@ roboplotr_get_plot <-
         if (is.null(highlight)) {
           if (!is.null(pattern_showlegend) & trace_showlegend) {
             show.legend <- pattern_showlegend[unique(g[[as_name(pattern)]]) |> as.character()]
-            
+
           } else {
             show.legend <- trace_showlegend
           }
@@ -1387,7 +1387,7 @@ roboplotr_get_plot <-
           }
         }
       }
-      
+
       if(is.null(updatemenu)) {
         trace_visible <- T
       } else {
@@ -1568,7 +1568,7 @@ roboplotr_get_plot <-
           "error_x",
           "visible"
         )
-      
+
       if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
         shared_params <- c(shared_params, "fill","fillcolor","opacity","hoveron")
       }
@@ -1653,7 +1653,7 @@ roboplotr_get_plot <-
           plotting_params$yaxis <- "y2"
         }
       }
-      
+
       plotting_params
     })
 
@@ -1683,10 +1683,10 @@ roboplotr_get_plot <-
         )
 
       p <- p |> layout(yaxis2 = y2)
-      
+
     }
 
-    p |> 
+    p |>
       layout(updatemenus = updatemenu$menu) |>
       config(responsive = ifelse(isRunning(), F, T))
 

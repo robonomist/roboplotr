@@ -603,7 +603,7 @@ roboplotr_tbl_heatmap_colorfun <- function(d,
     #     col <- colorRamp(names(c(anchor_mid, anchor_max)))((value - anchor_mid) / (anchor_max - anchor_mid))
     #     rgb(col[, 1L], col[, 2L], col[, 3L], maxColorValue = 255)
     #   }
-    # 
+    #
     # })
     map_chr(values, function(value) {
       if (is.na(value)) {
@@ -805,31 +805,20 @@ roboplotr_set_pattern <- function(d, pattern, pattern_type) {
   }
 }
 
-#' @importFrom leaflet colorNumeric
-roboplotr_get_map_palette <- function(d, map_colors, data_contour, bins) {
-  if (data_contour == T) {
-    map_palette <- colorNumeric(
-      # colorRampPalette(map_colors)(legend_cap * 5),
+#' @importFrom leaflet colorFactor colorNumeric
+roboplotr_get_map_palette <- function(domain, map_colors, gradient = F, rev = T) {
+  if(gradient) {
+    colorNumeric(
       map_colors,
-      # n = 5*legend_cap,
-      domain = d$robomap.value,
-      reverse = T,
+      domain = domain,
+      reverse = rev,
       na.color = "#00000000"
     )
-
-  } else if (length(bins) == 1) {
-    map_palette <-
-      colorNumeric(
-        map_colors,
-        domain = d$robomap.value,
-        reverse = T,
-        na.color = "#00000000"
-      )
   } else {
-    map_palette <- colorNumeric(
+    colorFactor(
       map_colors,
-      domain = d$robomap.value,
-      reverse = T,
+      domain = domain,
+      reverse = !rev,
       na.color = "#00000000"
     )
   }

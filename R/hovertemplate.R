@@ -36,6 +36,7 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #' NULL, where [roboplot()] infers the format from `d`.
 #' @param rounding Double. Number of decimal places for hovertemplate values. Default is set with [set_roboplot_options()].
 #' @param unit Character. Unit displayed.
+#' @param format Function. A function for exact control of unit formatting.
 #' @param text_col Symbol or character. Column used from `d` in a [roboplot][roboplot()]
 #' for labeling. If NULL, the column used for `color` (and, if given, `pattern`)
 #' is used for labels.
@@ -74,6 +75,7 @@ set_hovertext <- function(frequency = NULL,
                           rounding = getOption("roboplot.rounding"),
                           unit = "",
                           text_col = NULL,
+                          format = NULL,
                           extra = NULL) {
   text_col <- enquo(text_col)
   roboplotr_typecheck(frequency, "character")
@@ -107,7 +109,8 @@ set_hovertext <- function(frequency = NULL,
     rounding = rounding,
     unit = unit,
     extra = extra,
-    col = text_col
+    col = text_col,
+    format = format
   )
 
   .res <- structure(.res,

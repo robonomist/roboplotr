@@ -1,3 +1,8 @@
+# roboplotr 2.1.3
+
+* Fix for roboplot artefact dimensions.
+* Improves `robomap()` legend and color controls, and allows for factor data in the value column of the used data.
+
 # roboplotr 2.1.2
 
 * Fixes for `robomap()` labeling and map downloads.
@@ -26,7 +31,7 @@
 # roboplotr 2.0.0
 
 * `shinyapp`-parameter in `roboplot()` and `set_roboplot_options()` has been reworked to align with how it actually works. This is a breaking change.
-* Changes in `roboplotr``` internal validation. This is a breaking change.
+* Changes in `roboplotr` internal validation. This is a breaking change.
 * Fix for Google fonts not showing on `robotable()```. Loosened font restrictions.
 * Added preDraw callback to `robotable()` that forces core DataTables css to load properly.
 * Improved `roboplot()` logo handling when set to "none".

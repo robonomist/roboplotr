@@ -15,22 +15,22 @@ roboplotr_map_rasterlayer <- function(map,
       c("gstat", "progress", "raster", "scales", "sf", "sp"),
       "usage of raster layers in `robomap()`"
     )
-    
+
     d <- d |> mutate(area = as.numeric(sf::st_area(d)))
-    
+
     d <- d |> mutate(
       area = .data$area / sum(.data$area),
       num_points = round(scales::rescale(.data$area, c(1, sqrt(
         sqrt(sqrt(max(d$area)))
       ))))
     )
-    
+
     show.pb <- getOption("roboplot.verbose") == "All"
-    
+
     if (show.pb) {
       bpb <- progress::progress_bar$new(total = (2 * nrow(d)) + 3, format = ":info for contour map.. [:bar]")
     }
-    
+
     interior_df <- d |>
       mutate(sampled_points_interior = map2(.data$geom, .data$num_points, ~ {
         if (show.pb) {
@@ -40,7 +40,7 @@ roboplotr_map_rasterlayer <- function(map,
       })) |>
       unnest(.data$sampled_points_interior) |>
       sf::st_sf()
-    
+
     boundary_df <- d |>
       mutate(sampled_points_boundary = map2(.data$geom, .data$num_points, ~ {
         if (show.pb) {
@@ -50,13 +50,13 @@ roboplotr_map_rasterlayer <- function(map,
       })) |>
       unnest(.data$sampled_points_boundary) |>
       sf::st_sf()
-    
+
     sampled_df <- bind_rows(interior_df, boundary_df)
-    
+
     sampled_sp <- as(sampled_df, "Spatial")
-    
+
     sp::proj4string(sampled_sp) <- sf::st_crs(d)$proj4string
-    
+
     bb <- sf::st_bbox(d$geom)
     grd <- expand.grid(lon = seq(bb['xmin'], bb['xmax'], by = 0.1),
                        lat = seq(bb['ymin'], bb['ymax'], by = 0.1))
@@ -74,22 +74,22 @@ roboplotr_map_rasterlayer <- function(map,
       )
     )
     idw_raster <- raster::raster(idw_model)
-    
+
     if (show.pb) {
       bpb$tick(token = list(info = "Masking raster layer"))
     }
-    
+
     muni_mask <- as(sf::st_union(d), "Spatial")
-    
+
     idw_masked <- raster::mask(idw_raster, muni_mask)
-    
+
     template_raster <- raster::raster(raster::extent(idw_masked),
                                       ncol = idw_masked@ncols * 7,
                                       nrow = idw_masked@nrows * 7)
     raster::crs(template_raster) <- raster::crs(idw_masked)
     higher_res <- raster::resample(idw_masked, template_raster, method =
                                      "bilinear")
-    
+
     smoothed_raster <- raster::focal(higher_res,
                                      w = matrix(1, 5, 5),
                                      fun = mean,
@@ -168,14 +168,37 @@ roboplotr_map_polygonlayer <- function(map,
     )
 }
 
-#' @importFrom leaflet addTiles tileOptions
-roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F) {
-  if (tile_opacity > 0) {
+#' @importFrom leaflet addProviderTiles addTiles providerTileOptions tileOptions
+roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F, provider = NULL) {
+  if(!is.null(provider)) {
+
+    map_providers <- c(
+      "normal" = "OpenStreetMap",
+      "minimalist" = "CartoDB.Positron",
+      "dark" = "CartoDB.DarkMatter",
+      "topo" = "Esri.WorldTopoMap",
+      "street" = "Esri.WorldStreetMap",
+      "satellite" = "Esri.WorldImagery",
+      "grayscale" = "Esri.WorldGrayCanvas"
+    )
+
+    roboplotr_typecheck(provider, "character", size = 1, allow_null = T)
+    roboplotr_valid_strings(provider, names(map_providers), any)
+
     map |>
-      addTiles(options = tileOptions(opacity = tile_opacity, noWrap = wrap))
+      addProviderTiles(
+        map_providers[[provider]],
+        options = providerTileOptions(opacity = tile_opacity, noWrap = !wrap)
+      )
+
+  } else if (tile_opacity > 0) {
+    map |>
+      addTiles(options = tileOptions(opacity = tile_opacity, noWrap = !wrap))
   } else {
     map
   }
+
+
 }
 
 roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
@@ -203,7 +226,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
       }
     }
   }) |> unlist()
-  
+
 }
 
 #' Comprehensive leaflet wrapper function
@@ -221,15 +244,26 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' but retains the polygon borders if any.
 #' @param map_palette Character or function. Must be hexadecimal colors or valid
 #' css colors, or use [set_heatmap()] if specifying color breakpoints.
-#' @param hovertext List. Use a list with named characters flag and unit.
+#' @param hovertext Function. Use [set_hovertext()].
 #' @param border_width Integer. The width of polygon borders.
 #' @param legend Function. Use [set_legend()].
 #' @param data_contour Logical. Experimental. If TRUE, [robomap()] will produce
 #' a contour-like representation of the data, which does not conform to the boundaries
 #' of the polygons. This provides a smoother transition and helps in visualizing
 #' general trends across regions. Default is FALSE.
+#' @param tile_style Character string specifying the map style to use. Options include:
+#' \describe{
+#'   \item{"normal"}{A standard, detailed map suitable for most general-purpose use.}
+#'   \item{"minimalist"}{A clean, modern map with minimal design, focused on clarity and smooth rendering.}
+#'   \item{"dark"}{A dark-themed map, ideal for nighttime or high-contrast visualizations.}
+#'   \item{"topo"}{An outdoor-focused map, highlighting features relevant for activities like hiking and exploration.}
+#'   \item{"bw"}{A high-contrast, black-and-white map, useful for bold, minimalist visuals.}
+#'   \item{"street"}{A detailed street map, with emphasis on urban and road networks for navigation and infrastructure insights.}
+#'   \item{"satellite"}{High-resolution satellite imagery, offering detailed aerial views for geographic analysis.}
+#'   \item{"grayscale"}{A minimalist grayscale map, often used for background or overlay purposes in more complex visualizations.}
+#' }
+#' @param wrap Logical. Whether the map should wrap around the globe. Default is TRUE.
 #' @param zoom Logical. Whether the map is zoomable or not.
-#' @param rounding Numeric. How [robomap()] rounds numeric values.
 #' @param markers Logical. Experimental. Whether markers will be added on the map
 #' based on the columns "lat" and "lon". Default is FALSE.
 #' @param height,width Numeric. Height and width of the plot. Default width is NA.
@@ -237,7 +271,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @param ... Placeholder for other parameters.
 #' @returns A list of classes leaflet, htmlwidget and roboplot.robomap
 #' @importFrom htmltools HTML tags
-#' @importFrom leaflet addControl addEasyButton addLegend easyButton leaflet labelFormat leafletOptions
+#' @importFrom leaflet addControl addEasyButton addLegend colorFactor easyButton leaflet labelFormat leafletOptions
 #' @importFrom purrr map
 #' @importFrom stringr str_glue str_remove
 #' @importFrom utils head tail
@@ -246,84 +280,142 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' # You can use `robomap()` to create interactive maps. Note that very large
 #' # number of map polygons makes for slow rendering maps.
 #' vaesto_postinumeroittain |>
-#'   dplyr::filter(Alue == "Espoo") |>
-#'   robomap(Postinumeroalue, title = "V\u00e4kiluku Espoossa", caption = "Tilastokeskus")
-#' 
+#'   robomap(Postinumeroalue, title = "V\u00e4kiluku postinumeroalueittain", caption = "Tilastokeskus")
+#'
 #' # Default polygon colors are picked from trace colors set with
 #' # `set_roboplot_options()` based on luminosity. Control polygon colors with
 #' # `map_palette`. `robomap()` expands upon this as necessary.
-#' 
+#'
 #' vaesto_postinumeroittain |>
+#'   dplyr::filter(Alue == "Espoo") |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "V\u00e4kiluku postinumeroittain",
+#'     title = "V\u00e4kiluku Espoossa",
 #'     subtitle = "Otanta",
 #'     caption = "Tilastokeskus",
 #'     map_palette = c("lightgreen", "darkred")
 #'   )
 #' # You might want to disallow zooming for some reason. The map will be draggable,
 #' # but zoom by buttons or scrolling is disabled.
-#' 
+#'
 #' vaesto_postinumeroittain |>
+#'   dplyr::filter(Alue == "Espoo") |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "V\u00e4est\u00f6 postinumeroittain",
+#'     title = "V\u00e4est\u00f6 Espoossa",
 #'     subtitle = "Otanta",
 #'     caption = "Tilastokeskus",
 #'     zoom = FALSE
 #'   )
-#' 
-#' # Other controls you might need.
-#' 
+#'
+#' # Set polygon border width with `border_width", polygon opacity with `map_opacity`,
+#' # and the opacity of the underlying map tiles with `tile_opacity`. Use `set_legend()`
+#' # to control legend specifics.
+#'
 #' vaesto_postinumeroittain |>
+#'   dplyr::filter(Alue == "Espoo") |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "V\u00e4est\u00f6 postinumeroittain",
+#'     title = "V\u00e4est\u00f6 Espoossa",
 #'     caption = "Tilastokeskus",
-#'     map_palette = c("lightgreen", "darkred"),
 #'     border_width = 2,
 #'     tile_opacity = 0.2,
-#'     map_opacity = 0.5
+#'     map_opacity = 0.5,
+#'     legend = set_legend(gradient = FALSE)
 #'   )
-#' 
+#'
 #' # Control the story you want to tell by using `set_heatmap()` with `map_palette`,
 #' # setting the colors and breakpoints. Use `legend` with `set_legend(breaks)`
-#' # to control how many entries the legend is split to.
+#' # to control how many entries the legend is split to. Heatmap maps cannot have a
+#' # gradient legend. `robomap()` will detect it, but you can also set it manually
+#' # to avoid unnecessary messages.
 #' vaesto_postinumeroittain |>
+#'   dplyr::filter(Alue == "Espoo") |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "V\u00e4est\u00f6 postinumeroittain",
+#'     title = "V\u00e4est\u00f6 Espoossa",
 #'     caption = "Tilastokeskus",
 #'     map_palette = set_heatmap(
 #'       midvalue = 6000,
 #'       midcolor = "yellow",
 #'       maxcolor = "red"
 #'     ),
-#'     legend = set_legend(breaks = 3),
+#'     legend = set_legend(breaks = 3, gradient = FALSE),
 #'     map_opacity = 1,
 #'     border_width = 0
 #'   )
+#'
 #' # Or just give the legend breaks
 #' vaesto_postinumeroittain |>
+#'   dplyr::filter(Alue == "Espoo") |>
 #'   robomap(
 #'     Postinumeroalue,
-#'     title = "V\u00e4est\u00f6 postinumeroittain",
+#'     title = "V\u00e4est\u00f6 Espoossa",
 #'     caption = "Tilastokeskus",
 #'     map_palette = set_heatmap(midvalue = 6000, midcolor = "yellow", maxcolor = "red"),
-#'     legend = set_legend(breaks = c(3000, 6000, 9000)),
+#'     legend = set_legend(breaks = c(3000, 6000, 9000), gradient = FALSE),
 #'     map_opacity = 1,
 #'     border_width = 0
 #'   )
-#' 
+#'
+#' # Use labformat to format your labels to your liking. You probably want to be
+#' # quite specific with the breaks in this case, or create the labformat function
+#' # dynamically.
+#' vaesto_postinumeroittain |>
+#'   dplyr::filter(stringr::str_detect(Postinumero, "^009")) |>
+#'   robomap(Postinumeroalue,
+#'           "V\u00e4kiluku Itä-Helsingissä",
+#'           tile_opacity = 1,
+#'           map_opacity = 1,
+#'           rounding = 0,
+#'           legend = set_legend(
+#'             title = "Suuruusluokka",
+#'             breaks = 2,
+#'             labformat = function(x) {
+#'               dplyr::case_when(x > 16000 ~ "Suuri", x > 6000 ~ "Keskiverto", TRUE ~ "Pieni")
+#'             }
+#'           )
+#'   )
+#'
+#' # You might have categorial data instead.
+#' vaesto_postinumeroittain |>
+#'   dplyr::filter(stringr::str_detect(Postinumero, "^009")) |>
+#'   dplyr::mutate(
+#'     value = dplyr::case_when(
+#'       value >= quantile(vaesto_postinumeroittain$value)["75%"] ~ "Suuri",
+#'       value <= quantile(vaesto_postinumeroittain$value)["25%"] ~ "Pieni",
+#'       TRUE ~ "Normaali"
+#'     ) |>
+#'       forcats::fct_relevel("Pieni", "Normaali", "Suuri")
+#'   ) |>
+#'   robomap(
+#'     Postinumeroalue,
+#'     "V\u00e4kiluku Itä-Helsingissä",
+#'     "Suuruusluokittain",
+#'     legend = set_legend(title = "Suuruusluokka")
+#'   )
+#'
+#' # Control map style with `tile_style`. Some options are "dark", "minimalist",
+#' # "satellite" etc. See `robomap()` documentation for full list.
+#' vaesto_postinumeroittain |>
+#'   dplyr::filter(stringr::str_detect(Postinumero, "^009")) |>
+#'   robomap(Postinumeroalue,
+#'           "V\u00e4kiluku It\u00e4-Helsingiss\u00e4",
+#'           tile_opacity = 1,
+#'           map_opacity = 1,
+#'           tile_style = "dark"
+#'   )
 robomap <-
   function(d,
            area,
            title = NULL,
            subtitle = "",
            caption = NULL,
-           hovertext = list(flag = "", unit = ""),
+           hovertext = set_hovertext(),
            map_opacity = 0.9,
            tile_opacity = 0.7,
+           wrap = TRUE,
+           tile_style = NULL,
            map_palette = NULL,
            border_width = getOption("roboplot.trace.border")$width,
            height = getOption("roboplot.height"),
@@ -331,26 +423,60 @@ robomap <-
            legend = set_legend(),
            data_contour = FALSE,
            markers = FALSE,
-           rounding = round(getOption("roboplot.rounding")),
            zoom = TRUE,
            ...) {
     roboplotr_ns_alert("sf", "usage of `robomap()`")
-    
+
+    roboplotr_typecheck(d, "sf", allow_null = F, size = NULL)
+    if(sf::st_crs(d)$epsg != "4326") {
+      roboplotr_alert("The projection of the data is not WGS 84 (EPSG:4326)!\nThis may cause issues with the map projection.")
+      d <- sf::st_transform(d, 4326)
+    }
+
+    roboplotr_typecheck(d$value, c("factor","numeric"), allow_na = T, size = NULL)
+    legend_labs <- NULL
+    if(is.factor(d$value)) {
+      legend_labs <- levels(d$value)
+    }
+    d <- d |> mutate(robomap.value = as.numeric(.data$value))
+
     title <- roboplotr_set_title(title, d, "in `robomap()`")
-    
+
     roboplotr_typecheck(legend,
                         c("numeric", "set_legend"),
                         allow_null = F,
                         extra = "in robomap()")
-    
+
     if (!is.list(legend)) {
       legend <- set_legend(breaks = legend)
     }
-    
+
+    legend$gradient <- legend$gradient %||% (class(d$value) != "factor")
+
+    if(!is.null(map_palette)) {
+      if("roboplotr.set_heatmap" %in% class(map_palette) & legend$gradient) {
+        roboplotr_alert("Heatmap color palette is not compatible with gradient legend!\nGradient legend unset. Alternatively, use a color vector as map_palette, but you will lose specific value-color matching control.")
+        legend$gradient <- FALSE
+
+      }
+    }
+    if(legend$gradient) {
+      if(!roboplotr_is_equally_spaced(legend$breaks)) {
+        roboplotr_alert("Legend breaks must be equal in size when using a gradient legend!\nIgnoring the specific breaks")
+        legend$breaks <- length(legend$breaks)
+      }
+    }
+
     roboplotr_typecheck(zoom, "logical", allow_null = F, extra = "in robomap()")
-    
+
+    roboplotr_typecheck(wrap, "logical", allow_null = F, extra = "in robomap()")
+
+    roboplotr_typecheck(hovertext, "set_hovertext")
+
+    rounding <- hovertext$rounding
+
     caption <- roboplotr_set_caption(caption, d, "in `robomap()`")
-    
+
     roboplotr_typecheck(width, "numeric", allow_na = T)
     roboplotr_typecheck(height, "numeric", allow_na = T)
     if (!is.null(width)) {
@@ -363,12 +489,12 @@ robomap <-
         height <- NULL
       }
     }
-    
+
     roboplotr_typecheck(map_palette,
                         c("character", "set_heatmap"),
                         size = NULL,
                         extra = "in robomap()")
-    
+
     if (!is.null(map_palette)) {
       if (all(is.character(map_palette))) {
         roboplotr_valid_colors(map_palette)
@@ -378,32 +504,52 @@ robomap <-
       roboplotr.luminance <- roboplotr_get_luminance(roboplotr_colors)
       map_palette <- c(roboplotr_colors[which(roboplotr.luminance == max(roboplotr.luminance))], roboplotr_colors[which(roboplotr.luminance == min(roboplotr.luminance))])
     }
-    
-    d <- d |>
-      mutate(
-        leafletlabel = str_c({
-          {
-            area
-          }
-        }, "<br>", roboplotr_format_robotable_numeric(.data$value, rounding, flag = hovertext$flag), " ", {
-          hovertext$unit
-        }),
-        leafletlabel = map(.data$leafletlabel, HTML)
-      )
 
-    get_bins <- function(legend_breaks) {
+
+    if(!is.null(hovertext$format)) {
+      .unitformat <- hovertext$format
+    } else {
+      .unitformat <- function(x) {
+        str_glue("{roboplotr_format_robotable_numeric(x, rounding)} {hovertext$unit}")
+      }
+    }
+
+    if(is.factor(d$value)) {
+      d <- d |>
+        mutate(
+          leafletlabel = str_c({{area}},"<br>",as.character(.data$value)),
+          leafletlabel = map(.data$leafletlabel, HTML)
+        )
+    } else {
+      d <- d |>
+        mutate(
+          leafletlabel = str_c({{area}},"<br>",.unitformat(.data$robomap.value)),
+          leafletlabel = map(.data$leafletlabel, HTML)
+        )
+    }
+
+    get_bins <- function(legend_breaks, rounding = hovertext$rounding) {
       if (length(legend_breaks) == 1) {
         bins <- rev(seq(
-          min(d$value, na.rm = T),
-          max(d$value, na.rm = T),
+          min(d$robomap.value, na.rm = T),
+          max(d$robomap.value, na.rm = T),
           length.out = min(round(length(
-            d$value |> unique()
+            d$robomap.value |> unique()
           )), legend_breaks + 1)
         ))
       } else {
-        bins <- c(max(d$value, na.rm = T), rev(sort(legend_breaks)), min(d$value, na.rm = T))
+        check_breaks <- function(legend_breaks) {
+          for(breaks in legend_breaks) {
+            roboplotr_is_between(breaks, "set_legend()", lims = range(d$robomap.value, na.rm = T))
+          }
+        }
+        check_breaks(legend_breaks)
+        bins <- c(max(d$robomap.value, na.rm = T), rev(sort(legend_breaks)))
+        if(min(d$robomap.value, na.rm = T) < min(bins)) {
+          bins <- c(bins,min(d$robomap.value, na.rm = T))
+        }
       }
-      
+
       if (length(bins) == 1) {
         bins <- roboplotr_round_magnitude(bins, rounding, round)
       } else {
@@ -415,18 +561,15 @@ robomap <-
         bins <- roboplotr_round_magnitude(bins, rounding, round)
         bins[1] <- .first
         bins[length(bins)] <- .last
-        
+
       }
-      
+
       bins |> unique()
     }
-    
+
     bins <- get_bins(legend$breaks)
-    # bins <- c(10000, 2203, 0)
-    d <- d |> mutate(robomap.value = .data$value)
-    
+
     if (is.list(map_palette)) {
-      # käytetään robotable heatmappia
       robomap_palette <- roboplotr_tbl_heatmap_colorfun(
         tibble(d),
         hmin = map_palette$min,
@@ -434,14 +577,16 @@ robomap <-
         hmax = map_palette$max,
         cols = "robomap.value"
       )
-    } else {
-      robomap_palette <- roboplotr_get_map_palette(d, map_palette, data_contour, bins)
+      legend_palette <- robomap_palette
+    } else  {
+      robomap_palette <- roboplotr_get_map_palette(bins, map_palette, legend$gradient, legend$gradient)
+      legend_palette <- roboplotr_get_map_palette(bins, map_palette, legend$gradient, rev = !legend$gradient)
     }
-    
+
     robomap_id <- str_c("robomap-", str_remove(runif(1), "\\."))
-    
+
     map_pal <- robomap_palette(d$robomap.value)
-    
+
     this_map <- leaflet(
       d,
       height = height,
@@ -456,158 +601,18 @@ robomap <-
         preferCanvas = TRUE
       )
     ) |>
-      roboplotr_map_tilelayer(tile_opacity) |>
+      roboplotr_map_tilelayer(tile_opacity, wrap, tile_style) |>
       roboplotr_map_rasterlayer(d, data_contour, map_opacity, robomap_palette) |>
       roboplotr_map_polygonlayer(data_contour, map_opacity, map_pal, border_width) |>
       roboplotr_map_markerlayer(d, markers)
-    
+
     caption <- tags$span(
       style = str_glue(
         'opacity: 1; font-size: {getOption("roboplot.font.caption")$size}px;'
       ),
-      htmltools::HTML(caption)
+      HTML(caption)
     )
-    
-    mainfontsize <- getOption("roboplot.font.main")$size
-    control_style <- tagList(tags$style(
-      str_glue(
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .robomap-title",
-          "width" = "fit-content",
-          "background" = getOption("roboplot.colors.background"),
-          "opacity" = as.character(legend$opacity),
-          "font-size" = '{<getOption("roboplot.font.title")$size}px',
-          "font-family" = getOption("roboplot.font.title")$family,
-          "color" = getOption("roboplot.font.title")$color,
-          "padding" =
-            '{<round(mainfontsize/3)}px {<mainfontsize}px {<round(mainfontsize/3)}px {<round(mainfontsize/2)}px',
-          "border-radius" = "5px"
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .map-info",
-          "width" = "fit-content",
-          "background" = getOption("roboplot.colors.background"),
-          "opacity" = as.character(legend$opacity),
-          ## mikä on sopiva..?
-          "font-size" = '{<getOption("roboplot.font.main")$size}px',
-          "font-family" = getOption("roboplot.font.main")$family,
-          "color" = getOption("roboplot.font.main")$color,
-          "padding" =
-            '{<round(mainfontsize/3)}px {<mainfontsize}px {<round(mainfontsize/3)}px {<round(mainfontsize/2)}px',
-          "border-radius" = "5px"
-        ),
-        roboplotr_set_specific_css(".{<robomap_id}-info-control", "display" = "none"),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container",
-          "background" = getOption("roboplot.colors.background")
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .leaflet-control-attribution, #{<robomap_id}_leaflet-container .leaflet-control-attribution a",
-          "background" = getOption("roboplot.colors.background"),
-          "font-size" = str_glue('{getOption("roboplot.font.caption")$size}px'),
-          "font-family" = getOption("roboplot.font.caption")$family,
-          "color" = getOption("roboplot.font.caption")$color,
-          "opacity" = 0.5
-        ),
-        # modebar
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .leaflet-top.leaflet-right",
-          "display" = "flex",
-          "flex-direction" = "row",
-          "align-items" = "flex-end",
-          "margin-top" = "9px",
-          "margin-right" = "5px",
-          "height" = "20px",
-          "width" = "fit-content",
-          "background" = "transparent",
-          "opacity" = as.character(legend$opacity),
-          ## mikä on sopiva..?
-          "font-size" = '{<getOption("roboplot.font.main")$size}px',
-          "font-family" = getOption("roboplot.font.main")$family,
-          "color" = getOption("roboplot.font.main")$color,
-          "padding" =
-            '{<round(mainfontsize/3)}px {<mainfontsize}px {<round(mainfontsize/3)}px {<round(mainfontsize/2)}px',
-          "border-radius" = "5px"
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container:hover .leaflet-top.leaflet-right",
-          "background" = getOption("roboplot.colors.background"),
-          "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
-        ),
-        #modebar buttons
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .easy-button-container, #{<robomap_id}_leaflet-container .easy-button-button",
-          "background-color" = "transparent",
-          "height" = "20px",
-          "border" = "none",
-          "width" = "18px",
-          "padding-left" = " 0px",
-          "padding-top" = "0px",
-          "margin" = "5px 2px 4px 3px",
-          "outline" = "none",
-          "box-shadow" = "none",
-          "cursor" = "pointer",
-          "font-size" = "16px"
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .easy-button-button:hover",
-          "background-color" = "transparent"
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .easy-button-button:active",
-          "background-color" = "transparent"
-        ),
-        # modebar icons
-        roboplotr_set_specific_css(
-          '#{<robomap_id}_leaflet-container .leaflet-top.leaflet-right .fa, #{<robomap_id}_leaflet-container .leaflet-top.leaflet-right svg path',
-          'fill' = 'none',
-          'color' = 'transparent',
-          'transition' =  'opacity 0.3s ease-in-out width 0.3s ease-in-out'
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container:hover .leaflet-top.leaflet-right .fa, #{<robomap_id}_leaflet-container:hover .leaflet-top.leaflet-right svg path",
-          "fill" = "rgba(68, 68, 68, 0.3)",
-          "color" = "rgba(68, 68, 68, 0.3)",
-          "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .leaflet-top.leaflet-right .easy-button-button:hover .fa, #{<robomap_id}_leaflet-container .leaflet-top.leaflet-right .easy-button-button:hover svg path",
-          "fill" = "rgba(68, 68, 68, 0.7)",
-          "color" = "rgba(68, 68, 68, 0.7)",
-          "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container:hover #robonomist-link svg path, #{<robomap_id}_leaflet-container.easy-button-button:hover #robonomist-link svg path",
-          "fill" = "rgba(68, 68, 68, 1)",
-          "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .robomap-logo",
-          "margin-bottom" = 0,
-          "height" = str_glue("{round(height / 20)}px")
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .map-info.legend span",
-          "transform" = "rotate(180deg)"
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .map-info.legend g",
-          "transform" = str_glue(
-            "translate(0, {round(getOption('roboplot.font.main')$size*0.75)}px)"
-          )
-        ),
-        roboplotr_set_specific_css(
-          "#{<robomap_id}_leaflet-container .map-info.legend g line",
-          "display" = "none"
-        ),
-        # roboplotr_set_specific_css(
-        #   "#{<robomap_id}_leaflet-container .map-info.legend svg",
-        #   "margin-top" = str_glue("{round(getOption('roboplot.font.main')$size)*0}px")
-        # ),
-        .open = "{<"
-      )
-    ))
-    
+
     get_map_title <- function() {
       titlefun <-
         if (getOption("roboplot.font.title")$bold == T) {
@@ -615,7 +620,7 @@ robomap <-
         } else {
           title <- HTML(title$title)
         }
-      
+
       ifelse(
         subtitle == "",
         str_glue("{title}"),
@@ -624,173 +629,34 @@ robomap <-
         )
       )
     }
-    
+
     map_title <- get_map_title()
-    
+
+    this_map <- roboplotr_robomap_modebar(this_map, title$title, zoom)
+
     this_map <- this_map |>
-      addEasyButton(
-        easyButton(
-          id = "reset-view",
-          icon = "fa-home",
-          title = "Kohdista",
-          position = "topright",
-          onClick = JS(
-            "function(btn, map) {
-          // Reset to the initial view
-          map.setView(map.initialCenter, map.initialZoom);
-        }"
-          )
-        )
-      ) |>
-      addEasyButton(
-        easyButton(
-          id = "download-map",
-          icon = fa("file-image", vertical_align = "0em"),
-          title = "Lataa kartta",
-          position = "topright",
-          onClick = JS(
-            str_c(
-              "function(btn, map) {
-          // Check if html2canvas is already loaded
-          if (typeof html2canvas === 'undefined') {
-            // Load html2canvas script if it's not already included
-            var scriptHtml2Canvas = document.createElement('script');
-            scriptHtml2Canvas.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-            document.head.appendChild(scriptHtml2Canvas);
-
-            // Wait for the script to load before proceeding
-            scriptHtml2Canvas.onload = function() {
-              captureMap();
-            };
-          } else {
-            captureMap();
-          }
-
-          // Function to capture the map and download as PNG
-          function captureMap() {
-            // Hide navigation controls before capture
-            var controls = document.querySelectorAll('.leaflet-top.leaflet-right');
-            controls.forEach(function(control) {
-              control.style.display = 'none';
-            });
-
-            // Set the map container style to avoid shifting during capture
-            var mapContainer = document.querySelector('.leaflet-container');
-            var originalPosition = mapContainer.style.position;
-            var originalTop = mapContainer.style.top;
-            var originalLeft = mapContainer.style.left;
-            mapContainer.style.position = 'absolute';
-            mapContainer.style.top = '0px';
-            mapContainer.style.left = '0px';
-
-            // Use html2canvas to capture the map
-            html2canvas(mapContainer, {
-              useCORS: true,  // Enable CORS to capture tiles from other domains
-              allowTaint: true
-            }).then(function(canvas) {
-              // Create a download link
-              var link = document.createElement('a');
-              link.href = canvas.toDataURL('image/png');
-              link.download = '",
-              roboplotr_string2filename(str_remove_all(title$title,"<[^>]*>")),
-              ".png';  // Filename for the download
-              link.click();  // Trigger the download
-            }).finally(function() {
-              // Restore visibility of navigation controls after capture
-              controls.forEach(function(control) {
-                control.style.display = 'flex';
-              });
-              // Restore the original position style of the map container
-              mapContainer.style.position = originalPosition;
-              mapContainer.style.top = originalTop;
-              mapContainer.style.left = originalLeft;
-            });
-          }
-        }
-      "
-            )
-          )
-        )
-      )
-    
-    if (zoom) {
-      this_map <- this_map |>
-        addEasyButton(
-          easyButton(
-            # Add zoom controls manually
-            id = "map-plus",
-            icon = "fa-plus",
-            title = "Lähennä",
-            onClick = JS("function(btn, map){ map.zoomIn(); }"),
-            position = "topright"
-          )
-        ) |>
-        addEasyButton(
-          easyButton(
-            id = "map-minus",
-            icon = "fa-minus",
-            title = "Loitonna",
-            onClick = JS("function(btn, map){ map.zoomOut(); }"),
-            position = "topright"
-          )
-        )
-    }
-    
-    this_map <-  this_map |>
-      addEasyButton(
-        easyButton(
-          id = "robonomist-link",
-          icon = '<svg version="1.1" viewBox="0 0 71.447 32" style = "width: 12pt;padding-bottom: 2px" xmlns="http://www.w3.org/2000/svg"><path transform="scale(.31159)"  d="M 229.3 53.2 L 174.3 90.1 L 174.3 69.1 L 199.5 53.2 L 174.3 37.3 L 174.3 16.3 M112 0c14.2 0 23.3 1.8 30.7 7 6.3 4.4 10.3 10.8 10.3 20.5 0 11.3-6.4 22.8-22.3 26.5l18.4 32.5c5 8.7 7.7 9.7 12.5 9.7v6.5h-27.3l-23.7-45.8h-7v27.6c0 10.5 0.7 11.7 9.9 11.7v6.5h-43.2v-6.7c10.3 0 11.3-1.6 11.3-11.9v-65.7c0-10.2-1-11.7-11.3-11.7v-6.7zm-4.8 7.9c-3.3 0-3.6 1.5-3.6 8.6v32.3h6.4c15.8 0 20.2-8.7 20.2-21.3 0-6.3-1.7-11.5-5-15-2.9-3-7-4.6-13-4.6z M 0 53.2 L 55 16.3 L 55 37.3 L 29.8 53.2 L 55 69.1 L 55 90.1"/></svg>',
-          title = "Robonomist",
-          onClick = JS(
-            "function(btn, map) {window.open(\"https://robonomist.com\")  }"
-          ),
-          position = "topright"
-        )
-      ) |>
       addControl(
         html = HTML(map_title),
         position = "topleft",
         className = str_glue("robomap-title")
       ) |>
       addControl(
-        control_style,
+        roboplotr_get_robomap_css(robomap_id, legend, height),
         position = "topleft",
         className = str_glue("{robomap_id}-info-control")
       ) |>
       addControl(
         html = robotable_logo(),
         position = "bottomright",
-        className = str_glue("{robomap_id}-info robomap-logo")
+        className = str_glue("map-info robomap-logo")
       ) |>
       addControl(
         html = caption,
         position = "bottomleft",
         className = str_glue("map-info")
       )
-    
-    if (legend$position != "none") {
-      this_map <- this_map |>
-        addLegend(
-          className = str_glue("map-info legend"),
-          opacity = map_opacity,
-          position = legend$position,
-          pal = robomap_palette,
-          labFormat = function(type, cuts, p) {
-            # Custom format function
-            roboplotr_format_robotable_numeric(bins, rounding = max(rounding -
-                                                                           1, 0))  # Simply return the cuts without any formatting
-          },
-          values = ~ robomap.value,
-          na.label = "",
-          title = ""
-        )
-      
-    }
-    
-    this_map <- structure(this_map, class = c(class(this_map), "roboplotr", "roboplotr.robomap"))
-    
-    this_map |>
+
+    this_map <- this_map |>
       onRender(
         str_glue(
           "function(el, x) {
@@ -803,4 +669,187 @@ robomap <-
           .open = "{<"
         )
       )
+
+    if (legend$position != "none") {
+
+      if(!legend$gradient) {
+        if(!is.null(legend$labformat)) {
+          .formatfun <- function(x) legend$labformat(x)
+        } else {
+          if(is.null(legend_labs)) {
+            .formatfun <- function(x) roboplotr_format_robotable_numeric(x, rounding = max(rounding - 1, 0))
+          } else {
+            .formatfun <- function(x) legend_labs[x]
+          }
+        }
+        this_map <- this_map |> addLegend(
+          className = str_glue("map-info legend"),
+          position = legend$position,
+          opacity = map_opacity,
+          labels = .formatfun(bins),
+          colors = robomap_palette(bins),
+          na.label = "",
+          title = legend$title %||% ""
+        )
+      } else {
+        if(!is.null(legend$labformat)) {
+          .labformatfun <- function(type, cuts, p) {
+            legend$labformat(rev(cuts))
+          }
+        } else {
+          .labformatfun <- function(type, cuts, p) {
+            roboplotr_format_robotable_numeric(rev(cuts), rounding = max(rounding - 1, 0))
+          }
+        }
+        this_map <- this_map |>
+          addLegend(
+            className = str_glue("map-info legend"),
+            position = legend$position,
+            opacity = map_opacity,
+            pal = legend_palette,
+            labFormat = .labformatfun,
+            values = bins,
+            bins = legend$breaks,
+            na.label = "",
+            title = legend$title %||% ""
+          )
+      }
+
+    }
+
+    this_map <- structure(this_map, class = c(class(this_map), "roboplotr", "roboplotr.robomap"))
+
+    this_map
   }
+
+roboplotr_get_robomap_css <- function(robomap_id, legend, height) {
+
+  mainfontsize <- getOption("roboplot.font.main")$size
+
+  control_style <- tagList(tags$style(
+    str_glue(
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .robomap-title",
+        "width" = "fit-content",
+        "background" = getOption("roboplot.colors.background"),
+        "opacity" = as.character(legend$opacity),
+        "font-size" = '{<getOption("roboplot.font.title")$size}px',
+        "font-family" = getOption("roboplot.font.title")$family,
+        "color" = getOption("roboplot.font.title")$color,
+        "padding" =
+          '{<round(mainfontsize/3)}px {<mainfontsize}px {<round(mainfontsize/3)}px {<round(mainfontsize/2)}px',
+        "border-radius" = "5px"
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .map-info",
+        "width" = "fit-content",
+        "background" = getOption("roboplot.colors.background"),
+        "opacity" = as.character(legend$opacity),
+        ## mikä on sopiva..?
+        "font-size" = '{<getOption("roboplot.font.main")$size}px',
+        "font-family" = getOption("roboplot.font.main")$family,
+        "color" = getOption("roboplot.font.main")$color,
+        "padding" =
+          '{<round(mainfontsize/3)}px {<mainfontsize}px {<round(mainfontsize/3)}px {<round(mainfontsize/2)}px',
+        "border-radius" = "5px"
+      ),
+      roboplotr_set_specific_css(".{<robomap_id}-info-control", "display" = "none"),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container",
+        "background" = getOption("roboplot.colors.background")
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .leaflet-control-attribution, #{<robomap_id}_leaflet-container .leaflet-control-attribution a",
+        "background" = getOption("roboplot.colors.background"),
+        "font-size" = str_glue('{getOption("roboplot.font.caption")$size}px'),
+        "font-family" = getOption("roboplot.font.caption")$family,
+        "color" = getOption("roboplot.font.caption")$color,
+        "opacity" = 0.5
+      ),
+      # modebar
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .leaflet-top.leaflet-right",
+        "display" = "flex",
+        "flex-direction" = "row",
+        "align-items" = "flex-end",
+        "margin-top" = "9px",
+        "margin-right" = "5px",
+        "height" = "20px",
+        "width" = "fit-content",
+        "background" = "transparent",
+        "opacity" = as.character(legend$opacity),
+        ## mikä on sopiva..?
+        "font-size" = '{<getOption("roboplot.font.main")$size}px',
+        "font-family" = getOption("roboplot.font.main")$family,
+        "color" = getOption("roboplot.font.main")$color,
+        "padding" =
+          '{<round(mainfontsize/3)}px {<mainfontsize}px {<round(mainfontsize/3)}px {<round(mainfontsize/2)}px',
+        "border-radius" = "5px"
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container:hover .leaflet-top.leaflet-right",
+        "background" = getOption("roboplot.colors.background"),
+        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
+      ),
+      #modebar buttons
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .easy-button-container, #{<robomap_id}_leaflet-container .easy-button-button",
+        "background-color" = "transparent",
+        "height" = "20px",
+        "border" = "none",
+        "width" = "18px",
+        "padding-left" = " 0px",
+        "padding-top" = "0px",
+        "margin" = "5px 2px 4px 3px",
+        "outline" = "none",
+        "box-shadow" = "none",
+        "cursor" = "pointer",
+        "font-size" = "16px"
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .easy-button-button:hover",
+        "background-color" = "transparent"
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .easy-button-button:active",
+        "background-color" = "transparent"
+      ),
+      # modebar icons
+      roboplotr_set_specific_css(
+        '#{<robomap_id}_leaflet-container .leaflet-top.leaflet-right .fa, #{<robomap_id}_leaflet-container .leaflet-top.leaflet-right svg path',
+        'fill' = 'none',
+        'color' = 'transparent',
+        'transition' =  'opacity 0.3s ease-in-out width 0.3s ease-in-out'
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container:hover .leaflet-top.leaflet-right .fa, #{<robomap_id}_leaflet-container:hover .leaflet-top.leaflet-right svg path",
+        "fill" = "rgba(68, 68, 68, 0.3)",
+        "color" = "rgba(68, 68, 68, 0.3)",
+        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .leaflet-top.leaflet-right .easy-button-button:hover .fa, #{<robomap_id}_leaflet-container .leaflet-top.leaflet-right .easy-button-button:hover svg path",
+        "fill" = "rgba(68, 68, 68, 0.7)",
+        "color" = "rgba(68, 68, 68, 0.7)",
+        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container:hover #robonomist-link svg path, #{<robomap_id}_leaflet-container.easy-button-button:hover #robonomist-link svg path",
+        "fill" = "rgba(68, 68, 68, 1)",
+        "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
+      ),
+      roboplotr_set_specific_css(
+        "#{<robomap_id}_leaflet-container .robomap-logo",
+        "margin-bottom" = 0,
+        "height" = str_glue("{round(height / 20)}px")
+      ),
+      # roboplotr_set_specific_css(
+      #   "#{<robomap_id}_leaflet-container .map-info.legend g line",
+      #   "display" = "none"
+      # ),
+      .open = "{<"
+    )
+  ))
+
+  control_style
+}

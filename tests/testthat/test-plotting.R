@@ -21,7 +21,7 @@ test_that("Test for hovertemplate time format", {
 })
 
 test_that("Test for hovertemplate templating list", {
-  expect_named(set_hovertext(NULL), c("dateformat","rounding","unit","extra","col"))
+  expect_named(set_hovertext(NULL), c('dateformat', 'rounding', 'unit', 'extra', 'col', 'format'))
   expect_equal(set_hovertext(rounding = 3)$rounding, 3)
   expect_match(set_hovertext(frequency = "Daily")$dateformat, "%-d\\.%-m\\.%Y")
 })

@@ -144,6 +144,11 @@ roboplotr_valid_colors <- function(colors_to_validate, message = NULL) {
 roboplotr_is_between <- function(check, where, lims = c(0,1)) {
   what <- as_name(substitute(check))
   if(!between(check, min(lims), max(lims))) {
-    stop(str_glue("{where} param '{what}' must be between {min(lims)} and max(lims)!"), call. = F)
+    stop(str_glue("{where} param '{what}' must be between {min(lims)} and {max(lims)}!"), call. = F)
   }
+}
+
+roboplotr_is_equally_spaced <- function(vec) {
+  differences <- diff(vec)
+  all(sapply(differences, function(x) isTRUE(all.equal(x, differences[1]))))
 }

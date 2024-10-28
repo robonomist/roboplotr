@@ -9,6 +9,7 @@ set_hovertext(
   rounding = getOption("roboplot.rounding"),
   unit = "",
   text_col = NULL,
+  format = NULL,
   extra = NULL
 )
 }
@@ -24,6 +25,8 @@ NULL, where \code{\link[=roboplot]{roboplot()}} infers the format from \code{d}.
 \item{text_col}{Symbol or character. Column used from \code{d} in a \link[=roboplot]{roboplot}
 for labeling. If NULL, the column used for \code{color} (and, if given, \code{pattern})
 is used for labels.}
+
+\item{format}{Function. A function for exact control of unit formatting.}
 
 \item{extra}{Character vector. Extra text displayed under any hovertext.}
 }
