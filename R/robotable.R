@@ -337,7 +337,7 @@ roboplotr_set_robotable_fonts <-
     )
   }
 
-#' Comprehensive leaflet wrapper function
+#' Comprehensive DT wrapper function
 #'
 #' This function wraps numerous [DT](https://rstudio.github.io/DT/)
 #' features into a single, well-parametrized interface.

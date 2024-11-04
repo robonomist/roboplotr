@@ -477,77 +477,77 @@ roboplotr_robomap_modebar <- function(map, title, zoom) {
         }"
         )
       )
-    ) |>
-    addEasyButton(
-      easyButton(
-        id = "download-map",
-        icon = fa("file-image", vertical_align = "0em"),
-        title = "Lataa kartta",
-        position = "topright",
-        onClick = JS(
-          str_c(
-            "function(btn, map) {
-          // Check if html2canvas is already loaded
-          if (typeof html2canvas === 'undefined') {
-            // Load html2canvas script if it's not already included
-            var scriptHtml2Canvas = document.createElement('script');
-            scriptHtml2Canvas.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-            document.head.appendChild(scriptHtml2Canvas);
-
-            // Wait for the script to load before proceeding
-            scriptHtml2Canvas.onload = function() {
-              captureMap();
-            };
-          } else {
-            captureMap();
-          }
-
-          // Function to capture the map and download as PNG
-          function captureMap() {
-            // Hide navigation controls before capture
-            var controls = document.querySelectorAll('.leaflet-top.leaflet-right');
-            controls.forEach(function(control) {
-              control.style.display = 'none';
-            });
-
-            // Set the map container style to avoid shifting during capture
-            var mapContainer = document.querySelector('.leaflet-container');
-            var originalPosition = mapContainer.style.position;
-            var originalTop = mapContainer.style.top;
-            var originalLeft = mapContainer.style.left;
-            mapContainer.style.position = 'absolute';
-            mapContainer.style.top = '0px';
-            mapContainer.style.left = '0px';
-
-            // Use html2canvas to capture the map
-            html2canvas(mapContainer, {
-              useCORS: true,  // Enable CORS to capture tiles from other domains
-              allowTaint: true
-            }).then(function(canvas) {
-              // Create a download link
-              var link = document.createElement('a');
-              link.href = canvas.toDataURL('image/png');
-              link.download = '",
-            roboplotr_string2filename(str_remove_all(title,"<[^>]*>")),
-            ".png';  // Filename for the download
-              link.click();  // Trigger the download
-            }).finally(function() {
-              // Restore visibility of navigation controls after capture
-              controls.forEach(function(control) {
-                control.style.display = 'flex';
-              });
-              // Restore the original position style of the map container
-              mapContainer.style.position = originalPosition;
-              mapContainer.style.top = originalTop;
-              mapContainer.style.left = originalLeft;
-            });
-          }
-        }
-      "
-          )
-        )
-      )
-    )
+     )# |>
+    # addEasyButton(
+    #   easyButton(
+    #     id = "download-map",
+    #     icon = fa("file-image", vertical_align = "0em"),
+    #     title = "Lataa kartta",
+    #     position = "topright",
+    #     onClick = JS(
+    #       str_c(
+    #         "function(btn, map) {
+    #       // Check if html2canvas is already loaded
+    #       if (typeof html2canvas === 'undefined') {
+    #         // Load html2canvas script if it's not already included
+    #         var scriptHtml2Canvas = document.createElement('script');
+    #         scriptHtml2Canvas.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+    #         document.head.appendChild(scriptHtml2Canvas);
+    #
+    #         // Wait for the script to load before proceeding
+    #         scriptHtml2Canvas.onload = function() {
+    #           captureMap();
+    #         };
+    #       } else {
+    #         captureMap();
+    #       }
+    #
+    #       // Function to capture the map and download as PNG
+    #       function captureMap() {
+    #         // Hide navigation controls before capture
+    #         var controls = document.querySelectorAll('.leaflet-top.leaflet-right');
+    #         controls.forEach(function(control) {
+    #           control.style.display = 'none';
+    #         });
+    #
+    #         // Set the map container style to avoid shifting during capture
+    #         var mapContainer = document.querySelector('.leaflet-container');
+    #         var originalPosition = mapContainer.style.position;
+    #         var originalTop = mapContainer.style.top;
+    #         var originalLeft = mapContainer.style.left;
+    #         mapContainer.style.position = 'absolute';
+    #         mapContainer.style.top = '0px';
+    #         mapContainer.style.left = '0px';
+    #
+    #         // Use html2canvas to capture the map
+    #         html2canvas(mapContainer, {
+    #           useCORS: true,  // Enable CORS to capture tiles from other domains
+    #           allowTaint: true
+    #         }).then(function(canvas) {
+    #           // Create a download link
+    #           var link = document.createElement('a');
+    #           link.href = canvas.toDataURL('image/png');
+    #           link.download = '",
+    #         roboplotr_string2filename(str_remove_all(title,"<[^>]*>")),
+    #         ".png';  // Filename for the download
+    #           link.click();  // Trigger the download
+    #         }).finally(function() {
+    #           // Restore visibility of navigation controls after capture
+    #           controls.forEach(function(control) {
+    #             control.style.display = 'flex';
+    #           });
+    #           // Restore the original position style of the map container
+    #           mapContainer.style.position = originalPosition;
+    #           mapContainer.style.top = originalTop;
+    #           mapContainer.style.left = originalLeft;
+    #         });
+    #       }
+    #     }
+    #   "
+    #       )
+    #     )
+    #   )
+    # )
 
   if (zoom) {
     map <- map |>

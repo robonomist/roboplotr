@@ -23,12 +23,12 @@ roboplotr_logo <- function(p){
 
 #' @importFrom plotly layout
 #' @importFrom RCurl base64Encode
-robotable_logo <- function(){
+robotable_logo <- function(height = "30px"){
   image_file <- getOption("roboplot.logo")
   if(image_file == "none") {
     image_file <- system.file("images","none.png",package = "roboplotr")
   }
   txt <- base64Encode(readBin(image_file, "raw", file.info(image_file)[1, "size"]), "txt")
-  tags$img(src = paste('data:image/png;base64', txt, sep=','), style = "float: right", height = "30")
+  tags$img(src = paste('data:image/png;base64', txt, sep=','), style = "float: right", height = height)
 
 }

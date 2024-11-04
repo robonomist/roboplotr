@@ -2,7 +2,7 @@
 % Please edit documentation in R/robotable.R
 \name{robotable}
 \alias{robotable}
-\title{Comprehensive leaflet wrapper function}
+\title{Comprehensive DT wrapper function}
 \usage{
 robotable(
   d,

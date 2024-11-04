@@ -138,20 +138,20 @@ library(tidyverse)
 library(robonomistClient)
 library(lubridate)
 
-d <- data_get("oecd/EO") |>
+d <-  data_get("oecd/DSD_EO@DF_EO") |>
   filter(
-    Country %in% c("Finland", "Euro area (17 countries)", "United States", 
+    REF_AREA %in% c("Finland", "Euro area (17 countries)", "United States", 
                    "United Kingdom", "Japan"),
-    Frequency == "Quarterly",
-    Variable == "Gross domestic product, volume, market prices",
+    FREQ == "Quarterly",
+    MEASURE == "Gross domestic product, volume, market prices",
     time >= "2017-01-01"
   ) |>
   collect() |>
   with_groups(
-    Country, mutate,
+    REF_AREA, mutate,
     value = 100 * value / mean(value[year(time) == 2019])
   ) |>
-  mutate(Country = recode(Country, "Euro area (17 countries)" = "Euro area"))
+  mutate(Country = recode(REF_AREA, "Euro area (17 countries)" = "Euro area"))
 
 attr(d, "frequency") <- "Quarterly"
 

@@ -171,6 +171,7 @@ roboplotr_map_polygonlayer <- function(map,
 #' @importFrom leaflet addProviderTiles addTiles providerTileOptions tileOptions
 roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F, provider = NULL) {
   if(!is.null(provider)) {
+    print("provider")
 
     map_providers <- c(
       "normal" = "OpenStreetMap",
@@ -591,14 +592,14 @@ robomap <-
       d,
       height = height,
       width = width,
-      elementId = robomap_id,
+      # elementId = robomap_id,
       options = leafletOptions(
         scrollWheelZoom = zoom,
         doubleClickZoom = zoom,
         touchZoom = zoom,
         boxZoom = zoom,
         zoomControl = FALSE,
-        preferCanvas = TRUE
+        preferCanvas = FALSE
       )
     ) |>
       roboplotr_map_tilelayer(tile_opacity, wrap, tile_style) |>
@@ -634,6 +635,7 @@ robomap <-
 
     this_map <- roboplotr_robomap_modebar(this_map, title$title, zoom)
 
+    robotable_logo_height <- ifelse(is.null(height), "30px", str_glue("{round(height/20)}px"))
     this_map <- this_map |>
       addControl(
         html = HTML(map_title),
@@ -641,12 +643,12 @@ robomap <-
         className = str_glue("robomap-title")
       ) |>
       addControl(
-        roboplotr_get_robomap_css(robomap_id, legend, height),
+        roboplotr_get_robomap_css(robomap_id, legend, robotable_logo_height),
         position = "topleft",
         className = str_glue("{robomap_id}-info-control")
       ) |>
       addControl(
-        html = robotable_logo(),
+        html = robotable_logo(robotable_logo_height),
         position = "bottomright",
         className = str_glue("map-info robomap-logo")
       ) |>
@@ -722,7 +724,8 @@ robomap <-
     this_map
   }
 
-roboplotr_get_robomap_css <- function(robomap_id, legend, height) {
+roboplotr_get_robomap_css <- function(robomap_id, legend, logo_height) {
+
 
   mainfontsize <- getOption("roboplot.font.main")$size
 
@@ -840,8 +843,8 @@ roboplotr_get_robomap_css <- function(robomap_id, legend, height) {
       ),
       roboplotr_set_specific_css(
         "#{<robomap_id}_leaflet-container .robomap-logo",
-        "margin-bottom" = 0,
-        "height" = str_glue("{round(height / 20)}px")
+        "margin-bottom" = "2px",
+        "height" = if(getOption("roboplot.shinyapp")) { NULL } else { logo_height }
       ),
       # roboplotr_set_specific_css(
       #   "#{<robomap_id}_leaflet-container .map-info.legend g line",

@@ -1,3 +1,8 @@
+# roboplotr 2.1.4
+
+* Removed `robomap()` modebar button for static map downloads, as shinyapps and chrome have issues with it.
+* Fix `robomap()` logo positioning.
+
 # roboplotr 2.1.3
 
 * Fix for roboplot artefact dimensions.
