@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.2.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,17 @@
       <small>Source: <a href="https://github.com/robonomist/roboplotr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.2.0" id="roboplotr-220">roboplotr 2.2.0<a class="anchor" aria-label="anchor" href="#roboplotr-220"></a></h2>
+<ul><li>Plotly version updated to 2.35.2 to allow for <code>layer = "between"</code> for zerolines and shadeareas. Not yet supported when used in shinyapps.</li>
+<li>Fixes <code><a href="../reference/roboplot.html">roboplot()</a></code> not respecting <code>zeroline</code> when it is set to <code>F</code>.</li>
+<li>Fixes <code><a href="../reference/roboplot.html">roboplot()</a></code> not omitting legend when <code>legend</code> is not specified and trace number is 1.</li>
+<li>Adds zeroline color and width control to <code><a href="../reference/roboplot.html">roboplot()</a></code> in addition to setting them globally with <code><a href="../reference/set_roboplot_options.html">set_roboplot_options()</a></code>.</li>
+<li>Fixes <code><a href="../reference/create_widget.html">create_widget()</a></code> not using hidden plot titles as default filenames.</li>
+<li>Adds option to omit the caption from <code>roboplot</code> with <code>caption = NA</code> (or <code>caption = set_caption(NA)</code>).</li>
+<li>Adds option to specify tick label angle with <code>plot_axes(xangle, yangle)</code>.</li>
+<li>Adds option to somewhat control x-axis labels with <code>plot_axes(xanchor, xstep)</code> when the x-axis consists of dates.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.1.4" id="roboplotr-214">roboplotr 2.1.4<a class="anchor" aria-label="anchor" href="#roboplotr-214"></a></h2>
 <ul><li>Removed <code><a href="../reference/robomap.html">robomap()</a></code> modebar button for static map downloads, as shinyapps and chrome have issues with it.</li>
