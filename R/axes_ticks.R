@@ -17,6 +17,9 @@
 #' the main y-axis font size but allows separate family and color.
 #' @param y2 Character vector. Observations from `color` in plots using a secondary y-axis.
 #' @param ylegend,y2legend Characters. Labels for legend title when `y2` is given.
+#' @param xangle,yangle Numeric. Angle for axis tick text.
+#' @param xanchor Date. Only usable for date x-axes. Sets the point at which tick marks are drawn from. Must provide xstep.
+#' @param xstep Numeric. The interval of tick marks for date x-axes in months. Must provide xstart.
 #' @returns List of class roboplotr.set_axes
 #' @examples
 #' # The primary usage is for creating horizontal bar plots when combining the
@@ -253,11 +256,15 @@ set_axes <-
            xlim = c(NA, NA),
            yfont = NULL,
            xfont = NULL,
+           xangle = NULL,
+           yangle = NULL,
            y2 = NULL,
            y2font = NULL,
            ylegend = NULL,
            y2title = "",
-           y2legend = NULL
+           y2legend = NULL,
+           xanchor = NULL,
+           xstep = NULL
            ) {
 
     if (is.null(y)) {
@@ -343,12 +350,22 @@ set_axes <-
       }
     }
 
+    roboplotr_typecheck(xangle, "numeric")
+    roboplotr_typecheck(yangle, "numeric")
+    if(!is.null(xangle)) {
+      roboplotr_is_between(xangle, "set_axes", c(-360, 360))
+    }
+    if(!is.null(yangle)) {
+      roboplotr_is_between(yangle %||% 0, "set_axes", c(-360, 360))
+    }
 
     setclass <- function(type) {
       case_when(type == "date" ~ list(c("POSIXct", "POSIXt", "Date")),
                 type == "character" ~ list(c("factor", "character")),
                 TRUE ~ list(type)) |> unlist()
     }
+
+    roboplotr_typecheck(xstep, "numeric",allow_null = T)
 
     .res <- list(
       x = x,
@@ -365,11 +382,15 @@ set_axes <-
       ylim = ylim,
       xfont = xfont,
       yfont = yfont,
+      xangle = xangle,
+      yangle = yangle,
       y2 = y2,
       y2font = y2font,
       ylegend = ylegend,
       y2legend = y2legend,
-      y2title = y2title
+      y2title = y2title,
+      xstart = xanchor,
+      xstep = xstep
     )
 
     .res <- structure(.res, class = c("roboplotr", "roboplotr.set_axes", class(.res)))
@@ -421,7 +442,9 @@ roboplotr_get_tick_layout <- function(ticktype,
                                       title,
                                       background_color = getOption("roboplot.colors.background"),
                                       tick_color = setNames(getOption("roboplot.grid")[c("xtick","ytick")], c("x","y")),
-                                      font = getOption("roboplot.font.main")
+                                      font = getOption("roboplot.font.main"),
+                                      angle = NULL,
+                                      start = NULL
                                       ) {
 
   font <- font[c("color", "family", "size")]
@@ -432,7 +455,8 @@ roboplotr_get_tick_layout <- function(ticktype,
     tickfont = font,
     ticks = 'outside',
     title = .title,
-    tickcolor = tick_color[[axis]]
+    tickcolor = tick_color[[axis]],
+    tickangle = angle %||% "auto"
   )
 
   if (ticktype == "date") {
@@ -513,10 +537,12 @@ roboplotr_get_tick_layout <- function(ticktype,
     )
     dlist <- append(font_list, dlist)
     if (!is.null(dtick)) {
-      append(dlist, list(dtick = dtick))
-    } else {
-      dlist
+      dlist <- append(dlist, list(dtick = str_glue("M{dtick}")))
     }
+    if (!is.null(start)) {
+      dlist <- append(dlist, list(tick0 = start))
+    }
+    dlist
   } else if (ticktype %in% c("numeric","log")) {
     ticklayout <- list(
       tickformat = if (is.null(tickformat)) {
@@ -539,7 +565,6 @@ roboplotr_get_tick_layout <- function(ticktype,
              autorange = ifelse(reverse, "reversed", TRUE),
              categoryorder = ifelse(axis == "y", "array", "trace"),
              tickmode = ifelse(axis == "y", "linear", "auto"),
-             tickangle = "auto",
              type = "category"
            ))
 
@@ -550,21 +575,21 @@ roboplotr_get_tick_layout <- function(ticktype,
 #' @importFrom plotly layout
 #' @importFrom rlang %||%
 roboplotr_set_ticks <- function(p, ticktypes) {
-  dtick <- if (!"time" %in% names(p$data)) {
-    NULL
-  } else if (length(unique(p$data$time)) < 6) {
-    tdf <- ticktypes$dateformat %||% "%Y"
-    case_when(
-      tdf == "%Y" ~ list("M12"),
-      tdf == "%YQ%q" ~ list("M3"),
-      tdf == "%m/%Y" ~ list("M1"),
-      tdf == getOption("roboplot.locale")$date ~ list(86400000),
-      TRUE ~ list("M12")
-    )[[1]]
-
-  } else {
-    NULL
-  }
+  # if (!"time" %in% names(p$data)) {
+  #   dtick <- NULL
+  # } else if (length(unique(p$data$time)) < 6) {
+  #   tdf <- ticktypes$dateformat %||% "%Y"
+  #   dtick <- case_when(
+  #     tdf == "%Y" ~ list("M12"),
+  #     tdf == "%YQ%q" ~ list("M3"),
+  #     tdf == "%m/%Y" ~ list("M1"),
+  #     tdf == getOption("roboplot.locale")$date ~ list(86400000),
+  #     TRUE ~ list("M12")
+  #   )[[1]]
+  #
+  # } else {
+  #   dtick <- NULL
+  # }
 
   p <- p |>
     layout(
@@ -573,20 +598,24 @@ roboplotr_set_ticks <- function(p, ticktypes) {
         "x",
         ticktypes$xformat,
         ticktypes$dateformat,
-        dtick,
+        ticktypes$xstep,
         ticktypes$reverse,
         ticktypes$xtitle,
-        font = ticktypes$xfont
+        font = ticktypes$xfont,
+        angle = ticktypes$xangle,
+        start = ticktypes$xstart
       ),
       yaxis = roboplotr_get_tick_layout(
         ticktypes$yticktype,
         "y",
         ticktypes$yformat,
         ticktypes$dateformat,
-        dtick,
+        NULL,
         ticktypes$reverse,
         ticktypes$ytitle,
-        font = ticktypes$yfont
+        font = ticktypes$yfont,
+        angle = ticktypes$yangle,
+        start = NULL
       )
     )
 
@@ -657,3 +686,26 @@ roboplotr_guess_xaxis_ceiling <-
 
     this_ceiling
   }
+
+#' @importFrom tidyr replace_na
+roboplotr_expand_axis_limits <- function(plot_axes, d) {
+
+  if(any(!is.na(plot_axes$ylim)) & is.numeric(d[[plot_axes$y]])) {
+    yMax <- max(d[[plot_axes$y]], na.rm = T)
+    yMin <- min(d[[plot_axes$y]], na.rm = T)
+    yMaxMod <- abs(yMax)*0.05
+    yMinMod <- abs(yMin)*0.05
+    plot_axes$ylim[1] <- replace_na(plot_axes$ylim[1], yMin) - yMinMod
+    plot_axes$ylim[2] <- replace_na(plot_axes$ylim[2], yMax) + yMaxMod
+  }
+
+  if(any(!is.na(plot_axes$xlim)) & is.numeric(d[[plot_axes$x]])) {
+    xMax <- max(d[[plot_axes$x]], na.rm = T)
+    xMin <- min(d[[plot_axes$x]], na.rm = T)
+    xMaxMod <- abs(xMax)*0.05
+    xMinMod <- abs(xMin)*0.05
+    plot_axes$xlim[1] <- replace_na(plot_axes$xlim[1], xMin) - xMinMod
+    plot_axes$xlim[2] <- replace_na(plot_axes$xlim[2], xMax) + xMaxMod
+  }
+  plot_axes
+}

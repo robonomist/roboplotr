@@ -93,7 +93,7 @@ roboplotr_typecheck <- function(var, types, size = 1, allow_null = TRUE, allow_n
         break
       } else {
         try({
-          .var <- as(var, .type)
+          .var <- suppressWarnings(as(var, .type))
           if (get_type(.var, .type)) {
             type_valid <- TRUE
             break

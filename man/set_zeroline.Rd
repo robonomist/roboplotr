@@ -5,13 +5,13 @@
 \title{Zeroline configuration}
 \usage{
 set_zeroline(
-  position,
+  position = NULL,
   color = getOption("roboplot.zeroline")$color,
   width = getOption("roboplot.zeroline")$width
 )
 }
 \arguments{
-\item{position}{Numeric.}
+\item{position}{Numeric or logical. The position of the zeroline. If TRUE, the line is drawn at 0.}
 
 \item{color}{Character. Must be a hexadecimal color or a valid css color.}
 

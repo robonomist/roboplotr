@@ -113,9 +113,13 @@ create_widget <- function(
 
   if (is.null(title)) {
     if(is.robotable) { stop("You must provide a title for a robotable widget when creating artefacts!", call. = F) }
-    title <- (p$x[c("layout","layoutAttrs")] |> unlist())[str_subset(names((p$x[c("layout","layoutAttrs")] |> unlist())),"(?<!axis)\\.title\\.text")] |>
-      first() |>
-      str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_")
+    if(!is.null(p$title)) {
+      title <- p$title
+    } else {
+      title <- (p$x[c("layout","layoutAttrs")] |> unlist())[str_subset(names((p$x[c("layout","layoutAttrs")] |> unlist())),"(?<!axis)\\.title\\.text")] |>
+        first() |>
+        str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_")
+    }
     roboplotr_message(str_c("Using \"",roboplotr_string2filename(title),"\" for htmlwidget filename.."))
   } else {
     roboplotr_typecheck(title, "character", allow_null = F)

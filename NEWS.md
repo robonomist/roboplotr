@@ -1,3 +1,14 @@
+# roboplotr 2.2.0
+
+* Plotly version updated to 2.35.2 to allow for `layer = "between"` for zerolines and shadeareas. Not yet supported when used in shinyapps.
+* Fixes `roboplot()` not respecting `zeroline` when it is set to `F`.
+* Fixes `roboplot()` not omitting legend when `legend` is not specified and trace number is 1.
+* Adds zeroline color and width control to `roboplot()` in addition to setting them globally with `set_roboplot_options()`.
+* Fixes `create_widget()` not using hidden plot titles as default filenames.
+* Adds option to omit the caption from `roboplot` with `caption = NA` (or `caption = set_caption(NA)`).
+* Adds option to specify tick label angle with `plot_axes(xangle, yangle)`.
+* Adds option to somewhat control x-axis labels with `plot_axes(xanchor, xstep)` when the x-axis consists of dates.
+
 # roboplotr 2.1.4
 
 * Removed `robomap()` modebar button for static map downloads, as shinyapps and chrome have issues with it.

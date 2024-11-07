@@ -130,7 +130,7 @@ vaesto_postinumeroittain |>
     border_width = 2,
     tile_opacity = 0.2,
     map_opacity = 0.5,
-    legend = set_legend(gradient = FALSE)
+    legend = set_legend(title = "V\u00e4est\u00f6")
   )
 
 # Control the story you want to tell by using `set_heatmap()` with `map_palette`,

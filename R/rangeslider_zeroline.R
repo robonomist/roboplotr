@@ -29,8 +29,12 @@ roboplotr_rangeslider <- function(p, enable_rangeslider, height = 0.1) {
 
 roboplotr_add_shapes <- function(p, zeroline, shadearea) {
   zeroline <- roboplotr_zeroline(zeroline)
+  if(is.null(zeroline)) {
+    p <- p |> layout(yaxis = list(zeroline = F))
+  }
   the_shapes <- list(shadearea, zeroline) |> roboplotr_compact()
   range_relayout <- "shadearea" %in% map(the_shapes, ~ .x$shapeId) |> unlist()
+  # remove default zeroline in all cases
   if(length(the_shapes) > 0) {
     p |>
       layout(
@@ -56,12 +60,11 @@ roboplotr_add_shapes <- function(p, zeroline, shadearea) {
 #' @importFrom plotly layout
 roboplotr_zeroline <- function(z) {
   zeroline <- z$zeroline
-  roboplotr_typecheck(zeroline, c("logical", "numeric"))
 
-  if (z$zeroline == F & !is.numeric(z$zeroline)) {
+  if (z$zeroline$position == F & !is.numeric(z$zeroline$position)) {
     NULL
   } else {
-    zero_line <- ifelse(z$zeroline == T, 0, z$zeroline)
+    zero_line <- ifelse(is.logical(z$zeroline$position) & z$zeroline$position == T, 0, z$zeroline$position)
     list(
       type = "line",
       x0 = z$xrange$min,
@@ -70,10 +73,10 @@ roboplotr_zeroline <- function(z) {
       y0 = zero_line,
       y1 = zero_line,
       yref = "y",
-      layer = "below",
+      layer = "between",
       line = list(
-        color = getOption("roboplot.zeroline")$color,
-        width = getOption("roboplot.zeroline")$width
+        color = z$zeroline$color,
+        width = z$zeroline$width
       ),
       shapeId = "zeroline"
     )
@@ -154,14 +157,14 @@ set_shadearea <-
            border = getOption("roboplot.colors.traces")[1],
            color = getOption("roboplot.colors.traces")[1],
            opacity = 0.2,
-           layer = "above") {
+           layer = "between") {
     roboplotr_typecheck(opacity, "numeric", allow_null = F)
     if (!all(opacity > 0, opacity <= 1)) {
       stop("set_shadearea() `opacity` must be between 0 and 1!", call. = F)
     }
     roboplotr_valid_colors(c(color, border), "Shade area color and border")
     roboplotr_typecheck(layer, "character", allow_null = F)
-    roboplotr_valid_strings(layer, c("below","above"), any, msg = "set_shadearea() `layer`")
+    roboplotr_valid_strings(layer, c("below","above","between"), any, msg = "set_shadearea() `layer`")
 
     .res <- list(
       xmin = xmin,
@@ -185,7 +188,7 @@ set_shadearea <-
 #'
 #' Parameters to customize zeroline in [roboplots][roboplot()].
 #'
-#' @param position Numeric.
+#' @param position Numeric or logical. The position of the zeroline. If TRUE, the line is drawn at 0.
 #' @param color Character. Must be a hexadecimal color or a valid css color.
 #' @param width Numeric.
 #' @examples
@@ -194,14 +197,14 @@ set_shadearea <-
 #' @export
 #' @returns A list of class roboplotr.set_zeroline
 set_zeroline <-
-  function(position,
+  function(position = NULL,
            color = getOption("roboplot.zeroline")$color,
            width  = getOption("roboplot.zeroline")$width) {
     roboplotr_typecheck(width, "numeric", allow_null = F)
     roboplotr_typecheck(color, "character", allow_null = F)
     roboplotr_valid_colors(color, "set_zeroline() color")
 
-    .res <- list(color = color, width = width)
+    .res <- list(position = position, color = color, width = width)
 
     .res <- structure(.res, class = c("roboplotr","roboplotr.set_zeroline", class(.res)))
 

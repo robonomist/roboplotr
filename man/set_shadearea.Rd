@@ -10,7 +10,7 @@ set_shadearea(
   border = getOption("roboplot.colors.traces")[1],
   color = getOption("roboplot.colors.traces")[1],
   opacity = 0.2,
-  layer = "above"
+  layer = "between"
 )
 }
 \arguments{

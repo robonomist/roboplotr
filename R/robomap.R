@@ -171,7 +171,7 @@ roboplotr_map_polygonlayer <- function(map,
 #' @importFrom leaflet addProviderTiles addTiles providerTileOptions tileOptions
 roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F, provider = NULL) {
   if(!is.null(provider)) {
-    print("provider")
+    # print("provider")
 
     map_providers <- c(
       "normal" = "OpenStreetMap",
@@ -322,7 +322,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'     border_width = 2,
 #'     tile_opacity = 0.2,
 #'     map_opacity = 0.5,
-#'     legend = set_legend(gradient = FALSE)
+#'     legend = set_legend(title = "V\u00e4est\u00f6")
 #'   )
 #'
 #' # Control the story you want to tell by using `set_heatmap()` with `map_palette`,

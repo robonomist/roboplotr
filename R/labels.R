@@ -214,10 +214,14 @@ roboplotr_title <- function(p, title, subtitle) {
 #' @importFrom stringr str_glue
 #' @export
 
-set_caption <- function(text, ..., template = getOption("roboplot.caption.template")) {
+set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.template")) {
 
-  list2env(list(...), envir = environment())
-  .res <- str_glue(template)
+  if(is.na(text)) {
+    .res <- NA
+  } else {
+    list2env(list(...), envir = environment())
+    .res <- str_glue(template)
+  }
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_caption", class(.res)))
 
@@ -538,7 +542,10 @@ set_plot_legend <- function(position = NULL,
   roboplotr_typecheck(position, "character", allow_na = T)
   if(!is.null(position)) {
     if(!is.na(position)) {
-      roboplotr_valid_strings(position, c("bottom","right"), any, "set_legend() param 'position'")
+      roboplotr_valid_strings(position, c("bottom","right","none"), any, "set_legend() param 'position'")
+      if(position == "none") {
+        position <- NA
+      }
     }
   } else {
     position <- "bottom"
@@ -613,9 +620,12 @@ set_map_legend <- function(
 
 roboplotr_set_caption <- function(caption, d, where) {
 
-  roboplotr_typecheck(caption, c("character","set_caption"), extra = where)
+  roboplotr_typecheck(caption, c("character","set_caption"), extra = where, allow_na = T)
 
   if (!is.null(caption)) {
+    if(is.na(caption)) {
+      return("")
+    }
     if (!inherits(caption,"roboplotr.set_caption")) {
       caption <- set_caption(text = caption)
     }

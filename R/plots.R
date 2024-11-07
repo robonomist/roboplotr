@@ -11,7 +11,7 @@ roboplotr_config <- function(p,
                              height,
                              width,
                              margin = NA,
-                             zeroline = F,
+                             zeroline = set_zeroline(F),
                              shadearea = NULL,
                              enable_rangeslider = list(rangeslider = F, max = as_date(today())),
                              ticktypes,
@@ -561,7 +561,7 @@ roboplot <- function(d = NULL,
                      title = NULL,
                      subtitle = "",
                      caption = NULL,
-                     legend = set_legend(),
+                     legend = NULL,
                      trace_color = NULL,
                      highlight = NULL,
                      zeroline = FALSE,
@@ -599,6 +599,12 @@ roboplot <- function(d = NULL,
   d <- d |> mutate(across(where(is.numeric), as.numeric))
 
   roboplotr_typecheck(plot_axes, "set_axes", allow_null = F)
+
+  roboplotr_typecheck(zeroline, c("numeric","logical","set_zeroline"), allow_null = F)
+
+  if(!"roboplotr.set_zeroline" %in% class(zeroline)) {
+    zeroline <- set_zeroline(zeroline)
+  }
 
   if (!is.null(secondary_yaxis)) {
     # .plot_axes <- substitute(plot_axes)
@@ -692,7 +698,7 @@ roboplot <- function(d = NULL,
 
   secondary_yaxis <- plot_axes$y2
   roboplotr_typecheck(secondary_yaxis,"character",size = NULL)
-  roboplotr_valid_strings(secondary_yaxis, unique_groups, .fun = any, msg = "`secondary_yaxis``` in roboplot()")
+  roboplotr_valid_strings(secondary_yaxis, unique_groups, .fun = any, msg = "`secondary_yaxis` in roboplot()")
 
   if (!is.null(secondary_yaxis)) {
     if ("pie" %in% plot_type) {
@@ -700,8 +706,8 @@ roboplot <- function(d = NULL,
       secondary_yaxis <- NULL
     }
 
-    if (is.logical(zeroline)) {
-      if (zeroline == T)
+    if (is.logical(zeroline$position)) {
+      if (zeroline$position == T)
         roboplotr_alert("When using set_axes(y2), zeroline specifications are ignored.")
     } else {
       roboplotr_alert("When using set_axes(y2), zeroline specifications are ignored.")
@@ -763,6 +769,9 @@ roboplot <- function(d = NULL,
     xaxis_ceiling <- as.character(xaxis_ceiling)
   }
 
+
+  plot_axes <- roboplotr_expand_axis_limits(plot_axes, d)
+
   if (xaxis_ceiling != "default" &
       all(is.na(plot_axes$xlim)) &
       !"bar" %in% plot_type & !"horizontal" %in% plot_mode) {
@@ -784,11 +793,11 @@ roboplot <- function(d = NULL,
     stop("Facet split currently unavailable!", call. = F)
     facet_split <- roboplotr_check_valid_var(facet_split, d_names)
     if (rangeslider == T |
-        zeroline == T |
+        zeroline$position == T |
         any(!is.na(plot_axes$ylim)))
       roboplotr_alert("Rangeslider, zeroline and y-axis range are not currently enabled for faceted plots.")
     rangeslider <- F
-    zeroline <- F
+    zeroline$position <- F
     ymin <- min(d$value)
     ymax <- max(d$value)
     axdif <- diff(c(ymin, ymax)) * 0.04
@@ -814,11 +823,11 @@ roboplot <- function(d = NULL,
            ))
   if ((!plot_axes$yticktype %in% "numeric" |
        !plot_axes$xticktype %in% "date") &
-      (zeroline != F | rangeslider != F)) {
+      (zeroline$position != F | rangeslider != F)) {
     roboplotr_alert(
       "Parameters 'zeroline' and 'rangeslider' are currently disabled when parameter 'plot_axis' xticktype is not date or yticktype is not numeric!"
     )
-    zeroline <- F
+    zeroline$position <- F
     rangeslider <- F
   }
 
@@ -935,9 +944,14 @@ roboplot <- function(d = NULL,
     }
   }
 
-  roboplotr_typecheck(legend, c("character","set_legend"), allow_na = T)
+  roboplotr_typecheck(legend, c("character","set_legend"), allow_na = T, allow_null = T)
 
   if(!is.list(legend)) {
+    if (all(is.null(legend),
+            length(unique_groups) < 2,
+            is.null(pattern))) {
+      legend <- NA
+    }
     legend <- set_legend(legend)
   }
 
@@ -955,14 +969,6 @@ roboplot <- function(d = NULL,
     if(!is.null(legend_maxwidth)) {
       legend$maxwidth <- legend_maxwidth
     }
-  }
-
-
-
-  if (all(is.null(legend$position),
-          length(unique_groups) < 2,
-          is.null(pattern))) {
-    legend$position <- NA
   }
 
   pattern_showlegend <- roboplotr_get_pattern_showlegend(d, pattern, pattern_showlegend, legend$position)
@@ -1062,7 +1068,6 @@ roboplot <- function(d = NULL,
     }
 
     roboplotr_typecheck(shadearea, c(proper_shade, "set_shadearea"))
-
     if (!is.list(shadearea)) {
       if (all(is.na(ticktypes$xlim))) {
         shadexmax <- NULL
@@ -1112,8 +1117,8 @@ roboplot <- function(d = NULL,
       }) |>
       roboplotr_compact() |>
       unlist()
-    p$dependencies[[roboplotly_dep]]$version <- "2.28.0"
-    p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.28.0.min.js"
+    p$dependencies[[roboplotly_dep]]$version <- "2.35.2"
+    p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.35.2.min.js"
   }
 
   p <- structure(p, class = c(class(p), "roboplotr","roboplotr.roboplot"))
@@ -1667,7 +1672,8 @@ roboplotr_get_plot <-
         "y",
         ticktypes$yformat,
         title = ticktypes$y2title,
-        font = ticktypes$y2font
+        font = ticktypes$y2font,
+        angle = ticktypes$yangle
       )
       y2 <-
         append(

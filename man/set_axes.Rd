@@ -17,11 +17,15 @@ set_axes(
   xlim = c(NA, NA),
   yfont = NULL,
   xfont = NULL,
+  xangle = NULL,
+  yangle = NULL,
   y2 = NULL,
   y2font = NULL,
   ylegend = NULL,
   y2title = "",
-  y2legend = NULL
+  y2legend = NULL,
+  xanchor = NULL,
+  xstep = NULL
 )
 }
 \arguments{
@@ -43,9 +47,15 @@ in the plot by type.}
 \item{xfont, yfont, y2font}{Functions. Use \code{\link[=set_font]{set_font()}}. Secondary y-axis uses
 the main y-axis font size but allows separate family and color.}
 
+\item{xangle, yangle}{Numeric. Angle for axis tick text.}
+
 \item{y2}{Character vector. Observations from \code{color} in plots using a secondary y-axis.}
 
 \item{ylegend, y2legend}{Characters. Labels for legend title when \code{y2} is given.}
+
+\item{xanchor}{Date. Only usable for date x-axes. Sets the point at which tick marks are drawn from. Must provide xstep.}
+
+\item{xstep}{Numeric. The interval of tick marks for date x-axes in months. Must provide xstart.}
 }
 \value{
 List of class roboplotr.set_axes

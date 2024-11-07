@@ -4,7 +4,7 @@
 \alias{set_caption}
 \title{Caption configuration}
 \usage{
-set_caption(text, ..., template = getOption("roboplot.caption.template"))
+set_caption(text = NA, ..., template = getOption("roboplot.caption.template"))
 }
 \arguments{
 \item{text}{Character. The text used in the template (make sure the template

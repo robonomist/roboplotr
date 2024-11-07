@@ -10,7 +10,7 @@ roboplot(
   title = NULL,
   subtitle = "",
   caption = NULL,
-  legend = set_legend(),
+  legend = NULL,
   trace_color = NULL,
   highlight = NULL,
   zeroline = FALSE,
