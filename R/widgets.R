@@ -27,15 +27,15 @@
 #' # `artefacts`, but you can use this function as well. Control location of the
 #' # files with `filepath` (default is current working directory).
 #' \dontrun{
-#' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+#' d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 #'
 #' d |>
 #'   roboplot(
-#'     Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus"
+#'     Alue, "Energian tuonti Yhdysvalloista", "Milj €", "Tilastokeskus"
 #'     ) |>
 #'   create_widget(filepath = tempdir())
 #'
-#' file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
+#' file.exists(paste0(tempdir(),"/energian_tuonti_yhdysvalloista.html"))
 #'
 #' # You can provide the filename as string and `create_widget()` will parse the
 #' # filename from that. The plot will always be silently returned, but `render`
@@ -45,16 +45,16 @@
 #'
 #' d |>
 #'   roboplot(
-#'     Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus"
+#'     Alue, "Yhdysvaltojen energiantuonti", "Milj €", "Tilastokeskus"
 #'     ) |>
 #'   create_widget(
-#'     title = "Energian tuonti - Kanada",
+#'     title = "Energian tuonti - Yhdysvallat",
 #'     filepath = tempdir(),
 #'     render = FALSE,
 #'     self_contained = FALSE
 #'   )
 #'
-#' file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
+#' file.exists(paste0(tempdir(),"/energian_tuonti_yhdysvallat.html"))
 #'
 #' # If you want to create non-interactive files, use a character vector of file
 #' # types in 'artefacts'. Possible filetypes are "html","png","jpg","jpge","webp",
@@ -66,7 +66,7 @@
 #'   d |>
 #'     roboplot(
 #'       color = Alue,
-#'       title = "Kanadan energiantuonti",
+#'       title = "Yhdysvaltojen energiantuonti",
 #'       subtitle = "Milj €",
 #'       caption = "Tilastokeskus",
 #'       width = 400,
@@ -74,7 +74,7 @@
 #'     ) |>
 #'     create_widget(filepath = tempdir(), artefacts = "pdf")
 #'
-#'   utils::browseURL(paste0(tempdir(), "/kanadan_energiantuonti.pdf"))
+#'   utils::browseURL(paste0(tempdir(), "/yhdysvaltojen_energiantuonti.pdf"))
 #' }
 #' @returns What was passed as `p`.
 #' @export
@@ -241,9 +241,17 @@ roboplotr_static_image <-
       p$x$layout$xaxis$rangeslider = NULL
       p
     }
+    rm_dimensions <- function(p) {
+      p$width <- NULL
+      p$height <- NULL
+      p$x$layout$width <- NULL
+      p$x$layout$height <- NULL
+      p
+    }
     p |>
       config(displayModeBar = F) |>
       rm_rangeslider() |>
+      rm_dimensions() |>
       create_widget(
         title = "imgdl",
         filepath = tempdir(),
@@ -367,3 +375,111 @@ roboplotr_widget_deps <- function(filepath = NULL) {
   }
 
 }
+
+roboplotr_new_session_screenshot <- function(
+    chromote,
+    url,
+    file,
+    vwidth,
+    vheight,
+    selector,
+    cliprect,
+    expand,
+    delay,
+    zoom,
+    useragent,
+    quiet
+) {
+  
+  filetype <- tolower(tools::file_ext(file))
+  filetypes <- c(c("png", "jpg", "jpeg", "webp"), "pdf")
+  if (!filetype %in% filetypes) {
+    stop("File extension must be one of: ", paste(filetypes, collapse = ", "))
+  }
+  
+  if (is.null(selector)) {
+    selector <- "html"
+  }
+  
+  if (is.character(cliprect)) {
+    if (cliprect == "viewport") {
+      cliprect <- c(0, 0, vwidth, vheight)
+    } else {
+      stop("Invalid value for cliprect: ", cliprect)
+    }
+  } else {
+    if (!is.null(cliprect) && !(is.numeric(cliprect) && length(cliprect) == 4)) {
+      stop("`cliprect` must be a vector with four numbers, or a list of such vectors")
+    }
+  }
+  
+  
+  s <- NULL
+  
+  p <- chromote$new_session(wait_ = FALSE,
+                            width = vwidth,
+                            height = vheight
+  )$
+    then(function(session) {
+      s <<- session
+      if (!is.null(useragent)) {
+        s$Network$setUserAgentOverride(userAgent = useragent)
+      }
+      res <- s$Page$loadEventFired(wait_ = FALSE)
+      s$Page$navigate(url, wait_ = FALSE)
+      res
+    })$
+    then(function(value) {
+      if (delay > 0) {
+        promises::promise(function(resolve, reject) {
+          later::later(
+            function() {
+              resolve(value)
+            },
+            delay
+          )
+        })
+      } else {
+        value
+      }
+    })$
+    then(function(value) {
+      if (filetype %in% c("png", "jpg", "jpeg", "webp")) {
+        s$screenshot(
+          filename = file, selector = selector, cliprect = cliprect,
+          expand = expand, scale = zoom,
+          show = FALSE, wait_ = FALSE
+        )
+        
+      } else if (filetype == "pdf") {
+        s$screenshot_pdf(filename = file, wait_ = FALSE, pagesize = c(vwidth/96, vheight/96), units = "in", margins = 0)
+      }
+    })$
+    then(function(value) {
+      if (!isTRUE(quiet)) message(url, " screenshot completed")
+      normalizePath(value)
+    })$
+    finally(function() {
+      s$close()
+    })
+  
+  p
+}
+
+#' @importFrom utils assignInNamespace
+roboplotr_override_webshot_screenshot <- function(...) {
+  if(!getOption("roboplotr.webshot.screenshot")  %||% FALSE) {
+    if ("webshot2" %in% loadedNamespaces()) {
+      tryCatch({
+        assignInNamespace("new_session_screenshot", roboplotr_new_session_screenshot, ns = "webshot2")
+        options("roboplotr.webshot.screenshot" = TRUE)
+        # message("Custom `new_session_screenshot` successfully assigned.")
+      }, error = function(e) {
+        warning("Failed to replace `new_session_screenshot` from webshot2: pdf creation is not well supported.")#, conditionMessage(e))
+      })
+    } else {
+      roboplotr_message("webshot2 package is not loaded, pdf creation is not well supported.")
+    } 
+  }
+}
+

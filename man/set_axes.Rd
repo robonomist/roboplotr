@@ -71,7 +71,7 @@ axis columns, formatting, titles, limits, and font settings, as well as handling
 set_roboplot_options(caption_template = "Lähde: {text}.")
 
 d <- energiantuonti |>
-  dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
+  dplyr::filter(Alue \%in\% c("USA","Norja","Iso-Britannia"))
 attr(d, "frequency") <- "Quarterly"
 
 # Control the plot axes with roboplotr::set_axes, setting the columns
@@ -92,9 +92,9 @@ d |> dplyr::filter(time == max(time)) |>
 
 # You can use `xtitle` and `ytitle` to provide labeling for axis titles,
 # and control the axis format with d3 time (https://d3js.org/api#d3-time)
-# and number (https://d3js.org/api#d3-format) -formatted vectors for 'xlim'
+# and number (https://d3js.org/api#d3-format) -formatted vectors for `xlim`
 # and 'ylim'. These are not typechecked by `roboplot()`, but must match the
-# corresponding axis values.
+# corresponding axis values. Alter axis tick labels' angle with `xangle` and `yangle`.
 
 d |>
   dplyr::filter(Suunta == "Tuonti") |>
@@ -104,7 +104,23 @@ d |>
              xformat = "Y\%y",
              yformat = "+$05,",
              ylim = c(-200,1500),
-             xlim = c("2015-01-01","2023-01-01"))
+             xlim = c("2015-01-01","2023-01-01"),
+             yangle = 45,
+             xangle = 66
+             )
+  )
+
+# You can use `set_axes(xanchor, xstep)` to control xaxis ticks for date axes. Use 
+# `xanchor` to set the point at which tick marks are drawn from, and `xstep` to set the
+# interval in months. Use NA for numeric axis limits to derive one end from data.
+
+d |> dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(Alue,"Energian tuonti","Milj. €","Tilastokeskus",
+           plot_axes = set_axes(
+             xanchor = as.Date("2020-01-01"),
+             xstep = 12,
+             ylim = c(-120, NA)
+           )
   )
 
 # Additionally, you may use logartihmic axis for any numeric variable used in
@@ -119,38 +135,38 @@ d |>
 # `color` as `y2` will add a secondary y-axis. Any provided `zeroline`does not
 # work for both axes at the time.
 d |>
-  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Yhdistynyt kuningaskunta","Norja")) |>
+  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Iso-Britannia","Norja")) |>
   roboplot(Alue,
            "Energian tuonti",
            "Milj. \u20AC",
            "Tilastokeskus",
-           plot_axes = set_axes(y2 = "Yhdistynyt kuningaskunta"))
+           plot_axes = set_axes(y2 = "Iso-Britannia"))
 
 # Giving no observations that match param `color` in `roboplot()` fails.
 d2 <- d |>
   dplyr::filter(Suunta == "Tuonti",
-                Alue \%in\% c("Yhdistynyt kuningaskunta", "Norja"))
+                Alue \%in\% c("Iso-Britannia", "Norja"))
 \dontrun{
   d2 |>
     roboplot(Alue,
              "Energian tuonti",
              "Milj. \u20AC",
              "Tilastokeskus",
-             plot_axes = set_axes(y2 = "Kanada"))
+             plot_axes = set_axes(y2 = "USA"))
 }
 
 # You might want to override the default axis reference labels that are added
 # to legend. Using them without giving any items in `y2` does nothing. You probably
 # want to explicitly reorder the observations.
 d2 |>
-  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Iso-Britannia","Norja")) |>
   roboplot(
     Alue,
     "Energian tuonti",
     "Milj. \u20AC",
     "Tilastokeskus",
     plot_axes = set_axes(
-      y2 = "Yhdistynyt kuningaskunta",
+      y2 = "Iso-Britannia",
       ylegend = "1.",
       y2legend = "2."
     )
@@ -159,14 +175,14 @@ d2 |>
 # Or maybe you only have two observations and you want to match them by color
 # instead of labeling.
 d2 |>
-  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Iso-Britannia","Norja")) |>
   roboplot(
     Alue,
     "Energian tuonti",
     "Milj. \u20AC",
     "Tilastokeskus",
     plot_axes = set_axes(
-      y2 = "Yhdistynyt kuningaskunta",
+      y2 = "Iso-Britannia",
       yfont = set_font(color = getOption("roboplot.colors.traces")[2]),
       y2font = set_font(color = getOption("roboplot.colors.traces")[1]),
       ylegend = "",
@@ -179,16 +195,16 @@ d2 |>
 # This might be especially appropriate if the values are on a completely different
 # scale.
 d2 |>
-  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Yhdistynyt kuningaskunta","Norja")) |>
+  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Iso-Britannia","Norja")) |>
   dplyr::mutate(value = ifelse(Alue == "Norja", value / 1000, value)) |>
   roboplot(
     Alue,
     "Energian tuonti",
     caption = "Tilastokeskus",
     plot_axes = set_axes(
-      y2 = "Yhdistynyt kuningaskunta",
+      y2 = "Iso-Britannia",
       ytitle = "Norja, Mrd. €",
-      y2title = "Yhdistynyt kuningaskunta, Milj €",
+      y2title = "Iso-Britannia, Milj €",
       ylegend = "",
       y2legend = ""
     )

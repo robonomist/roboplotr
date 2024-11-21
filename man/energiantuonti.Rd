@@ -7,7 +7,7 @@
 \format{
 \subsection{\code{energiantuonti}}{
 
-Data frame with 925 rows and 4 columns:
+Data frame with 723 rows and 4 columns:
 \describe{
 \item{Alue}{The name of the country or country group}
 \item{Suunta}{Import or export}
@@ -18,7 +18,7 @@ Data frame with 925 rows and 4 columns:
 }
 }
 \source{
-\url{https://statfin.stat.fi/PxWeb/pxweb/fi/StatFin_Passiivi/StatFin_Passiivi__ene__ehk/statfinpas_ehk_pxt_004_202100_fi.px/}
+\url{https://pxdata.stat.fi/PxWeb/pxweb/fi/StatFin/StatFin__ehk/statfin_ehk_pxt_13j9.px/}
 }
 \usage{
 energiantuonti

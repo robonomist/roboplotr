@@ -26,9 +26,9 @@ Parameters to customize titles of \link[=roboplot]{roboplots}. Can be used with
 # Used to set titles for plots created with `roboplot()`. You can
 # simply give a charater string for plot titles.
 
-d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 
-d |> roboplot(Alue,"Energian tuonti Kanadasta")
+d |> roboplot(Alue,"Energian tuonti Yhdysvalloista")
 
 # However, if you want to render the plot without the title included, you
 # can use `set_title(include = F)` to omit it from the plot. This
@@ -40,7 +40,7 @@ d |> roboplot(Alue,"Energian tuonti Kanadasta")
 
 d |>
 roboplot(Alue,
-title = set_title("Energian tuonti Kanadasta", include = FALSE),
+title = set_title("Energian tuonti Yhdysvalloista", include = FALSE),
 subtitle = "Milj. €")
 
 

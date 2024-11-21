@@ -34,6 +34,7 @@ roboplot(
   artefacts = getOption("roboplot.artefacts")$auto,
   info_text = NULL,
   updatemenu = NULL,
+  roboplot_options = NULL,
   legend_position = deprecated(),
   legend_maxwidth = deprecated(),
   ...
@@ -120,6 +121,9 @@ TRUE for automated artefact creation based on \code{\link[=set_roboplot_options]
 
 \item{updatemenu}{Function. Use \code{\link[=set_updatemenu]{set_updatemenu()}} for detailed control.}
 
+\item{roboplot_options}{Character. A name of roboplot options set with \link{set_roboplot_options(name)}.
+See documentation of \code{\link[=set_roboplot_options]{set_roboplot_options()}} for details.}
+
 \item{legend_position}{Deprecated. Character. Use \code{legend} instead.}
 
 \item{legend_maxwidth}{Deprecated. Numeric. Use \code{legend} instead.}
@@ -141,7 +145,7 @@ such as resizing and customization, simplifying the creation of advanced visuali
 
 
 d <- energiantuonti |>
-  dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"))
+  dplyr::filter(Alue \%in\% c("USA","Norja","Iso-Britannia"))
 d1 <- d |> dplyr::filter(Suunta == "Tuonti")
 d1 |> roboplot(color = Alue,
                title = "Energian tuonti",
@@ -153,7 +157,7 @@ d1 |> roboplot(color = Alue,
 # works). Caption may be further specified with the helper function
 # `set_caption()` (see documentation for more control).
 d1 |>
-  dplyr::filter(Alue == "Yhdistynyt kuningaskunta") |>
+  dplyr::filter(Alue == "Iso-Britannia") |>
   roboplot(Alue,"Energian tuonti Yhdistyneest\uE4 kuningaskunnasta","Milj. \u20AC",
            caption = set_caption(text = "Tilastokeskus")
   )
@@ -174,6 +178,10 @@ d1 |>
 
 # Reset to defaults
 set_roboplot_options(reset = TRUE)
+
+# You can omit caption by setting it to NA.
+
+d1 |> roboplot(Alue, "Energian tuonti","Milj. \u20AC",caption = NA)
 
 # Legend can also be omitted by giving `legend_position` of NA. Height and
 # width can also be specified, while for most uses width specification is
@@ -214,9 +222,9 @@ d2 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
 # trace by giving named character vectors as the appropriate arguments.
 # Barmode or scatter type is controlled by `plot_mode`.
 d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
-             trace_color =  c("Kanada" = "red","Norja" = "blue", .other = "black"),
-             plot_type = c("Norja" = "scatter","Kanada" = "bar",".other" = "scatter"),
-             plot_mode = c("Yhdistynyt kuningaskunta" = "scatter",
+             trace_color =  c("USA" = "red","Norja" = "blue", .other = "black"),
+             plot_type = c("Norja" = "scatter","USA" = "bar",".other" = "scatter"),
+             plot_mode = c("Iso-Britannia" = "scatter",
                            "Norja" = "scatter+line", ".bar" = "dodge",
                            ".scatter" = "line"
              ))
@@ -224,7 +232,7 @@ d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
 # If you omit ".other" from the trace colors,` roboplot()` will give the rest of
 # of the traces colors from the default colors set in `set_roboplot_options()`
 d1 |> roboplot(Alue,"Energian tuonti ja vienti","Milj. \u20AC","Tilastokeskus",
-               trace_color = c("Kanada" = "pink"))
+               trace_color = c("USA" = "pink"))
 
 # But if you need more control, you're better off just excplicity specifying
 # the colors.
@@ -315,23 +323,23 @@ d3 |>
 # You can use `secondary_yaxis` to define which observations from 'color' use
 # go to a secondary yaxis on the right.
 d2 |>
-  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Yhdistynyt kuningaskunta", "Kanada", "Norja")) |>
+  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Iso-Britannia", "USA", "Norja")) |>
   roboplot(Alue,
            "Energian tuonti",
            "Milj. \u20AC",
            "Tilastokeskus",
-           secondary_yaxis = "Yhdistynyt kuningaskunta",
+           secondary_yaxis = "Iso-Britannia",
            zeroline = 1000)
 
 # Furthermore, you can use `set_axes()` in `plot_axes` for further control, like
 # titles. Documentation for `set_axes()` has more detailed examples.
 d2 |>
-  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Yhdistynyt kuningaskunta", "Kanada", "Norja")) |>
+  dplyr::filter(Suunta == "Tuonti", Alue \%in\% c("Iso-Britannia", "USA", "Norja")) |>
   roboplot(Alue,
            "Energian tuonti",
            "Milj. \u20AC",
            "Tilastokeskus",
-           plot_axes = set_axes(y2 = "Yhdistynyt kuningaskunta"))
+           plot_axes = set_axes(y2 = "Iso-Britannia"))
 
 # Pie plots are possible too, but `pattern` is currently ignored by `plotly`
 # and thus by `roboplot()`.

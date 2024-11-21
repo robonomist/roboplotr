@@ -3,7 +3,7 @@
 #' A sample of energy imports and exports by country of origin from Statistics Finland's archive table.
 #'
 #' @format ## `energiantuonti`
-#' Data frame with 925 rows and 4 columns:
+#' Data frame with 723 rows and 4 columns:
 #' \describe{
 #'   \item{Alue}{The name of the country or country group}
 #'   \item{Suunta}{Import or export}
@@ -11,7 +11,7 @@
 #'   \item{value}{Value (million euros)}
 #'   ...
 #' }
-#' @source <https://statfin.stat.fi/PxWeb/pxweb/fi/StatFin_Passiivi/StatFin_Passiivi__ene__ehk/statfinpas_ehk_pxt_004_202100_fi.px/>
+#' @source <https://pxdata.stat.fi/PxWeb/pxweb/fi/StatFin/StatFin__ehk/statfin_ehk_pxt_13j9.px/>
 "energiantuonti"
 
 #' Population by Postal Code Area

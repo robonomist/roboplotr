@@ -1,4 +1,12 @@
-# roboplotr 2.2.0
+# roboplotr 2.3.0
+
+* Added option to save named roboplot options with `set_roboplot_options(.defaults = "name")` and load them with `set_roboplot_options(reset = "name")`.
+* Added option to use these named roboplot options directly in `roboplot()`s with `roboplot(roboplot_options = "name")`.
+* Fixes `create_widget()` not respecting sizing.
+* `create_widget()` now overrides `new_session_screenshot()` from `webshot2` to correctly scale pdf artefacts.
+* Some improved axis controls in `set_axes()`.
+
+# roboplotr 2.2.1
 
 * Plotly version updated to 2.35.2 to allow for `layer = "between"` for zerolines and shadeareas. Not yet supported when used in shinyapps.
 * Fixes `roboplot()` not respecting `zeroline` when it is set to `F`.

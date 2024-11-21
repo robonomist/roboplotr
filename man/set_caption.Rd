@@ -29,9 +29,9 @@ Parameters to customize caption defaults.
 # `set_roboplot_options()`.
 
 
-d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 
-d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €",
+d |> roboplot(Alue,"Energian tuonti Yhdysvalloista","Milj. €",
                    caption = "Tilastokeskus")
 
 

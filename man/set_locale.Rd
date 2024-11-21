@@ -26,7 +26,7 @@ set_roboplot_options(
   )
 
 d <- energiantuonti |>
-  dplyr::filter(Alue == "Kanada", Suunta == "Tuonti") |>
+  dplyr::filter(Alue == "USA", Suunta == "Tuonti") |>
   dplyr::mutate(value = value * 1000000, Alue = "Canada")
 
 d |>

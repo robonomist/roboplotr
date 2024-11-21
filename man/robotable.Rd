@@ -89,7 +89,7 @@ energiantuonti |> robotable()
 # handles the formatting automatically.
 #
 d <- energiantuonti |>
-  dplyr::filter(Alue \%in\% c("Ruotsi","Kanada")) |>
+  dplyr::filter(Alue \%in\% c("Ruotsi","USA")) |>
   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
   dplyr::arrange(Tiedot, time) |>
   tidyr::pivot_wider(names_from = Tiedot) |>
@@ -118,6 +118,6 @@ d |> robotable(
   class = c("compact", "nowrap"),
   searchable = FALSE,
   sortable = FALSE,
-  col_widths = c("Kanada, Vienti" = 50)
+  col_widths = c("USA, Vienti" = 50)
 )
 }

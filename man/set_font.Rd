@@ -53,9 +53,9 @@ set_roboplot_options(
   font_caption = set_font(color = "green")
 )
 
-d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 
-d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
+d |> roboplot(Alue,"Energian tuonti Yhdysvalloista","Milj. €","Tilastokeskus")
 # Valid Google Fonts work as well.
 set_roboplot_options(font_title = set_font(font = "Exo"))
 
@@ -68,16 +68,16 @@ set_roboplot_options(font_title = set_font(font = "Exo"))
   d |>
     roboplot(
       color = Alue,
-      title = "Energian tuonti Kanadasta",
+      title = "Energian tuonti Yhdysvalloista",
       subtitle = "Milj. €",
       caption = "Tilastokeskus",
       artefacts = set_artefacts(artefacts = c("html", "png"), filepath = tempdir())
     )
 
   # The html has proper fonts, but files exported from modebar will not.
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti_yhdysvalloista.html"))
   # The images automated with `set_artefacts()` will have the proper font.
-  utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.png"))
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti_yhdysvalloista.png"))
 }
 
 # Revert to defaults:

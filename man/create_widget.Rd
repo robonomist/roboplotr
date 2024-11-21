@@ -56,15 +56,15 @@ set_roboplot_options(verbose = "Warning", .default = TRUE)
 # `artefacts`, but you can use this function as well. Control location of the
 # files with `filepath` (default is current working directory).
 \dontrun{
-d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 
 d |>
   roboplot(
-    Alue, "Energian tuonti Kanadasta", "Milj €", "Tilastokeskus"
+    Alue, "Energian tuonti Yhdysvalloista", "Milj €", "Tilastokeskus"
     ) |>
   create_widget(filepath = tempdir())
 
-file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
+file.exists(paste0(tempdir(),"/energian_tuonti_yhdysvalloista.html"))
 
 # You can provide the filename as string and `create_widget()` will parse the
 # filename from that. The plot will always be silently returned, but `render`
@@ -74,16 +74,16 @@ file.exists(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
 
 d |>
   roboplot(
-    Alue, "Kanadan energiantuonti", "Milj €", "Tilastokeskus"
+    Alue, "Yhdysvaltojen energiantuonti", "Milj €", "Tilastokeskus"
     ) |>
   create_widget(
-    title = "Energian tuonti - Kanada",
+    title = "Energian tuonti - Yhdysvallat",
     filepath = tempdir(),
     render = FALSE,
     self_contained = FALSE
   )
 
-file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
+file.exists(paste0(tempdir(),"/energian_tuonti_yhdysvallat.html"))
 
 # If you want to create non-interactive files, use a character vector of file
 # types in 'artefacts'. Possible filetypes are "html","png","jpg","jpge","webp",
@@ -95,7 +95,7 @@ file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
   d |>
     roboplot(
       color = Alue,
-      title = "Kanadan energiantuonti",
+      title = "Yhdysvaltojen energiantuonti",
       subtitle = "Milj €",
       caption = "Tilastokeskus",
       width = 400,
@@ -103,6 +103,6 @@ file.exists(paste0(tempdir(),"/energian_tuonti_kanada.html"))
     ) |>
     create_widget(filepath = tempdir(), artefacts = "pdf")
 
-  utils::browseURL(paste0(tempdir(), "/kanadan_energiantuonti.pdf"))
+  utils::browseURL(paste0(tempdir(), "/yhdysvaltojen_energiantuonti.pdf"))
 }
 }

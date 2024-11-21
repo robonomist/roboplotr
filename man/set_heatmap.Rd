@@ -34,7 +34,7 @@ Parameters to customize heatmaps in \link[=robotable]{robotables} and \link[=rob
 # Use `set_heatmap()` to specify any the colors are value breaks used in heatmaps.
 
 d <- roboplotr::energiantuonti |>
-  dplyr::filter(Alue \%in\% c("Ruotsi","Kanada")) |>
+  dplyr::filter(Alue \%in\% c("Ruotsi","USA")) |>
   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
   dplyr::arrange(Tiedot, time) |>
   tidyr::pivot_wider(names_from = Tiedot) |>

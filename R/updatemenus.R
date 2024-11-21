@@ -19,7 +19,7 @@
 #' # your updatemenu refers various units, you need to pass the correct labeling 
 #' # with `set_hovertext()`.
 #' energiantuonti |>
-#'   dplyr::filter(Alue %in% c("Kanada", "EU-maat", "Belgia", "Ruotsi")) |>
+#'   dplyr::filter(Alue %in% c("USA", "EU-maat", "Belgia", "Ruotsi")) |>
 #'   dplyr::group_by(Alue, Suunta) |>
 #'   dplyr::mutate(indeksi = value / mean(value[lubridate::year(time) == 2015]) * 100,
 #'                 Suunta = tolower(Suunta)) |>

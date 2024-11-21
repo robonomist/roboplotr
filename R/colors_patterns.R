@@ -252,14 +252,14 @@ roboplotr_grey_shades <- function() {
 #' # you could just as well provide the column name by itself.
 #' # Compare this:
 #' energiantuonti |>
-#'   dplyr::filter(Alue %in% c("Belgia","Kanada")) |>
+#'   dplyr::filter(Alue %in% c("Belgia","USA")) |>
 #'   roboplot(
 #'     Alue,
 #'     pattern = Suunta
 #'   )
 #' #' # To this:
 #' energiantuonti |>
-#'   dplyr::filter(Alue %in% c("Belgia","Kanada")) |>
+#'   dplyr::filter(Alue %in% c("Belgia","USA")) |>
 #'   roboplot(
 #'     Alue,
 #'     pattern = set_pattern(Suunta)
@@ -306,15 +306,15 @@ roboplotr_grey_shades <- function() {
 #' # `pattern_types`, with a named vector containing either all the observations
 #' # in the column `pattern`, or ".other" as a catch-all category.
 #' energiantuonti |>
-#'   dplyr::filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
+#'   dplyr::filter(Alue %in% c("USA", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
 #'   roboplot(Alue, pattern = set_pattern(Alue, pattern_types = c(
-#'     "Kanada" = "dash", ".other" = "dot"
+#'     "USA" = "dash", ".other" = "dot"
 #'   )))
 #' # Bar plots use the pattern_types too, but they are different from the ones
 #' # used by line plots. If you get them wrong, `roboplot()` informs you which you
 #' # should be using.
 #' energiantuonti |>
-#'   dplyr::filter(Alue %in% c("Kanada", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
+#'   dplyr::filter(Alue %in% c("USA", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
 #'   roboplot(Alue,
 #'            plot_type = "bar",
 #'            pattern = set_pattern(Alue, pattern_types = c(
@@ -673,7 +673,7 @@ roboplotr_tbl_heatmap <- function(d, dt, heatmap) {
 #' # Use `set_heatmap()` to specify any the colors are value breaks used in heatmaps.
 #'
 #' d <- roboplotr::energiantuonti |>
-#'   dplyr::filter(Alue %in% c("Ruotsi","Kanada")) |>
+#'   dplyr::filter(Alue %in% c("Ruotsi","USA")) |>
 #'   tidyr::unite(Tiedot, Alue, Suunta, sep = ", ") |>
 #'   dplyr::arrange(Tiedot, time) |>
 #'   tidyr::pivot_wider(names_from = Tiedot) |>

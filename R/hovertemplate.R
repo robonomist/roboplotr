@@ -51,7 +51,7 @@ roboplotr_hovertemplate_freq <- function(f, default = "%Y-%m-%d") {
 #' # `frequency`, `rounding`, and `unit`.
 #'
 #' d <- energiantuonti |>
-#'   dplyr::filter(Alue %in% c("Kanada","Norja","Yhdistynyt kuningaskunta"),
+#'   dplyr::filter(Alue %in% c("USA","Norja","Iso-Britannia"),
 #'                 Suunta == "Tuonti")
 #'
 #' d |> roboplot(

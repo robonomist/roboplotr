@@ -25,6 +25,7 @@ set_roboplot_options(
   logo_file = NULL,
   markers = NULL,
   modebar = NULL,
+  name = NULL,
   patterns = NULL,
   rounding = NULL,
   tidy_legend = NULL,
@@ -36,7 +37,7 @@ set_roboplot_options(
   width = NULL,
   shinyapp = NULL,
   reset = F,
-  .defaults = F
+  .defaults
 )
 }
 \arguments{
@@ -83,6 +84,9 @@ the buttons contained in modebar in the given order. Must contain any of "home",
 "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl"
 and "robonomist" in any order.}
 
+\item{name}{Character. Saves the current roboplot options as defaults for future
+calls of \code{set_roboplot_options(reset)} or \code{roboplot(roboplot_options)}.}
+
 \item{patterns}{Character vector. Line trace linetypes in order of usage. Must
 contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
@@ -110,10 +114,10 @@ or warnings only? Must be one of "All", "Alert", or "Warning".}
 
 \item{shinyapp}{Logical. Makes fonts, css and javascript available for shiny apps.}
 
-\item{reset}{Logical. Resets options to roboplotr defaults.}
+\item{reset}{Logical or character. Resets options to roboplotr defaults or to
+defaults you have previously specified with \code{set_roboplot_options(name)}.}
 
-\item{.defaults}{Logical. Saves the current roboplot options as roboplotr defaults
-for future calls of \code{set_roboplot_options(reset = T)}.}
+\item{.defaults}{Deprecated. Use \code{name} instead.}
 }
 \description{
 Parameters to add and customize the various options of used by \code{roboplotr}.
@@ -128,7 +132,7 @@ Parameters to add and customize the various options of used by \code{roboplotr}.
 # caption controls work like this:
 
 d <- energiantuonti |>
-  dplyr::filter(Alue \%in\% c("Kanada","Norja"), Suunta == "Tuonti")
+  dplyr::filter(Alue \%in\% c("USA","Norja"), Suunta == "Tuonti")
 
 set_roboplot_options(
   border = set_border(xcolor = "#eed5d2", ycolor = "#8b7d7b"),
@@ -145,6 +149,28 @@ d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 set_roboplot_options(reset = TRUE)
 
 d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+
+# You can also name your options for later use. Set some options and reset them:
+
+set_roboplot_options(background_color = "whitesmoke", name = "smoke_background")
+set_roboplot_options(reset = TRUE)
+
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+
+# You can now reset to the named options:
+
+set_roboplot_options(reset = "smoke_background")
+d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+
+# You can also tell `roboplot()` to use a specified option set without changing
+# them for all plots.
+
+set_roboplot_options(reset = TRUE)
+d |> roboplot(Alue,
+              "Energian tuonti",
+              "Milj €",
+              "Tilastokeskus",
+              roboplot_options = "smoke_background")
 
 
 # You can set the displayed lower right logo by 'logo_file'. Logo file needs
@@ -203,7 +229,7 @@ set_roboplot_options(
   xaxis_ceiling = "guess"
 )
 
-d <- energiantuonti |> dplyr::filter(Alue \%in\% c("Kanada","Norja"))
+d <- energiantuonti |> dplyr::filter(Alue \%in\% c("USA","Norja"))
 
 d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus", pattern = Suunta)
 
@@ -242,15 +268,15 @@ server <- function(input, output) {
 
 output$plot1 <- plotly::renderPlotly({
   roboplot(
-    dplyr::filter(energiantuonti, Suunta == "Tuonti", Alue == "Kanada"),
-    Alue, "Energian tuonti Kanadasta",
+    dplyr::filter(energiantuonti, Suunta == "Tuonti", Alue == "USA"),
+    Alue, "Energian tuonti Yhdysvalloista",
     "Milj. €",
     "Tilastokeskus")
 })
 output$plot2 <- plotly::renderPlotly({
   roboplot(
-    dplyr::filter(energiantuonti, Suunta == "Vienti", Alue == "Kanada"),
-    Alue, "Energian vienti Kanadaan",
+    dplyr::filter(energiantuonti, Suunta == "Vienti", Alue == "USA"),
+    Alue, "Energian vienti Yhdysvaltoihin",
     "Milj. €",
     "Tilastokeskus",
     height = 500)

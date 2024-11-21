@@ -47,9 +47,11 @@
 #' @param verbose Character. Will roboplotr display all messages, alerts and warnings,
 #' or warnings only? Must be one of "All", "Alert", or "Warning".
 #' @param shinyapp Logical. Makes fonts, css and javascript available for shiny apps.
-#' @param reset Logical. Resets options to roboplotr defaults.
-#' @param .defaults Logical. Saves the current roboplot options as roboplotr defaults
-#' for future calls of `set_roboplot_options(reset = T)`.
+#' @param reset Logical or character. Resets options to roboplotr defaults or to 
+#' defaults you have previously specified with `set_roboplot_options(name)`.
+#' @param name Character. Saves the current roboplot options as defaults for future 
+#' calls of `set_roboplot_options(reset)` or `roboplot(roboplot_options)`.
+#' @param .defaults Deprecated. Use `name` instead.
 #' @export
 #' @examples
 #' # Control global options for `roboplotr`. Some of these you can set
@@ -61,7 +63,7 @@
 #' # caption controls work like this:
 #'
 #' d <- energiantuonti |>
-#'   dplyr::filter(Alue %in% c("Kanada","Norja"), Suunta == "Tuonti")
+#'   dplyr::filter(Alue %in% c("USA","Norja"), Suunta == "Tuonti")
 #'
 #' set_roboplot_options(
 #'   border = set_border(xcolor = "#eed5d2", ycolor = "#8b7d7b"),
@@ -79,7 +81,29 @@
 #'
 #' d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 #'
+#' # You can also name your options for later use. Set some options and reset them:
+#' 
+#' set_roboplot_options(background_color = "whitesmoke", name = "smoke_background")
+#' set_roboplot_options(reset = TRUE)
 #'
+#' d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+#' 
+#' # You can now reset to the named options:
+#' 
+#' set_roboplot_options(reset = "smoke_background")
+#' d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
+#' 
+#' # You can also tell `roboplot()` to use a specified option set without changing
+#' # them for all plots.
+#'
+#' set_roboplot_options(reset = TRUE)
+#' d |> roboplot(Alue,
+#'               "Energian tuonti",
+#'               "Milj €",
+#'               "Tilastokeskus",
+#'               roboplot_options = "smoke_background")
+#' 
+#' 
 #' # You can set the displayed lower right logo by 'logo_file'. Logo file needs
 #' # the filepath to the logo used. The logo will be automatically scaled for
 #' # `roboplotr` usage. If the logo is not the Robonomist logo, one will
@@ -136,7 +160,7 @@
 #'   xaxis_ceiling = "guess"
 #' )
 #'
-#' d <- energiantuonti |> dplyr::filter(Alue %in% c("Kanada","Norja"))
+#' d <- energiantuonti |> dplyr::filter(Alue %in% c("USA","Norja"))
 #'
 #' d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus", pattern = Suunta)
 #'
@@ -175,15 +199,15 @@
 #'
 #' output$plot1 <- plotly::renderPlotly({
 #'   roboplot(
-#'     dplyr::filter(energiantuonti, Suunta == "Tuonti", Alue == "Kanada"),
-#'     Alue, "Energian tuonti Kanadasta",
+#'     dplyr::filter(energiantuonti, Suunta == "Tuonti", Alue == "USA"),
+#'     Alue, "Energian tuonti Yhdysvalloista",
 #'     "Milj. €",
 #'     "Tilastokeskus")
 #' })
 #' output$plot2 <- plotly::renderPlotly({
 #'   roboplot(
-#'     dplyr::filter(energiantuonti, Suunta == "Vienti", Alue == "Kanada"),
-#'     Alue, "Energian vienti Kanadaan",
+#'     dplyr::filter(energiantuonti, Suunta == "Vienti", Alue == "USA"),
+#'     Alue, "Energian vienti Yhdysvaltoihin",
 #'     "Milj. €",
 #'     "Tilastokeskus",
 #'     height = 500)
@@ -220,6 +244,7 @@ set_roboplot_options <- function(
     logo_file = NULL,
     markers = NULL,
     modebar = NULL,
+    name = NULL,
     patterns = NULL,
     rounding = NULL,
     tidy_legend = NULL,
@@ -231,7 +256,7 @@ set_roboplot_options <- function(
     width = NULL,
     shinyapp = NULL,
     reset = F,
-    .defaults = F
+    .defaults
 ) {
 
   set_roboplot_option <- function(option, opt_name = NULL) {
@@ -247,22 +272,39 @@ set_roboplot_options <- function(
     }
   }
 
+  roboplotr_override_webshot_screenshot()
+  
   roboplotr_typecheck(verbose, "character", allow_null = T)
   roboplotr_valid_strings(verbose, c("All","Alert","Warning"), any)
   set_roboplot_option(verbose, "verbose")
 
-  roboplotr_typecheck(reset, "logical", allow_null = F)
+  roboplotr_typecheck(reset, c("logical","character"), allow_null = F)
 
-  if (reset) {
-    if(is.null(getOption("roboplotr.options.defaults"))) {
+  if(is.logical(reset)) {
+    if (reset) {
+      if(interactive()) {
+        deprecate_warn("2.3.0", "roboplotr::set_roboplot_options(reset = 'will only reset to \"roboplotr\" defaults when TRUE, use a named option for custom defaults')") 
+      }
+      if(is.null(getOption("roboplotr.options.defaults"))) {
+        .onLoad(override = T)
+      } else {
+        .roboplotr_defaults <- getOption("roboplotr.options.defaults")
+        options(.roboplotr_defaults)
+        options("roboplot.cur.options" = "defaults")
+      }
+      roboplotr_message("Roboplot options reset.")
+    } 
+  } else if (is.character(reset)) {
+    if(reset == "roboplotr") {
       .onLoad(override = T)
     } else {
-      .roboplotr_defaults <- getOption("roboplotr.options.defaults")
-      options(.roboplotr_defaults)
+      .this_reset <- getOption(str_glue("roboplotr.options.{reset}"))
+      if(is.null(.this_reset)) {
+        stop(str_glue("You have not specified reset options named {reset}! Use set_roboplot_options(name = \"{reset}\") to set them."), call. = F)
+      }
+      options(.this_reset)
+      options("roboplot.cur.options" = reset) 
     }
-
-    roboplotr_message("Roboplot options reset.")
-
   }
 
     opts_names <- names(options())
@@ -421,12 +463,28 @@ set_roboplot_options <- function(
       options("roboplot.modebar" = .modebar)
     }
 
-    roboplotr_typecheck(.defaults, "logical", allow_null = F)
-
-    if(.defaults) {
-      .roboplot_options <- options() |> names() |> str_subset("roboplot\\.")
-      .roboplot_options <- map(.roboplot_options, ~ getOption(.x)) |> setNames(.roboplot_options)
-      options("roboplotr.options.defaults" = .roboplot_options)
+    if(is_present(.defaults)) {
+      deprecate_warn("2.3.0", "roboplotr::set_roboplot_options(.defaults)", "roboplotr::set_roboplot_options(name)")
+      name <- .defaults
+    }
+    
+    roboplotr_typecheck(name, c("logical","character"), allow_null = T)
+    
+    if(!is.null(name)) {
+      if(is.logical(name)) {
+        if(name) {
+          deprecate_warn("2.3.0", "roboplotr::set_roboplot_options(name = 'must be a character')")
+          .roboplot_options <- options() |> names() |> str_subset("roboplot\\.")
+          .roboplot_options <- map(.roboplot_options, ~ getOption(.x)) |> setNames(.roboplot_options)
+          options("roboplotr.options.defaults" = .roboplot_options)
+          options("roboplot.cur.options" = "defaults")
+        } 
+      } else if (is.character(name)) {
+        .roboplot_options <- options() |> names() |> str_subset("roboplot\\.")
+        .roboplot_options <- map(.roboplot_options, ~ getOption(.x)) |> setNames(.roboplot_options)
+        options(setNames(list(.roboplot_options), str_glue("roboplotr.options.{name}")))
+        options("roboplot.cur.options" = name)
+      } 
     }
 
     if(!is.null(shinyapp)) {
@@ -481,7 +539,7 @@ roboplotr_string2filename <- function(string) {
 #'   )
 #'
 #' d <- energiantuonti |>
-#'   dplyr::filter(Alue == "Kanada", Suunta == "Tuonti") |>
+#'   dplyr::filter(Alue == "USA", Suunta == "Tuonti") |>
 #'   dplyr::mutate(value = value * 1000000, Alue = "Canada")
 #'
 #' d |>
@@ -789,3 +847,49 @@ roboplotr_ns_alert <- function(packages, msg) {
   }
   
 }
+
+
+roboplotr_plot_options <- function(roboplot_options) {
+  
+  roboplotr_typecheck(roboplot_options, "character", allow_null = T)
+  
+  if(!is.null(roboplot_options)) {
+    .this_reset <- getOption(str_glue("roboplotr.options.{roboplot_options}"))
+    if(is.null(.this_reset)) {
+      stop(str_glue("You have not specified reset option named \"{roboplot_options}\"! Use set_roboplot_options(name = \"{roboplot_options}\") to set them."), call. = F)
+    }
+    options(.this_reset)
+  }
+
+}
+
+# Used to temporarily override roboplot options for a single plot.
+roboplotr_temp_options <- function(roboplot_options = NULL) {
+
+  roboplotr_typecheck(roboplot_options,
+                      "character",
+                      allow_null = T,
+                      extra = "in `roboplot()`")
+
+  if(!is.null(roboplot_options)) {
+    cur_options <- getOption("roboplot.cur.options")
+    # print(cur_options)
+    .this_reset <- getOption(str_glue("roboplotr.options.{roboplot_options}"))
+    if(is.null(.this_reset)) {
+      stop(str_glue("You have not specified roboplot options name \"{roboplot_options}\"! Use set_roboplot_options(name = \"{roboplot_options}\") to set them."), call. = F)
+    }
+    options(.this_reset)
+  } else {
+    cur_options <- NULL
+  }
+  
+  list(roboplot_options = cur_options, reset = !is.null(roboplot_options))
+  
+}
+
+roboplotr_reset_temp_options <- function(.reset) {
+  if(.reset$reset) {
+    set_roboplot_options(reset = .reset$roboplot_options)
+  }
+  }
+

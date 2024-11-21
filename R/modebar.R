@@ -116,7 +116,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
               //text = text + gd.data[i].name + ';' + gd.data[i].x + '\\n';
               //text = text + gd.data[i].name + ';' + gd.data[i].y + '\\n';
             //};
-            var blob = new Blob([text], {type: 'text/plain;charset=UTF-8'});
+            var blob = new Blob([\"\uFEFF\" + text], {type: 'text/plain;charset=UTF-8'});
             var a = document.createElement('a');
             const object_URL = URL.createObjectURL(blob);
             a.href = object_URL;

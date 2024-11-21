@@ -81,9 +81,9 @@ roboplotr_caption <- function(p, caption) {
 #' # Used to set titles for plots created with `roboplot()`. You can
 #' # simply give a charater string for plot titles.
 #'
-#' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+#' d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 #'
-#' d |> roboplot(Alue,"Energian tuonti Kanadasta")
+#' d |> roboplot(Alue,"Energian tuonti Yhdysvalloista")
 #'
 #' # However, if you want to render the plot without the title included, you
 #' # can use `set_title(include = F)` to omit it from the plot. This
@@ -95,7 +95,7 @@ roboplotr_caption <- function(p, caption) {
 #'
 #' d |>
 #' roboplot(Alue,
-#' title = set_title("Energian tuonti Kanadasta", include = FALSE),
+#' title = set_title("Energian tuonti Yhdysvalloista", include = FALSE),
 #' subtitle = "Milj. €")
 #'
 #'
@@ -176,9 +176,9 @@ roboplotr_title <- function(p, title, subtitle) {
 #' # `set_roboplot_options()`.
 #'
 #'
-#' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+#' d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 #'
-#' d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €",
+#' d |> roboplot(Alue,"Energian tuonti Yhdysvalloista","Milj. €",
 #'                    caption = "Tilastokeskus")
 #'
 #'
@@ -280,9 +280,9 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'   font_caption = set_font(color = "green")
 #' )
 #'
-#' d <- energiantuonti |> dplyr::filter(Alue == "Kanada",Suunta == "Tuonti")
+#' d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 #'
-#' d |> roboplot(Alue,"Energian tuonti Kanadasta","Milj. €","Tilastokeskus")
+#' d |> roboplot(Alue,"Energian tuonti Yhdysvalloista","Milj. €","Tilastokeskus")
 
 #' # Valid Google Fonts work as well.
 #' set_roboplot_options(font_title = set_font(font = "Exo"))
@@ -296,16 +296,16 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #'   d |>
 #'     roboplot(
 #'       color = Alue,
-#'       title = "Energian tuonti Kanadasta",
+#'       title = "Energian tuonti Yhdysvalloista",
 #'       subtitle = "Milj. €",
 #'       caption = "Tilastokeskus",
 #'       artefacts = set_artefacts(artefacts = c("html", "png"), filepath = tempdir())
 #'     )
 #'
 #'   # The html has proper fonts, but files exported from modebar will not.
-#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.html"))
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_yhdysvalloista.html"))
 #'   # The images automated with `set_artefacts()` will have the proper font.
-#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_kanadasta.png"))
+#'   utils::browseURL(paste0(tempdir(),"/energian_tuonti_yhdysvalloista.png"))
 #' }
 #'
 #' # Revert to defaults:

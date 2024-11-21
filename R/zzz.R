@@ -44,7 +44,8 @@
     roboplot.shinyapp = FALSE,
     roboplot.xaxis.ceiling = "default",
     roboplot.zeroline = list(color = "black", width = 2),
-    roboplot.verbose = "All"
+    roboplot.verbose = "All",
+    roboplot.cur.options = "roboplotr"
   )
 
   if(override) {

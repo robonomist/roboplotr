@@ -44,7 +44,7 @@ Parameters to control the formatting and content of hovertext in \link[=roboplot
 # `frequency`, `rounding`, and `unit`.
 
 d <- energiantuonti |>
-  dplyr::filter(Alue \%in\% c("Kanada","Norja","Yhdistynyt kuningaskunta"),
+  dplyr::filter(Alue \%in\% c("USA","Norja","Iso-Britannia"),
                 Suunta == "Tuonti")
 
 d |> roboplot(
