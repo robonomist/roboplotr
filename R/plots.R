@@ -242,7 +242,7 @@ roboplotr_dependencies <- function(p,
 #' @param modebar Function. Use [set_modebar()].
 #' @param info_text Character. Adds an info button to the modebar with this text, along with plot title and caption.
 #' @param updatemenu Function. Use [set_updatemenu()] for detailed control.
-#' @param roboplot_options Character. A name of roboplot options set with [set_roboplot_options(name)]. 
+#' @param roboplot_options Character. A name of roboplot options set with [set_roboplot_options()] param `name`.
 #' See documentation of [set_roboplot_options()] for details.
 #' @param ... Placeholder for other parameters.
 #' @returns A list of classes "htmlwidget", "plotly", and  "roboplotr.roboplot"
@@ -290,7 +290,7 @@ roboplotr_dependencies <- function(p,
 #' # You can omit caption by setting it to NA.
 #'
 #' d1 |> roboplot(Alue, "Energian tuonti","Milj. \u20AC",caption = NA)
-#' 
+#'
 #' # Legend can also be omitted by giving `legend_position` of NA. Height and
 #' # width can also be specified, while for most uses width specification is
 #' # unnecessary, as roboplotr is designed for plots with responsive widths.
@@ -595,12 +595,12 @@ roboplot <- function(d = NULL,
                      legend_position = deprecated(),
                      legend_maxwidth = deprecated(),
                      ...) {
-  
+
   .reset_options <- list(roboplot_options = NULL, reset = F)
   on.exit(roboplotr_reset_temp_options(.reset_options))
-  
+
   margin <- NA # will this be used at all? Probably not.
-  
+
   .reset_options <- roboplotr_temp_options(roboplot_options)
 
   roboplotr_typecheck(d, "data.frame", NULL, allow_null = F, allow_na = T)
@@ -1150,7 +1150,8 @@ roboplot <- function(d = NULL,
         zoom = params$zoom,
         artefacts = params$artefacts,
         height = params$height,
-        width = params$width
+        width = params$width,
+        delay = params$delay
       )
     } else {
       p
@@ -1165,7 +1166,8 @@ roboplot <- function(d = NULL,
       zoom = artefacts$zoom,
       artefacts = artefacts$artefacts,
       height = artefacts$height,
-      width = artefacts$width
+      width = artefacts$width,
+      delay = artefacts$delay
     )
   }
 

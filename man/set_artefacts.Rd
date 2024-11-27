@@ -13,7 +13,8 @@ set_artefacts(
   zoom = getOption("roboplot.artefacts")$zoom,
   auto = getOption("roboplot.artefacts")$auto,
   width = getOption("roboplot.artefacts")$width,
-  height = getOption("roboplot.artefacts")$height
+  height = getOption("roboplot.artefacts")$height,
+  delay = getOption("roboplot.artefacts")$delay
 )
 }
 \arguments{
@@ -42,6 +43,8 @@ will create artefacts automatically.}
 \item{width, height}{Numeric. Sets the size of any static plots created. Any
 artefacts created with \code{\link[=roboplot]{roboplot()}}'s \code{artefacts} parameter will use the given
 dimensions, if any, for that plot.}
+
+\item{delay}{Numeric. Delay in milliseconds before taking a screenshot. Used with static file creation. Default 0.2}
 }
 \value{
 A list of class roboplot.set_artefacts.

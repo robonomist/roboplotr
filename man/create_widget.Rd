@@ -13,7 +13,9 @@ create_widget(
   zoom = getOption("roboplot.artefacts")$zoom,
   artefacts = getOption("roboplot.artefacts")$artefacts,
   width = getOption("roboplot.artefacts")$width,
-  height = getOption("roboplot.artefacts")$height
+  height = getOption("roboplot.artefacts")$height,
+  delay = getOption("roboplot.artefacts")$delay,
+  ...
 )
 }
 \arguments{
@@ -41,6 +43,11 @@ more of "html", "png", "jpg", "jpge", "webp", or "pdf".}
 \item{width, height}{Numeric. Sets the size of any static plots created. Any
 artefacts created with \code{\link[=roboplot]{roboplot()}}'s \code{artefacts} parameter will use the given
 dimensions, if any, for that plot.}
+
+\item{delay}{Numeric. Delay in seconds before taking a screenshot. Used with
+static file creation. Default 0.2.}
+
+\item{...}{Additional parameters in future use.}
 }
 \value{
 What was passed as \code{p}.

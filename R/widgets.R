@@ -20,6 +20,9 @@
 #' @param width,height Numeric. Sets the size of any static plots created. Any
 #' artefacts created with [roboplot()]'s `artefacts` parameter will use the given
 #' dimensions, if any, for that plot.
+#' @param delay Numeric. Delay in seconds before taking a screenshot. Used with
+#' static file creation. Default 0.2.
+#' @param ... Additional parameters in future use.
 #' @examples
 #' set_roboplot_options(verbose = "Warning", .default = TRUE)
 #' # Saving `roboplot()` plots as files can be controlled by setting global options
@@ -94,7 +97,9 @@ create_widget <- function(
     zoom = getOption("roboplot.artefacts")$zoom,
     artefacts = getOption("roboplot.artefacts")$artefacts,
     width = getOption("roboplot.artefacts")$width,
-    height = getOption("roboplot.artefacts")$height
+    height = getOption("roboplot.artefacts")$height,
+    delay = getOption("roboplot.artefacts")$delay,
+    ...
     ) {
   is.robotable <- "datatables" %in% class(p)
 
@@ -103,9 +108,12 @@ create_widget <- function(
   roboplotr_typecheck(zoom, "numeric", allow_null = F)
   roboplotr_typecheck(width, "numeric", allow_null = T)
   roboplotr_typecheck(height, "numeric", allow_null = T)
+  roboplotr_typecheck(delay, "numeric", allow_null = F)
 
   if(!dir.exists(filepath)) {
-    stop(str_glue("Does the directory {filepath} exist?"), call. = T)
+    dir.create(filepath)
+    roboplotr_message(str_glue("Directory {filepath} created."))
+    # stop(str_glue("Does the directory {filepath} exist?"), call. = T)
   }
 
   if(is.null(width)) { width <- getOption("roboplot.artefacts")$width }
@@ -120,7 +128,7 @@ create_widget <- function(
         first() |>
         str_extract_all("(?<=\\>)[^\\<\\>]{2,}(?=\\<)") |> unlist() |> first() |> str_c(collapse = "_")
     }
-    roboplotr_message(str_c("Using \"",roboplotr_string2filename(title),"\" for htmlwidget filename.."))
+    roboplotr_message(str_c("Using \"",roboplotr_string2filename(title),"\" for filename.."))
   } else {
     roboplotr_typecheck(title, "character", allow_null = F)
   }
@@ -143,7 +151,7 @@ create_widget <- function(
       roboplotr_alert("Other artefacts than \"html\" are ignored with robotable!")
     } else {
       .images <- subset(artefacts, artefacts != "html")
-      detached_p |> roboplotr_static_image(.images, title, zoom, filepath, width, height)
+      detached_p |> roboplotr_static_image(.images, title, zoom, filepath, width, height, delay)
     }
   }
 
@@ -156,6 +164,9 @@ create_widget <- function(
     detached_p |>
       frameableWidget() |>
       saveWidget(file.path(filepath,str_c(title,".html")), selfcontained = self_contained, libdir =.libdir, title = widget_title)
+    if(!"quiet" %in% names(list(...))) {
+      message(str_glue('File {file.path(filepath,str_c(title,".html"))} created'))
+    }
   }
 
   if(render == T) {
@@ -171,6 +182,7 @@ create_widget <- function(
 #'
 #' @param auto Logical. Whether [roboplot][roboplot()] or [robotable][robotable()]
 #' will create artefacts automatically.
+#' @param delay Numeric. Delay in milliseconds before taking a screenshot. Used with static file creation. Default 0.2
 #' @inheritParams create_widget
 #' @examples
 #' # Used to set global defaults for widget or other artefact creation. Any of
@@ -193,7 +205,8 @@ set_artefacts <- function(
     zoom = getOption("roboplot.artefacts")$zoom,
     auto = getOption("roboplot.artefacts")$auto,
     width = getOption("roboplot.artefacts")$width,
-    height = getOption("roboplot.artefacts")$height
+    height = getOption("roboplot.artefacts")$height,
+    delay = getOption("roboplot.artefacts")$delay
 ) {
   roboplotr_typecheck(filepath, "character", allow_null = F)
   roboplotr_typecheck(render, "logical", allow_null = F)
@@ -204,6 +217,7 @@ set_artefacts <- function(
   roboplotr_typecheck(zoom, "numeric", allow_null = F)
   roboplotr_typecheck(width, "numeric", allow_null = F)
   roboplotr_typecheck(height, "numeric", allow_null = F)
+  roboplotr_typecheck(delay, "numeric", allow_null = F)
 
   .res <- list(
     auto = auto,
@@ -214,7 +228,8 @@ set_artefacts <- function(
     zoom = zoom,
     title = title,
     width = round(width),
-    height = round(height)
+    height = round(height),
+    delay = delay
   )
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_artefacts", class(.res)))
@@ -232,7 +247,9 @@ roboplotr_static_image <-
            zoom,
            dl_path = getwd(),
            width = getOption("roboplot.artefacts")$width,
-           height = getOption("roboplot.artefacts")$height) {
+           height = getOption("roboplot.artefacts")$height,
+           delay = getOption("roboplot.artefacts")$delay
+           ) {
 
     .static_images <-
       str_c(dl_path, str_c(title, artefacts, sep = "."), sep = "/")
@@ -257,7 +274,8 @@ roboplotr_static_image <-
         filepath = tempdir(),
         self_contained = F,
         render = F,
-        artefacts = "html"
+        artefacts = "html",
+        quiet = T
       )
 
     for (.img in .static_images) {
@@ -267,8 +285,10 @@ roboplotr_static_image <-
         vwidth = width,
         vheight = height,
         zoom = zoom,
+        delay = delay,
         quiet = T
       )
+      message(str_glue("File {.img} created"))
     }
 
     invisible(file.remove(file.path(tempdir(), "imgdl.html")))
@@ -390,17 +410,17 @@ roboplotr_new_session_screenshot <- function(
     useragent,
     quiet
 ) {
-  
+
   filetype <- tolower(tools::file_ext(file))
   filetypes <- c(c("png", "jpg", "jpeg", "webp"), "pdf")
   if (!filetype %in% filetypes) {
     stop("File extension must be one of: ", paste(filetypes, collapse = ", "))
   }
-  
+
   if (is.null(selector)) {
     selector <- "html"
   }
-  
+
   if (is.character(cliprect)) {
     if (cliprect == "viewport") {
       cliprect <- c(0, 0, vwidth, vheight)
@@ -412,10 +432,10 @@ roboplotr_new_session_screenshot <- function(
       stop("`cliprect` must be a vector with four numbers, or a list of such vectors")
     }
   }
-  
-  
+
+
   s <- NULL
-  
+
   p <- chromote$new_session(wait_ = FALSE,
                             width = vwidth,
                             height = vheight
@@ -450,7 +470,7 @@ roboplotr_new_session_screenshot <- function(
           expand = expand, scale = zoom,
           show = FALSE, wait_ = FALSE
         )
-        
+
       } else if (filetype == "pdf") {
         s$screenshot_pdf(filename = file, wait_ = FALSE, pagesize = c(vwidth/96, vheight/96), units = "in", margins = 0)
       }
@@ -462,7 +482,7 @@ roboplotr_new_session_screenshot <- function(
     finally(function() {
       s$close()
     })
-  
+
   p
 }
 
@@ -479,7 +499,7 @@ roboplotr_override_webshot_screenshot <- function(...) {
       })
     } else {
       roboplotr_message("webshot2 package is not loaded, pdf creation is not well supported.")
-    } 
+    }
   }
 }
 

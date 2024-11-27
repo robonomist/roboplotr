@@ -1,3 +1,9 @@
+# roboplotr 2.3.1
+
+* `create_widget()` now creates the directory if it does not exist. 
+* `create_widget()` is now more verbose.
+* `create_widget()` and `set_artefacts()` now have a `delay` parameter for static file creation, allowing `webshot2::webshot()` more time when necessary.
+
 # roboplotr 2.3.0
 
 * Added option to save named roboplot options with `set_roboplot_options(.defaults = "name")` and load them with `set_roboplot_options(reset = "name")`.

@@ -121,7 +121,7 @@ TRUE for automated artefact creation based on \code{\link[=set_roboplot_options]
 
 \item{updatemenu}{Function. Use \code{\link[=set_updatemenu]{set_updatemenu()}} for detailed control.}
 
-\item{roboplot_options}{Character. A name of roboplot options set with \link{set_roboplot_options(name)}.
+\item{roboplot_options}{Character. A name of roboplot options set with \code{\link[=set_roboplot_options]{set_roboplot_options()}} param \code{name}.
 See documentation of \code{\link[=set_roboplot_options]{set_roboplot_options()}} for details.}
 
 \item{legend_position}{Deprecated. Character. Use \code{legend} instead.}

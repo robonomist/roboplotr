@@ -36,7 +36,7 @@ set_roboplot_options(
   verbose = NULL,
   width = NULL,
   shinyapp = NULL,
-  reset = F,
+  reset = NULL,
   .defaults
 )
 }
