@@ -1,3 +1,9 @@
+# roboplotr 2.3.2
+
+* Fixes `robotable()` not being able to handle data with no numeric columns.
+* Fixes `robomap()` having duplicate hover labels when values and areas refer to same factor levels.
+* Fixes `robomap()` not respecting `caption = NA` properly.
+
 # roboplotr 2.3.1
 
 * `create_widget()` now creates the directory if it does not exist. 

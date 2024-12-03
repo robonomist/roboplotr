@@ -518,7 +518,7 @@ robomap <-
     if(is.factor(d$value)) {
       d <- d |>
         mutate(
-          leafletlabel = str_c({{area}},"<br>",as.character(.data$value)),
+          leafletlabel = ifelse(as.character({{area}}) == as.character(.data$value), as.character(.data$value), str_c({{area}},"<br>",as.character(.data$value))),
           leafletlabel = map(.data$leafletlabel, HTML)
         )
     } else {
@@ -607,12 +607,16 @@ robomap <-
       roboplotr_map_polygonlayer(data_contour, map_opacity, map_pal, border_width) |>
       roboplotr_map_markerlayer(d, markers)
 
-    caption <- tags$span(
-      style = str_glue(
-        'opacity: 1; font-size: {getOption("roboplot.font.caption")$size}px;'
-      ),
-      HTML(caption)
-    )
+    if(str_length(caption) > 0) {
+      caption <- tags$span(
+        style = str_glue(
+          'opacity: 1; font-size: {getOption("roboplot.font.caption")$size}px;'
+        ),
+        HTML(caption)
+      )
+    } else {
+      caption <- NULL
+    }
 
     get_map_title <- function() {
       titlefun <-
@@ -651,12 +655,16 @@ robomap <-
         html = robotable_logo(robotable_logo_height),
         position = "bottomright",
         className = str_glue("map-info robomap-logo")
-      ) |>
-      addControl(
-        html = caption,
-        position = "bottomleft",
-        className = str_glue("map-info")
       )
+
+    if (!is.null(caption)) {
+      this_map <- this_map |>
+        addControl(
+          html = caption,
+          position = "bottomleft",
+          className = str_glue("map-info")
+        )
+    }
 
     this_map <- this_map |>
       onRender(

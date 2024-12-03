@@ -125,22 +125,26 @@ roboplotr_robotable_cellformat <-
       flag <- rep(flag, length(names(d))) |> setNames(names(d))
     }
 
-    order_cols <-
-      d |> select(where(is.numeric)) |> rename_with( ~ str_c(".order_", .x))
-    num_cols <- d |> select(where(is.numeric)) |> names()
-    dt_orders <-
-      (map_dbl(num_cols, ~ which(.x == names(d))) - 1) |> setNames(seq(to = order_cols |> length()) +
-                                                                     length(d) - 1)
+    if(d |> select(where(is.numeric)) |> ncol() > 0) {
+      order_cols <-
+        d |> select(where(is.numeric)) |> rename_with( ~ str_c(".order_", .x))
+      num_cols <- d |> select(where(is.numeric)) |> names()
+      dt_orders <-
+        (map_dbl(num_cols, ~ which(.x == names(d))) - 1) |> setNames(seq(to = order_cols |> length()) +
+                                                                       length(d) - 1)
 
-    d <- d |>
-      mutate(across(
-        where(is.numeric),
-        ~ {
-          .cur <- cur_column()
-          roboplotr_format_robotable_numeric(., rounding[[.cur]], flag[[.cur]], unit[[.cur]], na_value)
-        }
-      )) |>
-      bind_cols(order_cols)
+      d <- d |>
+        mutate(across(
+          where(is.numeric),
+          ~ {
+            .cur <- cur_column()
+            roboplotr_format_robotable_numeric(., rounding[[.cur]], flag[[.cur]], unit[[.cur]], na_value)
+          }
+        )) |>
+        bind_cols(order_cols)
+    } else {
+      dt_orders <- NULL
+    }
 
     attr(d, "dt_orders") <- dt_orders
 
