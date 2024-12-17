@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.3.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.4.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,13 @@
       <small>Source: <a href="https://github.com/robonomist/roboplotr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.4.0" id="roboplotr-240">roboplotr 2.4.0<a class="anchor" aria-label="anchor" href="#roboplotr-240"></a></h2>
+<ul><li>Fixes <code><a href="../reference/robotable.html">robotable()</a></code> date columns and <code><a href="../reference/roboplot.html">roboplot()</a></code> data downloads for dates not formatting leading zeroes properly on windows.</li>
+<li>Adds the options to anchor <code><a href="../reference/roboplot.html">roboplot()</a></code> titles and captions to left container edge instead of left plot edge with param <code>xref</code> in <code><a href="../reference/set_title.html">set_title()</a></code> and <code><a href="../reference/set_caption.html">set_caption()</a></code> respectively. You can set them globally with <code><a href="../reference/set_roboplot_options.html">set_roboplot_options()</a></code>.</li>
+<li>Makes <code>set_roboplot_option(override_webshot)</code> default to FALSE.</li>
+<li>Removes the necessity of manually setting ticktypes with <code><a href="../reference/set_axes.html">set_axes()</a></code> when you are not using a numeric “value” and date “time”-columns.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.3.2" id="roboplotr-232">roboplotr 2.3.2<a class="anchor" aria-label="anchor" href="#roboplotr-232"></a></h2>
 <ul><li>Fixes <code><a href="../reference/robotable.html">robotable()</a></code> not being able to handle data with no numeric columns.</li>
