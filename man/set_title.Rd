@@ -4,7 +4,12 @@
 \alias{set_title}
 \title{Title configuration.}
 \usage{
-set_title(title = NULL, include = T, ...)
+set_title(
+  title = NULL,
+  include = T,
+  xref = getOption("roboplot.title")$xref,
+  ...
+)
 }
 \arguments{
 \item{title}{Character. Optional. Will try to determine a title based on
@@ -12,6 +17,9 @@ attributes of \code{d} in a \link[=roboplot]{roboplots}. Defaults to "PLACEHOLDE
 
 \item{include}{Logical. Determines whether the given title will be used in
 the plot. Will always inlcude it for exported static images.}
+
+\item{xref}{Character. Either "container" or "plot". Determines if the title
+is anchored to the plot or the container edge.}
 
 \item{...}{Placeholder for other parameters.}
 }
@@ -43,5 +51,13 @@ roboplot(Alue,
 title = set_title("Energian tuonti Yhdysvalloista", include = FALSE),
 subtitle = "Milj. €")
 
+# Anchor the title to the left edge of the container instead of the plot with
+# `xref`. You probably want to do the same for caption, but you don't have to.
+
+ d |>
+  roboplot(Alue,
+           title = set_title("Energian tuonti Yhdysvalloista", xref = "container"),
+           caption = set_caption("Tilastokeskus", xref = "container")
+           )
 
 }

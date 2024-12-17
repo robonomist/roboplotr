@@ -56,6 +56,9 @@ roboplotr_format_robotable_date <- function(date_col, dateformat) {
     )
   }
   else {
+    if(str_detect(dateformat, "-")) {
+      dateformat <- "%Y-%m-%d"
+    }
     str_glue('<span data-order="{date_col}">{format(date_col, dateformat) |> replace_na(" ")}</span>')
   }
 }
@@ -471,7 +474,7 @@ robotable <-
       }
     }
 
-    caption <- roboplotr_set_caption(caption, d, "in robotable()")
+    caption <- roboplotr_set_caption(caption, d, "in robotable()")$text
 
     roboplotr_typecheck(heatmap, "set_heatmap")
 
@@ -712,6 +715,7 @@ function preInitFunction(settings, json) {
         options = list(
           autoWidth = T,
           scrollX = T,
+          scrollY = "100%",
           scrollCollapse = T,
           buttons = robotable_buttons,
           columnDefs = column_defs,

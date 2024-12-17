@@ -355,14 +355,21 @@ roboplotr_dependencies <- function(p,
 #' d3 <- d2 |> dplyr::filter(time == max(time))
 #'
 #' d3 |>
-#'   roboplot(Alue,
-#'            stringr::str_glue("Energian tuonti ja vienti vuonna {lubridate::year(max(d3$time))}"),
-#'            stringr::str_glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
-#'            pattern = Suunta,
-#'            plot_type = "bar",
-#'            caption = stringr::str_glue(
-#'             "Tilastokeskus. Tieto vuodelta lubridate::year(max(d3$time))")
-#'            )
+#'   roboplot(
+#'     Alue,
+#'     stringr::str_glue(
+#'       "Energian tuonti ja vienti vuonna {lubridate::year(max(d3$time))}"
+#'     ),
+#'     stringr::str_glue("Milj. \u20AC ({lubridate::year(max(d3$time))})"),
+#'     pattern = Suunta,
+#'     plot_type = "bar",
+#'     caption =
+#'       set_caption(
+#'         text = stringr::str_glue(
+#'           "Tilastokeskus.<br>Tieto vuodelta {lubridate::year(max(d3$time))}"
+#'         )
+#'       )
+#'  )
 #'
 #' # Plot axis can be controlled with `set_axes()` (see documentation).
 #' d2 |>
@@ -393,9 +400,8 @@ roboplotr_dependencies <- function(p,
 #'            plot_mode = "horizontal",
 #'            plot_axes = set_axes(
 #'              y = "Alue",
-#'              yticktype = "character",
-#'              x = "value",
-#'              xticktype = "numeric")
+#'              x = "value"
+#'              )
 #'   )
 #'
 #' # If you want the bars to fill the available space in a horizontal bar chart,
@@ -408,24 +414,29 @@ roboplotr_dependencies <- function(p,
 #'            plot_mode = "horizontalfill",
 #'            plot_axes = set_axes(
 #'              y = "Alue",
-#'              yticktype = "character",
-#'              x = "value",
-#'              xticktype = "numeric")
+#'              x = "value"
+#'              )
 #'   )
 #'
 #'
-#' # Or stack the bars horizontally by using "horizontalstack"
+#' # Or stack the bars horizontally by using "horizontalstack". You might want to
+#' # move title and caption to left edge of the container instead of the plot area
+#' # with horizontal bars.
 #' d3 |>
-#'   roboplot(Suunta,
-#'            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
-#'            "Milj. \u20AC","Tilastokeskus",
-#'            plot_type = "bar",
-#'            plot_mode = "horizontalstack",
-#'            plot_axes = set_axes(
-#'              y = "Alue",
-#'              yticktype = "character",
-#'              x = "value",
-#'              xticktype = "numeric")
+#'   roboplot(
+#'     Suunta,
+#'     set_title(
+#'       stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
+#'       xref = "container"
+#'     ),
+#'     "Milj. \u20AC",
+#'     set_caption("Tilastokeskus", xref = "container"),
+#'     plot_type = "bar",
+#'     plot_mode = "horizontalstack",
+#'     plot_axes = set_axes(
+#'       y = "Alue",
+#'       x = "value"
+#'     )
 #'   )
 #'
 #' # You can use `secondary_yaxis` to define which observations from 'color' use
@@ -633,6 +644,8 @@ roboplot <- function(d = NULL,
     plot_axes$y2 <- secondary_yaxis
   }
 
+  plot_axes <- roboplotr_set_ticktypes(d, plot_axes)
+
   if (!all(plot_axes[c("x", "y")] %in% d_names)) {
     stop(
       str_glue(
@@ -755,6 +768,7 @@ roboplot <- function(d = NULL,
   }
 
   caption <- roboplotr_set_caption(caption, d, "in roboplot()")
+
 
   roboplotr_typecheck(xaxis_ceiling, c("character", "Date"), allow_null = F)
   if (!"date" %in% plot_axes$xticktype | !"time" %in% d_names) {

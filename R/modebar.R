@@ -63,10 +63,14 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
 
   dl_string <- (function() {
     d <- p$data
+
     if("time" %in% names(d) & !is.null(dateformat)) {
       if(str_detect(dateformat,"Q")) {
         d <- d |> mutate(time = str_c(format(as_date(.data$time), "%YQ"),lubridate::quarter(.data$time)))
       } else {
+        if(str_detect(dateformat, "-")) {
+          dateformat <- "%Y-%m-%d"
+        }
         d <- d |> mutate(time = format(as_date(.data$time), dateformat))
       }
     }
@@ -181,7 +185,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
             "font-family: {main_font$family}; font-size: {main_font$size}px;"
           ),
           tags$p(HTML(as.character(info_text))),
-          tags$p(HTML(caption))
+          tags$p(HTML(caption$text))
 
         )
       )

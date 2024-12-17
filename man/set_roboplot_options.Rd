@@ -9,7 +9,8 @@ set_roboplot_options(
   artefacts = NULL,
   border = NULL,
   background_color = NULL,
-  caption_template = NULL,
+  caption = NULL,
+  caption_template,
   dashtypes = NULL,
   font_main = NULL,
   font_title = NULL,
@@ -25,10 +26,12 @@ set_roboplot_options(
   logo_file = NULL,
   markers = NULL,
   modebar = NULL,
+  override_webshot = NULL,
   name = NULL,
   patterns = NULL,
   rounding = NULL,
   tidy_legend = NULL,
+  title = NULL,
   trace_border = NULL,
   trace_colors = NULL,
   xaxis_ceiling = NULL,
@@ -50,8 +53,12 @@ set_roboplot_options(
 \item{background_color}{Character. Plot background color. Must be a hexadecimal
 color or a valid css color.}
 
-\item{caption_template}{Character. Template for \code{\link[stringr:str_glue]{stringr::str_glue()}} used to
-parse captions.}
+\item{caption}{Function. Controls caption defaults. Param \code{template} is used
+with \code{\link[stringr:str_glue]{stringr::str_glue()}} to parse captions. Param \code{xref} is used to control
+caption's left anchoring, and is ignored by \code{\link[=robomap]{robomap()}} and \code{\link[=robotable]{robotable()}}. Use
+\code{\link[=set_caption]{set_caption()}}.}
+
+\item{caption_template}{Deprecated. Use caption instead.}
 
 \item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must
 contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
@@ -84,6 +91,9 @@ the buttons contained in modebar in the given order. Must contain any of "home",
 "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl"
 and "robonomist" in any order.}
 
+\item{override_webshot}{Logical. Overrides webshot screenshot function. Use when
+you want to automate pdf file creation from \code{roboplot()}. Other uses are fine without.}
+
 \item{name}{Character. Saves the current roboplot options as defaults for future
 calls of \code{set_roboplot_options(reset)} or \code{roboplot(roboplot_options)}.}
 
@@ -94,6 +104,10 @@ contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
 \item{tidy_legend}{Logical. Controls whether the legend items will have matching
 widths, making for neater legends, or containing text widths, saving space.}
+
+\item{title}{Function. Controls title defaults. Param \code{include} controls whether
+the title is included in html. Param \code{xref} is used to control title's left anchoring,
+and is ignored by \code{\link[=robomap]{robomap()}} and \code{\link[=robotable]{robotable()}}. Use \code{\link[=set_title]{set_title()}}.}
 
 \item{trace_border}{List. Borders for bars, pies and markers. Values must be
 named "color" and "width". "color" needs to be a hexadecimal color or a
@@ -209,7 +223,7 @@ d |> roboplot(Alue, "Energian tuonti", "Milj €", "Tilastokeskus")
 set_roboplot_options(imgdl_wide = set_imgdl_layout(width = 1600))
 
 
-# Captions are partly controlled by `caption template`, while you will probably
+# Captions are partly controlled by `caption`, while you will probably
 # want to provide the actual content in `roboplot()`.
 
 set_roboplot_options(

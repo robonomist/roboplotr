@@ -33,7 +33,8 @@
 #'
 #' # Control the plot axes with roboplotr::set_axes, setting the columns
 #' # from roboplotr::roboplot variable 'd' as the axis data sources with 'x' and
-#' # 'y', and ticktypes with 'xticktype' and 'yticktype'.
+#' # 'y', and possible define ticktypes with 'xticktype' and 'yticktype'. The latter
+#' # is not mandatory, though.
 #' d |> dplyr::filter(time == max(time)) |>
 #'   roboplot(Suunta,
 #'            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
@@ -66,11 +67,11 @@
 #'              xangle = 66
 #'              )
 #'   )
-#' 
-#' # You can use `set_axes(xanchor, xstep)` to control xaxis ticks for date axes. Use 
+#'
+#' # You can use `set_axes(xanchor, xstep)` to control xaxis ticks for date axes. Use
 #' # `xanchor` to set the point at which tick marks are drawn from, and `xstep` to set the
 #' # interval in months. Use NA for numeric axis limits to derive one end from data.
-#' 
+#'
 #' d |> dplyr::filter(Suunta == "Tuonti") |>
 #'   roboplot(Alue,"Energian tuonti","Milj. €","Tilastokeskus",
 #'            plot_axes = set_axes(
@@ -293,34 +294,34 @@ set_axes <-
       x <- "time"
     }
 
-    if (is.null(yticktype)) {
-      if (y == "value") {
-        yticktype <-
-          "numeric"
-      } else if (x == "time") {
-        yticktype <- "date"
-      } else {
-        yticktype <- "character"
-      }
-    }
-
-    if (is.null(xticktype)) {
-      if (x == "time") {
-        xticktype <-
-          "date"
-      } else if (x == "value") {
-        xticktype <- "numeric"
-      }
-    }
-
-    if (is.null(yticktype)) {
-      if (y == "value") {
-        yticktype <-
-          "numeric"
-      } else if (x == "time") {
-        yticktype <- "date"
-      }
-    }
+    # if (is.null(yticktype)) {
+    #   if (y == "value") {
+    #     yticktype <-
+    #       "numeric"
+    #   } else if (x == "time") {
+    #     yticktype <- "date"
+    #   } else {
+    #     yticktype <- "character"
+    #   }
+    # }
+    #
+    # if (is.null(xticktype)) {
+    #   if (x == "time") {
+    #     xticktype <-
+    #       "date"
+    #   } else if (x == "value") {
+    #     xticktype <- "numeric"
+    #   }
+    # }
+    #
+    # if (is.null(yticktype)) {
+    #   if (y == "value") {
+    #     yticktype <-
+    #       "numeric"
+    #   } else if (x == "time") {
+    #     yticktype <- "date"
+    #   }
+    # }
 
     yfont <- substitute(yfont)
     xfont <- substitute(xfont)
@@ -338,15 +339,29 @@ set_axes <-
       }
     }
     arggs <- as.list(environment())
-    for (.name in names(arggs[c("x","y","xticktype","yticktype")])) {
+
+
+    for (.name in names(arggs[c("xticktype","yticktype")])) {
+      Parameter <- arggs[[.name]]
+      roboplotr_typecheck(Parameter, "character", allow_null = T, extra = str_glue("`{.name}` in set_axes()"))
+      if(length(arggs[[.name]]) > 0) {
+        assign(.name, as(arggs[[.name]], "character"))
+      }
+    }
+
+    for (.name in names(arggs[c("x","y")])) {
       Parameter <- arggs[[.name]]
       roboplotr_typecheck(Parameter, "character", allow_null = F, extra = str_glue("`{.name}` in set_axes()"))
       if(length(arggs[[.name]]) > 0) {
         assign(.name, as(arggs[[.name]], "character"))
       }
     }
+
     axis_types <- c("character", "date", "numeric", "log")
-    roboplotr_valid_strings(c(xticktype,yticktype), axis_types, any, "Tick types in set_axes()")
+    purrr::walk(c(xticktype,yticktype)[!is.null(c(xticktype,yticktype))],
+         ~    roboplotr_valid_strings(.x, axis_types, any, "Tick types in set_axes()")
+         )
+
     for (.name in names(arggs[c("xformat","yformat","ylegend","y2legend")])) {
       Parameter <- arggs[[.name]]
       roboplotr_typecheck(Parameter, "character", extra = str_glue("`{.name}` in set_axes()"))
@@ -413,6 +428,34 @@ set_axes <-
 
     .res
   }
+
+roboplotr_set_ticktypes <- function(d, axis_specs) {
+
+  setclass <- function(type) {
+    case_when(type == "date" ~ list(c("POSIXct", "POSIXt", "Date")),
+              type == "character" ~ list(c("factor", "character")),
+              TRUE ~ list(type)) |> unlist()
+  }
+
+    for(.xis in c("x","y")) {
+      if(is.null(axis_specs[[str_c(.xis,"ticktype")]])) {
+        col <- d[[axis_specs[[.xis]]]]
+        roboplot_class <- case_when(inherits(col, c("Date","POSIXt")) ~ "date",
+                                    inherits(col, c("numeric","integer")) ~ "numeric",
+                                    inherits(col, c("factor","character")) ~ "character",
+                                    TRUE ~ NA
+        )
+        if(is.na(roboplot_class)) {
+          stop("Couldn't determine the ticktype for axis ",.xis,". Please provide it with set_axes()!")
+        }
+        axis_specs[str_c(.xis,"ticktype")] <- roboplot_class
+        axis_specs[[str_c(.xis,"class")]] <- setclass(roboplot_class)
+      }
+    }
+
+    axis_specs
+
+}
 
 #' @importFrom plotly layout config
 roboplotr_set_axis_ranges <- function(p, range, rangeslider, hovermode) {
@@ -728,7 +771,7 @@ roboplotr_expand_axis_limits <- function(plot_axes, d, zeroline) {
     plot_axes$xlim[1] <- replace_na(plot_axes$xlim[1], xMin) - xMinMod
     plot_axes$xlim[2] <- replace_na(plot_axes$xlim[2], xMax) + xMaxMod
   }
-  
+
   alter_x <- F
   if (is.logical(zeroline$position)) {
     if (zeroline$position) {
@@ -745,6 +788,6 @@ roboplotr_expand_axis_limits <- function(plot_axes, d, zeroline) {
     plot_axes$xlim[1] <- replace_na(as.Date(plot_axes$xlim[1]), xMin)
     plot_axes$xlim[2] <- replace_na(as.Date(plot_axes$xlim[2]), xMax)
   }
-  
+
   plot_axes
 }

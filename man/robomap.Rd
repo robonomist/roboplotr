@@ -34,7 +34,7 @@ areas described by the map. This must be of class sfc_MULTIPOLYGON.}
 
 \item{title, subtitle}{Characters. Labels for plot elements.}
 
-\item{caption}{Function or character. Use a string, or \code{\link[=set_caption]{set_caption()}}.}
+\item{caption}{Function or character. Use a string, or \code{\link[=set_caption]{set_caption()}}. Param \code{xref} is ignored by \code{robomap}.}
 
 \item{hovertext}{Function. Use \code{\link[=set_hovertext]{set_hovertext()}}.}
 

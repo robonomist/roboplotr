@@ -48,20 +48,32 @@ roboplotr_legend <- function(p, legend) {
 #' @importFrom plotly layout
 roboplotr_caption <- function(p, caption) {
 
-  roboplotr_typecheck(caption, "character", allow_null = F)
+  roboplotr_typecheck(caption, c("character","set_caption"), allow_null = F)
 
-  if(!is.null(caption)) {
+  if(is.character(caption)) {
+    caption <- list(text = "", xref = "plot")
+  }
+
+  if (!is.null(caption)) {
     p <- p |>
       layout(
         annotations = list(
-          x = 0, text = caption, align = "left",
-          showarrow = F, xref = 'paper', yref = "paper",
-          xanchor='left', yanchor = 'bottom', xshift=0, yshift=0,
-          font = getOption("roboplot.font.caption")[c("color","family","size")]
+          x = 0,
+          text = caption$text,
+          align = "left",
+          showarrow = F,
+          xref = 'paper',
+          yref = "paper",
+          xanchor = 'left',
+          yanchor = 'bottom',
+          xshift = 0,
+          yshift = 0,
+          font = getOption("roboplot.font.caption")[c("color", "family", "size")],
+          annotationId = str_glue("caption{caption$xref}"),
+          xmod = caption$xref
         )
       )
   }
-
 
   p
 
@@ -76,6 +88,8 @@ roboplotr_caption <- function(p, caption) {
 #' attributes of `d` in a [roboplots][roboplot()]. Defaults to "PLACEHOLDER".
 #' @param include Logical. Determines whether the given title will be used in
 #' the plot. Will always inlcude it for exported static images.
+#' @param xref Character. Either "container" or "plot". Determines if the title
+#' is anchored to the plot or the container edge.
 #' @param ... Placeholder for other parameters.
 #' @examples
 #' # Used to set titles for plots created with `roboplot()`. You can
@@ -98,10 +112,18 @@ roboplotr_caption <- function(p, caption) {
 #' title = set_title("Energian tuonti Yhdysvalloista", include = FALSE),
 #' subtitle = "Milj. €")
 #'
+#' # Anchor the title to the left edge of the container instead of the plot with
+#' # `xref`. You probably want to do the same for caption, but you don't have to.
+#'
+#'  d |>
+#'   roboplot(Alue,
+#'            title = set_title("Energian tuonti Yhdysvalloista", xref = "container"),
+#'            caption = set_caption("Tilastokeskus", xref = "container")
+#'            )
 #'
 #' @returns A list of class roboplotr.set_title
 #' @export
-set_title <- function(title = NULL, include = T, ...) {
+set_title <- function(title = NULL, include = T, xref = getOption("roboplot.title")$xref, ...) {
 
   args <- list(...)
 
@@ -112,8 +134,12 @@ set_title <- function(title = NULL, include = T, ...) {
   }
 
   roboplotr_typecheck(title, "character", extra = .extra)
+  roboplotr_typecheck(include, "logical", extra = .extra)
+  roboplotr_typecheck(xref, "character", extra = .extra)
+  roboplotr_valid_strings(xref, c("container","plot"), any, "set_title() param 'xref'")
+  xref <- str_replace(xref, "plot","paper")
 
-  .res <- list(title = title, include = include)
+  .res <- list(title = title, include = include, xref = xref)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_title", class(.res)))
 
@@ -126,13 +152,6 @@ set_title <- function(title = NULL, include = T, ...) {
 #' @importFrom stringr str_c
 roboplotr_title <- function(p, title, subtitle) {
 
-  if(!is.null(title)) {
-    `title$title` <- title$title
-    `title$include` <- title$include
-    roboplotr_typecheck(`title$title`, "character")
-    roboplotr_typecheck(`title$include`, "logical")
-  }
-
   roboplotr_typecheck(subtitle, "character", allow_null = F)
 
   if(title$include == T) {
@@ -143,19 +162,22 @@ roboplotr_title <- function(p, title, subtitle) {
   } else {
     txt <- as.character(tags$span("",tags$span(HTML(str_c(subtitle)), style = "font-size: 75%")))
   }
-  p |>
-      layout(
-        title = list(
-          text = txt,
-          font = getOption("roboplot.font.title")[c("color","family","size")],
-          xanchor = "left",
-          yanchor = "bottom",
-          y = 1,
-          x = 0,
-          yref = "container",
-          xref = "paper"
-          )
-      )
+  title_layout <- list(
+    text = txt,
+    font = getOption("roboplot.font.title")[c("color","family","size")],
+    xanchor = "left",
+    yanchor = "bottom",
+    y = 1,
+    x = 0,
+    yref = "container",
+    xref = title$xref
+  )
+  if(title$xref == "container") {
+    title_layout$pad <- list(l = 5)
+  }
+  #   console.log(el.layout.title.pad)
+  # el.layout.annotations[0].xshift = -(yaxis_layer[0].getBBox().width)
+  p |> layout(title = title_layout)
 }
 
 #' Caption configuration
@@ -167,7 +189,10 @@ roboplotr_title <- function(p, title, subtitle) {
 #' @param ... Other parameters to be passed to template.
 #' @param template Character. Template for [stringr::str_glue()] used to parse
 #' the caption with the given parameters.
-#' @returns A character of class glue and roboplot.set_caption
+#' @param xref Character. Either "container" or "plot". Determines if the caption
+#' is anchored to the plot or the container edge. Ignored for `robotable()` and
+#' `robomap()`.
+#' @returns A list of class roboplot.set_caption
 #' @examples
 #' # Used to define how captions are constructed inside `roboplot()`. The used
 #' # parameters are used inside stringr::str_glue() to parse a caption
@@ -181,6 +206,14 @@ roboplotr_title <- function(p, title, subtitle) {
 #' d |> roboplot(Alue,"Energian tuonti Yhdysvalloista","Milj. €",
 #'                    caption = "Tilastokeskus")
 #'
+#' # Anchor the caption to the left edge of the container instead of the plot with
+#' # `xref`. You probably want to do the same for title, but you don't have to.
+#'
+#'  d |>
+#'   roboplot(Alue,
+#'            title = set_title("Energian tuonti Yhdysvalloista", xref = "container"),
+#'            caption = set_caption("Tilastokeskus", xref = "container")
+#'            )
 #'
 #' # Override the global template with function parameters and provide
 #' # parameters for it. The example is unnecessarily complicated, but gives the
@@ -211,10 +244,15 @@ roboplotr_title <- function(p, title, subtitle) {
 #' # Revert to defaults:
 #' set_roboplot_options(reset = TRUE)
 #'
+#' # Finally, don't use a caption by providing NA.
+#'
+#' d |> roboplot(Alue, "Energin tuonti Kanadasta", "Milj €", caption = NA)
+#'
 #' @importFrom stringr str_glue
 #' @export
 
-set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.template")) {
+set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.template"), xref = getOption("roboplot.caption.xref")) {
+
 
   if(is.na(text)) {
     .res <- NA
@@ -222,6 +260,12 @@ set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.t
     list2env(list(...), envir = environment())
     .res <- str_glue(template)
   }
+
+  roboplotr_typecheck(xref, "character", extra = "in set_caption()")
+  roboplotr_valid_strings(xref, c("container","plot"), any, "set_caption() param 'xref'")
+  xref <- str_replace(xref, "plot","paper")
+
+  .res <- list(text = .res, xref = xref)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_caption", class(.res)))
 
@@ -623,7 +667,7 @@ roboplotr_set_caption <- function(caption, d, where) {
   roboplotr_typecheck(caption, c("character","set_caption"), extra = where, allow_na = T)
 
   if (!is.null(caption)) {
-    if(is.na(caption)) {
+    if(any(is.na(caption))) {
       return("")
     }
     if (!inherits(caption,"roboplotr.set_caption")) {

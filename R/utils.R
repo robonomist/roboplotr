@@ -8,8 +8,11 @@
 #' @param grid Function. Control the grid behind the traces. Use [set_grid()].
 #' @param background_color Character. Plot background color. Must be a hexadecimal
 #' color or a valid css color.
-#' @param caption_template Character. Template for [stringr::str_glue()] used to
-#' parse captions.
+#' @param caption Function. Controls caption defaults. Param `template` is used
+#' with [stringr::str_glue()] to parse captions. Param `xref` is used to control
+#' caption's left anchoring, and is ignored by [robomap()] and [robotable()]. Use
+#' [set_caption()].
+#' @param caption_template Deprecated. Use caption instead.
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must
 #' contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
 #' @param font_main,font_title,font_caption Functions. Use [set_font()].
@@ -29,6 +32,8 @@
 #' the buttons contained in modebar in the given order. Must contain any of "home",
 #' "closest", "compare", "zoomin", "zoomout", "img_w", "img_n", "img_s", "data_dl"
 #' and "robonomist" in any order.
+#' @param override_webshot Logical. Overrides webshot screenshot function. Use when
+#' you want to automate pdf file creation from `roboplot()`. Other uses are fine without.
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must
 #' contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
 #' @param rounding Double. Default rounding for numeric values across various roboplotr functions.
@@ -42,6 +47,9 @@
 #' "days", "months", "weeks", "quarters", "years" or "guess".
 #' @param tidy_legend Logical. Controls whether the legend items will have matching
 #' widths, making for neater legends, or containing text widths, saving space.
+#' @param title Function. Controls title defaults. Param `include` controls whether
+#' the title is included in html. Param `xref` is used to control title's left anchoring,
+#' and is ignored by [robomap()] and [robotable()]. Use [set_title()].
 #' @param zeroline Function. Control the appearance of zeroline when set using [roboplot()]
 #' parameter `zeroline`. Use [set_zeroline()].
 #' @param verbose Character. Will roboplotr display all messages, alerts and warnings,
@@ -140,7 +148,7 @@
 #' set_roboplot_options(imgdl_wide = set_imgdl_layout(width = 1600))
 #'
 #'
-#' # Captions are partly controlled by `caption template`, while you will probably
+#' # Captions are partly controlled by `caption`, while you will probably
 #' # want to provide the actual content in `roboplot()`.
 #'
 #' set_roboplot_options(
@@ -228,7 +236,8 @@ set_roboplot_options <- function(
     artefacts = NULL,
     border = NULL,
     background_color = NULL,
-    caption_template = NULL,
+    caption = NULL,
+    caption_template,
     dashtypes = NULL,
     font_main = NULL,
     font_title = NULL,
@@ -244,10 +253,12 @@ set_roboplot_options <- function(
     logo_file = NULL,
     markers = NULL,
     modebar = NULL,
+    override_webshot = NULL,
     name = NULL,
     patterns = NULL,
     rounding = NULL,
     tidy_legend = NULL,
+    title = NULL,
     trace_border = NULL,
     trace_colors = NULL,
     xaxis_ceiling = NULL,
@@ -272,7 +283,8 @@ set_roboplot_options <- function(
     }
   }
 
-  roboplotr_override_webshot_screenshot()
+  roboplotr_typecheck(override_webshot, "logical", allow_null = T)
+  roboplotr_override_webshot_screenshot(override_webshot)
 
   roboplotr_typecheck(verbose, "character", allow_null = T)
   roboplotr_valid_strings(verbose, c("All","Alert","Warning"), any)
@@ -324,7 +336,23 @@ set_roboplot_options <- function(
     roboplotr_typecheck(background_color, "character")
     roboplotr_valid_colors(background_color)
 
-    roboplotr_typecheck(caption_template, "character")
+    roboplotr_typecheck(caption, "set_caption", allow_null = T)
+
+    if(is_present(caption_template)) {
+      deprecate_warn("2.4.0", "roboplotr::set_roboplot_options(caption_template)", "roboplotr::set_roboplot_options(caption)")
+      roboplotr_typecheck(caption_template, "character")
+      caption_template <- caption_template
+    }
+
+    if(!is.null(caption)) {
+      if(!is_present(caption_template)) {
+        caption_template <- caption$template
+      }
+      caption_xref <- caption$xref
+    }
+
+    if(!is_present(caption_template)) {caption_template <- NULL}
+    if(!exists("caption_xref", envir = environment())) {caption_xref <- NULL}
 
     roboplotr_typecheck(dashtypes, "character", NULL)
     roboplotr_valid_strings(dashtypes,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"))
@@ -389,6 +417,8 @@ set_roboplot_options <- function(
 
     roboplotr_typecheck(tidy_legend, "logical")
 
+    roboplotr_typecheck(title, "set_title")
+
     roboplotr_typecheck(trace_border, "list", allow_null = T)
     if(!is.null(trace_border)) {
       if(is.null(trace_border$color) | is.null(trace_border$width)) {
@@ -426,6 +456,7 @@ set_roboplot_options <- function(
     set_roboplot_option(border)
     set_roboplot_option(background_color, "colors.background")
     set_roboplot_option(caption_template, "caption.template")
+    set_roboplot_option(caption_xref, "caption.xref")
     set_roboplot_option(dashtypes)
     set_roboplot_option(font_main, "font.main")
     set_roboplot_option(font_title, "font.title")
@@ -444,6 +475,7 @@ set_roboplot_options <- function(
     set_roboplot_option(imgdl_small,"imgdl.small")
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(shinyapp)
+    set_roboplot_option(title)
     set_roboplot_option(trace_border, "trace.border")
     set_roboplot_option(trace_colors, "colors.traces")
     set_roboplot_option(zeroline)

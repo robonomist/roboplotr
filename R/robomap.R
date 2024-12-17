@@ -239,7 +239,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @param area Symbol or string. Variable from argument 'd' to use to identify the
 #' areas described by the map. This must be of class sfc_MULTIPOLYGON.
 #' @param title,subtitle Characters. Labels for plot elements.
-#' @param caption Function or character. Use a string, or [set_caption()].
+#' @param caption Function or character. Use a string, or [set_caption()]. Param `xref` is ignored by `robomap`.
 #' @param map_opacity,tile_opacity Numeric. Values from 0 to 1, defining how opaque
 #' the map polygon fill color or underlying map tiles are. 0 removes the tile layer,
 #' but retains the polygon borders if any.
@@ -476,7 +476,7 @@ robomap <-
 
     rounding <- hovertext$rounding
 
-    caption <- roboplotr_set_caption(caption, d, "in `robomap()`")
+    caption <- roboplotr_set_caption(caption, d, "in `robomap()`")$text
 
     roboplotr_typecheck(width, "numeric", allow_na = T)
     roboplotr_typecheck(height, "numeric", allow_na = T)

@@ -1,3 +1,10 @@
+# roboplotr 2.4.0
+
+* Fixes `robotable()` date columns and `roboplot()` data downloads for dates not formatting leading zeroes properly on windows.
+* Adds the options to anchor `roboplot()` titles and captions to left container edge instead of left plot edge with param `xref` in `set_title()` and `set_caption()` respectively. You can set them globally with `set_roboplot_options()`.
+* Makes `set_roboplot_option(override_webshot)` default to FALSE.
+* Removes the necessity of manually setting ticktypes with `set_axes()` when you are not using a numeric "value" and date "time"-columns.
+
 # roboplotr 2.3.2
 
 * Fixes `robotable()` not being able to handle data with no numeric columns.

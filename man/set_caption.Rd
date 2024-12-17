@@ -4,7 +4,12 @@
 \alias{set_caption}
 \title{Caption configuration}
 \usage{
-set_caption(text = NA, ..., template = getOption("roboplot.caption.template"))
+set_caption(
+  text = NA,
+  ...,
+  template = getOption("roboplot.caption.template"),
+  xref = getOption("roboplot.caption.xref")
+)
 }
 \arguments{
 \item{text}{Character. The text used in the template (make sure the template
@@ -14,9 +19,13 @@ has the parameter \code{text}).}
 
 \item{template}{Character. Template for \code{\link[stringr:str_glue]{stringr::str_glue()}} used to parse
 the caption with the given parameters.}
+
+\item{xref}{Character. Either "container" or "plot". Determines if the caption
+is anchored to the plot or the container edge. Ignored for \code{robotable()} and
+\code{robomap()}.}
 }
 \value{
-A character of class glue and roboplot.set_caption
+A list of class roboplot.set_caption
 }
 \description{
 Parameters to customize caption defaults.
@@ -34,6 +43,14 @@ d <- energiantuonti |> dplyr::filter(Alue == "USA",Suunta == "Tuonti")
 d |> roboplot(Alue,"Energian tuonti Yhdysvalloista","Milj. €",
                    caption = "Tilastokeskus")
 
+# Anchor the caption to the left edge of the container instead of the plot with
+# `xref`. You probably want to do the same for title, but you don't have to.
+
+ d |>
+  roboplot(Alue,
+           title = set_title("Energian tuonti Yhdysvalloista", xref = "container"),
+           caption = set_caption("Tilastokeskus", xref = "container")
+           )
 
 # Override the global template with function parameters and provide
 # parameters for it. The example is unnecessarily complicated, but gives the
@@ -63,5 +80,9 @@ d |> roboplot(Alue,"Energy import from Canada","M€", "Statistic Finland")
 
 # Revert to defaults:
 set_roboplot_options(reset = TRUE)
+
+# Finally, don't use a caption by providing NA.
+
+d |> roboplot(Alue, "Energin tuonti Kanadasta", "Milj €", caption = NA)
 
 }

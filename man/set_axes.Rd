@@ -76,7 +76,8 @@ attr(d, "frequency") <- "Quarterly"
 
 # Control the plot axes with roboplotr::set_axes, setting the columns
 # from roboplotr::roboplot variable 'd' as the axis data sources with 'x' and
-# 'y', and ticktypes with 'xticktype' and 'yticktype'.
+# 'y', and possible define ticktypes with 'xticktype' and 'yticktype'. The latter
+# is not mandatory, though.
 d |> dplyr::filter(time == max(time)) |>
   roboplot(Suunta,
            stringr::str_glue("Energian tuonti {lubridate::year(max(d$time))}"),
@@ -110,7 +111,7 @@ d |>
              )
   )
 
-# You can use `set_axes(xanchor, xstep)` to control xaxis ticks for date axes. Use 
+# You can use `set_axes(xanchor, xstep)` to control xaxis ticks for date axes. Use
 # `xanchor` to set the point at which tick marks are drawn from, and `xstep` to set the
 # interval in months. Use NA for numeric axis limits to derive one end from data.
 

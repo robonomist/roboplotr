@@ -173,12 +173,18 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 
   if(yaxis_layer.length > 0) {
     let yticks = $(el).find('g.ytick');
-    let yspace = [...yticks].reduce((a,b) => a + b.getBBox().height, 0)
-    if( elplot.height <= yspace) {
+    let yvertical = [...yticks].reduce((a,b) => a + b.getBBox().height, 0)
+    if( elplot.height <= yvertical) {
       yaxis_font_size = Math.floor(el.layout.yaxis.tickfont.size * 0.8)
     } else {
       yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size*1.5), legend_fontsize.y)
     }
+
+    if(el.layout.annotations[0].xmod == "container") {
+      let yaxis_width = yaxis_layer[0].getBBox().width;
+      el.layout.annotations[0].xshift = -yaxis_width;
+    }
+
   }
 
   let thearray = {
@@ -328,7 +334,7 @@ function setUpdatemenuPosition(gd) {
       let updatemenu_x = gd.layout.updatemenus[0].xanchor == "left" ? 0.02 : 0.98;
 //      let updatemenu_x = 0.9
       Plotly.relayout(gd, {
-        "updatemenus[0].y": updatemenu_y, 
+        "updatemenus[0].y": updatemenu_y,
         "updatemenus[0].x": updatemenu_x
       });
     }
@@ -385,6 +391,17 @@ function findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace) {
 
   return relayout_array
 }
+
+function findAnnotationById(plotDiv, customId) {
+  let annotations = plotDiv.layout.annotations || [];
+  for (let i = 0; i < annotations.length; i++) {
+    if (annotations[i].annotationId === customId) {
+      return i;
+    }
+  }
+  return null; // If no shape is found with the given identifier
+}
+
 
 function findShapeById(plotDiv, customId) {
   let shapes = plotDiv.layout.shapes || [];

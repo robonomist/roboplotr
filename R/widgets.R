@@ -487,19 +487,22 @@ roboplotr_new_session_screenshot <- function(
 }
 
 #' @importFrom utils assignInNamespace
-roboplotr_override_webshot_screenshot <- function(...) {
-  if(!getOption("roboplotr.webshot.screenshot")  %||% FALSE) {
-    if ("webshot2" %in% loadedNamespaces()) {
-      tryCatch({
-        assignInNamespace("new_session_screenshot", roboplotr_new_session_screenshot, ns = "webshot2")
-        options("roboplotr.webshot.screenshot" = TRUE)
-        # message("Custom `new_session_screenshot` successfully assigned.")
-      }, error = function(e) {
-        warning("Failed to replace `new_session_screenshot` from webshot2: pdf creation is not well supported.")#, conditionMessage(e))
-      })
+roboplotr_override_webshot_screenshot <- function(override = FALSE) {
+  if(!is.null(override)) {
+    if(override) {
+      if ("webshot2" %in% loadedNamespaces()) {
+        tryCatch({
+          assignInNamespace("new_session_screenshot", roboplotr_new_session_screenshot, ns = "webshot2")
+        }, error = function(e) {
+          warning("Failed to replace `new_session_screenshot` from webshot2: pdf creation is not well supported.", call. = F)
+        })
+      } else {
+        warning("webshot2 package is not loaded, pdf creation is not well supported.", call. = F)
+      }
     } else {
-      roboplotr_message("webshot2 package is not loaded, pdf creation is not well supported.")
+      warning("To cancel the webshot2 override, restart the R session.", call. = F)
     }
   }
+
 }
 
