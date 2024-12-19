@@ -43,6 +43,7 @@ function findModeBarHeight(el) {
 function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart, logo = undefined, tidy_legend = false, legend_position = "auto") {
   //  console.log("NEW RELAYOUT")
   //  console.log("margin b init: " + el.layout.margin.b)
+  const checkForBR = (string) => (/<br>/.test(string)) ? 11 : 16;
   adjustLegendItems(el, tidy_legend);
   let elcontainer = {height: $(el).find("svg.main-svg")[0].height.animVal.value, width: $(el).find("svg.main-svg")[0].width.animVal.value};
   let eltitle = $(el).find('g.g-gtitle')[0].getBBox();
@@ -60,7 +61,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     let yaxiswidth = is_yaxistitle2 ? $(el).find('g.g-y2title')[0].getBBox().width : 0
     margin_right = yaxis2.width+5+yaxiswidth
   }
-  let margin_top = eltitle.height + modebar_ht + 11;
+  let margin_top = eltitle.height + modebar_ht + checkForBR(el.layout.title.text);
   let elcaption = $(el).find('g.annotation')[0].getBBox().height + 5;
   let elxtitle = $(el).find('g.g-xtitle')
   if(elxtitle.length > 0) {
@@ -136,7 +137,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     let elxticks = $(el).find('g.xaxislayer-above')
     if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  elxticks_default };
     let modebar_ht = findModeBarHeight(el)
-    let margin_top = eltitle.height + modebar_ht + 11;
+    let margin_top = eltitle.height + modebar_ht + checkForBR(el.layout.title.text);
     let elcaption = $(el).find('g.annotation')[0].getBBox().height + 5;
     let elxtitle = $(el).find('g.g-xtitle')
     if(elxtitle.length > 0) {

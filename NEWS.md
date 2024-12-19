@@ -1,3 +1,8 @@
+# roboplotr 2.4.1
+
+* Fixes `roboplot()` too tight top margin when there is a subtitle without a title.
+* Makes it explicit that `roboplot()` must be provided either `color`, or `title` with string length of 1+.
+
 # roboplotr 2.4.0
 
 * Fixes `robotable()` date columns and `roboplot()` data downloads for dates not formatting leading zeroes properly on windows.

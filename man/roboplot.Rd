@@ -42,15 +42,17 @@ roboplot(
 }
 \arguments{
 \item{d}{Data frame. Data to be plotted with at least "time" (Date or POSIXt)
-and "value" (numeric) columns. Other columns can be specified using \code{plot_axes} via \code{\link[=set_axes]{set_axes()}}.}
+and "value" (numeric) columns. Other columns can be specified using \code{plot_axes}
+via \code{\link[=set_axes]{set_axes()}}.}
 
 \item{color}{Symbol or string. Column from \code{d} to use for trace color. If NULL,
-\code{subtitle} is used for color and hover labels.}
+\code{title} text is used for color and hover labels.}
 
 \item{title, caption}{Characters or functions. Labels for plot elements. Use
-\code{\link[=set_title]{set_title()}} to omit the title from the displayed plot but include it in modebar
-downloads. Use \code{\link[=set_caption]{set_caption()}} to override any caption defaults set with
-\code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
+\code{\link[=set_title]{set_title()}} to omit the title from the displayed plot but include
+it in modebar downloads, or alter the title's relative positioning. When using
+\link{set_title(include = F)}, you probably want to include a \code{title} for \code{\link[=roboplot]{roboplot()}}'s
+internal use. Use \code{\link[=set_caption]{set_caption()}} to override any caption defaults set with \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
 \item{subtitle}{Character. Label for plot element.}
 

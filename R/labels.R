@@ -85,11 +85,15 @@ roboplotr_caption <- function(p, caption) {
 #' [robotables][robomap()] and [robomaps][robomap()], but don't really do anything.
 #'
 #' @param title Character. Optional. Will try to determine a title based on
-#' attributes of `d` in a [roboplots][roboplot()]. Defaults to "PLACEHOLDER".
+#' attributes of `d` in a [roboplots][roboplot()]. Defaults to "PLACEHOLDER". Omit
+#' by providing "", but for [roboplot][roboplot()], you need to provide a `color`
+#' if you don't have a title.
 #' @param include Logical. Determines whether the given title will be used in
-#' the plot. Will always inlcude it for exported static images.
+#' the displayed plot. Will always inlcude it for modebar-exported static images.
+#' You should still provide a `title` even if you don't want it displayed in the
+#' plot (see `title`).
 #' @param xref Character. Either "container" or "plot". Determines if the title
-#' is anchored to the plot or the container edge.
+#' is anchored to the left plot or the container edge.
 #' @param ... Placeholder for other parameters.
 #' @examples
 #' # Used to set titles for plots created with `roboplot()`. You can
@@ -102,9 +106,9 @@ roboplotr_caption <- function(p, caption) {
 #' # However, if you want to render the plot without the title included, you
 #' # can use `set_title(include = F)` to omit it from the plot. This
 #' # is for cases where you will insert the plot into environment where the
-#' # title is outside the plot element. When exporting, you would till want to have
-#' # the title included, and `roboplot()` takes care of this. If you include a subtitle,
-#' # it will be displayed regardless.
+#' # title is outside the plot element. When exporting, you would still want to
+#' have the title included, and `roboplot()` takes care of this. If you include
+#' a subtitle, it will be displayed regardless.
 #'
 #'
 #' d |>
@@ -123,7 +127,7 @@ roboplotr_caption <- function(p, caption) {
 #'
 #' @returns A list of class roboplotr.set_title
 #' @export
-set_title <- function(title = NULL, include = T, xref = getOption("roboplot.title")$xref, ...) {
+set_title <- function(title = NULL, include = getOption("roboplot.title")$include, xref = getOption("roboplot.title")$xref, ...) {
 
   args <- list(...)
 
@@ -138,6 +142,10 @@ set_title <- function(title = NULL, include = T, xref = getOption("roboplot.titl
   roboplotr_typecheck(xref, "character", extra = .extra)
   roboplotr_valid_strings(xref, c("container","plot"), any, "set_title() param 'xref'")
   xref <- str_replace(xref, "plot","paper")
+
+  if(!include & str_length(as.character(title)) == 0) {
+    warning("`title` is empty and `include` is FALSE in {.extra}. Artefact names and other plot elements might not work properly.", call. = F)
+  }
 
   .res <- list(title = title, include = include, xref = xref)
 
@@ -159,7 +167,9 @@ roboplotr_title <- function(p, title, subtitle) {
       "<span>",title$title,
       as.character(tags$span(HTML(str_c("<br>",subtitle)), style = "font-size: 75%")),"</span>"
     )
+    # txt <-tags$span(tags$span(title$title), style = "display: block", tags$span(subtitle, style = "display: block; font-size: 75%")) |> as.character()
   } else {
+    # txt <- tags$span(tags$span(subtitle, style = "display: block; font-size: 75%")) |> as.character()
     txt <- as.character(tags$span("",tags$span(HTML(str_c(subtitle)), style = "font-size: 75%")))
   }
   title_layout <- list(

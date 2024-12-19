@@ -187,16 +187,18 @@ roboplotr_dependencies <- function(p,
 #' such as resizing and customization, simplifying the creation of advanced visualizations.
 #'
 #' @param d Data frame. Data to be plotted with at least "time" (Date or POSIXt)
-#' and "value" (numeric) columns. Other columns can be specified using `plot_axes` via [set_axes()].
+#' and "value" (numeric) columns. Other columns can be specified using `plot_axes`
+#' via [set_axes()].
 #' @param color Symbol or string. Column from `d` to use for trace color. If NULL,
-#' `subtitle` is used for color and hover labels.
+#' `title` text is used for color and hover labels.
 #' @param pattern Symbol or string. Column from `d` to use for scatter plot linetype
 #' or bar plot pattern. Not supported for pie charts. Use [set_pattern()] for detailed
 #' control.
 #' @param title,caption Characters or functions. Labels for plot elements. Use
-#' [set_title()] to omit the title from the displayed plot but include it in modebar
-#' downloads. Use [set_caption()] to override any caption defaults set with
-#' [set_roboplot_options()].
+#' [set_title()] to omit the title from the displayed plot but include
+#' it in modebar downloads, or alter the title's relative positioning. When using
+#' [set_title(include = F)], you probably want to include a `title` for [roboplot()]'s
+#' internal use. Use [set_caption()] to override any caption defaults set with [set_roboplot_options()].
 #' @param subtitle Character. Label for plot element.
 #' @param legend Character or function. Use [set_legend()]. If character, use "bottom",
 #' or NA for no legend. The legend is removed by default if `color` in `d` has only
@@ -674,6 +676,12 @@ roboplot <- function(d = NULL,
   color <- roboplotr_check_valid_var(color, d_names)
 
   if (is.null(color)) {
+    if (str_length(title$title) == 0) {
+      stop(
+        "You must either specify a `color` or a `title` with string length of more than 0 for the plot!",
+        call. = FALSE
+      )
+    }
     color <- quo(!!sym("roboplot.topic"))
   }
 

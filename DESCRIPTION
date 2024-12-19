@@ -1,6 +1,6 @@
 Package: roboplotr
 Title: Robonomist Automated Plotly Plotter
-Version: 2.4.0
+Version: 2.4.1
 Authors@R: 
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
 Description: Comprehensive plotly wrapper function simplifying the creation and customization of advanced visualizations.

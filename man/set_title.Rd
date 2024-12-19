@@ -6,20 +6,24 @@
 \usage{
 set_title(
   title = NULL,
-  include = T,
+  include = getOption("roboplot.title")$include,
   xref = getOption("roboplot.title")$xref,
   ...
 )
 }
 \arguments{
 \item{title}{Character. Optional. Will try to determine a title based on
-attributes of \code{d} in a \link[=roboplot]{roboplots}. Defaults to "PLACEHOLDER".}
+attributes of \code{d} in a \link[=roboplot]{roboplots}. Defaults to "PLACEHOLDER". Omit
+by providing "", but for \link[=roboplot]{roboplot}, you need to provide a \code{color}
+if you don't have a title.}
 
 \item{include}{Logical. Determines whether the given title will be used in
-the plot. Will always inlcude it for exported static images.}
+the displayed plot. Will always inlcude it for modebar-exported static images.
+You should still provide a \code{title} even if you don't want it displayed in the
+plot (see \code{title}).}
 
 \item{xref}{Character. Either "container" or "plot". Determines if the title
-is anchored to the plot or the container edge.}
+is anchored to the left plot or the container edge.}
 
 \item{...}{Placeholder for other parameters.}
 }
@@ -41,9 +45,9 @@ d |> roboplot(Alue,"Energian tuonti Yhdysvalloista")
 # However, if you want to render the plot without the title included, you
 # can use `set_title(include = F)` to omit it from the plot. This
 # is for cases where you will insert the plot into environment where the
-# title is outside the plot element. When exporting, you would till want to have
-# the title included, and `roboplot()` takes care of this. If you include a subtitle,
-# it will be displayed regardless.
+# title is outside the plot element. When exporting, you would still want to
+have the title included, and `roboplot()` takes care of this. If you include
+a subtitle, it will be displayed regardless.
 
 
 d |>
