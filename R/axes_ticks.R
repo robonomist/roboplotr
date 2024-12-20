@@ -692,20 +692,25 @@ roboplotr_set_ticks <- function(p, ticktypes) {
 
 
 #' @importFrom dplyr case_when
-#' @importFrom lubridate as_date month quarter wday week yday
+#' @importFrom lubridate as_date duration month quarter wday week yday
 roboplotr_guess_xaxis_ceiling <-
   function(d, hovertext, ceiling = "guess", what = "xaxis_ceiling") {
-
     this_time <- unique(d$time)
     this_time <- subset(this_time, !is.na(this_time))
 
     if(suppressWarnings(!is.na(as_date(ceiling)))) {
       if(ceiling < max(this_time)) {
-        roboplotr_message(str_glue("Provided {what} is less than max time of parameter 'd' of roboplotr::roboplot()."))
+        roboplotr_message(str_glue("Provided {what} is less than max time of parameter 'd' of `roboplot()`."))
       }
       this_ceiling <- ceiling
     } else if(ceiling != "guess") {
-      this_ceiling <- ceiling_date(max(this_time), ceiling, week_start = 1)
+      if(str_detect(ceiling, "quarters")) {
+        ceiling <- str_glue('{3 * as.numeric(str_extract(ceiling, "^[0-9]*"))} months') |> str_replace("NA ","")
+      }
+      if(!str_detect(ceiling, "^[0-9]")) {
+        ceiling <- str_glue("1 {ceiling}")
+      }
+      this_ceiling <- as_date(max(this_time) + duration(ceiling))
     } else {
       attr_freq <- roboplotr_get_dateformat(d, msg = F)
       hovertext_freq <- hovertext$dateformat

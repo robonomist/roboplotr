@@ -34,6 +34,7 @@ roboplot(
   artefacts = getOption("roboplot.artefacts")$auto,
   info_text = NULL,
   updatemenu = NULL,
+  zoom = getOption("roboplot.zoom"),
   roboplot_options = NULL,
   legend_position = deprecated(),
   legend_maxwidth = deprecated(),
@@ -106,7 +107,11 @@ for responsive plots.}
 
 \item{facet_split}{Currently unused. Variable from \code{d} for facet splits.}
 
-\item{xaxis_ceiling}{Character or date. Sets or rounds the upper bound of the}
+\item{xaxis_ceiling}{Character or date. Sets or rounds the upper bound of the
+x-axis for non-bar plots. Use "guess" for automatic ceiling based on the data.
+use "days", "weeks", "months", "quarters" or "years" for giving that much room,
+preceded with a number like "2 weeks", for a specific amount of time. Use "default"
+for the default set with \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
 \item{shadearea}{Date, numeric or function. Highlight an area on the plot. Use
 \code{\link[=set_shadearea]{set_shadearea()}} for detailed control. Works with numeric or date x-axis and numeric y-axis.}
@@ -122,6 +127,8 @@ TRUE for automated artefact creation based on \code{\link[=set_roboplot_options]
 \item{info_text}{Character. Adds an info button to the modebar with this text, along with plot title and caption.}
 
 \item{updatemenu}{Function. Use \code{\link[=set_updatemenu]{set_updatemenu()}} for detailed control.}
+
+\item{zoom}{Character of function. Use \code{\link[=set_zoom]{set_zoom()}}, or give "none", "scroll", or "drag".}
 
 \item{roboplot_options}{Character. A name of roboplot options set with \code{\link[=set_roboplot_options]{set_roboplot_options()}} param \code{name}.
 See documentation of \code{\link[=set_roboplot_options]{set_roboplot_options()}} for details.}

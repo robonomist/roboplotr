@@ -477,7 +477,7 @@ function stringDivider(str, width, spaceReplacer) {
 
 function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
 
-  if (Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]') {
+  if (Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]' | 'xaxis.range[0]' in eventdata | "xaxis.autorange" in eventdata) {
     var xRange = gd.layout.xaxis.range;
     var yRange = gd.layout.yaxis.range;
     var yInside = [];
@@ -535,19 +535,32 @@ function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
     }
 
     let yMax = Math.max(...yInside);
-    yMax = yMax < 0 ? yMax * 0.95 : yMax * 1.05;
     let yMin = Math.min(...yInside);
-    yMin = yMin < 0 ? yMin * 1.05 : yMin * 0.95;
+    let yMod = Math.abs(yMax-yMin)*0.04
+    yMax = yMax + yMod;
+    yMin = yMin - yMod;
     let zline = findShapeById(gd, "zeroline")
     let sarea = findShapeById(gd, "shadearea")
     var update = {'yaxis.range': [yMin,yMax]}
     if(zline != null) {
-      update['shapes['+zline+'].x0'] = xRange[0]
+      if("xaxis.autorange" in eventdata) {
+          update['shapes['+zline+'].x0'] = gd._init_xrange.x0
+          update['shapes['+zline+'].x1'] = gd._init_xrange.x1
+        } else {
+          update['shapes['+zline+'].x0'] = xRange[0]
+          update['shapes['+zline+'].x1'] = xRange[1]
+        }
     }
+
     if(sarea != null) {
       if(gd.layout.shapes[sarea].xnull == true) {
-        update['shapes['+sarea+'].x1'] = xRange[1]
+        if("xaxis.autorange" in eventdata) {
+          update['shapes['+sarea+'].x1'] = gd._init_xrange.x1
+        } else {
+          update['shapes['+sarea+'].x1'] = xRange[1]
+        }
       }
+
       update['shapes['+sarea+'].y0'] = yMin
       update['shapes['+sarea+'].y1'] = yMax
     }

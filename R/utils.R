@@ -52,6 +52,7 @@
 #' and is ignored by [robomap()] and [robotable()]. Use [set_title()].
 #' @param zeroline Function. Control the appearance of zeroline when set using [roboplot()]
 #' parameter `zeroline`. Use [set_zeroline()].
+#' @param zoom Function. Control zooming defaults. Use [set_zoom()].
 #' @param verbose Character. Will roboplotr display all messages, alerts and warnings,
 #' or warnings only? Must be one of "All", "Alert", or "Warning".
 #' @param shinyapp Logical. Makes fonts, css and javascript available for shiny apps.
@@ -263,6 +264,7 @@ set_roboplot_options <- function(
     trace_colors = NULL,
     xaxis_ceiling = NULL,
     zeroline = NULL,
+    zoom = NULL,
     verbose = NULL,
     width = NULL,
     shinyapp = NULL,
@@ -417,6 +419,11 @@ set_roboplot_options <- function(
 
     roboplotr_typecheck(tidy_legend, "logical")
 
+    title <- substitute(title)
+    if(!is.null(title)) {
+      title[["options.set"]] <- T
+      title <- eval(title)
+    }
     roboplotr_typecheck(title, "set_title")
 
     roboplotr_typecheck(trace_border, "list", allow_null = T)
@@ -451,6 +458,8 @@ set_roboplot_options <- function(
 
     roboplotr_typecheck(zeroline, c("set_zeroline" = "list"))
 
+    roboplotr_typecheck(zoom, "set_zoom")
+
     set_roboplot_option(accessible)
     set_roboplot_option(artefacts)
     set_roboplot_option(border)
@@ -479,6 +488,7 @@ set_roboplot_options <- function(
     set_roboplot_option(trace_border, "trace.border")
     set_roboplot_option(trace_colors, "colors.traces")
     set_roboplot_option(zeroline)
+    set_roboplot_option(zoom)
     if(getOption("roboplot.accessible") == TRUE) {
       if(!identical(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")),getOption("roboplot.colors.traces"))) {
         set_roboplot_option(roboplotr_accessible_colors(getOption("roboplot.colors.traces"), background = getOption("roboplot.colors.background")), "colors.traces")

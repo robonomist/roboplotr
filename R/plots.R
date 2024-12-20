@@ -17,7 +17,8 @@ roboplotr_config <- function(p,
                              ticktypes,
                              hovermode,
                              info_text,
-                             modebar) {
+                             modebar,
+                             zoom) {
   if (!is.list(margin)) {
     if (is.na(margin)) {
       margin <- list(t = 0,
@@ -42,7 +43,7 @@ roboplotr_config <- function(p,
                       legend
                       ) |>
     roboplotr_set_ticks(ticktypes) |>
-    roboplotr_set_margin(margin) |>
+    roboplotr_set_margin(margin, zoom) |>
     roboplotr_logo() |>
     roboplotr_legend(legend) |>
     roboplotr_title(title, subtitle) |>
@@ -108,6 +109,7 @@ roboplotr_dependencies <- function(p,
     onRender(
       jsCode = "function (gd, params, data){
                         let plot_title = data.plotTitle;
+                        if (!gd._init_xrange) {gd._init_xrange = { x0: gd.layout.xaxis.range[0], x1: gd.layout.xaxis.range[1] };}
                         for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
         if(gd.layout.annotations[i].text == gd.layout.annotations[0].text && i > 0 ) {
           Plotly.relayout(gd, 'annotations[' + i + ']', 'remove');
@@ -238,12 +240,16 @@ roboplotr_dependencies <- function(p,
 #' @param secondary_yaxis Character vector. Observations from `color` using a secondary
 #' y-axis. Use `plot_axes` with [set_axes()] for more control.
 #' @param xaxis_ceiling Character or date. Sets or rounds the upper bound of the
-# x-axis for non-bar plots.
+#' x-axis for non-bar plots. Use "guess" for automatic ceiling based on the data.
+#' use "days", "weeks", "months", "quarters" or "years" for giving that much room,
+#' preceded with a number like "2 weeks", for a specific amount of time. Use "default"
+#' for the default set with [set_roboplot_options()].
 #' @param artefacts Logical or function. Use [set_artefacts()] for detailed control.
 #' TRUE for automated artefact creation based on [set_roboplot_options()].
 #' @param modebar Function. Use [set_modebar()].
 #' @param info_text Character. Adds an info button to the modebar with this text, along with plot title and caption.
 #' @param updatemenu Function. Use [set_updatemenu()] for detailed control.
+#' @param zoom Character of function. Use [set_zoom()], or give "none", "scroll", or "drag".
 #' @param roboplot_options Character. A name of roboplot options set with [set_roboplot_options()] param `name`.
 #' See documentation of [set_roboplot_options()] for details.
 #' @param ... Placeholder for other parameters.
@@ -604,6 +610,7 @@ roboplot <- function(d = NULL,
                      artefacts = getOption("roboplot.artefacts")$auto,
                      info_text = NULL,
                      updatemenu = NULL,
+                     zoom = getOption("roboplot.zoom"),
                      roboplot_options = NULL,
                      legend_position = deprecated(),
                      legend_maxwidth = deprecated(),
@@ -671,6 +678,7 @@ roboplot <- function(d = NULL,
     )
   }
 
+  if(!"roboplotr.set_zoom" %in% class(zoom)) {zoom <- set_zoom(zoom)}
 
   color <- enquo(color)
   color <- roboplotr_check_valid_var(color, d_names)
@@ -787,8 +795,9 @@ roboplot <- function(d = NULL,
     }
     xaxis_ceiling <- "default"
   } else if (suppressWarnings(is.na(as_date(xaxis_ceiling)))) {
+    `roboplot(xaxis_ceiling)` <- str_remove_all(xaxis_ceiling, "^[0-9]* ")
     roboplotr_valid_strings(
-      xaxis_ceiling,
+      `roboplot(xaxis_ceiling)`,
       c(
         "default",
         "days",
@@ -805,8 +814,6 @@ roboplot <- function(d = NULL,
   }
 
 
-  plot_axes <- roboplotr_expand_axis_limits(plot_axes, d, zeroline)
-
   if (xaxis_ceiling != "default" &
       all(is.na(plot_axes$xlim)) &
       !"bar" %in% plot_type & !"horizontal" %in% plot_mode) {
@@ -816,13 +823,15 @@ roboplot <- function(d = NULL,
           roboplotr_guess_xaxis_ceiling(d, hovertext, xaxis_ceiling))
     }
   } else if (xaxis_ceiling != "default" &
-             (!any(is.na(plot_axes$xlim)) ||
-              any(c("bar", "pie") %in% plot_type) ||
+             (any(c("bar", "pie") %in% plot_type) ||
               !"horizontal" %in% plot_mode)) {
     roboplotr_alert(
-      "'xaxis_ceiling' is ignored when \"bar\" or \"pie\" is in 'plot_type', \"horizontal\" is in 'plot_mode', or 'xlim' is provided in plot_axes."
+      "'xaxis_ceiling' is ignored when \"bar\" or \"pie\" is in 'plot_type' or \"horizontal\" is in 'plot_mode'."
     )
   }
+
+  plot_axes <- roboplotr_expand_axis_limits(plot_axes, d, zeroline)
+
 
   if (!is.null(facet_split)) {
     stop("Facet split currently unavailable!", call. = F)
@@ -1036,7 +1045,8 @@ roboplot <- function(d = NULL,
       pattern_sep,
       confidence_interval,
       markers,
-      updatemenu
+      updatemenu,
+      zoom
     )
   # }
   p$data <-
@@ -1141,7 +1151,8 @@ roboplot <- function(d = NULL,
       ticktypes = ticktypes,
       hovermode = hover.mode,
       info_text = info_text,
-      modebar = modebar
+      modebar = modebar,
+      zoom = zoom
     )
 
   if (getOption("roboplot.shinyapp") == F) {
@@ -1218,7 +1229,8 @@ roboplotr_get_plot <-
            pattern_sep,
            confidence,
            markers,
-           updatemenu
+           updatemenu,
+           zoom
            ) {
 
     plot_colors <-
@@ -1731,7 +1743,7 @@ roboplotr_get_plot <-
 
     p |>
       layout(updatemenus = updatemenu$menu) |>
-      config(responsive = ifelse(isRunning(), F, T))
+      config(responsive = ifelse(isRunning(), F, T), scrollZoom = ifelse(zoom == "scroll", T, F))
 
   }
 

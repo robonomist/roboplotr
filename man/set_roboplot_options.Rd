@@ -36,6 +36,7 @@ set_roboplot_options(
   trace_colors = NULL,
   xaxis_ceiling = NULL,
   zeroline = NULL,
+  zoom = NULL,
   verbose = NULL,
   width = NULL,
   shinyapp = NULL,
@@ -122,6 +123,8 @@ most use cases, although \code{roboplotr} is able to extrapolate.}
 
 \item{zeroline}{Function. Control the appearance of zeroline when set using \code{\link[=roboplot]{roboplot()}}
 parameter \code{zeroline}. Use \code{\link[=set_zeroline]{set_zeroline()}}.}
+
+\item{zoom}{Function. Control zooming defaults. Use \code{\link[=set_zoom]{set_zoom()}}.}
 
 \item{verbose}{Character. Will roboplotr display all messages, alerts and warnings,
 or warnings only? Must be one of "All", "Alert", or "Warning".}

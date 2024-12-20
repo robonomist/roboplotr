@@ -142,9 +142,10 @@ set_title <- function(title = NULL, include = getOption("roboplot.title")$includ
   roboplotr_typecheck(xref, "character", extra = .extra)
   roboplotr_valid_strings(xref, c("container","plot"), any, "set_title() param 'xref'")
   xref <- str_replace(xref, "plot","paper")
-
-  if(!include & str_length(as.character(title)) == 0) {
-    warning("`title` is empty and `include` is FALSE in {.extra}. Artefact names and other plot elements might not work properly.", call. = F)
+  if(is.null(args$options.set) & !include & str_length(as.character(title %||% "")) == 0) {
+    warning(str_glue("`title` is empty and `include` is FALSE in {.extra}. Artefact names and other plot elements might not work properly."), call. = F)
+  } else if (!is.null(args$options.set) & !is.null(title)) {
+    roboplotr_message("Title text can't be set with `set_title(title)` in `set_roboplot_options(title)` and will be ignored.")
   }
 
   .res <- list(title = title, include = include, xref = xref)

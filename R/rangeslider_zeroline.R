@@ -43,14 +43,8 @@ roboplotr_add_shapes <- function(p, zeroline, shadearea) {
       onRender(
         jsCode = "function(gd, params, data) {
           editShapes(gd, data.zeroline)
-          if(data.range_relayout) {
-                    yrangeRelayout({'xaxis.range': [{}]}, gd, 0, false)
-          }
-
           }", data =
-          list(zeroline = zeroline$y0,
-               range_relayout = range_relayout
-               ))
+          list(zeroline = zeroline$y0))
 
   } else {
     p

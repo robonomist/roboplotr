@@ -1,3 +1,10 @@
+# roboplotr 2.4.2
+
+* Allows for artefacts downloaded through the resulting html `roboplot`to be named separately from the plot with `set_modebar(title)`, and set the artefact titles globally with `set_roboplot_options()`.
+* Fixes `roboplot()` not respecting globally set `set_title(xref)`.
+* Improvements in `roboplot(xaxis_ceiling)`, the shorthand property that works similarly to `set_axes(xlim)`. 
+* Improved behavior of `roboplot()` `zeroline`s and `shadearea`s.
+
 # roboplotr 2.4.1
 
 * Fixes `roboplot()` too tight top margin when there is a subtitle without a title.

@@ -15,8 +15,8 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     return(config(p, displayModeBar = F))
   }
 
-  if(is.null(title)) {
-    dl_title <- "img"
+  if(!is.null(modebar$title)) {
+    dl_title <- modebar$title
   } else {
     dl_title <- roboplotr_string2filename(title$title)
   }
@@ -431,12 +431,17 @@ set_infobox <-
 #' "img_n", "img_s", "data_dl" and "robonomist" in any order.
 #' @param display Character. One of "constant", "hover" or "none". Controls whether
 #' modebar is visible always, only on hover, or never. Whatever the choice, static
-#'exports will not display a modebar.
+#' exports will not display a modebar.
+#' @param title. This will be the title used for static files downloaded through
+#' modebar. Control image download title extension specifications with `set_imgdl_layout()`.
+#' [roboplot][roboplot()] `title` will be used if no title is given here.
 #' @param ... Placeholder for other parameters.
 #' @returns A list.
 #' @export
-set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons, display = getOption("roboplot.modebar")$display, ...) {
-
+set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons,
+                        display = getOption("roboplot.modebar")$display,
+                        title = getOption("roboplot.modebar")$title,
+                        ...) {
   args <- list(...)
 
   if (!is.null(args$.extra)) {
@@ -447,19 +452,58 @@ set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons, display
 
   roboplotr_typecheck(buttons, "character", NULL, extra = .extra)
 
-  roboplotr_valid_strings(buttons, c("home","closest","compare","zoomin","zoomout","img_w","img_n","img_s","data_dl","robonomist"), any)
+  valid_buttons <- c(
+    "home",
+    "closest",
+    "compare",
+    "zoomin",
+    "zoomout",
+    "pan",
+    "img_w",
+    "img_n",
+    "img_s",
+    "data_dl",
+    "robonomist"
+  )
 
-  if(!str_detect(getOption("roboplot.logo"),"robonomist") & !"robonomist" %in% buttons) {
+  roboplotr_valid_strings(
+    buttons,
+    valid_buttons,
+    any
+  )
+
+  if(any(!buttons %in% valid_buttons)) {
+    roboplotr_alert(
+      str_c(
+        "Invalid modebar button(s) given. Valid buttons are: ",
+        str_c(valid_buttons, collapse = ", ")
+      ))
+  }
+
+  buttons <- buttons[buttons %in% valid_buttons]
+
+  if (!str_detect(getOption("roboplot.logo"), "robonomist") &
+      !"robonomist" %in% buttons) {
     buttons <- c(buttons, "robonomist")
   }
 
-  roboplotr_typecheck(display, "character", allow_null = F, extra = .extra)
+  roboplotr_typecheck(display,
+                      "character",
+                      allow_null = F,
+                      extra = .extra)
 
-  roboplotr_valid_strings(display,c("constant","hover","none"), .fun = any)
+  roboplotr_valid_strings(display, c("constant", "hover", "none"), .fun = any)
 
-  .res <- list(buttons = buttons, display = display)
+  roboplotr_typecheck(title,
+                      "character",
+                      allow_null = T,
+                      extra = .extra)
 
-  .res <- structure(.res, class = c("roboplotr","roboplotr.set_modebar", class(.res)))
+  .res <- list(buttons = buttons,
+               display = display,
+               title = title)
+
+  .res <- structure(.res, class = c("roboplotr", "roboplotr.set_modebar", class(.res)))
 
   .res
 
