@@ -1,3 +1,7 @@
+# roboplotr 2.4.3
+
+* Fixes `roboplot()` pies broken by 2.4.2.
+
 # roboplotr 2.4.2
 
 * Allows for artefacts downloaded through the resulting html `roboplot`to be named separately from the plot with `set_modebar(title)`, and set the artefact titles globally with `set_roboplot_options()`.

@@ -109,7 +109,7 @@ roboplotr_dependencies <- function(p,
     onRender(
       jsCode = "function (gd, params, data){
                         let plot_title = data.plotTitle;
-                        if (!gd._init_xrange) {gd._init_xrange = { x0: gd.layout.xaxis.range[0], x1: gd.layout.xaxis.range[1] };}
+                        if (!gd._init_xrange && data.piePlot == false) {gd._init_xrange = { x0: gd.layout.xaxis.range[0], x1: gd.layout.xaxis.range[1] };}
                         for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
         if(gd.layout.annotations[i].text == gd.layout.annotations[0].text && i > 0 ) {
           Plotly.relayout(gd, 'annotations[' + i + ']', 'remove');
