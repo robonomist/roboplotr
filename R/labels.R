@@ -259,7 +259,7 @@ roboplotr_title <- function(p, title, subtitle) {
 #'
 #' d |> roboplot(Alue, "Energin tuonti Kanadasta", "Milj €", caption = NA)
 #'
-#' @importFrom stringr str_glue
+#' @importFrom stringr str_glue str_replace_all
 #' @export
 
 set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.template"), xref = getOption("roboplot.caption.xref")) {
@@ -273,10 +273,14 @@ set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.t
   }
 
   roboplotr_typecheck(xref, "character", extra = "in set_caption()")
-  roboplotr_valid_strings(xref, c("container","plot"), any, "set_caption() param 'xref'")
+  roboplotr_valid_strings(str_replace_all(xref,"paper","plot"), c("container","plot"), any, "set_caption() param 'xref'")
   xref <- str_replace(xref, "plot","paper")
 
-  .res <- list(text = .res, xref = xref)
+  if(!str_detect(template, "\\{text\\}")) {
+    roboplotr_alert("The caption template does not contain the parameter {text}. Is this intentional?")
+  }
+
+  .res <- list(text = .res, template = template, xref = xref)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_caption", class(.res)))
 

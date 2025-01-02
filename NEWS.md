@@ -1,3 +1,7 @@
+# roboplotr 2.4.4
+
+* Fixes `set_caption()` not working as expected when used with `set_roboplot_options()`.
+
 # roboplotr 2.4.3
 
 * Fixes `roboplot()` pies broken by 2.4.2.

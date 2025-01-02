@@ -343,7 +343,6 @@ set_roboplot_options <- function(
     if(is_present(caption_template)) {
       deprecate_warn("2.4.0", "roboplotr::set_roboplot_options(caption_template)", "roboplotr::set_roboplot_options(caption)")
       roboplotr_typecheck(caption_template, "character")
-      caption_template <- caption_template
     }
 
     if(!is.null(caption)) {
