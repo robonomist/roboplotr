@@ -263,8 +263,6 @@ roboplotr_title <- function(p, title, subtitle) {
 #' @export
 
 set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.template"), xref = getOption("roboplot.caption.xref")) {
-
-
   if(is.na(text)) {
     .res <- NA
   } else {

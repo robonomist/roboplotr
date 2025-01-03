@@ -330,8 +330,8 @@ function setUpdatemenuPosition(gd) {
       let plot = $(gd).find('.nsewdrag')[0].getBBox();
       let updatemenu = $(gd).find("g.updatemenu-container")[0].getBBox();
       let updatemenu_y = gd.layout.updatemenus[0].yanchor == "top" ? 0.98 : 0.02;
-      console.log(gd.layout.updatemenus[0].xanchor)
-      console.log(plot.width)
+//      console.log(gd.layout.updatemenus[0].xanchor)
+//      console.log(plot.width)
       let updatemenu_x = gd.layout.updatemenus[0].xanchor == "left" ? 0.02 : 0.98;
 //      let updatemenu_x = 0.9
       Plotly.relayout(gd, {
@@ -482,17 +482,17 @@ function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
     var yRange = gd.layout.yaxis.range;
     var yInside = [];
     let yStackInside = [];
+    var traceTypes = [];
     //		var xInside = [];
     var visdata = gd.data.filter(trace => trace.visible === true || !(trace.hasOwnProperty('visible')));
-
     visdata.forEach(trace => {
       var len = trace.y.length;//Math.min(trace.x.length, trace.y.length);
+      traceTypes.push(trace.type);
       //			console.log(trace.type)
       for (var i = 0; i < len; i++) {
         var x = trace.x[i];
         var y = trace.y[i];
-
-        if (x >= xRange[0] && x <= xRange[1]) {
+        if ((x >= xRange[0] && x <= xRange[1]) || gd.layout.xaxis.type == "category") {
           //					xInside.push(x);
           yInside.push(y);
           if(trace.type == "bar") {
@@ -503,7 +503,6 @@ function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
       }
     });
 
-    //console.log(trace_sums)
     if(trace_sums == true) {
       var holdermax = {};
       yStackInside.forEach(function(d) {
@@ -533,12 +532,21 @@ function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
 
       yInside = yInside.concat(yStackInside.map(o => o.val));
     }
-
-    let yMax = Math.max(...yInside);
-    let yMin = Math.min(...yInside);
+    let yMax
+    let yMin
+    if("xaxis.autorange" in eventdata) {
+      yMax = gd._init_yrange.x1;
+      yMin = gd._init_yrange.x0;
+    } else {
+    yMax = Math.max(...yInside);
+    yMin = Math.min(...yInside);
     let yMod = Math.abs(yMax-yMin)*0.04
     yMax = yMax + yMod;
-    yMin = yMin - yMod;
+    let barpos = traceTypes.includes("bar") && yInside.every(y => y >= 0)
+    if(trace_sums != true && barpos == false) {
+         yMin = yMin - yMod;
+    }
+    }
     let zline = findShapeById(gd, "zeroline")
     let sarea = findShapeById(gd, "shadearea")
     var update = {'yaxis.range': [yMin,yMax]}

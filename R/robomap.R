@@ -209,7 +209,13 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
       if (str_detect(deparse(.fun), "round")) {
         .fun(val, rounding)
       } else {
-        .fun(val)
+        if(str_detect(deparse(.fun), "floor")) {
+          round(val*(10^rounding)-val)/(10^rounding)
+        } else if (str_detect(deparse(.fun), "ceiling")) {
+          round(val*(10^rounding)+val)/(10^rounding)
+        } else {
+          .fun(val)
+        }
       }
     } else {
       .round_magnitude <- case_when(

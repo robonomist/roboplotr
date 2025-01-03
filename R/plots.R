@@ -110,6 +110,7 @@ roboplotr_dependencies <- function(p,
       jsCode = "function (gd, params, data){
                         let plot_title = data.plotTitle;
                         if (!gd._init_xrange && data.piePlot == false) {gd._init_xrange = { x0: gd.layout.xaxis.range[0], x1: gd.layout.xaxis.range[1] };}
+                        if (!gd._init_yrange && data.piePlot == false) {gd._init_yrange = { x0: gd.layout.yaxis.range[0], x1: gd.layout.yaxis.range[1] };}
                         for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
         if(gd.layout.annotations[i].text == gd.layout.annotations[0].text && i > 0 ) {
           Plotly.relayout(gd, 'annotations[' + i + ']', 'remove');
@@ -197,7 +198,7 @@ roboplotr_dependencies <- function(p,
 #' or bar plot pattern. Not supported for pie charts. Use [set_pattern()] for detailed
 #' control.
 #' @param title,caption Characters or functions. Labels for plot elements. Use
-#' [set_title()] to omit the title from the displayed plot but include
+#' [set_title(include = F)] to omit the title from the displayed plot but include
 #' it in modebar downloads, or alter the title's relative positioning. When using
 #' [set_title(include = F)], you probably want to include a `title` for [roboplot()]'s
 #' internal use. Use [set_caption()] to override any caption defaults set with [set_roboplot_options()].

@@ -1,3 +1,8 @@
+# roboplotr 2.4.5
+
+* Fixes autorange relayouts for `roboplot()`s and various other axis range issues.s
+* Fixes `robomap()` legends not having the proper range when all values in map data fall between <1 and >-1.
+
 # roboplotr 2.4.4
 
 * Fixes `set_caption()` not working as expected when used with `set_roboplot_options()`.
