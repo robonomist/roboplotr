@@ -164,7 +164,7 @@ roboplotr_set_background <- function(p, color = getOption("roboplot.colors.backg
 #'   roboplot(Suunta, zoom = "none",
 #'            modebar = set_modebar(buttons = c("zoomin","zoomout","pan")))
 #'
-set_zoom <- function(zoom = getOption("roboplot.scroll"), ...) {
+set_zoom <- function(zoom = getOption("roboplot.zoom"), ...) {
   roboplotr_typecheck(zoom, "character", allow_null = FALSE)
   roboplotr_valid_strings(zoom, c("none","drag","scroll"), any)
 

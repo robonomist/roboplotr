@@ -1,6 +1,6 @@
 Package: roboplotr
 Title: Robonomist Automated Visualization Tool
-Version: 2.4.5
+Version: 2.4.6
 Authors@R: 
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
 Description: Comprehensive plotly, datatables and leaflet wrapper function simplifying the creation and customization of advanced visualizations.

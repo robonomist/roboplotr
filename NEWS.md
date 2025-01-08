@@ -1,6 +1,11 @@
+# roboplotr 2.4.6
+
+* Fixes `set_legend()` issue with `robomap()`.
+* Fixes factor level issue with `robomap()` when map geometry values are factors.
+
 # roboplotr 2.4.5
 
-* Fixes autorange relayouts for `roboplot()`s and various other axis range issues.s
+* Fixes autorange relayouts for `roboplot()`s and various other axis range issues.
 * Fixes `robomap()` legends not having the proper range when all values in map data fall between <1 and >-1.
 
 # roboplotr 2.4.4

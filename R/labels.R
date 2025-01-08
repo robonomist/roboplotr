@@ -51,7 +51,7 @@ roboplotr_caption <- function(p, caption) {
   roboplotr_typecheck(caption, c("character","set_caption"), allow_null = F)
 
   if(is.character(caption)) {
-    caption <- list(text = "", xref = "plot")
+    caption <- list(text = "", xref = getOption("roboplot.caption.xref"))
   }
 
   if (!is.null(caption)) {

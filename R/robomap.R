@@ -445,6 +445,7 @@ robomap <-
     if(is.factor(d$value)) {
       legend_labs <- levels(d$value)
     }
+
     d <- d |> mutate(robomap.value = as.numeric(.data$value))
 
     title <- roboplotr_set_title(title, d, "in `robomap()`")
@@ -482,7 +483,8 @@ robomap <-
 
     rounding <- hovertext$rounding
 
-    caption <- roboplotr_set_caption(caption, d, "in `robomap()`")$text
+    caption <- roboplotr_set_caption(caption, d, "in `robomap()`")
+    if(is.list(caption)) { caption <- caption$text}
 
     roboplotr_typecheck(width, "numeric", allow_na = T)
     roboplotr_typecheck(height, "numeric", allow_na = T)
@@ -575,6 +577,10 @@ robomap <-
     }
 
     bins <- get_bins(legend$breaks)
+
+    if(is.factor(d$value)) {
+      bins <- round(bins)
+    }
 
     if (is.list(map_palette)) {
       robomap_palette <- roboplotr_tbl_heatmap_colorfun(
@@ -698,6 +704,7 @@ robomap <-
             .formatfun <- function(x) legend_labs[x]
           }
         }
+
         this_map <- this_map |> addLegend(
           className = str_glue("map-info legend"),
           position = legend$position,
