@@ -8,6 +8,7 @@ set_modebar(
   buttons = getOption("roboplot.modebar")$buttons,
   display = getOption("roboplot.modebar")$display,
   title = getOption("roboplot.modebar")$title,
+  zoom = getOption("roboplot.modebar")$zoom,
   ...
 )
 }
@@ -19,6 +20,11 @@ Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w",
 \item{display}{Character. One of "constant", "hover" or "none". Controls whether
 modebar is visible always, only on hover, or never. Whatever the choice, static
 exports will not display a modebar.}
+
+\item{zoom}{Integer. Static plot downloaded through modebar will be magnified
+by this multiplier. Note that this will affect final file dimensions if you have
+specified some with \link[=set_roboplot_options]{set_roboplot_options}. Default is
+1.}
 
 \item{...}{Placeholder for other parameters.}
 

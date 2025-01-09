@@ -35,7 +35,7 @@
     ),
     roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),
     roboplot.markers = list(symbol = "circle", size = 8),
-    roboplot.modebar = list(buttons = c("closest","compare","img_w","data_dl"), display = "hover"),
+    roboplot.modebar = list(buttons = c("closest","compare","img_w","data_dl"), display = "hover", zoom = 1),
     roboplot.imgdl.wide = list(x = 1280, y = 720, title = 18, main = 15, caption = 11, suffix = "_levea", type = "png"),
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 18, main = 15, caption = 11, suffix = "_kapea", type = "png"),
     roboplot.imgdl.small = list(x = 889, y = 500, title = 16, main = 13, caption = 10, suffix = "_pieni", type = "png"),

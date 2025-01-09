@@ -30,6 +30,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     wt <- ifelse(is.null(width), 'null', as.character(width))
     pie <-ifelse(all(p$trace_types == "pie"),"true","false")
     tidy <-ifelse(legend$tidy,"true","false")
+    zm <- modebar$zoom
     str_glue('
           function(gd, params) {
           let oldlayout = JSON.parse(JSON.stringify(gd.layout))
@@ -47,7 +48,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
           $(gd).find("div.modebar").css("display","none")
           setVerticalLayout({"width": true}, gd, {legend: <{layout$main}, x: <{layout$main}, y: <{layout$main}}, ["<{plot_title[[1]]}","<{plot_title[[2]]}",<{tolower(plot_title[[3]])}], pie_plot = <{pie}, logo = roboplot_logo, tidy_legend = <{tidy}, legend_position = "<{legend$position}")
           setYPositions({"width": true}, gd, <{pie});
-          Plotly.downloadImage(gd, {scale: "1", format: "<{layout$type}", width: <{layout$x}, height: <{layout$y}, filename: "<{ttl}<{layout$suffix}"});
+          Plotly.downloadImage(gd, {scale: "<{zm}", format: "<{layout$type}", width: <{layout$x}, height: <{layout$y}, filename: "<{ttl}<{layout$suffix}"});
           $(gd).find("div.modebar").css("display","initial")
           Plotly.relayout(gd, oldlayout)
           delete oldlayout
@@ -435,12 +436,17 @@ set_infobox <-
 #' @param title. This will be the title used for static files downloaded through
 #' modebar. Control image download title extension specifications with `set_imgdl_layout()`.
 #' [roboplot][roboplot()] `title` will be used if no title is given here.
+#' @param zoom Integer. Static plot downloaded through modebar will be magnified
+#' by this multiplier. Note that this will affect final file dimensions if you have
+#' specified some with [set_roboplot_options][set_roboplot_options()]. Default is
+#' 1.
 #' @param ... Placeholder for other parameters.
 #' @returns A list.
 #' @export
 set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons,
                         display = getOption("roboplot.modebar")$display,
                         title = getOption("roboplot.modebar")$title,
+                        zoom = getOption("roboplot.modebar")$zoom,
                         ...) {
   args <- list(...)
 
@@ -499,9 +505,13 @@ set_modebar <- function(buttons = getOption("roboplot.modebar")$buttons,
                       allow_null = T,
                       extra = .extra)
 
+  roboplotr_typecheck(zoom, "integer", allow_null = F)
+
   .res <- list(buttons = buttons,
                display = display,
-               title = title)
+               title = title,
+               zoom = zoom
+               )
 
   .res <- structure(.res, class = c("roboplotr", "roboplotr.set_modebar", class(.res)))
 

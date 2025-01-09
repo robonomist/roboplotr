@@ -1,3 +1,7 @@
+# roboplotr 2.4.7
+
+* Adds `zoom` parameter to `set_modebar()` to control the level of zoom of images downloaded from `roboplot()` modebars.
+
 # roboplotr 2.4.6
 
 * Fixes `set_legend()` issue with `robomap()`.
