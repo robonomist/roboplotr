@@ -76,7 +76,7 @@ roboplotr_dependencies <- function(p,
       list("", subtitle, getOption("roboplot.font.title")$bold)
   }
 
-  if (!isRunning()) {
+  if (!getOption("roboplot.shinyapp")) {
     if (is.null(getOption("roboplot.widget.deps.session"))) {
       deps <- roboplotr_widget_deps()
       options("roboplot.widget.deps.session" = deps)
@@ -247,6 +247,8 @@ roboplotr_dependencies <- function(p,
 #' for the default set with [set_roboplot_options()].
 #' @param artefacts Logical or function. Use [set_artefacts()] for detailed control.
 #' TRUE for automated artefact creation based on [set_roboplot_options()].
+#' @param labels Function. Use [set_labels()]. Control labels on plot traces. Use
+#' params `title`, `plot_axes`, `caption` etc. to control other labels.
 #' @param modebar Function. Use [set_modebar()].
 #' @param info_text Character. Adds an info button to the modebar with this text, along with plot title and caption.
 #' @param updatemenu Function. Use [set_updatemenu()] for detailed control.
@@ -608,6 +610,7 @@ roboplot <- function(d = NULL,
                      shadearea = NULL,
                      secondary_yaxis = NULL,
                      modebar = NULL,
+                     labels = NULL,
                      artefacts = getOption("roboplot.artefacts")$auto,
                      info_text = NULL,
                      updatemenu = NULL,
@@ -1047,13 +1050,14 @@ roboplot <- function(d = NULL,
       confidence_interval,
       markers,
       updatemenu,
-      zoom
+      zoom,
+      labels
     )
   # }
   p$data <-
     roboplotr_transform_data_for_download(d, color, pattern, ticktypes)
 
-  if (!isRunning()) {
+  if (!getOption("roboplot.shinyapp")) {
     p$elementId <-
       str_c(
         "widget_",
@@ -1231,7 +1235,8 @@ roboplotr_get_plot <-
            confidence,
            markers,
            updatemenu,
-           zoom
+           zoom,
+           labels
            ) {
 
     plot_colors <-
@@ -1281,7 +1286,7 @@ roboplotr_get_plot <-
     # print(d %>% distinct(!!color, roboplot.legend.rank) |> arrange(!!color))
     if (any(c("horizontal", "horizontalfill", "horizontalstack") %in% d$roboplot.plot.mode)) {
       if ("horizontalfill" %in% d$roboplot.plot.mode) {
-        d <- roboplotr_get_bar_widths(d, ticktypes$y)
+        d <- roboplotr_get_bar_widths(d, ticktypes$y, color)
       }
       d <-  d |> arrange(desc(!!sym(ticktypes$y)))
       if (length(unique(d$roboplot.plot.text)) > 1) {
@@ -1351,8 +1356,10 @@ roboplotr_get_plot <-
         )
       }
     }
+
     trace_params <- map(split_d, function(g) {
       tracetype <- unique(g$roboplot.plot.type)
+      trace_labels <- roboplotr_trace_labels(tracetype, labels, names(d))
       hoverlab <- case_when(
         tracetype == "pie" ~ "label",
         any(
@@ -1375,13 +1382,18 @@ roboplotr_get_plot <-
           roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color, "dark"),
           roboplot.tx.color = roboplotr_text_color_picker(.data$roboplot.bg.color, .fontsize)
         )
-      if (tracetype == "pie") {
-        g <-
-          mutate(g,
-                 roboplot.in.tx.color = roboplotr_text_color_picker(
-                   .data$roboplot.trace.color,
-                   getOption("roboplot.font.caption")$size
-                 ))
+      text_inside <- any(tracetype == "pie" & trace_labels$style != "none", tracetype == "bar" & trace_labels$style %in% c("mini","auto","inside"))
+      if (text_inside) {
+        if(trace_labels$style == "mini") {
+          g <- mutate(g, roboplot.in.tx.color = "#FFFFFF00")
+        } else {
+          g <-
+            mutate(g,
+                   roboplot.in.tx.color = roboplotr_text_color_picker(
+                     .data$roboplot.trace.color,
+                     getOption("roboplot.font.caption")$size
+                   ))
+        }
       }
 
       if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
@@ -1415,10 +1427,10 @@ roboplotr_get_plot <-
 
 
       .legendgrouptitle <- NULL
-      .legendgroup <- if ("pie" %in% plot_type) {
-        "pie"
+      if ("pie" %in% plot_type) {
+        .legendgroup <- "pie"
       } else {
-        as.character(unique(pull(g, {{color}})))
+        .legendgroup <- as.character(unique(pull(g, {{color}})))
       }
       if (!is.null(secondary_yaxis)) {
         if (unique(pull(g, {{color}})) |> as.character() %in% secondary_yaxis) {
@@ -1451,6 +1463,7 @@ roboplotr_get_plot <-
 
       plotting_params <- list(
         color = color,
+        constraintext = ifelse(!is.null(trace_labels$size), "none","both"),
         #!pie
         customdata =
           if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
@@ -1486,10 +1499,11 @@ roboplotr_get_plot <-
         hovertemplate = hovertemplate,
         #if(length(unique(g$tFime))==1 & plot_mode != "horizontal") { ~ str_c(.data$roboplot.plot.text,"\n",format(round(.data$value,hovertext$rounding), scientific = F, big.mark = " ", decimal.mark = ","),hovertext$unit,"<extra></extra>") } else { hovertemplate },
         insidetextfont = list(
-          family = getOption("roboplot.font.main")$family,
-          size = getOption("roboplot.font.main")$size,
-          color = ~ roboplot.in.tx.color
-        ),
+            family = getOption("roboplot.font.main")$family,
+            size = trace_labels$size %||% getOption("roboplot.font.main")$size,
+            color = ~ roboplot.in.tx.color
+            # color = "white"
+          ),
         #pie
         labels = color,
         #pie
@@ -1521,16 +1535,22 @@ roboplotr_get_plot <-
           pattern = ~ list(shape = roboplot.pattern)
         ),
         #pie, bar
-        mode = str_replace_all(
-          unique(g$roboplot.plot.mode),
-          c(
-            "^smooth$" = "line",
-            "^line$" = "lines",
-            "^step$" = "lines",
-            "^scatter$" = "markers",
-            "scatter\\+line" = "markers+lines"
+        mode = {
+          .mode <- str_replace_all(
+            unique(g$roboplot.plot.mode),
+            c(
+              "^smooth$" = "lines",
+              "^line$" = "lines",
+              "^step$" = "lines",
+              "^scatter$" = "markers",
+              "scatter\\+line" = "markers+lines"
+            )
           )
-        ),
+          if(tracetype == "scatter" & trace_labels$style != "none") {
+            .mode <- str_c(.mode, "+text")
+          }
+          .mode
+          },
         #scatter
         name = ~ if (!is.null(legend$maxwidth)) {
           str_trunc(as.character(roboplot.plot.text), legend$maxwidth)
@@ -1560,27 +1580,72 @@ roboplotr_get_plot <-
         showlegend = show.legend,
         sort = F,
         #pie
-        text = if (any(
-          c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode
-        )) {
+        text =
+         if(any(c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode)) {
           ~ roboplot.horizontal.label
         } else {
           ~ roboplot.plot.text
         },
+        textfont = list(color = ~ trace_labels$color %||% roboplot.trace.color, size = ~ trace_labels$size %||% getOption("roboplot.font.main")$size),
         textinfo = "percent",
         #pie
-        textposition = case_when(
-          "horizontal" %in% g$roboplot.plot.mode ~ "auto",
-          tracetype == "pie" ~ "inside",
-          TRUE ~ "none"
-        ),
+        textposition = {
+          if(tracetype == "scatter" & trace_labels$style == "auto") {
+            .y <- round(g[[ticktypes$y]], max(hovertext$rounding-2, 0))
+            tidyr::fill(
+              tibble(value = c(ifelse(.y[1] >= .y[2],1,-1), sign(diff(.y))) |> na_if(0)),
+              value)$value |> as.character() |> str_replace_all(c("-1" = "bottom center", "1" = "top center"))
+          } else {
+            case_when(
+              trace_labels$style == "none" ~ "none",
+              tracetype == "bar" & trace_labels$style == "mini" ~ "auto",
+              tracetype == "bar" ~ trace_labels$style,
+              tracetype == "scatter" & trace_labels$style == "last" ~ "middle right",
+              tracetype == "scatter" & trace_labels$style == "auto" ~ "top center",
+              # tracetype == "scatter" ~ "auto",
+              tracetype == "pie" ~ "inside",
+              TRUE ~ "none"
+            )
+
+          }
+        #   tracetype == "pie" ~ "inside"
+        #   trace_labels$style == "auto"
+        #   case_when(
+        #   "horizontal" %in% g$roboplot.plot.mode ~ "outside",
+        #   tracetype == "pie" ~ "inside",
+        #   TRUE ~ "none"
+        # )
+          },
+        # textposition = "auto",
         #pie and bar
-        texttemplate = if (tracetype == "pie") {
+        texttemplate =  if(!quo_is_null(trace_labels$text_col)) {
+          if (trace_labels$style == "last") {
+            .y <- g[[as_label(trace_labels$text_col)]]
+            .y[-length(.y)] <- ""
+            .y } else {
+              as.formula(str_c("~", as_label(trace_labels$text_col)))
+            }
+        } else if (tracetype == "pie") {
           NULL
-        } else if ("horizontal" %in% g$roboplot.plot.mode) {
+        } else if (any(c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode)) {
           "%{x:,.1f}"
-        } else {
-          NA
+        } else if(tracetype == "scatter" & trace_labels$style == "auto") {
+          .y <- round(g[[ticktypes$y]], max(hovertext$rounding-2, 0))
+          .p <- tidyr::fill(
+            tibble(value = c(ifelse(.y[1] >= .y[2],1,-1), sign(diff(.y))) |> na_if(0)),
+            value)$value
+          .y <- tibble(check = c(ifelse(sign(.y[2] - .y[1]) < 0, -1, 1), sign(diff(.y))) |> na_if(0))  |> tidyr::fill(check) |>
+            mutate(check = slider::slide_dbl(check, ~ .x[[1]] != .x[[2]], .after = 1, .complete = T)) |> pull(check)
+          .y[c(1, length(.y))] <- 1
+          .y <- ifelse(.y, g[[ticktypes$y]], NA) |> roboplotr_format_robotable_numeric(rounding = max(hovertext$rounding-1, 0), na_value = "")
+          # map_chr(.y, ~ tags$tspan(as.character(.x)) |> as.character())
+          ifelse(.p > 0, str_c(.y,"\n"), str_c("\n",.y))
+        } else if (trace_labels$style == "last") {
+          .y <- g[[ticktypes$y]]
+          .y[-length(.y)] <- ""
+          .y
+        }  else {
+          "%{y:,.1f}"
         },
         type = ~ tracetype,
         values = as.formula(str_c("~", ticktypes$y)),
@@ -1608,19 +1673,20 @@ roboplotr_get_plot <-
       )
       shared_params <-
         c(
+          "customdata",
           "data",
-          "text",
-          "texttemplate",
+          "error_x",
+          "error_y",
           "hoverlabel",
           "hovertemplate",
           "legendgroup",
+          "legendgrouptitle",
           "legendrank",
           "showlegend",
+          "text",
+          "textposition",
+          "texttemplate",
           "type",
-          "legendgrouptitle",
-          "customdata",
-          "error_y",
-          "error_x",
           "visible"
         )
 
@@ -1628,79 +1694,38 @@ roboplotr_get_plot <-
         shared_params <- c(shared_params, "fill","fillcolor","opacity","hoveron")
       }
 
+      if(text_inside) {
+        shared_params <- c(shared_params, "insidetextfont")
+      }
+      if(!is.null(trace_labels$color) | !is.null(trace_labels$size)) {
+        shared_params <- c(shared_params, "textfont")
+      }
+      if(!is.null(trace_labels$size) & tracetype == "bar") {
+        shared_params <- c(shared_params, "constraintext")
+      }
+
       if (tracetype %in% "scatter" &
           any(c("line", "step", "smooth") %in% g$roboplot.plot.mode)) {
-        plotting_params <- plotting_params[c(shared_params,
-                                             "x",
-                                             "y",
-                                             "line",
-                                             "mode",
-                                             "name",
-                                             "color",
-                                             "xhoverformat")]
+        plotting_params <-
+          plotting_params[c(shared_params,"x", "y", "line", "mode", "name", "color", "xhoverformat")]
       } else if (tracetype == "scatter" &
                  "scatter+line" %in% g$roboplot.plot.mode) {
-        plotting_params <- plotting_params[c(
-          shared_params,
-          "x",
-          "y",
-          "line",
-          "mode",
-          "name",
-          "marker",
-          "color",
-          "xhoverformat"
-        )]
+        plotting_params <-
+          plotting_params[c(shared_params, "x", "y", "line", "mode", "name", "marker", "color", "xhoverformat")]
       } else if (tracetype == "scatter" &
                  "scatter" %in% g$roboplot.plot.mode) {
-        plotting_params <- plotting_params[c(shared_params,
-                                             "x",
-                                             "y",
-                                             "mode",
-                                             "name",
-                                             "color",
-                                             "marker",
-                                             "xhoverformat")]
+        plotting_params <-
+          plotting_params[c(shared_params, "x", "y", "mode", "name", "color", "marker", "xhoverformat")]
       } else if (tracetype == "bar" &
                  any(c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode)) {
-        plotting_params <- plotting_params[c(
-          shared_params,
-          "x",
-          "y",
-          "offsetgroup",
-          "orientation",
-          "offset",
-          "width",
-          "color",
-          "name",
-          "textposition",
-          "marker"
-        )]
+        plotting_params <-
+          plotting_params[c(shared_params, "x", "y", "offsetgroup", "orientation", "offset", "width", "color", "name", "marker")]
       } else if (tracetype == "bar") {
-        plotting_params <- plotting_params[c(
-          shared_params,
-          "x",
-          "y",
-          "offsetgroup",
-          "name",
-          "color",
-          "textposition",
-          "marker",
-          "xhoverformat"
-        )]
+        plotting_params <-
+          plotting_params[c(shared_params,"x", "y", "offsetgroup", "name", "color", "marker", "xhoverformat")]
       } else if (tracetype == "pie") {
-        plotting_params <- plotting_params[c(
-          shared_params,
-          "labels",
-          "textposition",
-          "textinfo",
-          "insidetextfont",
-          "direction",
-          "rotation",
-          "sort",
-          "marker",
-          "values"
-        )]
+        plotting_params <-
+          plotting_params[c(shared_params, "labels", "textinfo", "direction", "rotation", "sort", "marker", "values")]
       }
 
       if (!is.null(secondary_yaxis)) {
@@ -1712,9 +1737,16 @@ roboplotr_get_plot <-
       plotting_params
     })
 
-    for (par in trace_params) {
-      p <- p |> roboplotr_add_trace(!!!par)
+    add_trace_params <- function(p = p, trace_params = trace_params) {
+      for (par in trace_params) {
+        p <- p |> roboplotr_add_trace(!!!par)
+      }
+      p
     }
+# browser()
+    # map(trace_params, ~ names(.x)) |> unlist() |> unique() |> sort() |> print()
+
+    p <- add_trace_params(p, trace_params)
 
     if (!is.null(secondary_yaxis)) {
       y2 <- roboplotr_get_tick_layout(

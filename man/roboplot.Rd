@@ -31,6 +31,7 @@ roboplot(
   shadearea = NULL,
   secondary_yaxis = NULL,
   modebar = NULL,
+  labels = NULL,
   artefacts = getOption("roboplot.artefacts")$auto,
   info_text = NULL,
   updatemenu = NULL,
@@ -120,6 +121,9 @@ for the default set with \code{\link[=set_roboplot_options]{set_roboplot_options
 y-axis. Use \code{plot_axes} with \code{\link[=set_axes]{set_axes()}} for more control.}
 
 \item{modebar}{Function. Use \code{\link[=set_modebar]{set_modebar()}}.}
+
+\item{labels}{Function. Use \code{\link[=set_labels]{set_labels()}}. Control labels on plot traces. Use
+params \code{title}, \code{plot_axes}, \code{caption} etc. to control other labels.}
 
 \item{artefacts}{Logical or function. Use \code{\link[=set_artefacts]{set_artefacts()}} for detailed control.
 TRUE for automated artefact creation based on \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}

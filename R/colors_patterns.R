@@ -407,12 +407,12 @@ roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
 
 #' @importFrom dplyr add_count group_by last mutate row_number ungroup
 #' @importFrom rlang .data sym
-
-roboplotr_get_bar_widths <- function(df, width_col) {
+roboplotr_get_bar_widths <- function(df, width_col, color) {
   get_offset <- function(the_count) {
     seq(-0.45, length.out = the_count, by = 1 / the_count)
   }
   df |>
+    arrange(!!color) |>
     add_count((!!sym(width_col)) , name = "roboplot.bar.width") |>
     group_by((!!sym(width_col))) |>
     mutate(

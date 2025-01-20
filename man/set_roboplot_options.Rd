@@ -21,6 +21,7 @@ set_roboplot_options(
   imgdl_narrow = NULL,
   imgdl_small = NULL,
   infobox = NULL,
+  labels = NULL,
   linewidth = NULL,
   locale = NULL,
   logo_file = NULL,
@@ -76,6 +77,8 @@ Controls the dimensions and fonts of exports through modebar.}
 
 \item{infobox}{Function. Defines the appearance of the infobox when \code{info_text}
 is provided for \link[=roboplot]{roboplots} or \link[=robotable]{robotables}. Use \code{\link[=set_infobox]{set_infobox()}}.}
+
+\item{labels}{Function. Control trace labeling. Use \code{\link[=set_labels]{set_labels()}}.}
 
 \item{linewidth}{Numeric. The default \code{roboplot()} line trace width.}
 

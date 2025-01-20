@@ -726,3 +726,170 @@ roboplotr_set_title <- function(title, d, where) {
   }
   title
 }
+
+
+#' Label configuration.
+#'
+#' Parameters to customize labels displayed with [roboplots][roboplot()] traces. Use
+#' [set_title][set_title()], [set_caption][set_caption()], [set_legend][set_legend()],
+#' and [set_plot_axes][set_plot_axes()] with other labeling.
+#'
+#' @importFrom dplyr case_match
+#' @param style Character. Use 'none' for no labels (the default for all but
+#' pie plots). With `plot_type` "scatter" you can use 'auto' or 'last', with `plot_type`
+#' "bar" you can use 'auto', 'outside' or 'mini', and with `plot_type` pie you can
+#' use 'auto' or 'percent'.
+#' @param color Symbol. Use this to control the color of text outside the corresponding
+#' trace. The default is trace color. Color of text inside a trace is always controlled
+#' by [roboplot][roboplot()] to ensure accessibility.
+#' @param text_col Symbol. The column used for labeling if something else than your
+#' trace values.
+#' @param ... When using [set_roboplot_options][set_roboplot_options()] to set labels,
+#' you should provide any or all of [set_labels(scatter, bar, pie)], with 'scatter'
+#' controlling the global behavior of both lines and scatters. Do not use these when
+#' providing label styles inside [roboplot][roboplot()], use `style` instead.
+#' @examples
+#' # Use `set_labels(style = "auto")` to automatically set the labels in bar plots
+#' # inside or outside of bars according to how they fit.
+#' d <- energiantuonti |> dplyr::filter(Alue == "USA")
+#' 
+#' d |> roboplot(Suunta, plot_type = "bar", plot_mode = "dodge", labels = set_labels("auto"))
+#' 
+#' # Use `style = "mini"` to label only the bars where the labels don't fit (ie. the
+#' # smallest bars). You can omit using the `set_labels()`-function if you only wish
+#' # to provide the state
+#' d |> roboplot(Suunta, plot_type = "bar", plot_mode = "dodge", labels = "mini")
+#' 
+#' # `"inside"` and `"outside"` to force either state
+#' d |> roboplot(Suunta, plot_type = "bar", plot_mode = "dodge", labels = "outside")
+#' 
+#' # Give `color` if you want to override the colors of labels outside the bars.
+#' # `roboplot()` will always use its internal color paletter for the labels inside 
+#' # the bars to ensure accessibility. Give `size`to override the automatic font sizes
+#' # plotly uses.
+#' d |> roboplot(
+#'   Suunta,
+#'   plot_type = "bar",
+#'   labels = set_labels("auto", color = "black", size = 15)
+#' )
+#' 
+#' # Works with horizontal bars, too
+#' energiantuonti |>
+#'   dplyr::filter(time == max(time), Suunta == "Tuonti") |>
+#'   roboplot(
+#'     Suunta,
+#'     plot_type = "bar",
+#'     plot_mode = "horizontalfill",
+#'     plot_axes = set_axes(y = "Alue"),
+#'     labels = set_labels(style = "auto", size = 22)
+#'   )
+#' 
+#' # For scatter traces, use "auto" to highlight data points. You most likely will 
+#' # need to provide y-axis limits manually.
+#' d |> roboplot(Suunta, labels = "auto", plot_axes = set_axes(ylim = c(-60, 700)))
+#' 
+#' # If you specify axis limits or `xaxis_ceiling`, `roboplotr()` will not be able
+#' # to detect x-axis limits correctly. Use xaxis_ceiling "default" should work.
+#' d |> roboplot(Suunta, labels = "auto", xaxis_ceiling = "guess")
+#' 
+#' # Pies can handle only no labels, or percentage labels.
+#' energiantuonti |>
+#'   dplyr::filter(time == max(time), Suunta == "Tuonti") |>
+#'   roboplot(Alue, plot_type = "pie")
+#' 
+#' 
+#' # Set defaults with `set_roboplot_options()` by trace type.
+#' set_roboplot_options(labels = set_labels(scatter = "auto", bar = "mini", pie = "none"))
+set_labels <- function(style = "none",
+                       color = NULL,
+                       text_col = NULL,
+                       size = NULL,
+                       ...
+                       ) {
+
+  
+  args <- list(...)
+  
+  if("set.options" %in% names(args)) {
+    if(!is.null(args$set.options)) {
+      .all_types <- c("bar","pie","scatter")
+      env <- environment()
+      .types <- roboplotr_compact(args[.all_types])
+      if(length(.types) == 0) {
+        return(NULL)
+      }
+      (function() {
+        for (i in seq(length.out = length(.types))) {
+          .t <- .types[i]
+          roboplotr_typecheck(names(.t), c("character"),allow_null = F, extra = str_glue("set_labels({names(.t)})"))
+          valid_labtypes <- case_match(names(.t),
+                                       "bar"  ~ list(c("auto","outside","mini","none","inside")),
+                                       "pie" ~ list(c("percent","none")),
+                                       "scatter" ~ list(c("auto","last","none"))
+          ) |> unlist() 
+          roboplotr_valid_strings(.t[[1]], valid_labtypes, any, str_glue("set_labels({names(.t)})"))
+        }
+      })()
+      
+      for(.t in .all_types[!.all_types %in% names(.types)]) {
+        .types <- append(.types, setNames(list(getOption("roboplot.labels")[[.t]]), .t))
+      }
+      return(.types)
+      
+    }
+  }
+  
+  roboplotr_typecheck(style, c("character"),allow_null = F, extra = "set_labels()")
+  styles <- c("auto", "last", "outside", "mini", "none", "percent", "inside")
+  roboplotr_valid_strings(style, styles, any, "set_labels(style)")
+  roboplotr_typecheck(color, c("character"), extra = "set_labels()")
+  if(!is.null(color)) { roboplotr_valid_colors(color) }
+  roboplotr_typecheck(size, "integer", allow_null = T, extra = "set_labels()")
+  if(!is.null(size)) {size <- as.integer(size)}
+
+  text_col <- enquo(text_col)
+
+  .res <- list(style = style, color = color, text_col = text_col, size = size)
+  
+  args <- list(...)
+  
+  .res <- structure(.res, class = c("roboplotr","roboplotr.set_labels", class(.res)))
+
+  .res
+
+}
+
+
+roboplotr_trace_labels <- function(mode,
+                                   labels,
+                                   d_names) {
+  if(is.null(labels)) {
+    return(set_labels(style = getOption("roboplot.labels")[[mode]]))
+  }
+
+  roboplotr_typecheck(labels, c("set_labels","character"))
+
+  valid_labtypes <- case_match(mode,
+                               "bar"  ~ list(c("auto","outside","mini","none","inside")),
+                               "pie" ~ list(c("percent","none")),
+                               "scatter" ~ list(c("auto","last","none"))
+  ) |> unlist()
+
+
+  if(!"roboplotr.set_labels" %in% class(labels)) {
+    roboplotr_valid_strings(labels, valid_labtypes, any,  str_glue("`roboplot(labels)` for plot type of \"{mode}\""))
+    labels <- set_labels(style = labels)
+  } else {
+    style <- labels$style
+    roboplotr_valid_strings(style, valid_labtypes, any, str_glue("`set_labels(style)` for plot type of \"{mode}\""))
+
+    if(!is_null(labels$text_col)) {
+      text_col <- labels$text_col
+      roboplotr_check_valid_var(text_col, d_names,"set_labels")
+    }
+
+  }
+
+  labels
+
+}

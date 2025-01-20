@@ -22,6 +22,7 @@
 #' Controls the dimensions and fonts of exports through modebar.
 #' @param infobox Function. Defines the appearance of the infobox when `info_text`
 #' is provided for [roboplots][roboplot()] or [robotables][robotable()]. Use [set_infobox()].
+#' @param labels Function. Control trace labeling. Use [set_labels()].
 #' @param linewidth Numeric. The default `roboplot()` line trace width.
 #' @param locale Function. Defines locale parameters as `roboplotr` needs them.
 #' Use [set_locale()].
@@ -249,6 +250,7 @@ set_roboplot_options <- function(
     imgdl_narrow = NULL,
     imgdl_small = NULL,
     infobox = NULL,
+    labels = NULL,
     linewidth = NULL,
     locale = NULL,
     logo_file = NULL,
@@ -386,6 +388,16 @@ set_roboplot_options <- function(
     roboplotr_typecheck(infobox, "set_infobox")
 
     roboplotr_typecheck(linewidth, "numeric")
+    
+    labels <- substitute(labels)
+    {
+      if(!is.null(labels)) {
+        if(labels[1] != "set_labels()" & labels[1] != "roboplotr::set_labels()") { stop("Use 'roboplotr::set_labels()' for label!", call. = F)}
+        if(is.null(labels$set.options)) { labels$set.options <- TRUE }
+        labels <- eval(labels)
+      }
+      
+    }
 
     roboplotr_typecheck(locale, "set_locale")
 
@@ -472,6 +484,7 @@ set_roboplot_options <- function(
     set_roboplot_option(grid)
     set_roboplot_option(height)
     set_roboplot_option(infobox)
+    set_roboplot_option(labels)
     set_roboplot_option(locale)
     set_roboplot_option(tidy_legend, "legend.tidy")
     set_roboplot_option(linewidth)
