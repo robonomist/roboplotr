@@ -102,7 +102,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
   if (elplot.height == 0) { elplot.height = 1}
   let elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
-  let logospace = logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend, legend_orientation);
+  let logospace = logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend, legend_orientation, elplot.height);
   margin_bottom = margin_bottom + logospace;
   //    console.log("margin b then: " + el.layout.margin.b)
   let images_sizey = (elcontainer.height * 0.05) / elplot.height;
@@ -230,14 +230,18 @@ function calculateDisplayedImageSize(imageAspectRatio, container) {
   return result;
 }
 
-function logoSpace(ratio, image, margin_b, title_h, xtick_h, legend, legend_orientation) {
+function logoSpace(ratio, image, margin_b, title_h, xtick_h, legend, legend_orientation, limit) {
   let logo_actual = calculateDisplayedImageSize(ratio, image)
   let logo_space = [];
   let lwidth = legend_orientation == "bottom" ? legend.width : 0
   logo_space.horizontal = (image.width - legend.width) - logo_actual.width;
   logo_space.vertical = margin_b - (title_h + xtick_h + legend.height) - logo_actual.height
   if (Object.values(logo_space).every(x => x < 0)) {
-    return -logo_space.vertical
+    if(logo_space.vertical > limit/3) {
+      return 0
+    } else {
+      return -logo_space.vertical 
+    }
   } else {
     return 0
   }

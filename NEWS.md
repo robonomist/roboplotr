@@ -1,6 +1,10 @@
-# roboplotr 2.5.0
+# roboplotr 2.5.1
 
-* Adds `label` param to `roboplot()` along with the correspondint `set_label()` function for trace labeling control.
+* Fixes `roboplot()`s sometimes losing legends on render with no apparent reason, only to reappear.
+
+# roboplotr 2.5.1
+
+* Adds `label` param to `roboplot()` along with the corresponding `set_label()` function for trace labeling control.
 * Fixes `roboplot(plot_mode = "horizontalfill")` not sorting the bars correclty by `color`.
 
 # roboplotr 2.4.7
