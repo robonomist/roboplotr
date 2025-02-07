@@ -1,8 +1,15 @@
-# roboplotr 2.5.1
+# roboplotr 2.5.2
 
 * Fixes `roboplot()`s sometimes losing legends on render with no apparent reason, only to reappear.
+* Fixes `roboplot()` failing to handle frequency attribute of length 2+.
+* Fixes `roboplot(confidence_area = set_confidence_area("area"), plot_mode = "smooth")` failing to draw the confidence area.
+* `roboplot()` legend size is now tied to the size of legend font size.
 
 # roboplotr 2.5.1
+
+* Fixes a `roboplot()` legend display issue.
+
+# roboplotr 2.5.0
 
 * Adds `label` param to `roboplot()` along with the corresponding `set_label()` function for trace labeling control.
 * Fixes `roboplot(plot_mode = "horizontalfill")` not sorting the bars correclty by `color`.

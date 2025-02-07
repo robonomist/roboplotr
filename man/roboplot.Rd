@@ -51,9 +51,9 @@ via \code{\link[=set_axes]{set_axes()}}.}
 \code{title} text is used for color and hover labels.}
 
 \item{title, caption}{Characters or functions. Labels for plot elements. Use
-\link{set_title(include = F)} to omit the title from the displayed plot but include
+\link[=set_title]{set_title(include = FALSE)} to omit the title from the displayed plot but include
 it in modebar downloads, or alter the title's relative positioning. When using
-\link{set_title(include = F)}, you probably want to include a \code{title} for \code{\link[=roboplot]{roboplot()}}'s
+\link[=set_title]{set_title(include = FALSE)}, you probably want to include a \code{title} for \code{\link[=roboplot]{roboplot()}}'s
 internal use. Use \code{\link[=set_caption]{set_caption()}} to override any caption defaults set with \code{\link[=set_roboplot_options]{set_roboplot_options()}}.}
 
 \item{subtitle}{Character. Label for plot element.}

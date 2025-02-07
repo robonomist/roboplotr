@@ -19,15 +19,17 @@ by \link[=roboplot]{roboplot} to ensure accessibility.}
 \item{text_col}{Symbol. The column used for labeling if something else than your
 trace values.}
 
+\item{size}{Numeric. Font size of trace labels.}
+
 \item{...}{When using \link[=set_roboplot_options]{set_roboplot_options} to set labels,
-you should provide any or all of \link{set_labels(scatter, bar, pie)}, with 'scatter'
+you should provide any or all of \link[=set_labels]{set_labels(scatter, bar, pie)}, with 'scatter'
 controlling the global behavior of both lines and scatters. Do not use these when
 providing label styles inside \link[=roboplot]{roboplot}, use \code{style} instead.}
 }
 \description{
 Parameters to customize labels displayed with \link[=roboplot]{roboplots} traces. Use
 \link[=set_title]{set_title}, \link[=set_caption]{set_caption}, \link[=set_legend]{set_legend},
-and \link[=set_plot_axes]{set_plot_axes} with other labeling.
+and \link[=set_axes]{set_axes} with other labeling.
 }
 \examples{
 # Use `set_labels(style = "auto")` to automatically set the labels in bar plots
@@ -69,8 +71,9 @@ energiantuonti |>
 # need to provide y-axis limits manually.
 d |> roboplot(Suunta, labels = "auto", plot_axes = set_axes(ylim = c(-60, 700)))
 
-# If you specify axis limits or `xaxis_ceiling`, `roboplotr()` will not be able
-# to detect x-axis limits correctly. Use xaxis_ceiling "default" should work.
+# If you specify axis limits with `set_axes()` or `xaxis_ceiling`, `roboplot()` 
+# will not be able to detect x-axis limits correctly. Using xaxis_ceiling "default" 
+# should work.
 d |> roboplot(Suunta, labels = "auto", xaxis_ceiling = "guess")
 
 # Pies can handle only no labels, or percentage labels.

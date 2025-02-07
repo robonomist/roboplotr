@@ -388,7 +388,7 @@ set_roboplot_options <- function(
     roboplotr_typecheck(infobox, "set_infobox")
 
     roboplotr_typecheck(linewidth, "numeric")
-    
+
     labels <- substitute(labels)
     {
       if(!is.null(labels)) {
@@ -396,7 +396,7 @@ set_roboplot_options <- function(
         if(is.null(labels$set.options)) { labels$set.options <- TRUE }
         labels <- eval(labels)
       }
-      
+
     }
 
     roboplotr_typecheck(locale, "set_locale")
@@ -743,7 +743,10 @@ roboplotr_get_dateformat <- function(d, msg = T) {
   }
 
   if(!is.null(tf)) {
-    if(!tf %in% c("Daily","Weekly","Monthly","Quarterly","Annual")) {
+    if (length(tf) > 1) {
+      wrn <- T
+      tf <- get_padr_frequency(d[[datecol]])
+    } else if(!tf %in% c("Daily","Weekly","Monthly","Quarterly","Annual")) {
       wrn <- T
       tf <- get_padr_frequency(d[[datecol]])
     }

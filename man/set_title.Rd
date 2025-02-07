@@ -46,8 +46,8 @@ d |> roboplot(Alue,"Energian tuonti Yhdysvalloista")
 # can use `set_title(include = F)` to omit it from the plot. This
 # is for cases where you will insert the plot into environment where the
 # title is outside the plot element. When exporting, you would still want to
-have the title included, and `roboplot()` takes care of this. If you include
-a subtitle, it will be displayed regardless.
+# have the title included, and `roboplot()` takes care of this. If you include
+# a subtitle, it will be displayed regardless.
 
 
 d |>

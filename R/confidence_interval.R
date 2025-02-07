@@ -278,7 +278,7 @@ roboplotr_get_confidence_areas <- function(split_d, confidence, ticktypes) {
     
     err_areas <- imap(split_d, function(d, y) {
       
-      if(unique(d$roboplot.plot.mode %in% c("line","marker"))) {
+      if(unique(d$roboplot.plot.mode %in% c("line","marker","smooth"))) {
         xcol <- sym(ticktypes$x)
         ycol <- sym(ticktypes$y)
         if (!quo_is_symbolic(confidence$error_y)) {

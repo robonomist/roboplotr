@@ -396,6 +396,8 @@ roboplotr_widget_deps <- function(filepath = NULL) {
 
 }
 
+
+#' @importFrom tools file_ext
 roboplotr_new_session_screenshot <- function(
     chromote,
     url,
@@ -411,7 +413,7 @@ roboplotr_new_session_screenshot <- function(
     quiet
 ) {
 
-  filetype <- tolower(tools::file_ext(file))
+  filetype <- tolower(file_ext(file))
   filetypes <- c(c("png", "jpg", "jpeg", "webp"), "pdf")
   if (!filetype %in% filetypes) {
     stop("File extension must be one of: ", paste(filetypes, collapse = ", "))

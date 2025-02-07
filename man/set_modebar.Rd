@@ -21,16 +21,16 @@ Must contain any of "home", "closest", "compare", "zoomin", "zoomout", "img_w",
 modebar is visible always, only on hover, or never. Whatever the choice, static
 exports will not display a modebar.}
 
+\item{title}{This will be the title used for static files downloaded through
+modebar. Control image download title extension specifications with \code{set_imgdl_layout()}.
+\link[=roboplot]{roboplot} \code{title} will be used if no title is given here.}
+
 \item{zoom}{Integer. Static plot downloaded through modebar will be magnified
 by this multiplier. Note that this will affect final file dimensions if you have
 specified some with \link[=set_roboplot_options]{set_roboplot_options}. Default is
 1.}
 
 \item{...}{Placeholder for other parameters.}
-
-\item{title.}{This will be the title used for static files downloaded through
-modebar. Control image download title extension specifications with \code{set_imgdl_layout()}.
-\link[=roboplot]{roboplot} \code{title} will be used if no title is given here.}
 }
 \value{
 A list.

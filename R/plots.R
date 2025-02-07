@@ -198,9 +198,9 @@ roboplotr_dependencies <- function(p,
 #' or bar plot pattern. Not supported for pie charts. Use [set_pattern()] for detailed
 #' control.
 #' @param title,caption Characters or functions. Labels for plot elements. Use
-#' [set_title(include = F)] to omit the title from the displayed plot but include
+#' [set_title(include = FALSE)][set_title()] to omit the title from the displayed plot but include
 #' it in modebar downloads, or alter the title's relative positioning. When using
-#' [set_title(include = F)], you probably want to include a `title` for [roboplot()]'s
+#' [set_title(include = FALSE)][set_title()], you probably want to include a `title` for [roboplot()]'s
 #' internal use. Use [set_caption()] to override any caption defaults set with [set_roboplot_options()].
 #' @param subtitle Character. Label for plot element.
 #' @param legend Character or function. Use [set_legend()]. If character, use "bottom",
@@ -1211,12 +1211,13 @@ roboplot <- function(d = NULL,
 
 }
 
-#' @importFrom dplyr arrange desc distinct first group_split mutate pull slice_min summarize
+#' @importFrom dplyr arrange desc distinct first group_split mutate na_if pull slice_min summarize
 #' @importFrom forcats fct_inorder
 #' @importFrom plotly plot_ly layout subplot
 #' @importFrom rlang := quo_is_null sym
 #' @importFrom stats as.formula
 #' @importFrom stringr str_replace_all str_trunc
+#' @importFrom tidyr fill
 roboplotr_get_plot <-
   function(d,
            height,
@@ -1592,9 +1593,9 @@ roboplotr_get_plot <-
         textposition = {
           if(tracetype == "scatter" & trace_labels$style == "auto") {
             .y <- round(g[[ticktypes$y]], max(hovertext$rounding-2, 0))
-            tidyr::fill(
+            fill(
               tibble(value = c(ifelse(.y[1] >= .y[2],1,-1), sign(diff(.y))) |> na_if(0)),
-              value)$value |> as.character() |> str_replace_all(c("-1" = "bottom center", "1" = "top center"))
+              .data$value)$value |> as.character() |> str_replace_all(c("-1" = "bottom center", "1" = "top center"))
           } else {
             case_when(
               trace_labels$style == "none" ~ "none",
@@ -1631,11 +1632,11 @@ roboplotr_get_plot <-
           "%{x:,.1f}"
         } else if(tracetype == "scatter" & trace_labels$style == "auto") {
           .y <- round(g[[ticktypes$y]], max(hovertext$rounding-2, 0))
-          .p <- tidyr::fill(
+          .p <- fill(
             tibble(value = c(ifelse(.y[1] >= .y[2],1,-1), sign(diff(.y))) |> na_if(0)),
-            value)$value
-          .y <- tibble(check = c(ifelse(sign(.y[2] - .y[1]) < 0, -1, 1), sign(diff(.y))) |> na_if(0))  |> tidyr::fill(check) |>
-            mutate(check = slider::slide_dbl(check, ~ .x[[1]] != .x[[2]], .after = 1, .complete = T)) |> pull(check)
+            .data$value)$value
+          .y <- tibble(check = c(ifelse(sign(.y[2] - .y[1]) < 0, -1, 1), sign(diff(.y))) |> na_if(0))  |> fill(.data$check) |>
+            mutate(check = slider::slide_dbl(.data$check, ~ .x[[1]] != .x[[2]], .after = 1, .complete = T)) |> pull(.data$check)
           .y[c(1, length(.y))] <- 1
           .y <- ifelse(.y, g[[ticktypes$y]], NA) |> roboplotr_format_robotable_numeric(rounding = max(hovertext$rounding-1, 0), na_value = "")
           # map_chr(.y, ~ tags$tspan(as.character(.x)) |> as.character())

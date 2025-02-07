@@ -433,7 +433,7 @@ set_infobox <-
 #' @param display Character. One of "constant", "hover" or "none". Controls whether
 #' modebar is visible always, only on hover, or never. Whatever the choice, static
 #' exports will not display a modebar.
-#' @param title. This will be the title used for static files downloaded through
+#' @param title This will be the title used for static files downloaded through
 #' modebar. Control image download title extension specifications with `set_imgdl_layout()`.
 #' [roboplot][roboplot()] `title` will be used if no title is given here.
 #' @param zoom Integer. Static plot downloaded through modebar will be magnified

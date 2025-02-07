@@ -86,17 +86,12 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     }
   }
   let legend_orientation = legend_position == "bottom" ? "h" : "v"
-//    if(el.layout.legend.position != legend_position)  {
-//      console.log("about to..")
-//      console.log($(el).find('g.legend')[0].getBBox())
-//  }
   if ($(el).find('g.legend')[0] != undefined) {
     let legendbox = $(el).find('g.legend')[0].getBBox()
     ellegend.height = legend_position == "right" ? 0 : Math.ceil(legendbox.height)
     ellegend.width =  legendbox.width
   };
   el.layout.legend.position = legend_position;
-  //console.log("legend position: " + legend_position, "; legend orientation: " + legend_orientation + "; legend height: " + ellegend.height)
   let legend_x = legend_position == "bottom" ? 0 : 1.02
   let margin_bottom = ellegend.height + 15 + (elcaption + elxticks + elxtitle);
   if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
@@ -104,21 +99,17 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
   let logospace = logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend, legend_orientation, elplot.height);
   margin_bottom = margin_bottom + logospace;
-  //    console.log("margin b then: " + el.layout.margin.b)
-  let images_sizey = (elcontainer.height * 0.05) / elplot.height;
+//  console.log((legend_fontsize.legend * 2) / elplot.height)
+//  let images_sizey = (elcontainer.height * 0.05) / elplot.height;
+  let images_sizey = ((legend_fontsize.legend * 2) / elplot.height)
   el.layout.images[0].sizey = images_sizey
-  //  console.log(el.layout.legend)
-//  console.log(legend_position)
   let legend_y = legend_position == "right" ? 1 : -((elxticks + 10 + (elslider) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
   if (legend_y < -2 || (elplot.height < (elcontainer.height / 4))) {
-    //    console.log("TOO TOIT")
     rangeSliderShowHide(el, false)
     elslider = 0;
     elxticks = $(el).find('g.xaxislayer-above')
     if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = elxticks_default };
     margin_bottom = 15 + elcaption + elxticks + elxtitle;
-    //    margin_bottom = margin_bottom + logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend);
-    //    console.log("margin b toiten: " + el.layout.margin.b)
     let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
     if (elplot.length > 0) {
       elplot = elplot[0].getBBox()
@@ -126,7 +117,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     };
     if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
     if (elplot.height == 0) { elplot.height = 1}
-    images_sizey = (elcontainer.height * 0.05) / elplot.height;
+    //images_sizey = (elcontainer.height * 0.05) / elplot.height;
+    images_sizey = ((legend_fontsize.legend * 2) / elplot.height)
     el.layout.images[0].sizey = images_sizey
     legend_y = legend_position == "right" ? 1 : -((elxticks + 10 + (elslider) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
 
@@ -158,7 +150,8 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
     if (elplot.height == 0) { elplot.height = 1}
     elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
-    images_sizey = (elcontainer.height * 0.05) / elplot.height;
+    //images_sizey = (elcontainer.height * 0.05) / elplot.height;
+    images_sizey = ((legend_fontsize.legend * 2) / elplot.height)
     el.layout.images[0].sizey = images_sizey
     legend_y = -((elxticks + 10 + (elslider) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
   }
@@ -237,10 +230,9 @@ function logoSpace(ratio, image, margin_b, title_h, xtick_h, legend, legend_orie
   logo_space.horizontal = (image.width - legend.width) - logo_actual.width;
   logo_space.vertical = margin_b - (title_h + xtick_h + legend.height) - logo_actual.height
   if (Object.values(logo_space).every(x => x < 0)) {
-    if(logo_space.vertical > limit/3) {
-      return 0
+    if(-logo_space.vertical > (limit/3)) {
     } else {
-      return -logo_space.vertical 
+      return -logo_space.vertical
     }
   } else {
     return 0
