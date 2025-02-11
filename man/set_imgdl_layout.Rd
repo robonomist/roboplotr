@@ -114,7 +114,7 @@ set_roboplot_options(
 
 set_roboplot_options(
   imgdl_narrow = set_imgdl_layout(button_label = "Lataa kuva"),
-  imgdl_wide = set_imgdl_layout(button_label = "Lataa kuva\U00A0")
+  imgdl_wide = set_imgdl_layout(button_label = "Lataa kuva\U2060")
 )
 
 # Revert to defaults:

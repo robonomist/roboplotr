@@ -229,6 +229,10 @@ roboplotr_set_robotable_css <-
         "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
       ),
       roboplotr_set_specific_css(
+        str_glue("#{id}_wrapper .dataTables_scroll"),
+        "margin-bottom" = "6px"
+      ),
+      roboplotr_set_specific_css(
         str_glue("#{id}_wrapper .dataTables_scrollBody"),
         "height" = "unset!important",
         "border-bottom" = "none"
@@ -513,9 +517,10 @@ robotable <-
 
     d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value, dateformat)
 
+    responsive_defs <- NULL
+
     if(!is.null(responsive)) {
       roboplotr_typecheck(responsive, c("character", "logical"), NULL)
-      responsive_defs <- NULL
       if(!is.logical(responsive)) {
         roboplotr_valid_strings(responsive, names(d), any, "robotable(responsive) responsive")
         responsive <- responsive[responsive %in% names(d)]
@@ -525,6 +530,8 @@ robotable <-
         stop("`robotable(responsive)` must be of length 1 if logical, or provide the names of the columns you want to prioritize!", call. = F)
       }
 
+    } else {
+      responsive <- F
     }
 
     order_defs <-

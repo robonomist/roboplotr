@@ -1,3 +1,7 @@
+# roboplotr 2.6.1
+
+* Fixes a `robotable()` error when using `responsive = NULL`, and `robotable()` bottom margins.
+
 # roboplotr 2.6.0
 
 * Adds `empty_roboplot` to `set_roboplot_options()` where the appearance of empty roboplots can be controlled with `set_empty_roboplot()`.
