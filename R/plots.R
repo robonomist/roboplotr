@@ -629,6 +629,10 @@ roboplot <- function(d = NULL,
 
   roboplotr_typecheck(d, "data.frame", NULL, allow_null = F, allow_na = T)
 
+  if (nrow(d) == 0) {
+    return(roboplotr_empty_roboplot(title, caption, info_text))
+  }
+
   title <- roboplotr_set_title(title, d, "in `roboplot()`")
 
   d_names <- names(d)

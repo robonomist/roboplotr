@@ -4,14 +4,14 @@
 roboplotr_legend <- function(p, legend) {
   # print(legend_order)
   if(!is.null(legend$orientation)) { roboplotr_message("The set_legend() argument `legend_orientation` is currently ignored.") }
-  
+
   if (is.null(legend$title)) {
     .legend_title <- NULL
   } else if (is.character(legend$title)) {
     .legend_title <- str_c("<b>", legend$title, "</b>")
   }
-  
-  
+
+
   if (is.na(legend$position)) {
     x.pos <- ifelse(legend$position == "right", 100, 0)
     y.pos <- ifelse(legend$position == "right", 1, 0) #-0.05
@@ -47,13 +47,13 @@ roboplotr_legend <- function(p, legend) {
 
 #' @importFrom plotly layout
 roboplotr_caption <- function(p, caption) {
-  
+
   roboplotr_typecheck(caption, c("character","set_caption"), allow_null = F)
-  
+
   if(is.character(caption)) {
     caption <- list(text = "", xref = getOption("roboplot.caption.xref"))
   }
-  
+
   if (!is.null(caption)) {
     p <- p |>
       layout(
@@ -74,9 +74,9 @@ roboplotr_caption <- function(p, caption) {
         )
       )
   }
-  
+
   p
-  
+
 }
 
 #' Title configuration.
@@ -128,15 +128,15 @@ roboplotr_caption <- function(p, caption) {
 #' @returns A list of class roboplotr.set_title
 #' @export
 set_title <- function(title = NULL, include = getOption("roboplot.title")$include, xref = getOption("roboplot.title")$xref, ...) {
-  
+
   args <- list(...)
-  
+
   if (!is.null(args$.extra)) {
     .extra <- args$.extra
   } else {
     .extra <- "in set_title()"
   }
-  
+
   roboplotr_typecheck(title, "character", extra = .extra)
   roboplotr_typecheck(include, "logical", extra = .extra)
   roboplotr_typecheck(xref, "character", extra = .extra)
@@ -147,11 +147,11 @@ set_title <- function(title = NULL, include = getOption("roboplot.title")$includ
   } else if (!is.null(args$options.set) & !is.null(title)) {
     roboplotr_message("Title text can't be set with `set_title(title)` in `set_roboplot_options(title)` and will be ignored.")
   }
-  
+
   .res <- list(title = title, include = include, xref = xref)
-  
+
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_title", class(.res)))
-  
+
   .res
 }
 
@@ -160,9 +160,9 @@ set_title <- function(title = NULL, include = getOption("roboplot.title")$includ
 #' @importFrom htmltools tags HTML
 #' @importFrom stringr str_c
 roboplotr_title <- function(p, title, subtitle) {
-  
+
   roboplotr_typecheck(subtitle, "character", allow_null = F)
-  
+
   if(title$include == T) {
     txt <- str_c(
       "<span>",title$title,
@@ -269,25 +269,25 @@ set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.t
     list2env(list(...), envir = environment())
     .res <- str_glue(template)
   }
-  
+
   roboplotr_typecheck(xref, "character", extra = "in set_caption()")
   roboplotr_valid_strings(str_replace_all(xref,"paper","plot"), c("container","plot"), any, "set_caption() param 'xref'")
   xref <- str_replace(xref, "plot","paper")
-  
+
   if(!str_detect(template, "\\{text\\}")) {
     roboplotr_alert("The caption template does not contain the parameter {text}. Is this intentional?")
   }
-  
+
   .res <- list(text = .res, template = template, xref = xref)
-  
+
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_caption", class(.res)))
-  
+
   .res
-  
+
 }
 
 roboplotr_highlight_legend <- function(highlight, df) {
-  
+
   if(is.null(highlight)) {
     T
   } else if (is.double(highlight)) {
@@ -369,7 +369,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' set_roboplot_options(reset = TRUE)
 #' @export
 set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL, bold_title = T, type = NULL) {
-  
+
   if(is.null(font)) {
     font <- getOption(str_glue("roboplot.font.{type}"))$.font
   }
@@ -382,26 +382,26 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
   if(is.null(color)) {
     color <- getOption(str_glue("roboplot.font.{type}"))$color
   }
-  
+
   websafe <- c("Arial","Verdana","Tahoma","Trebuchet","Times New Roman","Georgia","Garamond","Courier New","Brush Script MT")
-  
+
   if (!requireNamespace("systemfonts", quietly = TRUE)) {
     .fonts <- websafe
   } else {
     .fonts <- c(websafe, systemfonts::system_fonts()$family) |> unique()
   }
-  
+
   roboplotr_typecheck(font, "character", allow_null = F)
-  
+
   google_font <- NULL
   if (!font %in% .fonts & !str_detect(tolower(font), "(ttf|otf)$")) {
     roboplotr_ns_alert("httr", "usage of Google Fonts with `set_font()`")
     google_font <- (function(font_name = font) {
-      
+
       font_name <- str_replace_all(font_name, ' ','+')
       font_url <- str_glue("https://fonts.googleapis.com/css2?family={font_name}")
       resp <- httr::GET(font_url)
-      
+
       if(httr::status_code(resp) == 200) {
         google_font <- httr::content(resp)
         google_font <- list(url = str_extract(google_font, "(?<=url\\()[^\\)]*(?=\\))"), format = str_extract(google_font, "(?<=format\\()[^\\)]*(?=\\))"))
@@ -410,27 +410,27 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
       }
     })()
   }
-  
+
   if(!font %in% .fonts & is.null(google_font)) {
     if (!file.exists(font) | !str_extract(font, "[^\\.]*$") %in% c("otf","ttf","OTF","TTF")) {
-      stop(str_c("The give 'font' does not seem to exist or the font file is not in file format .otf or .ttf. Is the file path correct?\n",
+      stop(str_c("The given 'font' does not seem to exist or the font file is not in file format .otf or .ttf. Is the file path correct?\n",
                  "Try using a call of system.file() (eg. system.file(\"www\",\"fonts\",\"Roboto-Regular.ttf\", package = \"roboplotr\"))\n",
                  "You can use any of ",roboplotr_combine_words(str_c("\"",websafe,"\""), and = " or ")," instead, or try using a valid Google Font."), call. = F)
     }
   }
-  
+
   if(!font %in% websafe) {
     .safes <- roboplotr_combine_words(str_c("\"",websafe,"\""), and = " or ")
     roboplotr_message(str_glue("The font '{font}' might not work in all contexts, consider using one of {.safes}."))
   }
-  
-  
+
+
   .font <- font
   roboplotr_typecheck(size, "numeric", allow_null = F)
   roboplotr_typecheck(color, "character", allow_null = F)
   roboplotr_valid_colors(color)
   roboplotr_typecheck(bold_title, "logical", allow_null = F)
-  
+
   if(!font %in% websafe & is.null(google_font)) {
     roboplotr_typecheck(type, "character", allow_null = F)
     type <- tolower(type)
@@ -438,12 +438,12 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
       stop("When the font is a file, the parameter 'type' must be one of \"main\", \"title\" or \"caption\".", call. = F)
     }
   }
-  
+
   fallbacks <- c("Arial|Verdana|Tahoma|Trebuchet" = "sans-serif",
                  "Times New Roman|Georgia|Garamond" = "serif",
                  "Courier New" = "monospace",
                  "Brush Script MT" = "cursive")
-  
+
   if(font %in% .fonts) {
     .fallback <- fallback
     fallback <- str_replace_all(font, fallbacks)
@@ -466,7 +466,7 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
     font_face <- str_glue("roboplot-{type}")
     family <- str_glue("roboplot-{type}, {fallback}")
   }
-  
+
   .res <- list(path = font, family = family, font_face = font_face, size = size, color = color, bold = bold_title, google_font = google_font, .fallback = .fallback, .font = .font)
   .res <- structure(.res, class = c("roboplotr.set_font", class(.res)))
   .res
@@ -594,8 +594,8 @@ set_plot_legend <- function(position = NULL,
                             title = FALSE,
                             tidy = getOption("roboplot.legend.tidy"),
                             ...) {
-  
-  
+
+
   roboplotr_typecheck(position, "character", allow_na = T)
   if(!is.null(position)) {
     if(!is.na(position)) {
@@ -607,16 +607,16 @@ set_plot_legend <- function(position = NULL,
   } else {
     position <- "bottom"
   }
-  
+
   roboplotr_typecheck(orientation, "character")
   roboplotr_typecheck(maxwidth, "numeric")
   roboplotr_typecheck(title, c("logical","character"), allow_null = F)
   roboplotr_typecheck(tidy, "logical", allow_null = F)
-  
+
   .res <- list(position = position, orientation = orientation, maxwidth = maxwidth, title = title, tidy = tidy)
-  
+
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_legend", class(.res)))
-  
+
   .res
 }
 
@@ -644,7 +644,7 @@ set_map_legend <- function(
     gradient = NULL,
     ...
 ) {
-  
+
   roboplotr_typecheck(position, "character",allow_null = F)
   roboplotr_valid_strings(position, c("bottomleft","bottomright","none"), any, "set_legend() param 'position'")
   roboplotr_typecheck(orientation, "character",allow_null = F)
@@ -655,7 +655,7 @@ set_map_legend <- function(
   roboplotr_typecheck(breaks, "numeric", size = NULL, allow_null = F)
   roboplotr_typecheck(opacity, "numeric", allow_null = F)
   roboplotr_typecheck(gradient, "logical", allow_null = T)
-  
+
   if(!between(opacity, 0, 1)) {
     stop("set_legend() param 'opacity' must be between 0 and 1!", call. = F)
   }
@@ -668,17 +668,17 @@ set_map_legend <- function(
     labformat = labformat,
     gradient = gradient
   )
-  
+
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_legend", class(.res)))
-  
+
   .res
 }
 
 
 roboplotr_set_caption <- function(caption, d, where) {
-  
+
   roboplotr_typecheck(caption, c("character","set_caption"), extra = where, allow_na = T)
-  
+
   if (!is.null(caption)) {
     if(any(is.na(caption))) {
       return("")
@@ -700,15 +700,15 @@ roboplotr_set_caption <- function(caption, d, where) {
       caption <- set_caption(text = "PLACEHOLDER")
     }
   }
-  
+
   caption
 }
 
 
 roboplotr_set_title <- function(title, d, where) {
-  
+
   roboplotr_typecheck(title, c("set_title","character"), extra = where)
-  
+
   if (is.null(title)) {
     title <- attributes(d)[c("title", "robonomist_title")]
     if (!is.null(title$robonomist_title)) {
@@ -754,19 +754,19 @@ roboplotr_set_title <- function(title, d, where) {
 #' # Use `set_labels(style = "auto")` to automatically set the labels in bar plots
 #' # inside or outside of bars according to how they fit.
 #' d <- energiantuonti |> dplyr::filter(Alue == "USA")
-#' 
+#'
 #' d |> roboplot(Suunta, plot_type = "bar", plot_mode = "dodge", labels = set_labels("auto"))
-#' 
+#'
 #' # Use `style = "mini"` to label only the bars where the labels don't fit (ie. the
 #' # smallest bars). You can omit using the `set_labels()`-function if you only wish
 #' # to provide the state
 #' d |> roboplot(Suunta, plot_type = "bar", plot_mode = "dodge", labels = "mini")
-#' 
+#'
 #' # `"inside"` and `"outside"` to force either state
 #' d |> roboplot(Suunta, plot_type = "bar", plot_mode = "dodge", labels = "outside")
-#' 
+#'
 #' # Give `color` if you want to override the colors of labels outside the bars.
-#' # `roboplot()` will always use its internal color paletter for the labels inside 
+#' # `roboplot()` will always use its internal color paletter for the labels inside
 #' # the bars to ensure accessibility. Give `size`to override the automatic font sizes
 #' # plotly uses.
 #' d |> roboplot(
@@ -774,7 +774,7 @@ roboplotr_set_title <- function(title, d, where) {
 #'   plot_type = "bar",
 #'   labels = set_labels("auto", color = "black", size = 15)
 #' )
-#' 
+#'
 #' # Works with horizontal bars, too
 #' energiantuonti |>
 #'   dplyr::filter(time == max(time), Suunta == "Tuonti") |>
@@ -785,22 +785,22 @@ roboplotr_set_title <- function(title, d, where) {
 #'     plot_axes = set_axes(y = "Alue"),
 #'     labels = set_labels(style = "auto", size = 22)
 #'   )
-#' 
-#' # For scatter traces, use "auto" to highlight data points. You most likely will 
+#'
+#' # For scatter traces, use "auto" to highlight data points. You most likely will
 #' # need to provide y-axis limits manually.
 #' d |> roboplot(Suunta, labels = "auto", plot_axes = set_axes(ylim = c(-60, 700)))
-#' 
-#' # If you specify axis limits with `set_axes()` or `xaxis_ceiling`, `roboplot()` 
-#' # will not be able to detect x-axis limits correctly. Using xaxis_ceiling "default" 
+#'
+#' # If you specify axis limits with `set_axes()` or `xaxis_ceiling`, `roboplot()`
+#' # will not be able to detect x-axis limits correctly. Using xaxis_ceiling "default"
 #' # should work.
 #' d |> roboplot(Suunta, labels = "auto", xaxis_ceiling = "guess")
-#' 
+#'
 #' # Pies can handle only no labels, or percentage labels.
 #' energiantuonti |>
 #'   dplyr::filter(time == max(time), Suunta == "Tuonti") |>
 #'   roboplot(Alue, plot_type = "pie")
-#' 
-#' 
+#'
+#'
 #' # Set defaults with `set_roboplot_options()` by trace type.
 #' set_roboplot_options(labels = set_labels(scatter = "auto", bar = "mini", pie = "none"))
 set_labels <- function(style = "none",
@@ -809,10 +809,10 @@ set_labels <- function(style = "none",
                        size = NULL,
                        ...
 ) {
-  
-  
+
+
   args <- list(...)
-  
+
   if("set.options" %in% names(args)) {
     if(!is.null(args$set.options)) {
       .all_types <- c("bar","pie","scatter")
@@ -829,19 +829,19 @@ set_labels <- function(style = "none",
                                        "bar"  ~ list(c("auto","outside","mini","none","inside")),
                                        "pie" ~ list(c("percent","none")),
                                        "scatter" ~ list(c("auto","last","none"))
-          ) |> unlist() 
+          ) |> unlist()
           roboplotr_valid_strings(.t[[1]], valid_labtypes, any, str_glue("set_labels({names(.t)})"))
         }
       })()
-      
+
       for(.t in .all_types[!.all_types %in% names(.types)]) {
         .types <- append(.types, setNames(list(getOption("roboplot.labels")[[.t]]), .t))
       }
       return(.types)
-      
+
     }
   }
-  
+
   roboplotr_typecheck(style, c("character"),allow_null = F, extra = "set_labels()")
   styles <- c("auto", "last", "outside", "mini", "none", "percent", "inside")
   roboplotr_valid_strings(style, styles, any, "set_labels(style)")
@@ -849,17 +849,17 @@ set_labels <- function(style = "none",
   if(!is.null(color)) { roboplotr_valid_colors(color) }
   roboplotr_typecheck(size, "integer", allow_null = T, extra = "set_labels()")
   if(!is.null(size)) {size <- as.integer(size)}
-  
+
   text_col <- enquo(text_col)
-  
+
   .res <- list(style = style, color = color, text_col = text_col, size = size)
-  
+
   args <- list(...)
-  
+
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_labels", class(.res)))
-  
+
   .res
-  
+
 }
 
 
@@ -869,30 +869,30 @@ roboplotr_trace_labels <- function(mode,
   if(is.null(labels)) {
     return(set_labels(style = getOption("roboplot.labels")[[mode]]))
   }
-  
+
   roboplotr_typecheck(labels, c("set_labels","character"))
-  
+
   valid_labtypes <- case_match(mode,
                                "bar"  ~ list(c("auto","outside","mini","none","inside")),
                                "pie" ~ list(c("percent","none")),
                                "scatter" ~ list(c("auto","last","none"))
   ) |> unlist()
-  
-  
+
+
   if(!"roboplotr.set_labels" %in% class(labels)) {
     roboplotr_valid_strings(labels, valid_labtypes, any,  str_glue("`roboplot(labels)` for plot type of \"{mode}\""))
     labels <- set_labels(style = labels)
   } else {
     style <- labels$style
     roboplotr_valid_strings(style, valid_labtypes, any, str_glue("`set_labels(style)` for plot type of \"{mode}\""))
-    
+
     if(!is.null(labels$text_col)) {
       text_col <- labels$text_col
       roboplotr_check_valid_var(text_col, d_names,"set_labels")
     }
-    
+
   }
-  
+
   labels
-  
+
 }

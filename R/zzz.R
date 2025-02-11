@@ -9,6 +9,7 @@
     roboplot.colors.background = "white",
     roboplot.colors.traces =  c("#c1272d","#f15a24","#f7931e","#dcc48a","#118f9a","#951d46"),
     roboplot.dashtypes = c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"),
+    roboplot.empty.roboplot = list(message = NULL, title = T, caption = F, modebar = T, height = 550),
     roboplot.errorbars = list(xcolor = "#545454", ycolor = "#545454"),
     roboplot.grid = list(xcolor = "#E8E8E8", ycolor = "#E8E8E8", xwidth = 1, ywidth = 1, xdash = "solid", ydash = "solid", xtick = NULL, ytick = NULL),
     roboplot.patterntypes = c("","/","\\","x","-","|","+","."),
@@ -32,14 +33,15 @@
         emptyTable = "Tietoja ei saatavilla",
         first = "Ensimm\u00e4inen",
         last = "Viimeinen"
-      )
+      ),
+      modebar_dl_label = list(data = "Lataa tiedot", plot = "Lataa kuvio")
     ),
     roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),
     roboplot.markers = list(symbol = "circle", size = 8),
     roboplot.modebar = list(buttons = c("closest","compare","img_w","data_dl"), display = "hover", zoom = 1),
-    roboplot.imgdl.wide = list(x = 1280, y = 720, title = 18, main = 15, caption = 11, suffix = "_levea", type = "png"),
-    roboplot.imgdl.narrow = list(x = 810, y = 720, title = 18, main = 15, caption = 11, suffix = "_kapea", type = "png"),
-    roboplot.imgdl.small = list(x = 889, y = 500, title = 16, main = 13, caption = 10, suffix = "_pieni", type = "png"),
+    roboplot.imgdl.wide = list(x = 1280, y = 720, title = 18, main = 15, caption = 11, suffix = "", type = "png", button_label = "Lataa kuvio (leve\U00E4)"),
+    roboplot.imgdl.narrow = list(x = 810, y = 720, title = 18, main = 15, caption = 11, suffix = "", type = "png", button_label = "Lataa kuvio (kapea)"),
+    roboplot.imgdl.small = list(x = 889, y = 500, title = 16, main = 13, caption = 10, suffix = "", type = "png", button_label = "Lataa kuvio (pieni)"),
     roboplot.rounding = 1,
     roboplot.title = list(include = T, xref = "plot"),
     roboplot.trace.border = list(color = "#E8E8E8", width = 1),

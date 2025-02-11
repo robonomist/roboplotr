@@ -1,3 +1,8 @@
+# roboplotr 2.6.0
+
+* Adds `empty_roboplot` to `set_roboplot_options()` where the appearance of empty roboplots can be controlled with `set_empty_roboplot()`.
+* Added `responsive` to `robotable()` to allow for collapsing colums where the table is too wide.
+
 # roboplotr 2.5.2
 
 * Fixes `roboplot()`s sometimes losing legends on render with no apparent reason, only to reappear.

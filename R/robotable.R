@@ -228,7 +228,15 @@ roboplotr_set_robotable_css <-
         "width" = "18px",
         "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
       ),
-
+      roboplotr_set_specific_css(
+        str_glue("#{id}_wrapper .dataTables_scrollBody"),
+        "height" = "unset!important",
+        "border-bottom" = "none"
+      ),
+      roboplotr_set_specific_css(
+        str_glue("#{id}_wrapper .dataTables_scrollFoot table"),
+        "border" = "none"
+      ),
       roboplotr_set_specific_css(
         str_glue("#{id}_wrapper:hover .dt-buttons .dt-button"),
         "border" = "none",
@@ -288,6 +296,14 @@ roboplotr_set_robotable_css <-
         "margin-top" = '-5px',
         'margin-bottom' = '6px',
         "padding-top" = "0px"
+      ),
+      roboplotr_set_specific_css(
+        str_glue("#{id} tr:last-of-type td"),
+        "border-bottom" = "1pt solid rgba(0, 0, 0, 0.3)"
+      ),
+      roboplotr_set_specific_css(
+        str_glue("#{id}_footer-container tr:hover"),
+        "--dt-row-hover" = "none"
       ),
       roboplotr_set_specific_css(
         str_glue("#{id}_footer"),
@@ -377,6 +393,8 @@ roboplotr_set_robotable_fonts <-
 #' @param col_widths Named numeric vector. Must sum to 100 or lower. Sets the percentage
 #' widths taken by column by name. Columns not named will have the excess space
 #' divided evenly between them. For narrow screens the widths cannot be adhered to.
+#' @param responsive Character or logical. If logical, the columns collapse for narrow
+#' screens. If character, provide the names of the columns you want to prioritize.
 #' @param ... Placeholder for other parameters.
 #' @returns A list of classes datatable, htmlwidget, and roboplotr.robotable
 #' @importFrom DT datatable tableFooter tableHeader
@@ -424,6 +442,20 @@ roboplotr_set_robotable_fonts <-
 #'   sortable = FALSE,
 #'   col_widths = c("USA, Vienti" = 50)
 #' )
+#'
+#' # You can use `responsive` to let columns collapse on narrow screens.
+#'
+#' energiantuonti |> robotable(responsive = TRUE)
+#'
+#' # Specify column priority.
+#'
+#' energiantuonti |> robotable(responsive = c("Alue", "value", "Suunta"))
+#'
+#' # Note that the underlying DT library does not support -not- using the first
+#' # column as the top priority.
+#'
+#' energiantuonti |> robotable(responsive = "value")
+#'
 robotable <-
   function(d,
            title = NULL,
@@ -443,6 +475,7 @@ robotable <-
            searchable = T,
            sortable = T,
            col_widths = NULL,
+           responsive = NULL,
            artefacts = getOption("roboplot.artefacts")$auto,
            ...
            ) {
@@ -479,6 +512,20 @@ robotable <-
     roboplotr_typecheck(heatmap, "set_heatmap")
 
     d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value, dateformat)
+
+    if(!is.null(responsive)) {
+      roboplotr_typecheck(responsive, c("character", "logical"), NULL)
+      responsive_defs <- NULL
+      if(!is.logical(responsive)) {
+        roboplotr_valid_strings(responsive, names(d), any, "robotable(responsive) responsive")
+        responsive <- responsive[responsive %in% names(d)]
+        responsive_defs <- imap(responsive, ~ list(responsivePriority = .y, targets = which(.x == names(d))-1))
+        responsive <- T
+      } else if (length(responsive) > 1) {
+        stop("`robotable(responsive)` must be of length 1 if logical, or provide the names of the columns you want to prioritize!", call. = F)
+      }
+
+    }
 
     order_defs <-
       map2(
@@ -523,7 +570,8 @@ robotable <-
       colwidth_defs
     })()
 
-    column_defs <- append(order_defs, center_defs) |> append(colwidth_defs)
+
+    column_defs <- append(order_defs, center_defs) |> append(colwidth_defs) |> append(responsive_defs)
 
     .footer <- caption
 
@@ -598,6 +646,7 @@ robotable <-
       subtitle <- NULL
     }
 
+
     sketch <-
       tagList(tags$div(
         class = "robotable-container",
@@ -619,15 +668,18 @@ robotable <-
           tags$thead(tags$tr(
             map(names(d), ~ HTML(.x)) |> map(tags$th) |> tagList()
           )),
-          tags$tfoot(tags$tr(
-            tags$th(
-              #style = "vertical-align: top",
+          tags$tbody(),
+          tags$tfoot(
+            tags$tbody(
+              id = str_glue("{robotable_id}_footer-container"),
+              tags$th(
               id = str_glue("{robotable_id}_footer"),
               colspan = names(d) |> stringr::str_subset("^.order", negate = T) |> length(),
               tags$span(HTML(.footer)),
               robotable_logo()
-            ),
-          ))
+            )
+          )
+          )
         )
       ))
 
@@ -711,8 +763,9 @@ function preInitFunction(settings, json) {
         container = sketch,
         rownames = FALSE,
         escape = FALSE,
-        extensions = "Buttons",
+        extensions = c("Buttons", if(is.null(responsive)) {NULL} else { "Responsive" }),
         options = list(
+          responsive = responsive,
           autoWidth = T,
           scrollX = T,
           scrollY = "100%",
@@ -724,7 +777,8 @@ function preInitFunction(settings, json) {
           lengthMenu = .pagination$lengthmenu,
           ordering = sortable,
           pageLength = .pagination$pagelength,
-          preInit = preloadJS)
+          preInit = preloadJS
+          )
       ) |>
       roboplotr_set_robotable_fonts(seq(ncol(d)))
 

@@ -10,8 +10,9 @@ set_imgdl_layout(
   mainfont = getOption("roboplot.font.main")$size,
   titlefont = getOption("roboplot.font.title")$size,
   captionfont = getOption("roboplot.font.caption")$size,
-  suffix = "_img",
-  format = "png"
+  suffix = "",
+  format = "png",
+  button_label = getOption("roboplot.locale")$modebar_dl_label$plot
 )
 }
 \arguments{
@@ -24,6 +25,8 @@ the modebar button will produce.}
 
 \item{format}{Character. One of "png", "svg", "jpg", or "webp". Defines the file
 format of the export.}
+
+\item{button_label}{Character. The label for the modebar button.}
 }
 \value{
 A list of class of roboplotr.set_imgdl_layout
@@ -92,8 +95,8 @@ set_roboplot_options(
   modebar = c("img_w","img_n","img_s")
 )
 
-  # Create a `roboplot()` and navigate to it, and download any of the
-  # static images through the modebar.
+ # Create a `roboplot()` and navigate to it, and download any of the
+ # static images through the modebar.
   energiantuonti |>
     dplyr::filter(Suunta == "Tuonti") |>
     roboplot(
@@ -105,7 +108,16 @@ set_roboplot_options(
     )
   utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
 
+# Do note that plotly cannot handle multiple modebar buttons with the same name.
+# If you want to use multiple image download buttons, you need to give them unique
+# names, but you can circumvent this by using some unicode invisible characters.
+
+set_roboplot_options(
+  imgdl_narrow = set_imgdl_layout(button_label = "Lataa kuva"),
+  imgdl_wide = set_imgdl_layout(button_label = "Lataa kuva\U00A0")
+)
+
 # Revert to defaults:
-set_roboplot_options(reset = TRUE)
+set_roboplot_options(reset = "roboplotr")
 }
 }

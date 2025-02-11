@@ -15,6 +15,8 @@
 #' @param caption_template Deprecated. Use caption instead.
 #' @param dashtypes Character vector. Line trace linetypes in order of usage. Must
 #' contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.
+#' @param empty_roboplot Function. Use [set_empty_roboplot()]. Control how a [roboplot()]
+#' without data is displayed.
 #' @param font_main,font_title,font_caption Functions. Use [set_font()].
 #' @param height,width Double. Height and width of roboplotr plots in pixels.
 #' Use NA for viewport size.
@@ -241,6 +243,7 @@ set_roboplot_options <- function(
     caption = NULL,
     caption_template,
     dashtypes = NULL,
+    empty_roboplot = NULL,
     font_main = NULL,
     font_title = NULL,
     font_caption = NULL,
@@ -360,6 +363,8 @@ set_roboplot_options <- function(
     roboplotr_typecheck(dashtypes, "character", NULL)
     roboplotr_valid_strings(dashtypes,c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"))
 
+    roboplotr_typecheck(empty_roboplot, "set_empty_roboplot")
+
     font_main <- substitute(font_main)
     if(!is.null(font_main)) {
       if(font_main[1] != "set_font()" & font_main[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_main!", call. = F)}
@@ -426,6 +431,16 @@ set_roboplot_options <- function(
     roboplotr_typecheck(imgdl_narrow, "set_imgdl_layout")
     roboplotr_typecheck(imgdl_small, "set_imgdl_layout")
 
+    dl_labs <- list(imgdl_wide %||% getOption("roboplot.imgdl.wide"),
+      imgdl_small %||% getOption("roboplot.imgdl.small"),
+      imgdl_narrow %||% getOption("roboplot.imgdl.narrow")
+      ) |> map(~ .x$button_label) |>
+      unlist()
+
+    if(length(dl_labs) != length(unique(dl_labs))) {
+      stop("Image download buttons set with `set_roboplot_options(imgd_wide, imgdl_narrow, imgdl_small)` must have unique names.\nSet them with `set_roboplot_options(imgdl_wide = set_imgdl_layout(button_label = \"Your label\"))` and so on.", call. = FALSE)
+    }
+
     roboplotr_typecheck(rounding, "numeric", allow_na = F)
 
     roboplotr_typecheck(tidy_legend, "logical")
@@ -478,6 +493,7 @@ set_roboplot_options <- function(
     set_roboplot_option(caption_template, "caption.template")
     set_roboplot_option(caption_xref, "caption.xref")
     set_roboplot_option(dashtypes)
+    set_roboplot_option(empty_roboplot, "empty.roboplot")
     set_roboplot_option(font_main, "font.main")
     set_roboplot_option(font_title, "font.title")
     set_roboplot_option(font_caption, "font.caption")
@@ -626,10 +642,16 @@ set_locale <- function(locale = "fi-FI") {
   loc <- case_when(locale == "en-GB" ~ "en", locale == "en-US" ~ "en-US", locale == "sv-SE" ~ "sv", TRUE ~ "fi")
   sep <- case_when(loc %in% c("en", "en-US") ~ ".,", TRUE ~ ", ")
   dat <- case_when(loc == "en" ~ "%-d/%-m/%Y", loc == "en-US" ~ "%-m/%-d/%Y", TRUE ~ "%-d.%-m.%Y")
-  ylegendlabs <- case_when(loc == "en" ~ list(left = "Left Y-Axis", right = "Right Y-Axis"),
+  ylegendlabs <- case_when(loc %in% c("en","en-US") ~ list(left = "Left Y-Axis", right = "Right Y-Axis"),
                            loc == "sv" ~ list(left = "V\uE4nster Y-axel", right = "H\uF6ger Y-axel"),
                            TRUE ~ list(left = "Vasen Y-akseli", right = "Oikea Y-akseli")
                            )
+
+  modebar_dl_label <-
+    case_when(loc %in% c("en","en-US") ~ list(data = "Download data", plot = "Download graph"),
+              loc == "sv" ~ list(data = "Ladda ner data", plot = "Ladda ner grafen"),
+              TRUE ~ list(data = "Lataa tiedot", plot = "Lataa kuvio")
+    )
 
   robotable_labels <- case_when(
     loc == "en" ~list(
@@ -657,7 +679,7 @@ set_locale <- function(locale = "fi-FI") {
       last = "Viimeinen"
     )
   )
-  .res <- list(locale = loc, separators = sep, date = dat, ylegendlabs = ylegendlabs, robotable_labels = robotable_labels)
+  .res <- list(locale = loc, separators = sep, date = dat, ylegendlabs = ylegendlabs, robotable_labels = robotable_labels, modebar_dl_label = modebar_dl_label)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_locale", class(.res)))
 
@@ -950,3 +972,118 @@ roboplotr_reset_temp_options <- function(.reset) {
   }
   }
 
+#' Empty [roboplot()] configuration
+#'
+#' Parameters set in [set_roboplot_options][set_roboplot_options() ]to configure
+#' how [roboplots][roboplot()] are displayed when no data is available.
+#' @param message Character. The message you want to display on the empty plot.
+#' @param title Logical. Will the plot show its title.
+#' @param caption Logical. Will the plot show its caption.
+#' @param modebar Logical. Will the modebar show on the plot. Only relevant when
+#' [roboplot(info_text)][roboplot()] has been set. Beside the info_text, the modebar
+#' will be empty
+#' @return A list of class roboplot.set_empty_roboplot
+#' @examples
+#'
+#' # Your plot might result in a plot without data.
+#'
+#' energiantuonti |> dplyr::filter(Alue == "Samoa") |> roboplot(title = "Samoan energiantuonti", caption = "Tilastokeskus")
+#'
+#' # Control your empty plot globally with `set_roboplot_options()`. Message is
+#' # the message you wish to present, and control the visibility of title, caption
+#' # and any possible `roboplot(info_text)` from modebar with logicals.
+#'
+#' set_roboplot_options(
+#'   empty_roboplot = set_empty_roboplot(
+#'     message = "Valituilla asetuksilla ei löytynyt dataa.\nKokeile muuttaa asetuksia.",
+#'     title = F,
+#'     caption = T,
+#'     modebar = T
+#'     )
+#' )
+#'
+#' energiantuonti |>
+#'   dplyr::filter(Alue == "Samoa") |>
+#'   roboplot(title = "Samoan energiantuonti",
+#'            caption = "Tilastokeskus",
+#'            info_text = "Dataa ei löytynyt.")
+#' @export
+set_empty_roboplot <-
+  function(message = getOption("roboplot.locale")$robotable_labels$emptyTable,
+           title = T,
+           caption = T,
+           modebar = T) {
+
+    roboplotr_typecheck(message, "character", allow_null = F)
+    roboplotr_typecheck(title, "logical", allow_null = F)
+    roboplotr_typecheck(caption, "logical", allow_null = F)
+    roboplotr_typecheck(modebar, "logical", allow_null = F)
+
+    .res <- list(message = message, title = title, caption = caption, modebar = modebar)
+
+    .res <- structure(.res, class = c("roboplotr","roboplotr.set_empty_roboplot", class(.res)))
+
+    .res
+
+
+}
+
+
+#' @importFrom plotly add_annotations layout
+roboplotr_empty_roboplot <- function(title, caption, info_text) {
+
+  .msg <- getOption("roboplot.empty.roboplot")$message %||% getOption("roboplot.locale")$robotable_labels$emptyTable
+  if (getOption("roboplot.empty.roboplot")$title) {
+    .title <- title
+  } else {
+    .title <- set_title("")
+  }
+
+  if (getOption("roboplot.empty.roboplot")$caption) {
+    .caption <- caption
+  } else {
+    .caption <- set_caption("\U00A0", template = "{text}")
+  }
+
+  if (getOption("roboplot.empty.roboplot")$modebar) {
+    .modebar <- set_modebar("robonomist")
+    .info_text <- info_text
+  } else {
+    .modebar <- set_modebar("robonomist", display = "none")
+    .info_text <- NULL
+  }
+
+  data.frame(Alue = "",
+             time = "",
+             value = "") |>
+    roboplot(
+      Alue,
+      title = .title,
+      caption = .caption,
+      modebar = .modebar,
+      info_text = .info_text,
+      height = getOption("roboplot.height")
+
+    ) |>
+    add_annotations(
+      .msg,
+      font = getOption("roboplot.font.main"),
+      arrow = "none",
+      bordercolor = getOption("roboplot.infobox")$border,
+      bgcolor = getOption("roboplot.infobox")$background,
+      borderpad = round(getOption("roboplot.font.main")$size / 2),
+      showarrow = F,
+      x = 0,
+      y = 0
+    ) |>
+    layout(
+      yaxis = list(
+        ticks = "",
+        zeroline = F,
+        showgrid = F
+      ),
+      xaxis = list(showgrid = F, ticks = ""),
+      hovermode = F
+    )
+
+}

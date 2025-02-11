@@ -23,6 +23,7 @@ robotable(
   searchable = T,
   sortable = T,
   col_widths = NULL,
+  responsive = NULL,
   artefacts = getOption("roboplot.artefacts")$auto,
   ...
 )
@@ -67,6 +68,9 @@ have searching or sorting when navigation is displayed.}
 \item{col_widths}{Named numeric vector. Must sum to 100 or lower. Sets the percentage
 widths taken by column by name. Columns not named will have the excess space
 divided evenly between them. For narrow screens the widths cannot be adhered to.}
+
+\item{responsive}{Character or logical. If logical, the columns collapse for narrow
+screens. If character, provide the names of the columns you want to prioritize.}
 
 \item{artefacts}{Function. Use \code{\link[=set_artefacts]{set_artefacts()}}. Controls file exports.
 Currently unable to make static exports, only html files.}
@@ -120,4 +124,18 @@ d |> robotable(
   sortable = FALSE,
   col_widths = c("USA, Vienti" = 50)
 )
+
+# You can use `responsive` to let columns collapse on narrow screens.
+
+energiantuonti |> robotable(responsive = TRUE)
+
+# Specify column priority.
+
+energiantuonti |> robotable(responsive = c("Alue", "value", "Suunta"))
+
+# Note that the underlying DT library does not support -not- using the first
+# column as the top priority.
+
+energiantuonti |> robotable(responsive = "value")
+
 }

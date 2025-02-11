@@ -47,7 +47,7 @@ d |> roboplot(Suunta, plot_type = "bar", plot_mode = "dodge", labels = "mini")
 d |> roboplot(Suunta, plot_type = "bar", plot_mode = "dodge", labels = "outside")
 
 # Give `color` if you want to override the colors of labels outside the bars.
-# `roboplot()` will always use its internal color paletter for the labels inside 
+# `roboplot()` will always use its internal color paletter for the labels inside
 # the bars to ensure accessibility. Give `size`to override the automatic font sizes
 # plotly uses.
 d |> roboplot(
@@ -67,12 +67,12 @@ energiantuonti |>
     labels = set_labels(style = "auto", size = 22)
   )
 
-# For scatter traces, use "auto" to highlight data points. You most likely will 
+# For scatter traces, use "auto" to highlight data points. You most likely will
 # need to provide y-axis limits manually.
 d |> roboplot(Suunta, labels = "auto", plot_axes = set_axes(ylim = c(-60, 700)))
 
-# If you specify axis limits with `set_axes()` or `xaxis_ceiling`, `roboplot()` 
-# will not be able to detect x-axis limits correctly. Using xaxis_ceiling "default" 
+# If you specify axis limits with `set_axes()` or `xaxis_ceiling`, `roboplot()`
+# will not be able to detect x-axis limits correctly. Using xaxis_ceiling "default"
 # should work.
 d |> roboplot(Suunta, labels = "auto", xaxis_ceiling = "guess")
 

@@ -95,20 +95,20 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     "closest" = "hoverClosestCartesian",
     "compare" = "hoverCompareCartesian",
     "img_w" = list(
-      name = "Lataa kuva (leve\u00e4)",
+      name = getOption("roboplot.imgdl.wide")$button_label,
       icon = dl_icon("image"),
       click = JS(js_string(getOption("roboplot.imgdl.wide")))
     ),
     "img_n" = list(
-      name = "Lataa kuva (kapea)",
+      name = getOption("roboplot.imgdl.narrow")$button_label,
       icon = dl_icon("file-image", 0.025, c(2.7,2)),
       click = JS(js_string(getOption("roboplot.imgdl.narrow")))),
     "img_s" = list(
-      name = "Lataa kuva (pieni)",
-      icon = dl_icon("twitter-square"),
+      name = getOption("roboplot.imgdl.small")$button_label,
+      icon = dl_icon("image", 0.025, c(3,3)),
       click = JS(js_string(getOption("roboplot.imgdl.small")))),
     "data_dl" = list(
-      name = "Lataa tiedot",
+      name = getOption("roboplot.locale")$modebar_dl_label$data,
       icon = dl_icon("file-csv"),
       click = JS(str_c("
           function(gd) {
@@ -285,6 +285,7 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #' @param suffix Character. Suffix attached after the name of the export.
 #' @param format Character. One of "png", "svg", "jpg", or "webp". Defines the file
 #' format of the export.
+#' @param button_label Character. The label for the modebar button.
 #' @examples
 #' # Used inside `set_roboplot_options()` to control modebar export specifications
 #' # globally. Parameters `x` and `y` control the dimensions. Override plot font
@@ -346,8 +347,8 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #'   modebar = c("img_w","img_n","img_s")
 #' )
 #'
-#'   # Create a `roboplot()` and navigate to it, and download any of the
-#'   # static images through the modebar.
+#'  # Create a `roboplot()` and navigate to it, and download any of the
+#'  # static images through the modebar.
 #'   energiantuonti |>
 #'     dplyr::filter(Suunta == "Tuonti") |>
 #'     roboplot(
@@ -359,8 +360,17 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 #'     )
 #'   utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
 #'
+#' # Do note that plotly cannot handle multiple modebar buttons with the same name.
+#' # If you want to use multiple image download buttons, you need to give them unique
+#' # names, but you can circumvent this by using some unicode invisible characters.
+#'
+#' set_roboplot_options(
+#'   imgdl_narrow = set_imgdl_layout(button_label = "Lataa kuva"),
+#'   imgdl_wide = set_imgdl_layout(button_label = "Lataa kuva\U2060")
+#' )
+#'
 #' # Revert to defaults:
-#' set_roboplot_options(reset = TRUE)
+#' set_roboplot_options(reset = "roboplotr")
 #' }
 #' @returns A list of class of roboplotr.set_imgdl_layout
 #' @export
@@ -370,8 +380,10 @@ set_imgdl_layout <- function(
     mainfont = getOption("roboplot.font.main")$size,
     titlefont = getOption("roboplot.font.title")$size,
     captionfont = getOption("roboplot.font.caption")$size,
-    suffix = "_img",
-    format = "png") {
+    suffix = "",
+    format = "png",
+    button_label = getOption("roboplot.locale")$modebar_dl_label$plot
+    ) {
   roboplotr_typecheck(width, "numeric", allow_null = F)
   roboplotr_typecheck(height, "numeric", allow_null = F)
   roboplotr_typecheck(mainfont, "numeric", allow_null = F)
@@ -380,8 +392,9 @@ set_imgdl_layout <- function(
   roboplotr_typecheck(suffix, "character", allow_null = F)
   roboplotr_typecheck(format, "character", allow_null = F)
   roboplotr_valid_strings(format, c("png","svg","jpeg", "webp"), any)
+  roboplotr_typecheck(button_label, "character", allow_null = F)
 
-  .res <- list(x = width, y = height, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix, type = format)
+  .res <- list(x = width, y = height, main = mainfont, title = titlefont, caption = captionfont, suffix = suffix, type = format, button_label = button_label)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_imgdl_layout", class(.res)))
 

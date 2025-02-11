@@ -12,6 +12,7 @@ set_roboplot_options(
   caption = NULL,
   caption_template,
   dashtypes = NULL,
+  empty_roboplot = NULL,
   font_main = NULL,
   font_title = NULL,
   font_caption = NULL,
@@ -64,6 +65,9 @@ caption's left anchoring, and is ignored by \code{\link[=robomap]{robomap()}} an
 
 \item{dashtypes}{Character vector. Line trace linetypes in order of usage. Must
 contain all of "solid", "dash", "dot", "longdash", "dashdot", and "longdashdot" in any order.}
+
+\item{empty_roboplot}{Function. Use \code{\link[=set_empty_roboplot]{set_empty_roboplot()}}. Control how a \code{\link[=roboplot]{roboplot()}}
+without data is displayed.}
 
 \item{font_main, font_title, font_caption}{Functions. Use \code{\link[=set_font]{set_font()}}.}
 
