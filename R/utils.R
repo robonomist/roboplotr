@@ -277,6 +277,8 @@ set_roboplot_options <- function(
     .defaults
 ) {
 
+  .env <- environment()
+
   set_roboplot_option <- function(option, opt_name = NULL) {
     if(!is.null(option)) {
       if(is.null(opt_name)) {
@@ -431,14 +433,31 @@ set_roboplot_options <- function(
     roboplotr_typecheck(imgdl_narrow, "set_imgdl_layout")
     roboplotr_typecheck(imgdl_small, "set_imgdl_layout")
 
-    dl_labs <- list(imgdl_wide %||% getOption("roboplot.imgdl.wide"),
-      imgdl_small %||% getOption("roboplot.imgdl.small"),
-      imgdl_narrow %||% getOption("roboplot.imgdl.narrow")
+    dl_labs <- list(imgdl_wide = imgdl_wide %||% getOption("roboplot.imgdl.wide"),
+      imgdl_small = imgdl_small %||% getOption("roboplot.imgdl.small"),
+      imgdl_narrow = imgdl_narrow %||% getOption("roboplot.imgdl.narrow")
       ) |> map(~ .x$button_label) |>
       unlist()
 
     if(length(dl_labs) != length(unique(dl_labs))) {
-      stop("Image download buttons set with `set_roboplot_options(imgd_wide, imgdl_narrow, imgdl_small)` must have unique names.\nSet them with `set_roboplot_options(imgdl_wide = set_imgdl_layout(button_label = \"Your label\"))` and so on.", call. = FALSE)
+      warning("Image download buttons set with `set_roboplot_options(imgd_wide, imgdl_narrow, imgdl_small)` must be given unique names.\n",
+              "  Set them explicitly with `set_roboplot_options(imgdl_wide = set_imgdl_layout(button_label = \"Your label\"))` and so on.\n",
+              "  Some button labels have reverted to original labeling."
+              )
+      (function() {
+        for(lab in seq(1,length(dl_labs))) {
+          if(length(dl_labs[dl_labs == dl_labs[lab]]) > 1) {
+            .dlbtn <- names(dl_labs[lab])
+            .placeholder <- get(.dlbtn)
+            .default <- case_match(.dlbtn,
+                                   "imgdl_wide" ~ getOption("roboplot.imgdl.wide")$button_label,
+                                   "imgdl_narrow" ~ getOption("roboplot.imgdl.narrow")$button_label,
+                                   "imgdl_small" ~ getOption("roboplot.imgdl.small")$button_label)
+            .placeholder$button_label <- .default
+            assign(.dlbtn, .placeholder, envir = .env)
+          }
+        }
+      })()
     }
 
     roboplotr_typecheck(rounding, "numeric", allow_na = F)

@@ -1,3 +1,7 @@
+# roboplotr 2.6.2
+
+* Fixes `set_roboplot_options()` crashing if modebar download buttons are not uniquely named, instead reverting to defaults.
+
 # roboplotr 2.6.1
 
 * Fixes a `robotable()` error when using `responsive = NULL`, and `robotable()` bottom margins.
