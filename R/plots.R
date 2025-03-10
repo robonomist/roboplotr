@@ -1058,8 +1058,9 @@ roboplot <- function(d = NULL,
       labels
     )
   # }
+
   p$data <-
-    roboplotr_transform_data_for_download(d, color, pattern, ticktypes)
+    roboplotr_transform_data_for_download(d, color, pattern, ticktypes, confidence_interval)
 
   if (!getOption("roboplot.shinyapp")) {
     p$elementId <-

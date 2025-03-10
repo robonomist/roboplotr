@@ -75,13 +75,32 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
         d <- d |> mutate(time = format(as_date(.data$time), dateformat))
       }
     }
+
     row.data <- d |> pmap(function(...) {
       as.character(list(...)) |> replace_na("NA") |> str_c(collapse = ";")
-    }) |> unlist() |> str_c(collapse = "\\n")
+    }) |> unlist() |> roboplotr_transform_string() |> str_c(collapse = "\\n")
     col.names <- names(d) |>  str_c(collapse = ";")
-    ti <- roboplotr_transform_string(title$title)
-    su <- roboplotr_transform_string(subtitle)
-    str_c(str_c(ti,", ",su),str_c(rep(";",length(names(p$data))-2),collapse = ""),"\\n",col.names,"\\n",row.data)
+    .seps <- str_c(rep(";",length(names(p$data))-1), collapse = "")
+
+    describe <- list(roboplotr_transform_string(title$title),
+         roboplotr_transform_string(subtitle),
+         roboplotr_transform_string(caption$text)
+         ) |>
+      roboplotr_compact() |>
+      map_chr(~ {
+        str_c(paste0(.x, .seps), collapse = "\\n")
+      }) |> str_c(collapse = "\\n")
+    .info <- roboplotr_transform_string(info_text)
+
+    if(!is.null(.info)) {
+
+      if(!is.null(split)) {
+        .info <- str_wrap(.info, width = 100) |> str_split("\n") |> unlist()
+      }
+
+      .info <- str_c(c("\\n",.info,.seps), collapse = "\\n")
+    }
+    str_c(describe,"\\n",.seps,"\\n",col.names,"\\n",row.data,.info)
   })()
 
 
@@ -113,14 +132,6 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
       click = JS(str_c("
           function(gd) {
             let text = '",dl_string,"';
-            //for(var i = 0; i < gd.data.length; i++){
-              //console.log(gd.data[i])
-              //var array1 = gd.data[i].y
-              //array1.forEach(element => console.log(element));
-              //console.log((gd.data[i].y))
-              //text = text + gd.data[i].name + ';' + gd.data[i].x + '\\n';
-              //text = text + gd.data[i].name + ';' + gd.data[i].y + '\\n';
-            //};
             var blob = new Blob([\"\uFEFF\" + text], {type: 'text/plain;charset=UTF-8'});
             var a = document.createElement('a');
             const object_URL = URL.createObjectURL(blob);

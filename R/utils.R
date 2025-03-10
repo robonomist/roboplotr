@@ -710,15 +710,16 @@ set_locale <- function(locale = "fi-FI") {
 #' @importFrom rlang sym quo_name
 #' @importFrom stringr str_c str_replace str_replace_all
 #' @importFrom tidyr unite
-roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes) {
+roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes, confidence_interval) {
 
   if (!is.null(color)) {  color <- as_name(color) }
   if (!is.null(pattern)) {  pattern <- as_name(pattern) }
+  if (!is.null(confidence_interval)) {  confidence_interval <- as_name(confidence_interval$error_y) }
 
   d <- d |>
-    select(matches(c(color, pattern, plot_axes$x, plot_axes$y)), -matches("roboplot.topic")) |>
+    select(matches(c(color, pattern, plot_axes$x, confidence_interval, plot_axes$y)), -matches("roboplot.topic")) |>
     mutate(
-      across(!is.numeric & !is.Date, ~ as.character(.x) |> roboplotr_transform_string()), #note: semi-colon as colon for final csv
+      across(!is.numeric & !is.Date, ~ as.character(.x)), #note: semi-colon as colon for final csv
       across(is.numeric, ~ as.character(.x) |> str_replace_all("\\.", ","))
     )
 
@@ -726,18 +727,34 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes) 
 
 }
 
+#' @importFrom rvest read_html html_text2
 #' @importFrom stringr str_replace_all
 roboplotr_transform_string <- function(string) {
-  str_replace_all(
-    string,
-    c(
-      "\\<[^\\>]*\\>" = " ",
-      "[^[:alnum:]\\s\\,\\;\\',\\&,\\%,\\-]" = "_",
-      "'" = "\u2019",
-      "\\&" = "\u0026",
-      "\\%" = "\\u0025"
-    )
-  )
+  if(is.null(string)) {
+    NULL
+  } else if (all(str_length(as.character(string)) == 0)) {
+    NULL
+  } else {
+    if(any(c("html", "shiny.tag") %in% class(string))) {
+      string <- as.character(string) |> read_html() |> html_text2()
+    }
+
+    str_replace_all(string, "([^A-Za-z0-9\\s])", function(m) {
+      sprintf("\\u%04X", utf8ToInt(m))
+    })
+
+  }
+  # str_replace_all(
+  #   string,
+  #   c(
+  #     "\\<[^\\>]*\\>" = " ",
+  #     "[^[:alnum:]\\s\\,\\;\\',\\&,\\%,\\-]" = "_",
+  #     "'" = "\u2019",
+  #     "\\&" = "\u0026",
+  #     "\\%" = "\\u0025",
+  #     "\\:" = "\u003a"
+  #   )
+  # )
 }
 
 #' @importFrom dplyr case_when

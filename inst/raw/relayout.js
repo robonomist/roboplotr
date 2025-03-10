@@ -455,21 +455,30 @@ function editShapes(gd, line_label) {
 }
 
 function stringDivider(str, width, spaceReplacer) {
-  if (str.length>width) {
-    let p=width
-    for (;p>0 && str[p]!=' ';p--) {
+  const lines = str.split('<br>');
+
+  const divideLine = (line) => {
+    if (line.length > width) {
+      let p = width;
+      while (p > 0 && line[p] !== ' ') {
+        p--;
+      }
+      if (p > 0) {
+        const left = line.substring(0, p);
+        const right = line.substring(p + 1);
+        return left + spaceReplacer + divideLine(right);
+      } else {
+        const sp = /( ){1,}/ig;
+        return line.replace(sp, spaceReplacer);
+      }
     }
-    if (p>0) {
-      let left = str.substring(0, p);
-      let right = str.substring(p+1);
-      return left + spaceReplacer + stringDivider(right, width, spaceReplacer);
-    } else {
-      let sp = /( ){1,}/ig;
-      return str.replace(sp,spaceReplacer)
-    }
-  }
-  return str;
+    return line;
+  };
+
+  const dividedLines = lines.map(divideLine);
+  return dividedLines.join('<br>');
 }
+
 
 function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
 

@@ -1,3 +1,11 @@
+# roboplotr 2.6.3
+
+* Fixes `robotable()` sorting `Date` columns as characters instead of dates. 
+* Factor columns are now sorted by levels in `robotable()`s.
+* Improves `caption` space handling in `roboplot()`s.
+* `roboplot()`s now include all of `title`, `caption` and `info_text` in downloaded csv files.
+* Improved handling of special characters in `roboplot()` csv files.
+
 # roboplotr 2.6.2
 
 * Fixes `set_roboplot_options()` crashing if modebar download buttons are not uniquely named, instead reverting to defaults.

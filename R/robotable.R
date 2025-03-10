@@ -49,17 +49,13 @@ set_robotable_labels <-
 #' @importFrom lubridate quarter year
 #' @importFrom stringr str_glue
 roboplotr_format_robotable_date <- function(date_col, dateformat) {
-  if (dateformat == "%YQ%q")
-  {
-    str_glue(
-      '<span data-order="{date_col}">{format(date_col, str_c(year(date_col), "Q", quarter(date_col))) |> replace_na(" ")}</span>'
-    )
-  }
-  else {
+  if (dateformat == "%YQ%q") {
+    format(date_col, str_c(year(date_col), "Q", quarter(date_col))) |> replace_na(" ")
+  } else {
     if(str_detect(dateformat, "-")) {
       dateformat <- "%Y-%m-%d"
     }
-    str_glue('<span data-order="{date_col}">{format(date_col, dateformat) |> replace_na(" ")}</span>')
+    format(date_col, dateformat) |> replace_na(" ")
   }
 }
 
@@ -128,40 +124,36 @@ roboplotr_robotable_cellformat <-
       flag <- rep(flag, length(names(d))) |> setNames(names(d))
     }
 
-    if(d |> select(where(is.numeric)) |> ncol() > 0) {
+    if(d |> select(where( ~ is.numeric(.x) | is.Date(.x) | is.factor(.x))) |> ncol() > 0) {
+
       order_cols <-
-        d |> select(where(is.numeric)) |> rename_with( ~ str_c(".order_", .x))
-      num_cols <- d |> select(where(is.numeric)) |> names()
+        d |> select(where( ~ is.numeric(.x) | is.Date(.x) | is.factor(.x))) |> rename_with( ~ str_c(".order_", .x)) |>
+        mutate(across(where( ~ is.Date(.x) | is.factor(.x)), as.numeric))
+      sortee_cols <- d |> select(where( ~ is.numeric(.x) | is.Date(.x) | is.factor(.x))) |> names()
       dt_orders <-
-        (map_dbl(num_cols, ~ which(.x == names(d))) - 1) |> setNames(seq(to = order_cols |> length()) +
+        (map_dbl(sortee_cols, ~ which(.x == names(d))) - 1) |> setNames(seq(to = order_cols |> length()) +
                                                                        length(d) - 1)
 
+      if(is.null(dateformat)) {
+        dateformat <-
+          roboplotr_get_dateformat(d) |> roboplotr_hovertemplate_freq()
+      }
+
       d <- d |>
-        mutate(across(
-          where(is.numeric),
-          ~ {
+        mutate(
+          across(where(is.numeric), ~ {
             .cur <- cur_column()
             roboplotr_format_robotable_numeric(., rounding[[.cur]], flag[[.cur]], unit[[.cur]], na_value)
           }
-        )) |>
+        ),
+        across(where(is.Date),~ roboplotr_format_robotable_date(., dateformat))
+        ) |>
         bind_cols(order_cols)
     } else {
       dt_orders <- NULL
     }
 
     attr(d, "dt_orders") <- dt_orders
-
-    if ("Date" %in% unlist(map(d, class))) {
-      if(is.null(dateformat)) {
-        dateformat <-
-          roboplotr_get_dateformat(d) |> roboplotr_hovertemplate_freq()
-      }
-      d <- d |>
-        mutate(across(
-          where(is.Date),
-          ~ roboplotr_format_robotable_date(., dateformat)
-        ))
-    }
 
     d
   }
