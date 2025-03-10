@@ -727,7 +727,7 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes, 
 
 }
 
-#' @importFrom rvest read_html html_text2
+#' @importFrom rvest html_text2 minimal_html
 #' @importFrom stringr str_replace_all
 roboplotr_transform_string <- function(string) {
   if(is.null(string)) {
@@ -735,9 +735,13 @@ roboplotr_transform_string <- function(string) {
   } else if (all(str_length(as.character(string)) == 0)) {
     NULL
   } else {
-    if(any(c("html", "shiny.tag") %in% class(string))) {
-      string <- as.character(string) |> read_html() |> html_text2()
-    }
+
+    string <- as.character(string) |>
+      str_replace_all("\n|\r", "<br>") |>
+      map_chr(function(x) {
+      minimal_html(x) |> html_text2()
+      }) |>
+      str_replace_all("\n|\r", " ")
 
     str_replace_all(string, "([^A-Za-z0-9\\s])", function(m) {
       sprintf("\\u%04X", utf8ToInt(m))

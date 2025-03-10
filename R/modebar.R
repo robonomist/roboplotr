@@ -62,7 +62,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
          transform = transform_string)
   }
 
-  dl_string <- (function() {
+  dl_string <- function() {
     d <- p$data
 
     if("time" %in% names(d) & !is.null(dateformat)) {
@@ -101,11 +101,9 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
       .info <- str_c(c("\\n",.info,.seps), collapse = "\\n")
     }
     str_c(describe,"\\n",.seps,"\\n",col.names,"\\n",row.data,.info)
-  })()
+  }
 
-
-
-  btn_list <- list(
+  btn_list <- expression(
     "home" = "resetViews",
     "zoom" = "zoom2d",
     "pan" = "pan2d",
@@ -131,7 +129,7 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
       icon = dl_icon("file-csv"),
       click = JS(str_c("
           function(gd) {
-            let text = '",dl_string,"';
+            let text = '",dl_string(),"';
             var blob = new Blob([\"\uFEFF\" + text], {type: 'text/plain;charset=UTF-8'});
             var a = document.createElement('a');
             const object_URL = URL.createObjectURL(blob);
@@ -153,8 +151,8 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
     )
   )
 
-
-  btn_list <- btn_list[modebar$buttons]
+  modebar_env <- environment()
+  btn_list <- btn_list[modebar$buttons] |> map(eval, envir = modebar_env)
 
   if(!is.null(info_text)) {
     modal_id <- str_c("roboplot-info-", str_remove(runif(1), "\\."))

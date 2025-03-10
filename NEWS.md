@@ -1,3 +1,7 @@
+# roboplotr 2.6.4
+
+* Improved handling of HTML from plot elements in `roboplot()` csv files.
+
 # roboplotr 2.6.3
 
 * Fixes `robotable()` sorting `Date` columns as characters instead of dates. 
