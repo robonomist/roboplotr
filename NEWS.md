@@ -1,3 +1,7 @@
+# roboplotr 2.6.5
+
+* Fixes an issue where `set_roboplot_options()` fails to detect fonts stored as files inside a package on load.
+
 # roboplotr 2.6.4
 
 * Improved handling of HTML from plot elements in `roboplot()` csv files.

@@ -368,24 +368,25 @@ set_roboplot_options <- function(
     roboplotr_typecheck(empty_roboplot, "set_empty_roboplot")
 
     font_main <- substitute(font_main)
+
     if(!is.null(font_main)) {
       if(font_main[1] != "set_font()" & font_main[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_main!", call. = F)}
       if(is.null(font_main$type)) { font_main$type <- "main" }
-      font_main <- eval(font_main)
+      font_main <- eval(font_main, envir = parent.frame())
     }
 
     font_title <- substitute(font_title)
     if(!is.null(font_title)) {
       if(font_title[1] != "set_font()" & font_title[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_title!", call. = F)}
       if(is.null(font_title$type)) { font_title$type <- "title" }
-      font_title <- eval(font_title)
+      font_title <- eval(font_title, envir =  parent.frame())
     }
 
     font_caption <- substitute(font_caption)
     if(!is.null(font_caption)) {
       if(font_caption[1] != "set_font()" & font_caption[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_caption!", call. = F)}
       if(is.null(font_caption$type)) { font_caption$type <- "caption" }
-      font_caption <- eval(font_caption)
+      font_caption <- eval(font_caption, envir = parent.frame())
     }
 
     roboplotr_typecheck(grid, "set_grid")
