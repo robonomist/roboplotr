@@ -1,3 +1,8 @@
+# roboplotr 2.6.6
+
+* Fixes an issue where `roboplot()` fails to detect logo size correctly. 
+* Fixes an issue where `roboplot(plot_type = "pie")` fails to position caption and logo correctly.
+
 # roboplotr 2.6.5
 
 * Fixes an issue where `set_roboplot_options()` fails to detect fonts stored as files inside a package on load.

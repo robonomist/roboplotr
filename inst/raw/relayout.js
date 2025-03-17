@@ -231,6 +231,7 @@ function logoSpace(ratio, image, margin_b, title_h, xtick_h, legend, legend_orie
   logo_space.vertical = margin_b - (title_h + xtick_h + legend.height) - logo_actual.height
   if (Object.values(logo_space).every(x => x < 0)) {
     if(-logo_space.vertical > (limit/3)) {
+      return 0
     } else {
       return -logo_space.vertical
     }
@@ -349,7 +350,7 @@ function setYPositions(eventdata, gd, pie_chart = false) {
     // console.log("margin b: " + margin_bottom)
     let margin_bottom = gd.layout.margin.b
     let margin_top = gd.layout.margin.t
-    // if (pie_chart) { plot.height = container-margin_bottom-margin_top }
+     if (pie_chart) { plot.height = container-margin_bottom-margin_top }
     let mb = container-plot.height-gd.layout.margin.t
     let ph = Math.round(container-margin_top-margin_bottom)
     if(pie_chart === true) {
@@ -360,9 +361,7 @@ function setYPositions(eventdata, gd, pie_chart = false) {
       }
     }
 
-    //  console.log("plotting area height: " + plot.height + "; margin top: " + margin_top)
-    // console.log("calc mb: " + mb, "; plot mb: " + margin_bottom)
-    let low_bound = -(mb / plot.height)//-Math.min((elcontainer - (elplot.height+margin_top)) / elplot.height,(margin_bottom / elplot.height))
+    let low_bound = -(mb / plot.height)
     let annotations_y = low_bound
     let images_y = low_bound
 
