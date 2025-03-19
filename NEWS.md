@@ -1,3 +1,7 @@
+# roboplotr 2.6.7
+
+* `roboplot()`s now only trigger relayout when the plot itself is visible on viewport. 
+
 # roboplotr 2.6.6
 
 * Fixes an issue where `roboplot()` fails to detect logo size correctly. 

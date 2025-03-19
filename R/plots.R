@@ -121,20 +121,28 @@ roboplotr_dependencies <- function(p,
                         roboplot_logo = roboplot_logo.width / roboplot_logo.height
                         setVerticalLayout({'width': true}, gd, data.fonts, plot_title, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend, legend_position = data.legendPosition);
                         setYPositions({'width': true}, gd, data.piePlot);
+
+                        let isIntersecting = false;
+                        let relayoutDone = true;
+
                         gd.on('plotly_relayout',function(eventdata) {
+                        if(isIntersecting) {
                         plotlyRelayoutEventFunction(eventdata, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend, legend_position = data.legendPosition);
+                        } else (relayoutDone = true)
                         })
 
 
                         let observer = new IntersectionObserver(function(entries) {
                               // Check if the element is intersecting (visible)
-                              if(entries[0].isIntersecting) {
+                                                              isIntersecting = entries[0].isIntersecting;
+                              if(entries[0].isIntersecting & relayoutDone) {
                                 // Element is visible, handle the plot rendering or adjustment
-                                console.log('relayout fired!');
+//                                console.log(`relayout fired!`);
                                 plotlyRelayoutEventFunction({width: true}, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend, legend_position = data.legendPosition);
-                                observer.disconnect();
+                                relayoutDone = false;
+//                                observer.disconnect();
                               }
-                            }, { threshold: [0.1] });  // Adjust the threshold as needed
+                            }, { threshold: [0,1], rootMargin: '50% 0px 50% 0px' });  // Adjust the threshold as needed
 
                        observer.observe(gd);  // Start observing the container
 
