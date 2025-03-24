@@ -53,6 +53,8 @@
 #' # and number (https://d3js.org/api#d3-format) -formatted vectors for `xlim`
 #' # and 'ylim'. These are not typechecked by `roboplot()`, but must match the
 #' # corresponding axis values. Alter axis tick labels' angle with `xangle` and `yangle`.
+#' # Note that numeric axis limits are furthermore given some padding by `roboplot()`
+#' # to approximate default `plot_ly()` behavior.
 #'
 #' d |>
 #'   dplyr::filter(Suunta == "Tuonti") |>
@@ -293,35 +295,6 @@ set_axes <-
     if (is.null(x)) {
       x <- "time"
     }
-
-    # if (is.null(yticktype)) {
-    #   if (y == "value") {
-    #     yticktype <-
-    #       "numeric"
-    #   } else if (x == "time") {
-    #     yticktype <- "date"
-    #   } else {
-    #     yticktype <- "character"
-    #   }
-    # }
-    #
-    # if (is.null(xticktype)) {
-    #   if (x == "time") {
-    #     xticktype <-
-    #       "date"
-    #   } else if (x == "value") {
-    #     xticktype <- "numeric"
-    #   }
-    # }
-    #
-    # if (is.null(yticktype)) {
-    #   if (y == "value") {
-    #     yticktype <-
-    #       "numeric"
-    #   } else if (x == "time") {
-    #     yticktype <- "date"
-    #   }
-    # }
 
     yfont <- substitute(yfont)
     xfont <- substitute(xfont)
@@ -760,21 +733,21 @@ roboplotr_guess_xaxis_ceiling <-
 roboplotr_expand_axis_limits <- function(plot_axes, d, zeroline) {
 
   if(any(!is.na(plot_axes$ylim)) & is.numeric(d[[plot_axes$y]])) {
-    yMax <- max(d[[plot_axes$y]], na.rm = T)
-    yMin <- min(d[[plot_axes$y]], na.rm = T)
-    yMaxMod <- abs(yMax)*0.05
-    yMinMod <- abs(yMin)*0.05
-    plot_axes$ylim[1] <- replace_na(plot_axes$ylim[1], yMin) - yMinMod
-    plot_axes$ylim[2] <- replace_na(plot_axes$ylim[2], yMax) + yMaxMod
+    .yrange <- range(d[[plot_axes$y]], na.rm = T)
+    yMax <- replace_na(plot_axes$ylim[2], max(.yrange))
+    yMin <- replace_na(plot_axes$ylim[1], min(.yrange))
+    yrangeMod <- abs(diff(c(yMin, yMax))) * 0.05
+    plot_axes$ylim[1] <- yMin - yrangeMod
+    plot_axes$ylim[2] <- yMax + yrangeMod
   }
 
   if(any(!is.na(plot_axes$xlim)) & is.numeric(d[[plot_axes$x]])) {
-    xMax <- max(d[[plot_axes$x]], na.rm = T)
-    xMin <- min(d[[plot_axes$x]], na.rm = T)
-    xMaxMod <- abs(xMax)*0.05
-    xMinMod <- abs(xMin)*0.05
-    plot_axes$xlim[1] <- replace_na(plot_axes$xlim[1], xMin) - xMinMod
-    plot_axes$xlim[2] <- replace_na(plot_axes$xlim[2], xMax) + xMaxMod
+    .xrange <- range(d[[plot_axes$x]], na.rm = T)
+    xMax <- replace_na(plot_axes$xlim[2], max(.xrange))
+    xMin <- replace_na(plot_axes$xlim[1], min(.xrange))
+    xrangeMod <- abs(diff(abs(c(xMin, xMax)))) * 0.05
+    plot_axes$xlim[1] <- xMin - xrangeMod
+    plot_axes$xlim[2] <- xMax + xrangeMod
   }
 
   alter_x <- F

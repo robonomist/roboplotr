@@ -1,3 +1,7 @@
+# roboplotr 2.6.8
+
+* `roboplot()`s have now detection for proper padding for numeric axis limits set with `roboplot(plot_axes = set_axes()`. 
+
 # roboplotr 2.6.7
 
 * `roboplot()`s now only trigger relayout when the plot itself is visible on viewport. 
