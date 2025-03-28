@@ -8,6 +8,7 @@ set_title(
   title = NULL,
   include = getOption("roboplot.title")$include,
   xref = getOption("roboplot.title")$xref,
+  font = NULL,
   ...
 )
 }
@@ -24,6 +25,9 @@ plot (see \code{title}).}
 
 \item{xref}{Character. Either "container" or "plot". Determines if the title
 is anchored to the left plot or the container edge.}
+
+\item{font}{Call. Use \code{set_font()} to set font parameters for the title.
+Currently only supports for global settings through \code{set_roboplot_options(title)}.}
 
 \item{...}{Placeholder for other parameters.}
 }

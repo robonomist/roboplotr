@@ -4,6 +4,9 @@
 #'
 #' @param accessible Logical. Forces trace colors accessible against plot background.
 #' @param artefacts Function. Control html and other file creation. Use [set_artefacts()].
+#' @param axes Function. Control axis label parameters. Use [set_axes()] Note that
+#' only supported parameters for global options are `yformat`, `xformat`, `yposition`,
+#' `xposition`, `xfont`, `yfont`, `y2font`, `xangle`, and `yangle`.
 #' @param border Function. Control plot borders. Use [set_border()].
 #' @param grid Function. Control the grid behind the traces. Use [set_grid()].
 #' @param background_color Character. Plot background color. Must be a hexadecimal
@@ -238,6 +241,7 @@
 set_roboplot_options <- function(
     accessible = NULL,
     artefacts = NULL,
+    axes = NULL,
     border = NULL,
     background_color = NULL,
     caption = NULL,
@@ -245,8 +249,8 @@ set_roboplot_options <- function(
     dashtypes = NULL,
     empty_roboplot = NULL,
     font_main = NULL,
-    font_title = NULL,
-    font_caption = NULL,
+    font_title,
+    font_caption,
     grid = NULL,
     height = NULL,
     imgdl_wide = NULL,
@@ -340,11 +344,22 @@ set_roboplot_options <- function(
 
     roboplotr_typecheck(artefacts, "set_artefacts")
 
+    roboplotr_typecheck(axes, "set_axes")
+
+    if(!is.null(axes)) {
+      axes <- axes[c("yformat","xformat","yposition","xposition","xfont","yfont","xangle","yangle","y2font")]
+    }
+
     roboplotr_typecheck(border, "set_border")
 
     roboplotr_typecheck(background_color, "character")
     roboplotr_valid_colors(background_color)
 
+    caption <- substitute(caption)
+    if(!is.null(caption)) {
+      caption[["options.set"]] <- T
+      caption <- eval(caption)
+    }
     roboplotr_typecheck(caption, "set_caption", allow_null = T)
 
     if(is_present(caption_template)) {
@@ -352,13 +367,28 @@ set_roboplot_options <- function(
       roboplotr_typecheck(caption_template, "character")
     }
 
+    if(is_present(font_caption)) {
+      deprecate_warn("2.7.0", "roboplotr::set_roboplot_options(font_caption)", "roboplotr::set_roboplot_options(caption = 'is set with set_caption(font)')")
+      font_caption <- substitute(font_caption)
+      if(!is.null(font_caption)) {
+        roboplotr_typecheck(suppressMessages(eval(font_caption)), "set_font", extra = "`set_roboplot_options(font_caption)`")
+        if(is.null(font_caption$type)) { font_caption$type <- "caption" }
+        font_caption <- eval(font_caption, envir = parent.frame())
+      }
+
+    }
+
     if(!is.null(caption)) {
       if(!is_present(caption_template)) {
         caption_template <- caption$template
       }
+      if(!is_present(font_caption)) {
+        font_caption <- caption$font
+      }
       caption_xref <- caption$xref
     }
 
+    if(!is_present(font_caption)) { font_caption <- NULL }
     if(!is_present(caption_template)) {caption_template <- NULL}
     if(!exists("caption_xref", envir = environment())) {caption_xref <- NULL}
 
@@ -367,27 +397,7 @@ set_roboplot_options <- function(
 
     roboplotr_typecheck(empty_roboplot, "set_empty_roboplot")
 
-    font_main <- substitute(font_main)
-
-    if(!is.null(font_main)) {
-      if(font_main[1] != "set_font()" & font_main[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_main!", call. = F)}
-      if(is.null(font_main$type)) { font_main$type <- "main" }
-      font_main <- eval(font_main, envir = parent.frame())
-    }
-
-    font_title <- substitute(font_title)
-    if(!is.null(font_title)) {
-      if(font_title[1] != "set_font()" & font_title[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_title!", call. = F)}
-      if(is.null(font_title$type)) { font_title$type <- "title" }
-      font_title <- eval(font_title, envir =  parent.frame())
-    }
-
-    font_caption <- substitute(font_caption)
-    if(!is.null(font_caption)) {
-      if(font_caption[1] != "set_font()" & font_caption[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for font_caption!", call. = F)}
-      if(is.null(font_caption$type)) { font_caption$type <- "caption" }
-      font_caption <- eval(font_caption, envir = parent.frame())
-    }
+    roboplotr_typecheck(font_main, "set_font", extra = "`set_roboplot_options(font_main)`")
 
     roboplotr_typecheck(grid, "set_grid")
 
@@ -472,6 +482,26 @@ set_roboplot_options <- function(
     }
     roboplotr_typecheck(title, "set_title")
 
+
+    if(is_present(font_title)) {
+      deprecate_warn("2.7.0", "roboplotr::set_roboplot_options(font_title)", "roboplotr::set_roboplot_options(title = 'is set with set_title(font)')")
+      font_title <- substitute(font_title)
+      if(!is.null(font_title)) {
+        roboplotr_typecheck(suppressMessages(eval(font_title)), "set_font", extra = "`set_roboplot_options(font_title)`")
+        if(is.null(font_title$type)) { font_title$type <- "title" }
+        font_title <- eval(font_title, envir = parent.frame())
+      }
+
+    }
+
+    if(!is.null(title)) {
+      if(!is_present(font_title)) {
+        font_title <- title$font
+      }
+    }
+
+    if(!is_present(font_title)) { font_title <- NULL }
+
     roboplotr_typecheck(trace_border, "list", allow_null = T)
     if(!is.null(trace_border)) {
       if(is.null(trace_border$color) | is.null(trace_border$width)) {
@@ -508,6 +538,7 @@ set_roboplot_options <- function(
 
     set_roboplot_option(accessible)
     set_roboplot_option(artefacts)
+    set_roboplot_option(axes)
     set_roboplot_option(border)
     set_roboplot_option(background_color, "colors.background")
     set_roboplot_option(caption_template, "caption.template")
@@ -592,7 +623,7 @@ set_roboplot_options <- function(
               tagList(
                 tags$script(type = "text/javascript", src = "roboplotr_js/relayout.js"),
                 tags$link(rel = "stylesheet", type = "text/css", href = "roboplotr_css/style.css")
-              ),
+              )
             )
           )
         )

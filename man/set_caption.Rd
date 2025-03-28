@@ -8,7 +8,8 @@ set_caption(
   text = NA,
   ...,
   template = getOption("roboplot.caption.template"),
-  xref = getOption("roboplot.caption.xref")
+  xref = getOption("roboplot.caption.xref"),
+  font = NULL
 )
 }
 \arguments{
@@ -18,11 +19,14 @@ has the parameter \code{text}).}
 \item{...}{Other parameters to be passed to template.}
 
 \item{template}{Character. Template for \code{\link[stringr:str_glue]{stringr::str_glue()}} used to parse
-the caption with the given parameters.}
+the caption with the given parameters. Must contain the parameter {text}.}
 
 \item{xref}{Character. Either "container" or "plot". Determines if the caption
 is anchored to the plot or the container edge. Ignored for \code{robotable()} and
 \code{robomap()}.}
+
+\item{font}{Call. Use \code{set_font()} to set font parameters for the caption.
+Currently only supports for global settings through \code{set_roboplot_options(caption)}.}
 }
 \value{
 A list of class roboplot.set_caption

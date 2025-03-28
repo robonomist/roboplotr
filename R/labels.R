@@ -94,6 +94,8 @@ roboplotr_caption <- function(p, caption) {
 #' plot (see `title`).
 #' @param xref Character. Either "container" or "plot". Determines if the title
 #' is anchored to the left plot or the container edge.
+#' @param font Call. Use `set_font()` to set font parameters for the title.
+#' Currently only supports for global settings through `set_roboplot_options(title)`.
 #' @param ... Placeholder for other parameters.
 #' @examples
 #' # Used to set titles for plots created with `roboplot()`. You can
@@ -127,7 +129,12 @@ roboplotr_caption <- function(p, caption) {
 #'
 #' @returns A list of class roboplotr.set_title
 #' @export
-set_title <- function(title = NULL, include = getOption("roboplot.title")$include, xref = getOption("roboplot.title")$xref, ...) {
+set_title <- function(title = NULL,
+                      include = getOption("roboplot.title")$include,
+                      xref = getOption("roboplot.title")$xref,
+                      font = NULL,
+                      ...) {
+
 
   args <- list(...)
 
@@ -140,15 +147,29 @@ set_title <- function(title = NULL, include = getOption("roboplot.title")$includ
   roboplotr_typecheck(title, "character", extra = .extra)
   roboplotr_typecheck(include, "logical", extra = .extra)
   roboplotr_typecheck(xref, "character", extra = .extra)
-  roboplotr_valid_strings(xref, c("container","plot"), any, "set_title() param 'xref'")
+  roboplotr_valid_strings(xref, c("container","plot", "paper"), any, "set_title() param 'xref'")
   xref <- str_replace(xref, "plot","paper")
   if(is.null(args$options.set) & !include & str_length(as.character(title %||% "")) == 0) {
     warning(str_glue("`title` is empty and `include` is FALSE in {.extra}. Artefact names and other plot elements might not work properly."), call. = F)
   } else if (!is.null(args$options.set) & !is.null(title)) {
-    roboplotr_message("Title text can't be set with `set_title(title)` in `set_roboplot_options(title)` and will be ignored.")
+    roboplotr_message("Title text can't be set globally with `set_roboplot_options(title)` and will be ignored.")
   }
 
-  .res <- list(title = title, include = include, xref = xref)
+  font <- substitute(font)
+  if(!is.null(font)) {
+    if(is.null(args[["options.set"]])) {
+      roboplotr_alert("The parameter `set_title(font)` is currently ignored in this usage. Use `set_roboplot_options(title)` to set global title font defaults.")
+    }
+    if(str_detect(as_label(font), "set_font")) {
+      if(is.null(font$type)) { font$type <- "title" }
+    }
+    roboplotr_typecheck(eval(font), "set_font", extra = "`set_title(font)`")
+    font <- eval(font, envir = parent.frame())
+  } else {
+    font <- getOption("roboplot.font.title")
+  }
+
+  .res <- list(title = title, include = include, xref = xref, font = font)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_title", class(.res)))
 
@@ -199,10 +220,12 @@ roboplotr_title <- function(p, title, subtitle) {
 #' has the parameter `text`).
 #' @param ... Other parameters to be passed to template.
 #' @param template Character. Template for [stringr::str_glue()] used to parse
-#' the caption with the given parameters.
+#' the caption with the given parameters. Must contain the parameter {text}.
 #' @param xref Character. Either "container" or "plot". Determines if the caption
 #' is anchored to the plot or the container edge. Ignored for `robotable()` and
 #' `robomap()`.
+#' @param font Call. Use `set_font()` to set font parameters for the caption.
+#' Currently only supports for global settings through `set_roboplot_options(caption)`.
 #' @returns A list of class roboplot.set_caption
 #' @examples
 #' # Used to define how captions are constructed inside `roboplot()`. The used
@@ -262,7 +285,10 @@ roboplotr_title <- function(p, title, subtitle) {
 #' @importFrom stringr str_glue str_replace_all
 #' @export
 
-set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.template"), xref = getOption("roboplot.caption.xref")) {
+set_caption <- function(text = NA, ...,
+                        template = getOption("roboplot.caption.template"),
+                        xref = getOption("roboplot.caption.xref"),
+                        font = NULL) {
   if(is.na(text)) {
     .res <- NA
   } else {
@@ -278,7 +304,21 @@ set_caption <- function(text = NA, ..., template = getOption("roboplot.caption.t
     roboplotr_alert("The caption template does not contain the parameter {text}. Is this intentional?")
   }
 
-  .res <- list(text = .res, template = template, xref = xref)
+  font <- substitute(font)
+  if(!is.null(font)) {
+    if(is.null(list(...)[["options.set"]])) {
+      roboplotr_alert("The parameter `set_caption(font)` is currently ignored in this usage. Use `set_roboplot_options(caption)` to set global caption font defaults.")
+    }
+    if(str_detect(as_label(font), "set_font")) {
+      if(is.null(font$type)) { font$type <- "caption" }
+    }
+    roboplotr_typecheck(eval(font), "set_font", extra = "`set_caption(font)`")
+    font <- eval(font, envir = parent.frame())
+  } else {
+    font <- getOption("roboplot.font.caption")
+  }
+
+  .res <- list(text = .res, template = template, xref = xref, font = font)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_caption", class(.res)))
 
@@ -317,7 +357,7 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' @param color Character. Must be a hexadecimal color or a valid css color.
 #' @param bold_title Logical. Only used for font of type `title`. Determines if
 #' the title is bolded.
-#' @param type Character. One of "main", "title" or "caption".
+#' @param ... Placeholder for future arguments
 #' @importFrom stringr str_c str_extract
 #' @returns A list of class roboplot.set_font
 #' @examples
@@ -368,7 +408,9 @@ roboplotr_highlight_legend <- function(highlight, df) {
 #' # Revert to defaults:
 #' set_roboplot_options(reset = TRUE)
 #' @export
-set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL, bold_title = T, type = NULL) {
+set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL, bold_title = T, ...) {
+
+  type <- list(...)$type %||% "main"
 
   if(is.null(font)) {
     font <- getOption(str_glue("roboplot.font.{type}"))$.font
@@ -681,7 +723,7 @@ roboplotr_set_caption <- function(caption, d, where) {
 
   if (!is.null(caption)) {
     if(any(is.na(caption))) {
-      return("")
+      return(set_caption(template = "{text}", text = ""))
     }
     if (!inherits(caption,"roboplotr.set_caption")) {
       caption <- set_caption(text = caption)

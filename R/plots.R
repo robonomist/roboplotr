@@ -585,7 +585,7 @@ roboplotr_dependencies <- function(p,
 #' @export
 #' @importFrom dplyr coalesce distinct group_split pull
 #' @importFrom forcats fct_reorder
-#' @importFrom lifecycle deprecate_warn deprecated is_present
+#' @importFrom lifecycle deprecate_stop deprecate_warn deprecated is_present
 #' @importFrom lubridate as_date ceiling_date is.Date
 #' @importFrom plotly partial_bundle
 #' @importFrom purrr map2
@@ -773,8 +773,7 @@ roboplot <- function(d = NULL,
   }
 
   if(is_present(error_bars)) {
-    deprecate_warn("2.1.0", "roboplotr::roboplot(error_bars)", "roboplotr::roboplot(set_confidence_interval)")
-    confidence_interval <- error_bars
+    deprecate_stop("2.7.0", "roboplotr::roboplot(error_bars)", "roboplotr::roboplot(set_confidence_interval)")
   }
 
 
@@ -874,6 +873,7 @@ roboplot <- function(d = NULL,
   } else if (plot_axes$y != "value" & "bar" %in% plot_mode) {
     roboplotr_alert("Did you want a horizontal bar chart? Use the parameter 'plot_mode'.")
   }
+
   ticktypes <-
     append(plot_axes,
            list(
@@ -1016,19 +1016,11 @@ roboplot <- function(d = NULL,
   }
 
   if(is_present(legend_position)) {
-    deprecate_warn("2.0.0", "roboplotr::roboplot(legend_position = )", "roboplotr::roboplot(legend = )")
-    roboplotr_typecheck(legend_position, "character", allow_na = T)
-    if(!is.null(legend_position)) {
-      legend$position <- legend_position
-    }
+    deprecate_stop("2.7.0", "roboplotr::roboplot(legend_position)", "roboplotr::roboplot(legend)")
   }
 
   if(is_present(legend_maxwidth)) {
-    deprecate_warn("2.0.0", "roboplotr::roboplot(legend_maxwidth = )", "roboplotr::roboplot(legend = )")
-    roboplotr_typecheck(legend_maxwidth, "numeric")
-    if(!is.null(legend_maxwidth)) {
-      legend$maxwidth <- legend_maxwidth
-    }
+    deprecate_stop("2.7.0", "roboplotr::roboplot(legend_maxwidth)", "roboplotr::roboplot(legend)")
   }
 
   pattern_showlegend <- roboplotr_get_pattern_showlegend(d, pattern, pattern_showlegend, legend$position)

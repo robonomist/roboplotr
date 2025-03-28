@@ -7,6 +7,8 @@
 set_grid(
   xcolor = getOption("roboplot.grid")$xcolor,
   ycolor = getOption("roboplot.grid")$ycolor,
+  xcolor_minor = getOption("roboplot.grid")$xcolor_minor,
+  ycolor_minor = getOption("roboplot.grid")$ycolor_minor,
   xwidth = getOption("roboplot.grid")$xwidth,
   ywidth = getOption("roboplot.grid")$ywidth,
   xdash = getOption("roboplot.grid")$xdash,
@@ -16,7 +18,7 @@ set_grid(
 )
 }
 \arguments{
-\item{xcolor, ycolor, xtick, ytick}{Characters. Plot gridline colors. Must be hexadecimal
+\item{xcolor, ycolor, xtick, ytick, xcolor_minor, ycolor_minor}{Characters. Plot gridline colors. Must be hexadecimal
 colors or a valid css colors.}
 
 \item{xwidth, ywidth}{Numerics. Plot gridline widths.}

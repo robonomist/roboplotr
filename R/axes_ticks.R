@@ -15,17 +15,19 @@
 #' in the plot by type.
 #' @param xfont,yfont,y2font Functions. Use [set_font()]. Secondary y-axis uses
 #' the main y-axis font size but allows separate family and color.
-#' @param y2 Character vector. Observations from `color` in plots using a secondary y-axis.
+#' @param y2 Character vector. Observations from `color` in plots using a secondary
+#' y-axis.
 #' @param ylegend,y2legend Characters. Labels for legend title when `y2` is given.
 #' @param xangle,yangle Numeric. Angle for axis tick text.
-#' @param xanchor Date. Only usable for date x-axes. Sets the point at which tick marks are drawn from. Must provide xstep.
-#' @param xstep Numeric. The interval of tick marks for date x-axes in months. Must provide xstart.
+#' @param xposition,yposition Character. Position for axis label in relation to
+#' tick mark. Use "top" or "bottom" for y-axis, or "left" or "right" for x-axis.
+#' @param xanchor Date. Only usable for date x-axes. Sets the point at which tick
+#' marks are drawn from. Must provide xstep.
+#' @param xstep Numeric. The interval of tick marks for date x-axes in months. Must
+#' provide xanchor.
 #' @returns List of class roboplotr.set_axes
 #' @examples
-#' # The primary usage is for creating horizontal bar plots when combining the
-#' # roboplotr::roboplot plot_axes control with plot_mode "horizontal".
-#'
-#' set_roboplot_options(caption_template = "Lähde: {text}.")
+#' # Used to control various axis type, labeling and tickmark parameters.
 #'
 #' d <- energiantuonti |>
 #'   dplyr::filter(Alue %in% c("USA","Norja","Iso-Britannia"))
@@ -54,7 +56,8 @@
 #' # and 'ylim'. These are not typechecked by `roboplot()`, but must match the
 #' # corresponding axis values. Alter axis tick labels' angle with `xangle` and `yangle`.
 #' # Note that numeric axis limits are furthermore given some padding by `roboplot()`
-#' # to approximate default `plot_ly()` behavior.
+#' # to approximate default `plot_ly()` behavior. Alter axis position in relation
+#' # to axis ticks -and axis rotation- with `xposition` and `yposition`.
 #'
 #' d |>
 #'   dplyr::filter(Suunta == "Tuonti") |>
@@ -66,7 +69,8 @@
 #'              ylim = c(-200,1500),
 #'              xlim = c("2015-01-01","2023-01-01"),
 #'              yangle = 45,
-#'              xangle = 66
+#'              xangle = 66,
+#'              yposition = "top",
 #'              )
 #'   )
 #'
@@ -262,6 +266,7 @@
 #'
 #' @export
 #' @importFrom dplyr case_when
+#' @importFrom purrr walk
 set_axes <-
   function(y = NULL,
            x = NULL,
@@ -269,14 +274,16 @@ set_axes <-
            xticktype = NULL,
            ytitle = "",
            xtitle = "",
-           yformat = NULL,
-           xformat = NULL,
+           yformat = getOption("roboplot.axes")$yformat,
+           xformat = getOption("roboplot.axes")$xformat,
            ylim = c(NA, NA),
            xlim = c(NA, NA),
+           yposition = getOption("roboplot.axes")$yposition,
+           xposition = getOption("roboplot.axes")$xposition,
            yfont = NULL,
            xfont = NULL,
-           xangle = NULL,
-           yangle = NULL,
+           xangle = getOption("roboplot.axes")$xangle,
+           yangle = getOption("roboplot.axes")$yangle,
            y2 = NULL,
            y2font = NULL,
            ylegend = NULL,
@@ -296,55 +303,46 @@ set_axes <-
       x <- "time"
     }
 
-    yfont <- substitute(yfont)
-    xfont <- substitute(xfont)
-    y2font <- substitute(y2font)
     axis_fonts <- list("yfont" = yfont, "xfont" = xfont, "y2font" = y2font)
     for(i in seq_along(axis_fonts)) {
       .fontname <- names(axis_fonts[i])
-      .font <- unname(axis_fonts[i])[[1]]
-      if(!is.null(.font)) {
-        if(.font[1] != "set_font()" & .font[1] != "roboplotr::set_font()") { stop("Use 'roboplotr::set_font()' for any plot_axes fonts!", call. = F)}
-        .font$type <- "main"
-        assign(.fontname, eval(.font))
-      } else {
-        assign(.fontname, getOption("roboplot.font.main"))
+      roboplotr_typecheck(axis_fonts[[i]], "set_font", allow_null = T, extra = str_glue("`set_axes({.fontname})`"))
+      if(is.null(axis_fonts[[i]])) {
+        assign(.fontname, getOption("roboplot.axes")[[.fontname]] %||% getOption("roboplot.font.main"))
       }
     }
+
     arggs <- as.list(environment())
 
 
-    for (.name in names(arggs[c("xticktype","yticktype")])) {
-      Parameter <- arggs[[.name]]
-      roboplotr_typecheck(Parameter, "character", allow_null = T, extra = str_glue("`{.name}` in set_axes()"))
-      if(length(arggs[[.name]]) > 0) {
-        assign(.name, as(arggs[[.name]], "character"))
-      }
-    }
+    for (.name in names(arggs[c(
+      "x",
+      "y",
+      "xticktype",
+      "yticktype",
+      "xformat",
+      "yformat",
+      "ylegend",
+      "y2legend",
+      "xposition",
+      "yposition"
+    )])) {
 
-    for (.name in names(arggs[c("x","y")])) {
       Parameter <- arggs[[.name]]
-      roboplotr_typecheck(Parameter, "character", allow_null = F, extra = str_glue("`{.name}` in set_axes()"))
+      roboplotr_typecheck(Parameter, "character", allow_null = T, extra = str_glue("`set_axes({.name})`"))
       if(length(arggs[[.name]]) > 0) {
         assign(.name, as(arggs[[.name]], "character"))
       }
     }
 
     axis_types <- c("character", "date", "numeric", "log")
-    purrr::walk(c(xticktype,yticktype)[!is.null(c(xticktype,yticktype))],
+    walk(c(xticktype,yticktype)[!is.null(c(xticktype,yticktype))],
          ~    roboplotr_valid_strings(.x, axis_types, any, "Tick types in set_axes()")
          )
 
-    for (.name in names(arggs[c("xformat","yformat","ylegend","y2legend")])) {
-      Parameter <- arggs[[.name]]
-      roboplotr_typecheck(Parameter, "character", extra = str_glue("`{.name}` in set_axes()"))
-      if(length(arggs[[.name]]) > 0) {
-        assign(.name, as(arggs[[.name]], "character"))
-      }
-    }
-
     roboplotr_typecheck(xlim, NULL, size = 2, allow_null = F, allow_na = T)
     roboplotr_typecheck(ylim, NULL, size = 2, allow_null = F, allow_na = T)
+
     if(!is.null(y2)) {
       if(is.null(ylegend)) {
         ylegend <- getOption("roboplot.locale")$ylegendlabs$left
@@ -356,6 +354,7 @@ set_axes <-
 
     roboplotr_typecheck(xangle, "numeric")
     roboplotr_typecheck(yangle, "numeric")
+
     if(!is.null(xangle)) {
       roboplotr_is_between(xangle, "set_axes", c(-360, 360))
     }
@@ -369,7 +368,9 @@ set_axes <-
                 TRUE ~ list(type)) |> unlist()
     }
 
-    roboplotr_typecheck(xstep, "numeric",allow_null = T)
+    roboplotr_typecheck(xstep, "numeric")
+    roboplotr_valid_strings(xposition, c("left","right"), any, "`set_axes(xposition)`")
+    roboplotr_valid_strings(yposition, c("top","bottom"), any, "`set_axes(yposition)`")
 
     .res <- list(
       x = x,
@@ -384,6 +385,8 @@ set_axes <-
       yformat = yformat,
       xlim = xlim,
       ylim = ylim,
+      xposition = xposition,
+      yposition = yposition,
       xfont = xfont,
       yfont = yfont,
       xangle = xangle,
@@ -476,7 +479,8 @@ roboplotr_get_tick_layout <- function(ticktype,
                                       tick_color = setNames(getOption("roboplot.grid")[c("xtick","ytick")], c("x","y")),
                                       font = getOption("roboplot.font.main"),
                                       angle = NULL,
-                                      start = NULL
+                                      start = NULL,
+                                      lab_position = NULL
 ) {
 
   font <- font[c("color", "family", "size")]
@@ -488,7 +492,8 @@ roboplotr_get_tick_layout <- function(ticktype,
     ticks = 'outside',
     title = .title,
     tickcolor = tick_color[[axis]],
-    tickangle = angle %||% "auto"
+    tickangle = angle %||% "auto",
+    ticklabelposition = ifelse(is.null(lab_position), "outside", str_glue("outside {lab_position}"))
   )
 
   if (ticktype == "date") {
@@ -640,7 +645,8 @@ roboplotr_set_ticks <- function(p, ticktypes) {
         ticktypes$xtitle,
         font = ticktypes$xfont,
         angle = ticktypes$xangle,
-        start = ticktypes$xstart
+        start = ticktypes$xstart,
+        lab_position = ticktypes$xposition
       ),
       yaxis = roboplotr_get_tick_layout(
         ticktypes$yticktype,
@@ -652,7 +658,8 @@ roboplotr_set_ticks <- function(p, ticktypes) {
         ticktypes$ytitle,
         font = ticktypes$yfont,
         angle = ticktypes$yangle,
-        start = NULL
+        start = NULL,
+        lab_position = ticktypes$yposition
       )
     )
 

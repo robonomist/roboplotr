@@ -10,7 +10,7 @@ set_font(
   size = NULL,
   color = NULL,
   bold_title = T,
-  type = NULL
+  ...
 )
 }
 \arguments{
@@ -28,7 +28,7 @@ font when the defined font is unavailable. Especially concerns image downloads.}
 \item{bold_title}{Logical. Only used for font of type \code{title}. Determines if
 the title is bolded.}
 
-\item{type}{Character. One of "main", "title" or "caption".}
+\item{...}{Placeholder for future arguments}
 }
 \value{
 A list of class roboplot.set_font

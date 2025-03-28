@@ -1,3 +1,11 @@
+# roboplotr 2.7.0
+
+* Hard deprecates `roboplot(error_bars, legend_position, legend_maxwidth)` in favor of using and `set_confidence_interval()` and `set_legend()`.
+* Adds `set_roboplot_options(axes = set_axes())` for some plot axis parameters.
+* Minor grid line color can now be set with `set_roboplot_options(grid = set_grid())`.
+* Soft-deprecates `set_roboplot_options(font_caption, font_title)` in favor of using `set_roboplot_options(caption, title)`.
+* HTML widget background colors now use `set_roboplot_options(background)`. 
+
 # roboplotr 2.6.8
 
 * `roboplot()`s have now detection for proper padding for numeric axis limits set with `roboplot(plot_axes = set_axes()`. 

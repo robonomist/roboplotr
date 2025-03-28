@@ -11,14 +11,16 @@ set_axes(
   xticktype = NULL,
   ytitle = "",
   xtitle = "",
-  yformat = NULL,
-  xformat = NULL,
+  yformat = getOption("roboplot.axes")$yformat,
+  xformat = getOption("roboplot.axes")$xformat,
   ylim = c(NA, NA),
   xlim = c(NA, NA),
+  yposition = getOption("roboplot.axes")$yposition,
+  xposition = getOption("roboplot.axes")$xposition,
   yfont = NULL,
   xfont = NULL,
-  xangle = NULL,
-  yangle = NULL,
+  xangle = getOption("roboplot.axes")$xangle,
+  yangle = getOption("roboplot.axes")$yangle,
   y2 = NULL,
   y2font = NULL,
   ylegend = NULL,
@@ -44,18 +46,24 @@ or "numeric". Defaults to "date" and "numeric".}
 \item{xlim, ylim}{Vector of length 2. Axis limits. Should match the axis values
 in the plot by type.}
 
+\item{xposition, yposition}{Character. Position for axis label in relation to
+tick mark. Use "top" or "bottom" for y-axis, or "left" or "right" for x-axis.}
+
 \item{xfont, yfont, y2font}{Functions. Use \code{\link[=set_font]{set_font()}}. Secondary y-axis uses
 the main y-axis font size but allows separate family and color.}
 
 \item{xangle, yangle}{Numeric. Angle for axis tick text.}
 
-\item{y2}{Character vector. Observations from \code{color} in plots using a secondary y-axis.}
+\item{y2}{Character vector. Observations from \code{color} in plots using a secondary
+y-axis.}
 
 \item{ylegend, y2legend}{Characters. Labels for legend title when \code{y2} is given.}
 
-\item{xanchor}{Date. Only usable for date x-axes. Sets the point at which tick marks are drawn from. Must provide xstep.}
+\item{xanchor}{Date. Only usable for date x-axes. Sets the point at which tick
+marks are drawn from. Must provide xstep.}
 
-\item{xstep}{Numeric. The interval of tick marks for date x-axes in months. Must provide xstart.}
+\item{xstep}{Numeric. The interval of tick marks for date x-axes in months. Must
+provide xanchor.}
 }
 \value{
 List of class roboplotr.set_axes
@@ -65,10 +73,7 @@ Parameters to configure axis settings in \link[=roboplot]{roboplots}. Includes o
 axis columns, formatting, titles, limits, and font settings, as well as handling secondary y-axes.
 }
 \examples{
-# The primary usage is for creating horizontal bar plots when combining the
-# roboplotr::roboplot plot_axes control with plot_mode "horizontal".
-
-set_roboplot_options(caption_template = "Lähde: {text}.")
+# Used to control various axis type, labeling and tickmark parameters.
 
 d <- energiantuonti |>
   dplyr::filter(Alue \%in\% c("USA","Norja","Iso-Britannia"))
@@ -96,6 +101,9 @@ d |> dplyr::filter(time == max(time)) |>
 # and number (https://d3js.org/api#d3-format) -formatted vectors for `xlim`
 # and 'ylim'. These are not typechecked by `roboplot()`, but must match the
 # corresponding axis values. Alter axis tick labels' angle with `xangle` and `yangle`.
+# Note that numeric axis limits are furthermore given some padding by `roboplot()`
+# to approximate default `plot_ly()` behavior. Alter axis position in relation
+# to axis ticks -and axis rotation- with `xposition` and `yposition`.
 
 d |>
   dplyr::filter(Suunta == "Tuonti") |>
@@ -107,7 +115,8 @@ d |>
              ylim = c(-200,1500),
              xlim = c("2015-01-01","2023-01-01"),
              yangle = 45,
-             xangle = 66
+             xangle = 66,
+             yposition = "top",
              )
   )
 

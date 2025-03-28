@@ -3,6 +3,7 @@
   op.roboplot.options <- list(
     roboplot.accessible = F,
     roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, zoom = 1, artefacts = "html", width = 992, height = 744, delay = 0.2),
+    roboplot.axes = list(yformat = NULL, xformat = NULL, yposition = NULL, xposition = NULL, yfont = NULL, y2font = NULL, xfont = NULL, xangle = NULL, yangle = NULL),
     roboplot.border = list(xcolor = "black", ycolor = "black", xmirror = TRUE, ymirror = TRUE, xwidth = 1, ywidth = 1),
     roboplot.caption.template = "L\u00e4hde: {text}.",
     roboplot.caption.xref = "plot",
@@ -11,7 +12,7 @@
     roboplot.dashtypes = c("solid", "dash", "dot", "longdash", "dashdot", "longdashdot"),
     roboplot.empty.roboplot = list(message = NULL, title = T, caption = F, modebar = T, height = 550),
     roboplot.errorbars = list(xcolor = "#545454", ycolor = "#545454"),
-    roboplot.grid = list(xcolor = "#E8E8E8", ycolor = "#E8E8E8", xwidth = 1, ywidth = 1, xdash = "solid", ydash = "solid", xtick = NULL, ytick = NULL),
+    roboplot.grid = list(xcolor = "#E8E8E8", ycolor = "#E8E8E8", xcolor_minor = NULL, ycolor_minor = NULL, xwidth = 1, ywidth = 1, xdash = "solid", ydash = "solid", xtick = NULL, ytick = NULL),
     roboplot.patterntypes = c("","/","\\","x","-","|","+","."),
     roboplot.font.caption = list(size = 10, family = "Arial, sans-serif", path = NULL, color = "#696969", .font = "Arial", .fallback = "Arial"),
     roboplot.font.main = list(size = 14, family = "Arial, sans-serif", path = NULL, color = "#696969", .font = "Arial", .fallback = "Arial"),

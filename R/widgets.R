@@ -163,7 +163,13 @@ create_widget <- function(
       }
     detached_p |>
       frameableWidget() |>
-      saveWidget(file.path(filepath,str_c(title,".html")), selfcontained = self_contained, libdir =.libdir, title = widget_title)
+      saveWidget(
+        file.path(filepath, str_c(title, ".html")),
+        selfcontained = self_contained,
+        libdir = .libdir,
+        title = widget_title,
+        background = getOption("roboplot.colors.background")
+      )
     if(!"quiet" %in% names(list(...))) {
       message(str_glue('File {file.path(filepath,str_c(title,".html"))} created'))
     }

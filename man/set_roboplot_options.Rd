@@ -7,6 +7,7 @@
 set_roboplot_options(
   accessible = NULL,
   artefacts = NULL,
+  axes = NULL,
   border = NULL,
   background_color = NULL,
   caption = NULL,
@@ -14,8 +15,8 @@ set_roboplot_options(
   dashtypes = NULL,
   empty_roboplot = NULL,
   font_main = NULL,
-  font_title = NULL,
-  font_caption = NULL,
+  font_title,
+  font_caption,
   grid = NULL,
   height = NULL,
   imgdl_wide = NULL,
@@ -50,6 +51,10 @@ set_roboplot_options(
 \item{accessible}{Logical. Forces trace colors accessible against plot background.}
 
 \item{artefacts}{Function. Control html and other file creation. Use \code{\link[=set_artefacts]{set_artefacts()}}.}
+
+\item{axes}{Function. Control axis label parameters. Use \code{\link[=set_axes]{set_axes()}} Note that
+only supported parameters for global options are \code{yformat}, \code{xformat}, \code{yposition},
+\code{xposition}, \code{xfont}, \code{yfont}, \code{y2font}, \code{xangle}, and \code{yangle}.}
 
 \item{border}{Function. Control plot borders. Use \code{\link[=set_border]{set_border()}}.}
 
