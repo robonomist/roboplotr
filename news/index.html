@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,59 @@
       <small>Source: <a href="https://github.com/robonomist/roboplotr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.7.0" id="roboplotr-270">roboplotr 2.7.0<a class="anchor" aria-label="anchor" href="#roboplotr-270"></a></h2>
+<ul><li>Hard deprecates <code>roboplot(error_bars, legend_position, legend_maxwidth)</code> in favor of using and <code><a href="../reference/set_confidence_interval.html">set_confidence_interval()</a></code> and <code><a href="../reference/set_legend.html">set_legend()</a></code>.</li>
+<li>Adds <code>set_roboplot_options(axes = set_axes())</code> for some plot axis parameters.</li>
+<li>Minor grid line color can now be set with <code>set_roboplot_options(grid = set_grid())</code>.</li>
+<li>Soft-deprecates <code>set_roboplot_options(font_caption, font_title)</code> in favor of using <code>set_roboplot_options(caption, title)</code>.</li>
+<li>HTML widget background colors now use <code>set_roboplot_options(background)</code>.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.8" id="roboplotr-268">roboplotr 2.6.8<a class="anchor" aria-label="anchor" href="#roboplotr-268"></a></h2>
+<ul><li>
+<code><a href="../reference/roboplot.html">roboplot()</a></code>s have now detection for proper padding for numeric axis limits set with <code>roboplot(plot_axes = set_axes()</code>.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.7" id="roboplotr-267">roboplotr 2.6.7<a class="anchor" aria-label="anchor" href="#roboplotr-267"></a></h2>
+<ul><li>
+<code><a href="../reference/roboplot.html">roboplot()</a></code>s now only trigger relayout when the plot itself is visible on viewport.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.6" id="roboplotr-266">roboplotr 2.6.6<a class="anchor" aria-label="anchor" href="#roboplotr-266"></a></h2>
+<ul><li>Fixes an issue where <code><a href="../reference/roboplot.html">roboplot()</a></code> fails to detect logo size correctly.</li>
+<li>Fixes an issue where <code>roboplot(plot_type = "pie")</code> fails to position caption and logo correctly.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.5" id="roboplotr-265">roboplotr 2.6.5<a class="anchor" aria-label="anchor" href="#roboplotr-265"></a></h2>
+<ul><li>Fixes an issue where <code><a href="../reference/set_roboplot_options.html">set_roboplot_options()</a></code> fails to detect fonts stored as files inside a package on load.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.4" id="roboplotr-264">roboplotr 2.6.4<a class="anchor" aria-label="anchor" href="#roboplotr-264"></a></h2>
+<ul><li>Improved handling of HTML from plot elements in <code><a href="../reference/roboplot.html">roboplot()</a></code> csv files.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.3" id="roboplotr-263">roboplotr 2.6.3<a class="anchor" aria-label="anchor" href="#roboplotr-263"></a></h2>
+<ul><li>Fixes <code><a href="../reference/robotable.html">robotable()</a></code> sorting <code>Date</code> columns as characters instead of dates.</li>
+<li>Factor columns are now sorted by levels in <code><a href="../reference/robotable.html">robotable()</a></code>s.</li>
+<li>Improves <code>caption</code> space handling in <code><a href="../reference/roboplot.html">roboplot()</a></code>s.</li>
+<li>
+<code><a href="../reference/roboplot.html">roboplot()</a></code>s now include all of <code>title</code>, <code>caption</code> and <code>info_text</code> in downloaded csv files.</li>
+<li>Improved handling of special characters in <code><a href="../reference/roboplot.html">roboplot()</a></code> csv files.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.2" id="roboplotr-262">roboplotr 2.6.2<a class="anchor" aria-label="anchor" href="#roboplotr-262"></a></h2>
+<ul><li>Fixes <code><a href="../reference/set_roboplot_options.html">set_roboplot_options()</a></code> crashing if modebar download buttons are not uniquely named, instead reverting to defaults.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.1" id="roboplotr-261">roboplotr 2.6.1<a class="anchor" aria-label="anchor" href="#roboplotr-261"></a></h2>
+<ul><li>Fixes a <code><a href="../reference/robotable.html">robotable()</a></code> error when using <code>responsive = NULL</code>, and <code><a href="../reference/robotable.html">robotable()</a></code> bottom margins.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.6.0" id="roboplotr-260">roboplotr 2.6.0<a class="anchor" aria-label="anchor" href="#roboplotr-260"></a></h2>
+<ul><li>Adds <code>empty_roboplot</code> to <code><a href="../reference/set_roboplot_options.html">set_roboplot_options()</a></code> where the appearance of empty roboplots can be controlled with <code><a href="../reference/set_empty_roboplot.html">set_empty_roboplot()</a></code>.</li>
+<li>Added <code>responsive</code> to <code><a href="../reference/robotable.html">robotable()</a></code> to allow for collapsing colums where the table is too wide.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.5.2" id="roboplotr-252">roboplotr 2.5.2<a class="anchor" aria-label="anchor" href="#roboplotr-252"></a></h2>
 <ul><li>Fixes <code><a href="../reference/roboplot.html">roboplot()</a></code>s sometimes losing legends on render with no apparent reason, only to reappear.</li>

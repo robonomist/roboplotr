@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.5.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.7.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -46,8 +46,9 @@
 <span>  mainfont <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"roboplot.font.main"</span><span class="op">)</span><span class="op">$</span><span class="va">size</span>,</span>
 <span>  titlefont <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"roboplot.font.title"</span><span class="op">)</span><span class="op">$</span><span class="va">size</span>,</span>
 <span>  captionfont <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"roboplot.font.caption"</span><span class="op">)</span><span class="op">$</span><span class="va">size</span>,</span>
-<span>  suffix <span class="op">=</span> <span class="st">"_img"</span>,</span>
-<span>  format <span class="op">=</span> <span class="st">"png"</span></span>
+<span>  suffix <span class="op">=</span> <span class="st">""</span>,</span>
+<span>  format <span class="op">=</span> <span class="st">"png"</span>,</span>
+<span>  button_label <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/options.html" class="external-link">getOption</a></span><span class="op">(</span><span class="st">"roboplot.locale"</span><span class="op">)</span><span class="op">$</span><span class="va">modebar_dl_label</span><span class="op">$</span><span class="va">plot</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -71,6 +72,10 @@ the modebar button will produce.</p></dd>
 <dt id="arg-format">format<a class="anchor" aria-label="anchor" href="#arg-format"></a></dt>
 <dd><p>Character. One of "png", "svg", "jpg", or "webp". Defines the file
 format of the export.</p></dd>
+
+
+<dt id="arg-button-label">button_label<a class="anchor" aria-label="anchor" href="#arg-button-label"></a></dt>
+<dd><p>Character. The label for the modebar button.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -140,8 +145,8 @@ format of the export.</p></dd>
 <span class="r-in"><span>  modebar <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"img_w"</span>,<span class="st">"img_n"</span>,<span class="st">"img_s"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
-<span class="r-in"><span>  <span class="co"># Create a `roboplot()` and navigate to it, and download any of the</span></span></span>
-<span class="r-in"><span>  <span class="co"># static images through the modebar.</span></span></span>
+<span class="r-in"><span> <span class="co"># Create a `roboplot()` and navigate to it, and download any of the</span></span></span>
+<span class="r-in"><span> <span class="co"># static images through the modebar.</span></span></span>
 <span class="r-in"><span>  <span class="va">energiantuonti</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">Suunta</span> <span class="op">==</span> <span class="st">"Tuonti"</span><span class="op">)</span> <span class="op">|&gt;</span></span></span>
 <span class="r-in"><span>    <span class="fu"><a href="roboplot.html">roboplot</a></span><span class="op">(</span></span></span>
@@ -153,8 +158,17 @@ format of the export.</p></dd>
 <span class="r-in"><span>    <span class="op">)</span></span></span>
 <span class="r-in"><span>  <span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/browseURL.html" class="external-link">browseURL</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste0</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/tempfile.html" class="external-link">tempdir</a></span><span class="op">(</span><span class="op">)</span>,<span class="st">"/energian_tuonti.html"</span><span class="op">)</span><span class="op">)</span></span></span>
 <span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="co"># Do note that plotly cannot handle multiple modebar buttons with the same name.</span></span></span>
+<span class="r-in"><span><span class="co"># If you want to use multiple image download buttons, you need to give them unique</span></span></span>
+<span class="r-in"><span><span class="co"># names, but you can circumvent this by using some unicode invisible characters.</span></span></span>
+<span class="r-in"><span></span></span>
+<span class="r-in"><span><span class="fu"><a href="set_roboplot_options.html">set_roboplot_options</a></span><span class="op">(</span></span></span>
+<span class="r-in"><span>  imgdl_narrow <span class="op">=</span> <span class="fu">set_imgdl_layout</span><span class="op">(</span>button_label <span class="op">=</span> <span class="st">"Lataa kuva"</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>  imgdl_wide <span class="op">=</span> <span class="fu">set_imgdl_layout</span><span class="op">(</span>button_label <span class="op">=</span> <span class="st">"Lataa kuva\U2060"</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-in"><span></span></span>
 <span class="r-in"><span><span class="co"># Revert to defaults:</span></span></span>
-<span class="r-in"><span><span class="fu"><a href="set_roboplot_options.html">set_roboplot_options</a></span><span class="op">(</span>reset <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="set_roboplot_options.html">set_roboplot_options</a></span><span class="op">(</span>reset <span class="op">=</span> <span class="st">"roboplotr"</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
