@@ -174,9 +174,14 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
       yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size*1.5), legend_fontsize.y)
     }
 
+    let yaxis_width = yaxis_layer[0].getBBox().width;
+
     if(el.layout.annotations[0].xmod == "container") {
-      let yaxis_width = yaxis_layer[0].getBBox().width;
       el.layout.annotations[0].xshift = -yaxis_width;
+    }
+
+    if(el.layout.legend.xmod == "container" && legend_position == "bottom") {
+      legend_x = -(yaxis_width / elplot.width)
     }
 
   }

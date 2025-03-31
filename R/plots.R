@@ -260,6 +260,7 @@ roboplotr_dependencies <- function(p,
 #' @param modebar Function. Use [set_modebar()].
 #' @param info_text Character. Adds an info button to the modebar with this text, along with plot title and caption.
 #' @param updatemenu Function. Use [set_updatemenu()] for detailed control.
+#' @param hole Numeric. Hole size for pie charts. Between 0 and 0.9, default is 0.
 #' @param zoom Character of function. Use [set_zoom()], or give "none", "scroll", or "drag".
 #' @param roboplot_options Character. A name of roboplot options set with [set_roboplot_options()] param `name`.
 #' See documentation of [set_roboplot_options()] for details.
@@ -622,6 +623,7 @@ roboplot <- function(d = NULL,
                      artefacts = getOption("roboplot.artefacts")$auto,
                      info_text = NULL,
                      updatemenu = NULL,
+                     hole = NULL,
                      zoom = getOption("roboplot.zoom"),
                      roboplot_options = NULL,
                      legend_position = deprecated(),
@@ -1055,7 +1057,8 @@ roboplot <- function(d = NULL,
       markers,
       updatemenu,
       zoom,
-      labels
+      labels,
+      hole = hole
     )
   # }
 
@@ -1242,8 +1245,10 @@ roboplotr_get_plot <-
            markers,
            updatemenu,
            zoom,
-           labels
+           labels,
+           hole
            ) {
+
 
     plot_colors <-
       pull(
@@ -1467,6 +1472,10 @@ roboplotr_get_plot <-
         trace_visible <- unique(g$roboplot.update.menu) == updatemenu$selected
       }
 
+      roboplotr_typecheck(hole, "numeric", allow_null = TRUE)
+      hole <- hole %||% 0
+      roboplotr_is_between(hole, "roboplot()", lims = c(0,0.9))
+
       plotting_params <- list(
         color = color,
         constraintext = ifelse(!is.null(trace_labels$size), "none","both"),
@@ -1490,6 +1499,8 @@ roboplotr_get_plot <-
         #error area fill
         fill = unlist(ifelse(!is.null(attributes(g)$`roboplot.confidence.area`), list("toself"),list(NULL))),
         fillcolor ~ color,
+        #pie
+        hole = hole,
         hoverlabel = list(
           bgcolor = ~ roboplot.bg.color,
           bordercolor = first(unique(getOption(
@@ -1731,7 +1742,7 @@ roboplotr_get_plot <-
           plotting_params[c(shared_params,"x", "y", "offsetgroup", "name", "color", "marker", "xhoverformat")]
       } else if (tracetype == "pie") {
         plotting_params <-
-          plotting_params[c(shared_params, "labels", "textinfo", "direction", "rotation", "sort", "marker", "values")]
+          plotting_params[c(shared_params, "labels", "textinfo", "direction", "rotation", "sort", "marker", "values","hole")]
       }
 
       if (!is.null(secondary_yaxis)) {

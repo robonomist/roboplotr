@@ -24,6 +24,7 @@ roboplotr_legend <- function(p, legend) {
                     orientation = "h",
                     xanchor = "left",
                     yanchor = "top",
+                    xmod = legend$xref,
                     traceorder = legend$order
       ))
   } else {
@@ -38,6 +39,7 @@ roboplotr_legend <- function(p, legend) {
                     orientation = ifelse(legend$position == "right", "v","h"),
                     xanchor = "left",
                     yanchor = "top",
+                    xmod = legend$xref,
                     title = list(text = .legend_title, font = getOption("roboplot.font.main")),
                     traceorder = legend$order
       ))
@@ -204,6 +206,7 @@ roboplotr_title <- function(p, title, subtitle) {
     yref = "container",
     xref = title$xref
   )
+
   if(title$xref == "container") {
     title_layout$pad <- list(l = 5)
   }
@@ -436,7 +439,7 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
   roboplotr_typecheck(font, "character", allow_null = F)
 
   google_font <- NULL
-  if (!font %in% .fonts & !str_detect(tolower(font), "(ttf|otf)$")) {
+  if (!font %in% .fonts & !str_detect(tolower(font), "(ttf|otf|woff|woff2)$")) {
     roboplotr_ns_alert("httr", "usage of Google Fonts with `set_font()`")
     google_font <- (function(font_name = font) {
 
@@ -454,7 +457,7 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
   }
 
   if(!font %in% .fonts & is.null(google_font)) {
-    if (!file.exists(font) | !str_extract(font, "[^\\.]*$") %in% c("otf","ttf","OTF","TTF")) {
+    if (!file.exists(font) | !str_extract(tolower(font), "[^\\.]*$") %in% c("otf","ttf","woff","woff2")) {
       stop(str_c("The given 'font' does not seem to exist or the font file is not in file format .otf or .ttf. Is the file path correct?\n",
                  "Try using a call of system.file() (eg. system.file(\"www\",\"fonts\",\"Roboto-Regular.ttf\", package = \"roboplotr\"))\n",
                  "You can use any of ",roboplotr_combine_words(str_c("\"",websafe,"\""), and = " or ")," instead, or try using a valid Google Font."), call. = F)
@@ -634,7 +637,8 @@ set_plot_legend <- function(position = NULL,
                             orientation = NULL,
                             maxwidth = NULL,
                             title = FALSE,
-                            tidy = getOption("roboplot.legend.tidy"),
+                            tidy = getOption("roboplot.legend")$tidy,
+                            xref = getOption("roboplot.legend")$xref,
                             ...) {
 
 
@@ -654,8 +658,10 @@ set_plot_legend <- function(position = NULL,
   roboplotr_typecheck(maxwidth, "numeric")
   roboplotr_typecheck(title, c("logical","character"), allow_null = F)
   roboplotr_typecheck(tidy, "logical", allow_null = F)
+  roboplotr_valid_strings(xref, c("container","plot", "paper"), any, "set_legend() param 'xref'")
+  xref <- str_replace(xref, "plot","paper")
 
-  .res <- list(position = position, orientation = orientation, maxwidth = maxwidth, title = title, tidy = tidy)
+  .res <- list(position = position, orientation = orientation, maxwidth = maxwidth, title = title, tidy = tidy, xref = xref)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_legend", class(.res)))
 

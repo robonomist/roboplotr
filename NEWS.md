@@ -1,3 +1,10 @@
+# roboplotr 2.7.1
+
+* Allows for woff files to be used with `set_font()`.
+* Adds `roboplot(hole)` to specify hole size for pie plots.
+* Adds `set_legend(xref)` to control bottom-positioned legend anchoring in `roboplot()`s, aligning with similar option for `set_title()` and `set_caption()`.
+* Soft-deprecates `set_roboplot_options(tidy_legend)` in favor of using `set_roboplot_options(caption, title)`.
+
 # roboplotr 2.7.0
 
 * Hard deprecates `roboplot(error_bars, legend_position, legend_maxwidth)` in favor of using and `set_confidence_interval()` and `set_legend()`.

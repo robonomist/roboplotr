@@ -35,6 +35,7 @@ roboplot(
   artefacts = getOption("roboplot.artefacts")$auto,
   info_text = NULL,
   updatemenu = NULL,
+  hole = NULL,
   zoom = getOption("roboplot.zoom"),
   roboplot_options = NULL,
   legend_position = deprecated(),
@@ -131,6 +132,8 @@ TRUE for automated artefact creation based on \code{\link[=set_roboplot_options]
 \item{info_text}{Character. Adds an info button to the modebar with this text, along with plot title and caption.}
 
 \item{updatemenu}{Function. Use \code{\link[=set_updatemenu]{set_updatemenu()}} for detailed control.}
+
+\item{hole}{Numeric. Hole size for pie charts. Between 0 and 0.9, default is 0.}
 
 \item{zoom}{Character of function. Use \code{\link[=set_zoom]{set_zoom()}}, or give "none", "scroll", or "drag".}
 

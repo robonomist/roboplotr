@@ -49,10 +49,11 @@
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to
 #' be hexadecimal colors or valid css colors. You should provide enough colors for
 #' most use cases, although `roboplotr` is able to extrapolate.
+#' @param legend Function. `Use set_legend()` to set legend defaults. Param `tidy`
+#' makes plot legend columns of even width. Param `xref` is used to define anchoring
+#' in relation to either the plot (the default) or the container.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default",
 #' "days", "months", "weeks", "quarters", "years" or "guess".
-#' @param tidy_legend Logical. Controls whether the legend items will have matching
-#' widths, making for neater legends, or containing text widths, saving space.
 #' @param title Function. Controls title defaults. Param `include` controls whether
 #' the title is included in html. Param `xref` is used to control title's left anchoring,
 #' and is ignored by [robomap()] and [robotable()]. Use [set_title()].
@@ -258,6 +259,7 @@ set_roboplot_options <- function(
     imgdl_small = NULL,
     infobox = NULL,
     labels = NULL,
+    legend = NULL,
     linewidth = NULL,
     locale = NULL,
     logo_file = NULL,
@@ -267,7 +269,7 @@ set_roboplot_options <- function(
     name = NULL,
     patterns = NULL,
     rounding = NULL,
-    tidy_legend = NULL,
+    tidy_legend,
     title = NULL,
     trace_border = NULL,
     trace_colors = NULL,
@@ -417,6 +419,24 @@ set_roboplot_options <- function(
 
     }
 
+    if(is_present(tidy_legend)) {
+      deprecate_warn("2.7.1", "roboplotr::set_roboplot_options(tidy_legend)", "roboplotr::set_roboplot_options(legend = 'is set with set_legend(tidy)')")
+      roboplotr_typecheck(tidy_legend, "logical")
+      if(is.null(legend)) {
+        legend <- set_legend(tidy = tidy_legend)
+      }
+    } else {
+      tidy_legend <- NULL
+    }
+
+    if(!is.null(legend)) {
+      roboplotr_typecheck(legend, "set_legend")
+      if(!is.null(tidy_legend)) {
+        legend$tidy <- tidy_legend
+      }
+      legend <- legend[c("tidy","xref")]
+    }
+
     roboplotr_typecheck(locale, "set_locale")
 
     roboplotr_typecheck(logo_file, "character")
@@ -472,8 +492,6 @@ set_roboplot_options <- function(
     }
 
     roboplotr_typecheck(rounding, "numeric", allow_na = F)
-
-    roboplotr_typecheck(tidy_legend, "logical")
 
     title <- substitute(title)
     if(!is.null(title)) {
@@ -552,8 +570,8 @@ set_roboplot_options <- function(
     set_roboplot_option(height)
     set_roboplot_option(infobox)
     set_roboplot_option(labels)
+    set_roboplot_option(legend)
     set_roboplot_option(locale)
-    set_roboplot_option(tidy_legend, "legend.tidy")
     set_roboplot_option(linewidth)
     set_roboplot_option(logo_file, "logo")
     set_roboplot_option(markers)

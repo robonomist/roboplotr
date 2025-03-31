@@ -20,7 +20,7 @@
     roboplot.height = 550,
     roboplot.infobox = list(background = "#E8E8E8", border = "black", font = "#696969", border_width = 1),
     roboplot.labels = list(bar = "none", pie = "percent", scatter = "none"),
-    roboplot.legend.tidy = FALSE,
+    roboplot.legend = list(tidy = FALSE, xref = "paper"),
     roboplot.linewidth = 2,
     roboplot.locale = list(
       locale = "fi",
