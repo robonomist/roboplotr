@@ -22,6 +22,7 @@ robotable(
   class = NULL,
   searchable = T,
   sortable = T,
+  labels = set_robotable_labels(),
   col_widths = NULL,
   responsive = NULL,
   artefacts = getOption("roboplot.artefacts")$auto,
@@ -64,6 +65,8 @@ combine any of "cell-border", "compact","hover","nowrap","row-border" and / or
 
 \item{searchable, sortable}{Logical. Control whether the \code{\link[=robotable]{robotable()}} columns
 have searching or sorting when navigation is displayed.}
+
+\item{labels}{Function. Use \code{\link[=set_labels]{set_labels()}}. Sets robotable labels for pagination and search.}
 
 \item{col_widths}{Named numeric vector. Must sum to 100 or lower. Sets the percentage
 widths taken by column by name. Columns not named will have the excess space

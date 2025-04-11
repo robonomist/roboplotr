@@ -1,6 +1,5 @@
 #' Raster layer for data contour maps
 #'
-#' @importFrom leaflet addRasterImage
 #' @importFrom methods as
 #' @importFrom tidyr unnest
 #' @importFrom utils capture.output
@@ -96,7 +95,7 @@ roboplotr_map_rasterlayer <- function(map,
                                      na.rm = TRUE)
     smoothed_clipped <- raster::mask(smoothed_raster, muni_mask)
     map <- map |>
-      addRasterImage(smoothed_clipped, colors = robomap_palette, opacity = opacity)
+      leaflet::addRasterImage(smoothed_clipped, colors = robomap_palette, opacity = opacity)
     if (show.pb) {
       bpb$terminate()
     }
@@ -107,7 +106,6 @@ roboplotr_map_rasterlayer <- function(map,
   }
 }
 
-#' @importFrom leaflet addCircleMarkers
 roboplotr_map_markerlayer <- function(map, d, markers, size_scale = c(1, 12)) {
   roboplotr_ns_alert("scales", "usage of markers in `robomap()`")
   if (!markers) {
@@ -123,7 +121,7 @@ roboplotr_map_markerlayer <- function(map, d, markers, size_scale = c(1, 12)) {
       scales::rescale(value, to = size_scale)
     }
     map |>
-      addCircleMarkers(
+      leaflet::addCircleMarkers(
         lng = ~ lon,
         lat =  ~ lat,
         stroke = TRUE,
@@ -137,21 +135,20 @@ roboplotr_map_markerlayer <- function(map, d, markers, size_scale = c(1, 12)) {
   }
 }
 
-#' @importFrom leaflet addPolygons labelOptions
 roboplotr_map_polygonlayer <- function(map,
                                        data_contour,
                                        map_opacity,
                                        robomap_palette,
                                        border_width) {
   map |>
-    addPolygons(
+    leaflet::addPolygons(
       color = getOption("roboplot.trace.border")$color,
       weight = border_width,
       fillColor = robomap_palette,
       #~ if (data_contour) { NULL } else { robomap.value },
       fillOpacity = ifelse(data_contour, 0, map_opacity),
       label = ~ leafletlabel,
-      labelOptions = labelOptions(
+      labelOptions = leaflet::labelOptions(
         style = list(
           "background" = getOption("roboplot.colors.background"),
           "font-size" = str_glue('{getOption("roboplot.font.main")$size}px'),
@@ -168,7 +165,6 @@ roboplotr_map_polygonlayer <- function(map,
     )
 }
 
-#' @importFrom leaflet addProviderTiles addTiles providerTileOptions tileOptions
 roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F, provider = NULL) {
   if(!is.null(provider)) {
     # print("provider")
@@ -187,14 +183,14 @@ roboplotr_map_tilelayer <- function(map, tile_opacity, wrap = F, provider = NULL
     roboplotr_valid_strings(provider, names(map_providers), any)
 
     map |>
-      addProviderTiles(
+      leaflet::addProviderTiles(
         map_providers[[provider]],
-        options = providerTileOptions(opacity = tile_opacity, noWrap = !wrap)
+        options = leaflet::providerTileOptions(opacity = tile_opacity, noWrap = !wrap)
       )
 
   } else if (tile_opacity > 0) {
     map |>
-      addTiles(options = tileOptions(opacity = tile_opacity, noWrap = !wrap))
+      leaflet::addTiles(options = leaflet::tileOptions(opacity = tile_opacity, noWrap = !wrap))
   } else {
     map
   }
@@ -278,7 +274,6 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @param ... Placeholder for other parameters.
 #' @returns A list of classes leaflet, htmlwidget and roboplot.robomap
 #' @importFrom htmltools HTML tags
-#' @importFrom leaflet addControl addEasyButton addLegend colorFactor easyButton leaflet labelFormat leafletOptions
 #' @importFrom purrr map
 #' @importFrom stringr str_glue str_remove
 #' @importFrom utils head tail
@@ -432,7 +427,7 @@ robomap <-
            markers = FALSE,
            zoom = TRUE,
            ...) {
-    roboplotr_ns_alert("sf", "usage of `robomap()`")
+    roboplotr_ns_alert(c("leaflet", "sf"), "usage of `robomap()`")
 
     roboplotr_typecheck(d, "sf", allow_null = F, size = NULL)
     if(sf::st_crs(d)$epsg != "4326") {
@@ -600,12 +595,12 @@ robomap <-
 
     map_pal <- robomap_palette(d$robomap.value)
 
-    this_map <- leaflet(
+    this_map <- leaflet::leaflet(
       d,
       height = height,
       width = width,
       # elementId = robomap_id,
-      options = leafletOptions(
+      options = leaflet::leafletOptions(
         scrollWheelZoom = zoom,
         doubleClickZoom = zoom,
         touchZoom = zoom,
@@ -653,17 +648,17 @@ robomap <-
 
     robotable_logo_height <- ifelse(is.null(height), "30px", str_glue("{round(height/20)}px"))
     this_map <- this_map |>
-      addControl(
+      leaflet::addControl(
         html = HTML(map_title),
         position = "topleft",
         className = str_glue("robomap-title")
       ) |>
-      addControl(
+      leaflet::addControl(
         roboplotr_get_robomap_css(robomap_id, legend, robotable_logo_height),
         position = "topleft",
         className = str_glue("{robomap_id}-info-control")
       ) |>
-      addControl(
+      leaflet::addControl(
         html = robotable_logo(robotable_logo_height),
         position = "bottomright",
         className = str_glue("map-info robomap-logo")
@@ -671,7 +666,7 @@ robomap <-
 
     if (!is.null(caption)) {
       this_map <- this_map |>
-        addControl(
+        leaflet::addControl(
           html = caption,
           position = "bottomleft",
           className = str_glue("map-info")
@@ -705,7 +700,8 @@ robomap <-
           }
         }
 
-        this_map <- this_map |> addLegend(
+        this_map <- this_map |>
+          leaflet::addLegend(
           className = str_glue("map-info legend"),
           position = legend$position,
           opacity = map_opacity,
@@ -725,7 +721,7 @@ robomap <-
           }
         }
         this_map <- this_map |>
-          addLegend(
+          leaflet::addLegend(
             className = str_glue("map-info legend"),
             position = legend$position,
             opacity = map_opacity,

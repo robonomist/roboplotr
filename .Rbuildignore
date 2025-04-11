@@ -9,3 +9,4 @@
 ^inst/raw$
 ^R/new_robomap\.R$
 ^vignettes/.*\.html$
+^dev$

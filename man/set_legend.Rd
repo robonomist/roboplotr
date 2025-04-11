@@ -13,7 +13,8 @@ set_plot_legend(
   orientation = NULL,
   maxwidth = NULL,
   title = FALSE,
-  tidy = getOption("roboplot.legend.tidy"),
+  tidy = getOption("roboplot.legend")$tidy,
+  xref = getOption("roboplot.legend")$xref,
   ...
 )
 

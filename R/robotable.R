@@ -379,6 +379,7 @@ roboplotr_set_robotable_fonts <-
 #' @param info_text Character. Optional. If included, this text will be displayed
 #' with a popup when the info button in the table modebar is clicked.
 #' @param heatmap Function. Use [set_heatmap()]. Color-codes numeric columns.
+#' @param labels Function. Use [set_labels()]. Sets robotable labels for pagination and search.
 #' @param artefacts Function. Use [set_artefacts()]. Controls file exports.
 #' Currently unable to make static exports, only html files.
 #' @param class Character vector. Controls the basic datatable appearance. You may
@@ -470,6 +471,7 @@ robotable <-
            class = NULL,
            searchable = T,
            sortable = T,
+           labels = set_robotable_labels(),
            col_widths = NULL,
            responsive = NULL,
            artefacts = getOption("roboplot.artefacts")$auto,
@@ -506,6 +508,7 @@ robotable <-
     caption <- roboplotr_set_caption(caption, d, "in robotable()")$text
 
     roboplotr_typecheck(heatmap, "set_heatmap")
+    roboplotr_typecheck(labels, "set_robotable_labels")
 
     d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value, dateformat)
 
@@ -772,7 +775,7 @@ function preInitFunction(settings, json) {
           buttons = robotable_buttons,
           columnDefs = column_defs,
           dom = .dom,
-          language = set_robotable_labels(),
+          language = labels,
           lengthMenu = .pagination$lengthmenu,
           ordering = sortable,
           pageLength = .pagination$pagelength,

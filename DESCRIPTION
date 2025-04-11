@@ -1,64 +1,68 @@
 Package: roboplotr
 Title: Robonomist Automated Visualization Tool
-Version: 2.7.1
+Version: 2.7.2
 Authors@R: 
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
-Description: Comprehensive plotly, datatables and leaflet wrapper function simplifying the creation and customization of advanced visualizations.
+Description: Comprehensive plotly, datatables and leaflet wrapper function
+    simplifying the creation and customization of advanced visualizations.
 License: file LICENSE
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+URL: https://robonomist.github.io/roboplotr/,
+    https://github.com/robonomist/roboplotr
+Depends: 
+    R (>= 2.10)
 Imports: 
-    RCurl,
     dplyr,
+    DT,
     farver,
     fontawesome,
     forcats,
+    grDevices,
     htmltools,
-    htmlwidgets, 
+    htmlwidgets,
+    lifecycle,
     lubridate,
     methods,
     padr,
     plotly,
     purrr,
+    RCurl,
     rlang,
     rvest,
     shiny,
-    stringr,
-    tidyr,
     stats,
-    widgetframe,
-    DT,
-    leaflet,
+    stringr,
     tibble,
+    tidyr,
+    utils,
     webshot2,
-    lifecycle
+    widgetframe
 Suggests: 
-    testthat (>= 3.0.0),
-    rmarkdown,
     bs4Dash,
-    robonomistClient,
-    Quandl,
-    slider,
-    knitr,
-    tidyverse,
-    systemfonts,
-    httr,
-    scales,
-    progress,
-    sf,
-    sp,
     gstat,
-    raster,
-    tools,
+    httr,
+    knitr,
+    later,
+    leaflet,
+    progress,
     promises,
-    later
-Remotes: robonomist/robonomistClient
+    raster,
+    rmarkdown,
+    robonomistClient,
+    scales,
+    sf,
+    slider,
+    sp,
+    systemfonts,
+    testthat (>= 3.0.0),
+    tidyverse,
+    tools
+VignetteBuilder: 
+    knitr
+Remotes: 
+    robonomist/robonomistClient
 Config/testthat/edition: 3
-Depends: 
-    R (>= 2.10)
-SystemRequirements: 
-    GDAL (>= 3.8.4)
+Encoding: UTF-8
 LazyData: true
-VignetteBuilder: knitr
-URL: https://robonomist.github.io/roboplotr/, https://github.com/robonomist/roboplotr
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+SystemRequirements: GDAL (>= 3.8.4)

@@ -24,6 +24,7 @@ set_roboplot_options(
   imgdl_small = NULL,
   infobox = NULL,
   labels = NULL,
+  legend = NULL,
   linewidth = NULL,
   locale = NULL,
   logo_file = NULL,
@@ -33,7 +34,7 @@ set_roboplot_options(
   name = NULL,
   patterns = NULL,
   rounding = NULL,
-  tidy_legend = NULL,
+  tidy_legend,
   title = NULL,
   trace_border = NULL,
   trace_colors = NULL,
@@ -89,6 +90,10 @@ is provided for \link[=roboplot]{roboplots} or \link[=robotable]{robotables}. Us
 
 \item{labels}{Function. Control trace labeling. Use \code{\link[=set_labels]{set_labels()}}.}
 
+\item{legend}{Function. \verb{Use set_legend()} to set legend defaults. Param \code{tidy}
+makes plot legend columns of even width. Param \code{xref} is used to define anchoring
+in relation to either the plot (the default) or the container.}
+
 \item{linewidth}{Numeric. The default \code{roboplot()} line trace width.}
 
 \item{locale}{Function. Defines locale parameters as \code{roboplotr} needs them.
@@ -114,9 +119,6 @@ calls of \code{set_roboplot_options(reset)} or \code{roboplot(roboplot_options)}
 contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
 \item{rounding}{Double. Default rounding for numeric values across various roboplotr functions.}
-
-\item{tidy_legend}{Logical. Controls whether the legend items will have matching
-widths, making for neater legends, or containing text widths, saving space.}
 
 \item{title}{Function. Controls title defaults. Param \code{include} controls whether
 the title is included in html. Param \code{xref} is used to control title's left anchoring,

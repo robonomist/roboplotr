@@ -805,17 +805,16 @@ roboplotr_set_pattern <- function(d, pattern, pattern_type) {
   }
 }
 
-#' @importFrom leaflet colorFactor colorNumeric
 roboplotr_get_map_palette <- function(domain, map_colors, gradient = F, rev = T) {
   if(gradient) {
-    colorNumeric(
+    leaflet::colorNumeric(
       map_colors,
       domain = domain,
       reverse = rev,
       na.color = "#00000000"
     )
   } else {
-    colorFactor(
+    leaflet::colorFactor(
       map_colors,
       domain = domain,
       reverse = !rev,

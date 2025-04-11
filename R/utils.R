@@ -723,7 +723,7 @@ set_locale <- function(locale = "fi-FI") {
     )
 
   robotable_labels <- case_when(
-    loc == "en" ~list(
+    loc %in% c("en","en-US") ~list(
       search = "Search:",
       info = "Showing rows _START_-_END_ of _TOTAL_",
       lengthMenu = "Show _MENU_ rows per page",

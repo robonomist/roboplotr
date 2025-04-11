@@ -1,3 +1,8 @@
+# roboplotr 2.7.2
+
+* Moves all `leaflet`dependecies to Suggests, with `robomap()` warning if the user does not have `leaflet`.
+* Fixes `robotable` not respecting localization with labels. Added param `labels` to `robotable()` to control the nav labels of the table.
+
 # roboplotr 2.7.1
 
 * Allows for woff files to be used with `set_font()`.
