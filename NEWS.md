@@ -1,3 +1,7 @@
+# roboplotr 2.7.4
+
+* Removes `alt` from `set_artefacts()`, moving it to `roboplot()` internal scripts instead.
+
 # roboplotr 2.7.3
 
 * Adds `alt` to `set_artefacts()`, a logical param for whether html-artefacts will get the artefact title as the `alt` attribute.

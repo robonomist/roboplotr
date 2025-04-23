@@ -2,7 +2,7 @@
   op <- options()
   op.roboplot.options <- list(
     roboplot.accessible = F,
-    roboplot.artefacts = list(alt = F, auto = F, filepath = getwd(), render = T, self_contained = F, zoom = 1, artefacts = "html", width = 992, height = 744, delay = 0.2),
+    roboplot.artefacts = list(auto = F, filepath = getwd(), render = T, self_contained = F, zoom = 1, artefacts = "html", width = 992, height = 744, delay = 0.2),
     roboplot.axes = list(yformat = NULL, xformat = NULL, yposition = NULL, xposition = NULL, yfont = NULL, y2font = NULL, xfont = NULL, xangle = NULL, yangle = NULL),
     roboplot.border = list(xcolor = "black", ycolor = "black", xmirror = TRUE, ymirror = TRUE, xwidth = 1, ywidth = 1),
     roboplot.caption.template = "L\u00e4hde: {text}.",

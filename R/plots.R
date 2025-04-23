@@ -109,6 +109,7 @@ roboplotr_dependencies <- function(p,
     onRender(
       jsCode = "function (gd, params, data){
                         let plot_title = data.plotTitle;
+                        gd.setAttribute('aria-label', plot_title[1] !== '' ? `${plot_title[0]}, ${plot_title[1]}` : `${plot_title[0]}`);
                         if (!gd._init_xrange && data.piePlot == false) {gd._init_xrange = { x0: gd.layout.xaxis.range[0], x1: gd.layout.xaxis.range[1] };}
                         if (!gd._init_yrange && data.piePlot == false) {gd._init_yrange = { x0: gd.layout.yaxis.range[0], x1: gd.layout.yaxis.range[1] };}
                         for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
@@ -1197,8 +1198,7 @@ roboplot <- function(d = NULL,
         artefacts = params$artefacts,
         height = params$height,
         width = params$width,
-        delay = params$delay,
-        alt = params$alt
+        delay = params$delay
       )
     } else {
       p
@@ -1214,8 +1214,7 @@ roboplot <- function(d = NULL,
       artefacts = artefacts$artefacts,
       height = artefacts$height,
       width = artefacts$width,
-      delay = artefacts$delay,
-      alt = artefacts$alt
+      delay = artefacts$delay
     )
   }
 
