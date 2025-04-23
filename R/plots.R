@@ -66,6 +66,10 @@ roboplotr_dependencies <- function(p,
                                    subtitle,
                                    ticktypes,
                                    legend) {
+  
+  alt <- c(title$title, subtitle)
+  alt <- str_c(alt[str_length(alt) > 0], collapse = ", ")
+  
   if (title$include == T) {
     plot_title <-
       list(title$title,
@@ -109,7 +113,7 @@ roboplotr_dependencies <- function(p,
     onRender(
       jsCode = "function (gd, params, data){
                         let plot_title = data.plotTitle;
-                        gd.setAttribute('aria-label', plot_title[1] !== '' ? `${plot_title[0]}, ${plot_title[1]}` : `${plot_title[0]}`);
+                        gd.setAttribute('aria-label', data.alt);
                         if (!gd._init_xrange && data.piePlot == false) {gd._init_xrange = { x0: gd.layout.xaxis.range[0], x1: gd.layout.xaxis.range[1] };}
                         if (!gd._init_yrange && data.piePlot == false) {gd._init_yrange = { x0: gd.layout.yaxis.range[0], x1: gd.layout.yaxis.range[1] };}
                         for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
@@ -176,7 +180,8 @@ roboplotr_dependencies <- function(p,
         ),
         piePlot = pie_plot,
         tidyLegend = legend$tidy,
-        legendPosition = legend$position
+        legendPosition = legend$position,
+        alt = alt
       )
     )
 }

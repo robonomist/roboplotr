@@ -1,3 +1,7 @@
+# roboplotr 2.7.5
+
+* Changes `alt`to `aria-label`, and includes the `aria-label` even with `set_title(include = F)` as long as there is a title.
+
 # roboplotr 2.7.4
 
 * Removes `alt` from `set_artefacts()`, moving it to `roboplot()` internal scripts instead.
