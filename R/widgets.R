@@ -22,6 +22,8 @@
 #' dimensions, if any, for that plot.
 #' @param delay Numeric. Delay in seconds before taking a screenshot. Used with
 #' static file creation. Default 0.2.
+#' @param alt Logical. Will a html artefact have the param `title` as its `alt`
+#' attribute.
 #' @param ... Additional parameters in future use.
 #' @examples
 #' set_roboplot_options(verbose = "Warning", .default = TRUE)
@@ -99,6 +101,7 @@ create_widget <- function(
     width = getOption("roboplot.artefacts")$width,
     height = getOption("roboplot.artefacts")$height,
     delay = getOption("roboplot.artefacts")$delay,
+    alt = getOption("roboplot.artefacts")$alt,
     ...
     ) {
   is.robotable <- "datatables" %in% class(p)
@@ -109,6 +112,7 @@ create_widget <- function(
   roboplotr_typecheck(width, "numeric", allow_null = T)
   roboplotr_typecheck(height, "numeric", allow_null = T)
   roboplotr_typecheck(delay, "numeric", allow_null = F)
+  roboplotr_typecheck(alt, "logical", allow_null = F)
 
   if(!dir.exists(filepath)) {
     dir.create(filepath)
@@ -170,6 +174,13 @@ create_widget <- function(
         title = widget_title,
         background = getOption("roboplot.colors.background")
       )
+    if(alt) {
+      .html <- readLines(file.path(filepath, str_c(title, ".html")), warn = FALSE)
+      .row <- str_detect(.html, "id=")
+      .row <- which(.row == T)[1]
+      .html[.row] <- str_replace(.html[.row], "id", str_glue("alt = \"{widget_title}\" id"))
+      writeLines(.html, file.path(filepath, str_c(title, ".html")))
+    }
     if(!"quiet" %in% names(list(...))) {
       message(str_glue('File {file.path(filepath,str_c(title,".html"))} created'))
     }
@@ -212,7 +223,8 @@ set_artefacts <- function(
     auto = getOption("roboplot.artefacts")$auto,
     width = getOption("roboplot.artefacts")$width,
     height = getOption("roboplot.artefacts")$height,
-    delay = getOption("roboplot.artefacts")$delay
+    delay = getOption("roboplot.artefacts")$delay,
+    alt = getOption("roboplot.artefacts")$alt
 ) {
   roboplotr_typecheck(filepath, "character", allow_null = F)
   roboplotr_typecheck(render, "logical", allow_null = F)
@@ -224,6 +236,7 @@ set_artefacts <- function(
   roboplotr_typecheck(width, "numeric", allow_null = F)
   roboplotr_typecheck(height, "numeric", allow_null = F)
   roboplotr_typecheck(delay, "numeric", allow_null = F)
+  roboplotr_typecheck(alt, "logical", allow_null = F)
 
   .res <- list(
     auto = auto,
@@ -235,7 +248,8 @@ set_artefacts <- function(
     title = title,
     width = round(width),
     height = round(height),
-    delay = delay
+    delay = delay,
+    alt = alt
   )
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_artefacts", class(.res)))

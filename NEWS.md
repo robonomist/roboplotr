@@ -1,7 +1,12 @@
+# roboplotr 2.7.3
+
+* Adds `alt` to `set_artefacts()`, a logical param for whether html-artefacts will get the artefact title as the `alt` attribute.
+
 # roboplotr 2.7.2
 
 * Moves all `leaflet`dependecies to Suggests, with `robomap()` warning if the user does not have `leaflet`.
-* Fixes `robotable` not respecting localization with labels. Added param `labels` to `robotable()` to control the nav labels of the table.
+* Fixes `robotable` not respecting localization with labels. 
+* Adds param `labels` to `robotable()` to control the nav labels of the table.
 
 # roboplotr 2.7.1
 

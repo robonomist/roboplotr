@@ -15,6 +15,7 @@ create_widget(
   width = getOption("roboplot.artefacts")$width,
   height = getOption("roboplot.artefacts")$height,
   delay = getOption("roboplot.artefacts")$delay,
+  alt = getOption("roboplot.artefacts")$alt,
   ...
 )
 }
@@ -46,6 +47,9 @@ dimensions, if any, for that plot.}
 
 \item{delay}{Numeric. Delay in seconds before taking a screenshot. Used with
 static file creation. Default 0.2.}
+
+\item{alt}{Logical. Will a html artefact have the param \code{title} as its \code{alt}
+attribute.}
 
 \item{...}{Additional parameters in future use.}
 }

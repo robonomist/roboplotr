@@ -1197,7 +1197,8 @@ roboplot <- function(d = NULL,
         artefacts = params$artefacts,
         height = params$height,
         width = params$width,
-        delay = params$delay
+        delay = params$delay,
+        alt = params$alt
       )
     } else {
       p
@@ -1213,7 +1214,8 @@ roboplot <- function(d = NULL,
       artefacts = artefacts$artefacts,
       height = artefacts$height,
       width = artefacts$width,
-      delay = artefacts$delay
+      delay = artefacts$delay,
+      alt = artefacts$alt
     )
   }
 
