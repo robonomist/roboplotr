@@ -180,7 +180,22 @@ roboplotr_set_robotable_css <-
            title_font = getOption("roboplot.font.title"),
            caption_font = getOption("roboplot.font.caption"),
            title = "") {
-    str_c(
+    
+    
+    
+    hex8_to_opaque_hex <- function(hex8) {
+      bg <- decode_colour(getOption("roboplot.colors.background"))
+      rgba <- decode_colour(hex8, alpha = TRUE)
+      rgb_final <- (1 - rgba[, 4]) * bg + rgba[, 1:3] * rgba[, 4]
+      encode_colour(rgb_final)
+    }
+
+    .stripe_color <- list(color = decode_colour(getOption("roboplot.table_options")$stripecolor), opacity = getOption("roboplot.table_options")$stripeopacity)
+    .stripeashex <- encode_colour(.stripe_color$color, alpha = .stripe_color$opacity) |> hex8_to_opaque_hex()
+    .stripe_font <- roboplotr:::roboplotr_text_color_picker(.stripeashex)
+    .stripe_color <- str_c(c(as.character(.stripe_color$color),.stripe_color$opacity), collapse = ',')
+    
+    res <- str_c(
       roboplotr_set_specific_css(
         str_glue('#{id}'),
         'width' = '100%!important',
@@ -219,6 +234,10 @@ roboplotr_set_robotable_css <-
         "opacity" = "0",
         "width" = "18px",
         "transition" = "opacity 0.3s ease-in-out, width 0.3s ease-in-out"
+      ),
+      roboplotr_set_specific_css(
+        str_glue("#{id}_wrapper table.dataTable.display> tbody > tr.odd > *, {id}_wrapper table.dataTable.striped> tbody > tr.odd > *"),
+        "box-shadow" = str_glue("inset 0 0 0 9999px rgba({.stripe_color})!important")
       ),
       roboplotr_set_specific_css(
         str_glue("#{id}_wrapper .dataTables_scroll"),
@@ -340,6 +359,7 @@ roboplotr_set_robotable_css <-
       ,
       collapse = "\n"
     )
+    HTML(res)
   }
 
 #' @importFrom DT formatStyle
@@ -836,6 +856,9 @@ roboplotr_get_robotable_google_fonts <- function() {
   )] |> map( ~ if (!is.null(.x$google_font)) {
     roboplotr_set_specific_css("@font-face", "font-family" = str_extract(.x$family, "[^,]*(?=,)"),
                                "src" = str_glue("url('{.x$google_font$url}')"))
+  } else if (!is.null(.x$path)) {
+    .f <- roboplotr_set_font_string(.x, NULL)
+    roboplotr_set_specific_css("@font-face", "font-family" = names(.f), "src" = str_glue("url('{.f[[1]]}')"))
   }) |>
     unique() |>
     unlist()
@@ -845,4 +868,32 @@ roboplotr_get_robotable_google_fonts <- function() {
   } else {
     tags$style(HTML(str_c(.fonts, collapse= ";")))
   }
+}
+
+#' Set `robotable()` global styling defaults.
+#'
+#' Control stripe appearance only at the moment.
+#'
+#' @param stripecolor Character. A valid css color name or 6-digit hex color.
+#' @param stripeopacity Numeric. A number between 0 and 1.
+#' @param ... Placeholder for future table_options
+#' @export
+
+set_table_options <- function(
+    stripecolor = getOption("roboplot.table_defaults")$stripecolor,
+    stripeopacity = getOption("roboplot.table_defaults")$stripeopacity,
+    ...
+) {
+  
+  roboplotr_typecheck(stripecolor, "character", allow_null = F)
+  roboplotr_typecheck(stripeopacity, "numeric", allow_null = F)
+  roboplotr_valid_colors(stripecolor)
+  roboplotr_is_between(stripeopacity, "set_table_options", c(0, 1))
+  
+  .res <- list(stripecolor = stripecolor,
+              stripeopacity = stripeopacity)
+  
+  .res <- structure(.res, class = c("roboplotr", "roboplotr.set_table_options", class(.res)))
+  
+  .res
 }

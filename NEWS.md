@@ -1,3 +1,8 @@
+# roboplotr 2.7.6
+
+* Adds `set_roboplot_options(table_options)` and the corresponding `set_table_options()` to control `robotable()` appearance options globally. Currently only supports stripe color and opacity, but more will be added later.
+* Fixes `robotable()` not respecting fonts set from files.
+
 # roboplotr 2.7.5
 
 * Changes `alt`to `aria-label`, and includes the `aria-label` even with `set_title(include = F)` as long as there is a title.

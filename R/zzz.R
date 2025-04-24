@@ -44,6 +44,7 @@
     roboplot.imgdl.narrow = list(x = 810, y = 720, title = 18, main = 15, caption = 11, suffix = "", type = "png", button_label = "Lataa kuvio (kapea)"),
     roboplot.imgdl.small = list(x = 889, y = 500, title = 16, main = 13, caption = 10, suffix = "", type = "png", button_label = "Lataa kuvio (pieni)"),
     roboplot.rounding = 1,
+    roboplot.table_options = list(stripecolor = "black", stripeopacity = 0.023),
     roboplot.title = list(include = T, xref = "plot"),
     roboplot.trace.border = list(color = "#E8E8E8", width = 1),
     roboplot.width = NA,

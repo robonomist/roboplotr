@@ -34,6 +34,7 @@ set_roboplot_options(
   name = NULL,
   patterns = NULL,
   rounding = NULL,
+  table_options = NULL,
   tidy_legend,
   title = NULL,
   trace_border = NULL,
@@ -90,7 +91,7 @@ is provided for \link[=roboplot]{roboplots} or \link[=robotable]{robotables}. Us
 
 \item{labels}{Function. Control trace labeling. Use \code{\link[=set_labels]{set_labels()}}.}
 
-\item{legend}{Function. \verb{Use set_legend()} to set legend defaults. Param \code{tidy}
+\item{legend}{Function. Use \code{set_legend()} to set legend defaults. Param \code{tidy}
 makes plot legend columns of even width. Param \code{xref} is used to define anchoring
 in relation to either the plot (the default) or the container.}
 
@@ -119,6 +120,8 @@ calls of \code{set_roboplot_options(reset)} or \code{roboplot(roboplot_options)}
 contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.}
 
 \item{rounding}{Double. Default rounding for numeric values across various roboplotr functions.}
+
+\item{table_options}{Call. Use \code{set_table_options()}.}
 
 \item{title}{Function. Controls title defaults. Param \code{include} controls whether
 the title is included in html. Param \code{xref} is used to control title's left anchoring,

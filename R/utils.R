@@ -43,13 +43,14 @@
 #' @param patterns Character vector. Line trace linetypes in order of usage. Must
 #' contain all of "", "/", "\\", "x", "-", "|", "+" and "." in any order.
 #' @param rounding Double. Default rounding for numeric values across various roboplotr functions.
+#' @param table_options Call. Use `set_table_options()`.
 #' @param trace_border List. Borders for bars, pies and markers. Values must be
 #' named "color" and "width". "color" needs to be a hexadecimal color or a
 #' valid css color, "width" needs to be numeric.
 #' @param trace_colors Character vector. Trace colors in order of usage. Needs to
 #' be hexadecimal colors or valid css colors. You should provide enough colors for
 #' most use cases, although `roboplotr` is able to extrapolate.
-#' @param legend Function. `Use set_legend()` to set legend defaults. Param `tidy`
+#' @param legend Function. Use `set_legend()` to set legend defaults. Param `tidy`
 #' makes plot legend columns of even width. Param `xref` is used to define anchoring
 #' in relation to either the plot (the default) or the container.
 #' @param xaxis_ceiling Character. Default rounding for yaxis limit. One of "default",
@@ -269,6 +270,7 @@ set_roboplot_options <- function(
     name = NULL,
     patterns = NULL,
     rounding = NULL,
+    table_options = NULL,
     tidy_legend,
     title = NULL,
     trace_border = NULL,
@@ -492,6 +494,8 @@ set_roboplot_options <- function(
     }
 
     roboplotr_typecheck(rounding, "numeric", allow_na = F)
+    
+    roboplotr_typecheck(table_options, c("set_table_options"), allow_null = T)
 
     title <- substitute(title)
     if(!is.null(title)) {
@@ -581,6 +585,7 @@ set_roboplot_options <- function(
     set_roboplot_option(imgdl_small,"imgdl.small")
     set_roboplot_option(patterns, "patterntypes")
     set_roboplot_option(shinyapp)
+    set_roboplot_option(table_options)
     set_roboplot_option(title)
     set_roboplot_option(trace_border, "trace.border")
     set_roboplot_option(trace_colors, "colors.traces")
