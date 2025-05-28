@@ -612,11 +612,11 @@ roboplotr_get_tick_layout <- function(ticktype,
 #' @importFrom dplyr case_when
 #' @importFrom plotly layout
 #' @importFrom rlang %||%
-roboplotr_set_ticks <- function(p, ticktypes) {
+roboplotr_set_ticks <- function(p, ticktypes, data) {
 
-  if (!"time" %in% names(p$data)) {
+  if (!any(map_lgl(data, is.Date))) {
     dtick <- NULL
-  } else if (length(unique(p$data$time)) < 6) {
+  } else if (length(unique(select(data, is.Date)[[1]])) < 6) {
 
     tdf <- ticktypes$dateformat %||% "%Y"
 

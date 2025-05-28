@@ -18,7 +18,9 @@ roboplotr_config <- function(p,
                              hovermode,
                              info_text,
                              modebar,
-                             zoom) {
+                             zoom,
+                             data, color, pattern, confidence_interval
+                             ) {
   if (!is.list(margin)) {
     if (is.na(margin)) {
       margin <- list(t = 0,
@@ -37,12 +39,13 @@ roboplotr_config <- function(p,
                       caption,
                       height,
                       width,
-                      ticktypes$dateformat,
                       info_text,
                       modebar,
-                      legend
+                      legend,
+                      data,
+                      color, pattern, ticktypes, confidence_interval
                       ) |>
-    roboplotr_set_ticks(ticktypes) |>
+    roboplotr_set_ticks(ticktypes, data) |>
     roboplotr_set_margin(margin, zoom) |>
     roboplotr_logo() |>
     roboplotr_legend(legend) |>
@@ -66,10 +69,10 @@ roboplotr_dependencies <- function(p,
                                    subtitle,
                                    ticktypes,
                                    legend) {
-  
+
   alt <- c(title$title, subtitle)
   alt <- str_c(alt[str_length(alt) > 0], collapse = ", ")
-  
+
   if (title$include == T) {
     plot_title <-
       list(title$title,
@@ -1018,9 +1021,19 @@ roboplot <- function(d = NULL,
     if (all(is.null(legend),
             length(unique_groups) < 2,
             is.null(pattern))) {
-      legend <- NA
+      if(confidence_interval$show_legend %||% F) {
+        legend <- "bottom"
+      } else {
+        legend <- NA
+      }
     }
     legend <- set_legend(legend)
+  }
+
+  if(all(confidence_interval$show_legend %||% F, is.na(legend$position))) {
+    roboplotr_alert("`roboplot(legend)` is set with `set_legend(position = \"none\")` or `NA`, while `roboplot(confidence_interval)` is `set_confidence_interval(show_legend = TRUE)`. Setting `set_legend(position = \"bottom\")`.")
+    legend$position <- "bottom"
+
   }
 
   if(is_present(legend_position)) {
@@ -1068,8 +1081,8 @@ roboplot <- function(d = NULL,
     )
   # }
 
-  p$data <-
-    roboplotr_transform_data_for_download(d, color, pattern, ticktypes, confidence_interval)
+  # p$data <-
+  #   roboplotr_transform_data_for_download(d, color, pattern, ticktypes, confidence_interval)
 
   if (!getOption("roboplot.shinyapp")) {
     p$elementId <-
@@ -1171,7 +1184,10 @@ roboplot <- function(d = NULL,
       hovermode = hover.mode,
       info_text = info_text,
       modebar = modebar,
-      zoom = zoom
+      zoom = zoom,
+      data = d,
+      # fix dis, hotfix for modebar data handling
+      color = color, pattern = pattern, confidence_interval = confidence_interval
     )
 
   if (getOption("roboplot.shinyapp") == F) {

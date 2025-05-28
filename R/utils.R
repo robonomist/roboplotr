@@ -494,7 +494,7 @@ set_roboplot_options <- function(
     }
 
     roboplotr_typecheck(rounding, "numeric", allow_na = F)
-    
+
     roboplotr_typecheck(table_options, c("set_table_options"), allow_null = T)
 
     title <- substitute(title)
@@ -772,10 +772,25 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes, 
   if (!is.null(confidence_interval)) {  confidence_interval <- as_name(confidence_interval$error_y) }
 
   d <- d |>
-    select(matches(c(color, pattern, plot_axes$x, confidence_interval, plot_axes$y)), -matches("roboplot.topic")) |>
-    mutate(
-      across(!is.numeric & !is.Date, ~ as.character(.x)), #note: semi-colon as colon for final csv
-      across(is.numeric, ~ as.character(.x) |> str_replace_all("\\.", ","))
+    select(matches(c(color, pattern, plot_axes$x, confidence_interval, plot_axes$y)), -matches("roboplot.topic"))
+
+  # dateformat_fun <- function(date) {
+  #   if(str_detect(.dateformat, "%q")) {
+  #     vec1 <- quarter(date) |> as.character()
+  #     vec2 <- format(date, .dateformat)
+  #     pattern <- "%q"
+  #     map2_chr(vec1, vec2, ~ str_replace_all(.y, "%q", .x))
+  #   } else {
+  #     format(date, .dateformat)
+  #   }
+  # }
+
+  .separator <- getOption("roboplot.locale")$separators |> str_extract(".")
+
+  d <- d |> mutate(
+      across(!is.numeric & !is.Date, ~ roboplotr_transform_string(.x)),
+      across(is.numeric, ~ as.character(.x) |> str_replace_all("\\.", .separator)),
+      across(is.Date, ~ roboplotr_format_robotable_date(.x,plot_axes$dateformat))
     )
 
   d
@@ -784,36 +799,25 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes, 
 
 #' @importFrom rvest html_text2 minimal_html
 #' @importFrom stringr str_replace_all
-roboplotr_transform_string <- function(string) {
-  if(is.null(string)) {
+roboplotr_transform_string <- function(x) {
+  if(is.null(x)) {
     NULL
-  } else if (all(str_length(as.character(string)) == 0)) {
+  } else if (all(str_length(as.character(x)) == 0)) {
     NULL
   } else {
 
-    string <- as.character(string) |>
-      str_replace_all("\n|\r", "<br>") |>
-      map_chr(function(x) {
-      minimal_html(x) |> html_text2()
-      }) |>
-      str_replace_all("\n|\r", " ")
-
-    str_replace_all(string, "([^A-Za-z0-9\\s])", function(m) {
-      sprintf("\\u%04X", utf8ToInt(m))
-    })
+    x <- str_replace_all(as.character(x), c("<[^>]*>" = " ", "[:space:]" = " "))
+    if(str_extract_all(unique(x), "[^A-Za-z0-9[:space:]]") |> reduce(c) |> length() > 0) {
+      u_x <- unique(x)
+      u_x <- u_x |> str_replace_all("([^A-Za-z0-9\\s])", function(m) {
+        sprintf("\\u%04X", utf8ToInt(m))
+      }) |> setNames(u_x)
+      u_x[x]
+    } else {
+      x
+    }
 
   }
-  # str_replace_all(
-  #   string,
-  #   c(
-  #     "\\<[^\\>]*\\>" = " ",
-  #     "[^[:alnum:]\\s\\,\\;\\',\\&,\\%,\\-]" = "_",
-  #     "'" = "\u2019",
-  #     "\\&" = "\u0026",
-  #     "\\%" = "\\u0025",
-  #     "\\:" = "\u003a"
-  #   )
-  # )
 }
 
 #' @importFrom dplyr case_when

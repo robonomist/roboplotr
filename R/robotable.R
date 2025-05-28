@@ -49,14 +49,19 @@ set_robotable_labels <-
 #' @importFrom lubridate quarter year
 #' @importFrom stringr str_glue
 roboplotr_format_robotable_date <- function(date_col, dateformat) {
-  if (dateformat == "%YQ%q") {
-    format(date_col, str_c(year(date_col), "Q", quarter(date_col))) |> replace_na(" ")
+
+  dateformat <- str_replace_all(dateformat, "%-","%")
+
+  if(str_detect(dateformat, "%q")) {
+    vec1 <- quarter(date_col) |> as.character()
+    vec2 <- format(date_col, dateformat)
+    pattern <- "%q"
+    res <- map2_chr(vec1, vec2, ~ str_replace_all(.y, "%q", .x))
   } else {
-    if(str_detect(dateformat, "-")) {
-      dateformat <- "%Y-%m-%d"
-    }
-    format(date_col, dateformat) |> replace_na(" ")
+    res <- format(date_col, dateformat)
   }
+
+  res |> replace_na(" ")
 }
 
 #' @importFrom dplyr if_else
@@ -180,9 +185,9 @@ roboplotr_set_robotable_css <-
            title_font = getOption("roboplot.font.title"),
            caption_font = getOption("roboplot.font.caption"),
            title = "") {
-    
-    
-    
+
+
+
     hex8_to_opaque_hex <- function(hex8) {
       bg <- decode_colour(getOption("roboplot.colors.background"))
       rgba <- decode_colour(hex8, alpha = TRUE)
@@ -194,7 +199,7 @@ roboplotr_set_robotable_css <-
     .stripeashex <- encode_colour(.stripe_color$color, alpha = .stripe_color$opacity) |> hex8_to_opaque_hex()
     .stripe_font <- roboplotr:::roboplotr_text_color_picker(.stripeashex)
     .stripe_color <- str_c(c(as.character(.stripe_color$color),.stripe_color$opacity), collapse = ',')
-    
+
     res <- str_c(
       roboplotr_set_specific_css(
         str_glue('#{id}'),
@@ -884,16 +889,16 @@ set_table_options <- function(
     stripeopacity = getOption("roboplot.table_defaults")$stripeopacity,
     ...
 ) {
-  
+
   roboplotr_typecheck(stripecolor, "character", allow_null = F)
   roboplotr_typecheck(stripeopacity, "numeric", allow_null = F)
   roboplotr_valid_colors(stripecolor)
   roboplotr_is_between(stripeopacity, "set_table_options", c(0, 1))
-  
+
   .res <- list(stripecolor = stripecolor,
               stripeopacity = stripeopacity)
-  
+
   .res <- structure(.res, class = c("roboplotr", "roboplotr.set_table_options", class(.res)))
-  
+
   .res
 }

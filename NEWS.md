@@ -1,3 +1,8 @@
+# roboplotr 2.7.7
+
+* Changes `set_confidence_interval(show_legend = TRUE)` to override `set_legend(position = "none")` with `position = "bottom"`.
+* Rewrite of `roboplotr_transform_data_for_download()` and related internals for much faster handling of special characters in columns to be imported to modebar csv downloads.
+
 # roboplotr 2.7.6
 
 * Adds `set_roboplot_options(table_options)` and the corresponding `set_table_options()` to control `robotable()` appearance options globally. Currently only supports stripe color and opacity, but more will be added later.

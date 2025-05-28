@@ -6,7 +6,7 @@
 #' @importFrom purrr pmap
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
 #' @importFrom tidyr drop_na
-roboplotr_modebar <- function(p, title, subtitle, caption, height, width, dateformat, info_text = NULL, modebar, legend) {
+roboplotr_modebar <- function(p, title, subtitle, caption, height, width, info_text = NULL, modebar, legend, data,color, pattern, ticktypes, confidence_interval) {
 
   if(is.null(modebar)) {
     modebar <- getOption("roboplot.modebar")
@@ -63,29 +63,15 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, datefo
   }
 
   dl_string <- function() {
-    d <- p$data
-
-    if("time" %in% names(d) & !is.null(dateformat)) {
-      if(str_detect(dateformat,"Q")) {
-        d <- d |> mutate(time = str_c(format(as_date(.data$time), "%YQ"),lubridate::quarter(.data$time)))
-      } else {
-        if(str_detect(dateformat, "-")) {
-          dateformat <- "%Y-%m-%d"
-        }
-        d <- d |> mutate(time = format(as_date(.data$time), dateformat))
-      }
-    }
-
-    row.data <- d |> pmap(function(...) {
-      as.character(list(...)) |> replace_na("NA") |> str_c(collapse = ";")
-    }) |> unlist() |> roboplotr_transform_string() |> str_c(collapse = "\\n")
+    d <- roboplotr_transform_data_for_download(data, color, pattern, ticktypes, confidence_interval)
+    row.data <- d |> unite("data", everything(), sep = ";") |> reduce(c) |> str_c(collapse = "\\n")
     col.names <- names(d) |>  str_c(collapse = ";")
-    .seps <- str_c(rep(";",length(names(p$data))-1), collapse = "")
+    .seps <- str_c(rep(";",length(names(data))-1), collapse = "")
 
     describe <- list(roboplotr_transform_string(title$title),
-         roboplotr_transform_string(subtitle),
-         roboplotr_transform_string(caption$text)
-         ) |>
+                     roboplotr_transform_string(subtitle),
+                     roboplotr_transform_string(caption$text)
+    ) |>
       roboplotr_compact() |>
       map_chr(~ {
         str_c(paste0(.x, .seps), collapse = "\\n")
