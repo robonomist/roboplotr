@@ -1,3 +1,8 @@
+# roboplotr 2.7.8
+
+* Adds param `robomap(viscosity)` that allows to let robomaps snap back to initial view, or prevent dragging altogether.
+* Expands param `robomap(zoom)` for finer control of leaflet zoom methods.
+
 # roboplotr 2.7.7
 
 * Changes `set_confidence_interval(show_legend = TRUE)` to override `set_legend(position = "none")` with `position = "bottom"`.

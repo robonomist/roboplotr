@@ -232,6 +232,21 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 
 }
 
+#' Internal setter for robomap zoom options
+roboplotr_set_zoom <- function(zoom, where = "in `robomap(zoom)`") {
+  
+  roboplotr_typecheck(zoom, c("logical","character"), allow_null = F, size = NULL, extra = where)
+  
+  if(!is.logical(zoom)) {
+    roboplotr_valid_strings(zoom, c("scrollwheel", "doubleclick", "touch", "box", "buttons"), any, "`robomap(zoom)`")
+    zooms <- c(scrollWheelZoom = "scrollwheel", doubleClickZoom = "doubleclick", touchZoom = "touch", boxZoom = "box", buttons = "buttons")
+    zooms |> map(~.x %in% zoom)
+  } else {
+    rep(zoom, 5) |> setNames(c("scrollWheelZoom", "doubleClickZoom","touchZoom","boxZoom","buttons"))
+  }
+  
+}
+
 #' Comprehensive leaflet wrapper function
 #'
 #' This function wraps numerous [Leaflet](https://rstudio.github.io/leaflet/articles/leaflet.html)
@@ -266,7 +281,8 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #'   \item{"grayscale"}{A minimalist grayscale map, often used for background or overlay purposes in more complex visualizations.}
 #' }
 #' @param wrap Logical. Whether the map should wrap around the globe. Default is TRUE.
-#' @param zoom Logical. Whether the map is zoomable or not.
+#' @param zoom Logical or character. Whether the map is zoomable or not. TRUE enables all zoom options. If character, give which zoom options to enable. Options are "scrollwheel", "doubleclick", "touch", "box", and "buttons".
+#' @param viscosity Numeric. Between 0 and 1. If > 0, the map will have a "viscous" feel, snapping back to initial view after dragging.
 #' @param markers Logical. Experimental. Whether markers will be added on the map
 #' based on the columns "lat" and "lon". Default is FALSE.
 #' @param height,width Numeric. Height and width of the plot. Default width is NA.
@@ -277,6 +293,7 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 #' @importFrom purrr map
 #' @importFrom stringr str_glue str_remove
 #' @importFrom utils head tail
+#' @importFrom leaflet leafletOptions
 #' @export
 #' @examples
 #' # You can use `robomap()` to create interactive maps. Note that very large
@@ -426,6 +443,7 @@ robomap <-
            data_contour = FALSE,
            markers = FALSE,
            zoom = TRUE,
+           viscosity = 0,
            ...) {
     roboplotr_ns_alert(c("leaflet", "sf"), "usage of `robomap()`")
 
@@ -445,6 +463,9 @@ robomap <-
 
     title <- roboplotr_set_title(title, d, "in `robomap()`")
 
+    roboplotr_typecheck(viscosity, "numeric", allow_null = F)
+    roboplotr_is_between(viscosity, "robomap")
+    
     roboplotr_typecheck(legend,
                         c("numeric", "set_legend"),
                         allow_null = F,
@@ -470,7 +491,7 @@ robomap <-
       }
     }
 
-    roboplotr_typecheck(zoom, "logical", allow_null = F, extra = "in robomap()")
+    zoom <- roboplotr_set_zoom(zoom)
 
     roboplotr_typecheck(wrap, "logical", allow_null = F, extra = "in robomap()")
 
@@ -594,20 +615,15 @@ robomap <-
     robomap_id <- str_c("robomap-", str_remove(runif(1), "\\."))
 
     map_pal <- robomap_palette(d$robomap.value)
-
+    
+    leafletargs <- zoom[names(zoom) != "buttons"] |> append(list(zoomControl = F, preferCanvas = F))
+    
     this_map <- leaflet::leaflet(
       d,
       height = height,
       width = width,
       # elementId = robomap_id,
-      options = leaflet::leafletOptions(
-        scrollWheelZoom = zoom,
-        doubleClickZoom = zoom,
-        touchZoom = zoom,
-        boxZoom = zoom,
-        zoomControl = FALSE,
-        preferCanvas = FALSE
-      )
+      options = do.call(leafletOptions, args = leafletargs)
     ) |>
       roboplotr_map_tilelayer(tile_opacity, wrap, tile_style) |>
       roboplotr_map_rasterlayer(d, data_contour, map_opacity, robomap_palette) |>
@@ -644,7 +660,7 @@ robomap <-
 
     map_title <- get_map_title()
 
-    this_map <- roboplotr_robomap_modebar(this_map, title$title, zoom)
+    this_map <- roboplotr_robomap_modebar(this_map, title$title, zoom[["buttons"]])
 
     robotable_logo_height <- ifelse(is.null(height), "30px", str_glue("{round(height/20)}px"))
     this_map <- this_map |>
@@ -673,6 +689,10 @@ robomap <-
         )
     }
 
+    viscosity <- ifelse(viscosity > 0, str_glue("var initBounds = map.getBounds();
+      map.setMaxBounds(initBounds);
+      map.options.maxBoundsViscosity = {viscosity};"),"")
+    
     this_map <- this_map |>
       onRender(
         str_glue(
@@ -682,6 +702,7 @@ robomap <-
       var map = this;
       map.initialCenter = map.getCenter();
       map.initialZoom = map.getZoom();
+          {<viscosity}
   }",
           .open = "{<"
         )

@@ -23,6 +23,7 @@ robomap(
   data_contour = FALSE,
   markers = FALSE,
   zoom = TRUE,
+  viscosity = 0,
   ...
 )
 }
@@ -74,7 +75,9 @@ general trends across regions. Default is FALSE.}
 \item{markers}{Logical. Experimental. Whether markers will be added on the map
 based on the columns "lat" and "lon". Default is FALSE.}
 
-\item{zoom}{Logical. Whether the map is zoomable or not.}
+\item{zoom}{Logical or character. Whether the map is zoomable or not. TRUE enables all zoom options. If character, give which zoom options to enable. Options are "scrollwheel", "doubleclick", "touch", "box", and "buttons".}
+
+\item{viscosity}{Numeric. Between 0 and 1. If > 0, the map will have a "viscous" feel, snapping back to initial view after dragging.}
 
 \item{...}{Placeholder for other parameters.}
 }
