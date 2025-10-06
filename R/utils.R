@@ -1073,7 +1073,7 @@ roboplotr_reset_temp_options <- function(.reset) {
 
 #' Empty [roboplot()] configuration
 #'
-#' Parameters set in [set_roboplot_options][set_roboplot_options() ]to configure
+#' Parameters set in [set_roboplot_options][set_roboplot_options()]to configure
 #' how [roboplots][roboplot()] are displayed when no data is available.
 #' @param message Character. The message you want to display on the empty plot.
 #' @param title Logical. Will the plot show its title.

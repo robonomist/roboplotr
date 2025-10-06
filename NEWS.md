@@ -1,3 +1,7 @@
+# roboplotr 2.7.9
+
+* Fixes a leaflet dependency issue and minor documentation issue.
+
 # roboplotr 2.7.8
 
 * Adds param `robomap(viscosity)` that allows to let robomaps snap back to initial view, or prevent dragging altogether.

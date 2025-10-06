@@ -293,7 +293,6 @@ roboplotr_set_zoom <- function(zoom, where = "in `robomap(zoom)`") {
 #' @importFrom purrr map
 #' @importFrom stringr str_glue str_remove
 #' @importFrom utils head tail
-#' @importFrom leaflet leafletOptions
 #' @export
 #' @examples
 #' # You can use `robomap()` to create interactive maps. Note that very large
@@ -623,7 +622,7 @@ robomap <-
       height = height,
       width = width,
       # elementId = robomap_id,
-      options = do.call(leafletOptions, args = leafletargs)
+      options = do.call(leaflet::leafletOptions, args = leafletargs)
     ) |>
       roboplotr_map_tilelayer(tile_opacity, wrap, tile_style) |>
       roboplotr_map_rasterlayer(d, data_contour, map_opacity, robomap_palette) |>

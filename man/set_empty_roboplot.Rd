@@ -26,7 +26,7 @@ will be empty}
 A list of class roboplot.set_empty_roboplot
 }
 \description{
-Parameters set in \link[=set_roboplot_options() ]{set_roboplot_options}to configure
+Parameters set in \link[=set_roboplot_options]{set_roboplot_options}to configure
 how \link[=roboplot]{roboplots} are displayed when no data is available.
 }
 \examples{
