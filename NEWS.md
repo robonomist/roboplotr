@@ -1,3 +1,8 @@
+# roboplotr 2.7.10
+
+* Fixes a string transformation bug for roboplot data download modebar button.
+
+
 # roboplotr 2.7.9
 
 * Fixes a leaflet dependency issue and minor documentation issue.

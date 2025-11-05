@@ -770,7 +770,6 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes, 
   if (!is.null(color)) {  color <- as_name(color) }
   if (!is.null(pattern)) {  pattern <- as_name(pattern) }
   if (!is.null(confidence_interval)) {  confidence_interval <- as_name(confidence_interval$error_y) }
-
   d <- d |>
     select(matches(c(color, pattern, plot_axes$x, confidence_interval, plot_axes$y)), -matches("roboplot.topic"))
 
@@ -788,7 +787,7 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes, 
   .separator <- getOption("roboplot.locale")$separators |> str_extract(".")
 
   d <- d |> mutate(
-      across(!is.numeric & !is.Date, ~ roboplotr_transform_string(.x)),
+      across(!is.numeric & !is.Date, ~ roboplotr_transform_string(.x, T)),
       across(is.numeric, ~ as.character(.x) |> str_replace_all("\\.", .separator)),
       across(is.Date, ~ roboplotr_format_robotable_date(.x,plot_axes$dateformat))
     )
@@ -799,7 +798,8 @@ roboplotr_transform_data_for_download <- function(d, color, pattern, plot_axes, 
 
 #' @importFrom rvest html_text2 minimal_html
 #' @importFrom stringr str_replace_all
-roboplotr_transform_string <- function(x) {
+#' @importFrom purrr reduce map_chr
+roboplotr_transform_string <- function(x, dev = F) {
   if(is.null(x)) {
     NULL
   } else if (all(str_length(as.character(x)) == 0)) {
@@ -810,7 +810,7 @@ roboplotr_transform_string <- function(x) {
     if(str_extract_all(unique(x), "[^A-Za-z0-9[:space:]]") |> reduce(c) |> length() > 0) {
       u_x <- unique(x)
       u_x <- u_x |> str_replace_all("([^A-Za-z0-9\\s])", function(m) {
-        sprintf("\\u%04X", utf8ToInt(m))
+        map_chr(m, ~ sprintf("\\u%04X", utf8ToInt(.x)))
       }) |> setNames(u_x)
       u_x[x]
     } else {
