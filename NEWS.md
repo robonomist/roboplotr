@@ -1,7 +1,11 @@
+# roboplotr 2.7.11
+
+* Adds `reverse` param to `set_legend()` with `roboplot()` to allow for reversing the order of legend items. Does not currently work with `robomap()`.
+* Fixes `roboplot()` x-axis not respecting the factor level ordering.
+
 # roboplotr 2.7.10
 
 * Fixes a string transformation bug for roboplot data download modebar button.
-
 
 # roboplotr 2.7.9
 

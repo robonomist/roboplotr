@@ -601,7 +601,7 @@ roboplotr_get_tick_layout <- function(ticktype,
            list(
              ticksuffix = " ",
              autorange = ifelse(reverse, "reversed", TRUE),
-             categoryorder = ifelse(axis == "y", "array", "trace"),
+             categoryorder = "array", #ifelse(axis == "y", "array", "trace"),
              tickmode = ifelse(axis == "y", "linear", "auto"),
              type = "category"
            ))

@@ -13,6 +13,7 @@ set_plot_legend(
   orientation = NULL,
   maxwidth = NULL,
   title = FALSE,
+  reverse = getOption("roboplot.legend")$reverse,
   tidy = getOption("roboplot.legend")$tidy,
   xref = getOption("roboplot.legend")$xref,
   ...
@@ -50,6 +51,8 @@ values for horizontal barplots) longer than this will be trunctated with an elli
 \item{title}{Logical or character. TRUE if you want the parameter \code{color} from
 the \link[=roboplot]{roboplot} to be the legend title. Character if you want to provide
 your own legend title.}
+
+\item{reverse}{Logical. Legend direction control. Default is FALSE.}
 
 \item{tidy}{Logical. Controls whether the \link[=roboplot]{roboplot} legend items
 will have matching widths

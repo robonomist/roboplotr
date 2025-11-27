@@ -20,7 +20,7 @@
     roboplot.height = 550,
     roboplot.infobox = list(background = "#E8E8E8", border = "black", font = "#696969", border_width = 1),
     roboplot.labels = list(bar = "none", pie = "percent", scatter = "none"),
-    roboplot.legend = list(tidy = FALSE, xref = "paper"),
+    roboplot.legend = list(tidy = FALSE, xref = "paper", reverse = FALSE),
     roboplot.linewidth = 2,
     roboplot.locale = list(
       locale = "fi",
@@ -62,6 +62,6 @@
     toset <- !(names(op.roboplot.options) %in% names(op))
     if(any(toset)) options(op.roboplot.options[toset])
   }
-
+  
   invisible()
 }

@@ -1114,14 +1114,9 @@ roboplot <- function(d = NULL,
   }
   # if only one group for color, remove legend as default
   if (!is.null(secondary_yaxis)) {
-    legend$order <- "grouped"
-    # if(all(d$roboplot.plot.type == "bar")) {
-    #   legend_order <- "reversed+grouped"
-    # } else {
-    #   legend_order <- "grouped"
-    # }
+    legend$order <- ifelse(legend$reverse,"reversed+grouped","grouped")
   } else {
-    legend$order <- "normal"
+    legend$order <- ifelse(legend$reverse,"reversed","normal")
   }
 
   hover.mode <- "compare"

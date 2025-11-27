@@ -623,7 +623,7 @@ set_legend <- function(...) {
 #' [roboplot][roboplot()], the legend is removed on default if column in data for
 #' param `d` of the [roboplot][roboplot()] that is defined by param `color` of that
 #' plot has only one observation.
-#' @param orientation Character. Currently unused.
+#' @param reverse Logical. Legend direction control. Default is FALSE.
 #' @param maxwidth Numeric. All [roboplot][roboplot()] legend items (and y-axis
 #' values for horizontal barplots) longer than this will be trunctated with an ellipsis.
 #' @param title Logical or character. TRUE if you want the parameter `color` from
@@ -632,11 +632,13 @@ set_legend <- function(...) {
 #' @param tidy Logical. Controls whether the [roboplot][roboplot()] legend items
 #' will have matching widths
 #' across columns. Default is FALSE.
+#' @param orientation Character. Currently unused.
 #' @rdname set_legend
 set_plot_legend <- function(position = NULL,
                             orientation = NULL,
                             maxwidth = NULL,
                             title = FALSE,
+                            reverse = getOption("roboplot.legend")$reverse,
                             tidy = getOption("roboplot.legend")$tidy,
                             xref = getOption("roboplot.legend")$xref,
                             ...) {
@@ -654,6 +656,7 @@ set_plot_legend <- function(position = NULL,
     position <- "bottom"
   }
 
+  roboplotr_typecheck(reverse, "logical")
   roboplotr_typecheck(orientation, "character")
   roboplotr_typecheck(maxwidth, "numeric")
   roboplotr_typecheck(title, c("logical","character"), allow_null = F)
@@ -661,7 +664,7 @@ set_plot_legend <- function(position = NULL,
   roboplotr_valid_strings(xref, c("container","plot", "paper"), any, "set_legend() param 'xref'")
   xref <- str_replace(xref, "plot","paper")
 
-  .res <- list(position = position, orientation = orientation, maxwidth = maxwidth, title = title, tidy = tidy, xref = xref)
+  .res <- list(position = position, orientation = orientation, maxwidth = maxwidth, title = title, tidy = tidy, xref = xref, reverse = reverse)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_legend", class(.res)))
 
