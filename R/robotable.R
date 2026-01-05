@@ -135,8 +135,9 @@ roboplotr_robotable_cellformat <-
         d |> select(where( ~ is.numeric(.x) | is.Date(.x) | is.factor(.x))) |> rename_with( ~ str_c(".order_", .x)) |>
         mutate(across(where( ~ is.Date(.x) | is.factor(.x)), as.numeric))
       sortee_cols <- d |> select(where( ~ is.numeric(.x) | is.Date(.x) | is.factor(.x))) |> names()
+
       dt_orders <-
-        (map_dbl(sortee_cols, ~ which(.x == names(d))) - 1) |> setNames(seq(to = order_cols |> length()) +
+        (map_dbl(sortee_cols, ~ which(.x == names(d))) - 1) |> setNames(seq(to = length(order_cols)) +
                                                                        length(d) - 1)
 
       if(is.null(dateformat)) {
@@ -559,7 +560,7 @@ robotable <-
         attributes(d)$dt_orders,
         names(attributes(d)$dt_orders),
         ~
-          list(orderData = .y, targets = .x)
+          list(orderData = as.numeric(.y), targets = .x)
       ) |> unname() |>
       append(list(list(
         visible = F, targets = as.numeric(names(attributes(d)$dt_orders))
@@ -782,7 +783,12 @@ function preInitFunction(settings, json) {
 }
 ")
 
+    is_responsive <- function(responsive) {
+      if(is.null(responsive)) {NULL} else { "Responsive" }
+    }
+    
     dt <- d |>
+      # filter(row_number() <= 100) |>
       datatable(
         class = class,
         width = width,
@@ -790,7 +796,7 @@ function preInitFunction(settings, json) {
         container = sketch,
         rownames = FALSE,
         escape = FALSE,
-        extensions = c("Buttons", if(is.null(responsive)) {NULL} else { "Responsive" }),
+        extensions = c("Buttons", is_responsive(responsive)),
         options = list(
           responsive = responsive,
           autoWidth = T,
@@ -808,6 +814,8 @@ function preInitFunction(settings, json) {
           )
       ) |>
       roboplotr_set_robotable_fonts(seq(ncol(d)))
+    
+    dt
 
     dt <- roboplotr_tbl_heatmap(d, dt, heatmap)
 

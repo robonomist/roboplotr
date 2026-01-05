@@ -1,3 +1,7 @@
+# roboplotr 2.7.12
+
+* Fixes `robotable()` column sorting issue.
+
 # roboplotr 2.7.11
 
 * Adds `reverse` param to `set_legend()` with `roboplot()` to allow for reversing the order of legend items. Does not currently work with `robomap()`.
