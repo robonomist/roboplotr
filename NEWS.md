@@ -1,3 +1,7 @@
+# roboplotr 2.8.0
+
+* Adds experimental `set_external_menu()` to supplement `set_updatemenu()`. Currently only usable on horizontal bar plots, and will be eventually integrated into `roboplot()`, or removed completely.
+
 # roboplotr 2.7.12
 
 * Fixes `robotable()` column sorting issue.
