@@ -13,6 +13,7 @@ set_plot_legend(
   orientation = NULL,
   maxwidth = NULL,
   title = FALSE,
+  visible = NULL,
   reverse = getOption("roboplot.legend")$reverse,
   tidy = getOption("roboplot.legend")$tidy,
   xref = getOption("roboplot.legend")$xref,
@@ -52,11 +53,15 @@ values for horizontal barplots) longer than this will be trunctated with an elli
 the \link[=roboplot]{roboplot} to be the legend title. Character if you want to provide
 your own legend title.}
 
+\item{visible}{Character. A character vector of legend items initially selected
+to be visible in the legend, matching the arg \code{color} of \link[=roboplot]{roboplot}.
+If NULL, all items are shown. Default is NULL. Items remains selectable to be
+visible in the legend regardless of this parameter.}
+
 \item{reverse}{Logical. Legend direction control. Default is FALSE.}
 
 \item{tidy}{Logical. Controls whether the \link[=roboplot]{roboplot} legend items
-will have matching widths
-across columns. Default is FALSE.}
+will have matching widths across columns. Default is FALSE.}
 
 \item{breaks}{Numeric vector. A length 1 vector attempts to make that many
 \link[=robomap]{robomap} legend entries. Length 2+ vector should be the breaks in
@@ -95,6 +100,14 @@ d |>
 d |>
   dplyr::filter(Suunta == "Tuonti") |>
   roboplot(Suunta, legend = set_legend(title = "Example", position = "bottom"))
+
+# You can preset the initial items visible on the plot by using 
+# `set_legend(visible)` with items from the data passed to `roboplot(color)`.
+ energiantuonti |>
+  filter(Suunta == "Vienti") |>
+  roboplot(Alue,
+           legend = set_legend(visible = c("Venäjä","Ruotsi"))
+  )
 
 # Legend title is distinct from axis-specific legend titles which are controlled
 # by `set_axes()` parameters `ylegend` and `y2legend`, when `y2` is used to move

@@ -12,7 +12,7 @@ set_imgdl_layout(
   captionfont = getOption("roboplot.font.caption")$size,
   suffix = "",
   format = "png",
-  button_label = getOption("roboplot.locale")$modebar_dl_label$plot
+  button_label = getOption("roboplot.locale")$modebar_label$plot
 )
 }
 \arguments{

@@ -348,6 +348,18 @@ d3 |>
     )
   )
 
+# You might want to make items selectable outside of the legend selection. Use
+# the parameter `externalmenu` with `set_externalmenu()` to provide the column 
+# that controls visiblity of items in the plot available from the `roboplot` 
+# modebar. See more examples in the `set_externalmenu()` documentation.
+
+energiantuonti |>
+  dplyr::filter(time == max(time)) |>
+  roboplot(Suunta, plot_type = "bar", plot_mode = "horizontal",
+           plot_axes = set_axes(x = "value", y = "Alue"),
+           externalmenu = set_externalmenu(Alue)
+  )
+
 # You can use `secondary_yaxis` to define which observations from 'color' use
 # go to a secondary yaxis on the right.
 d2 |>
