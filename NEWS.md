@@ -1,3 +1,7 @@
+# roboplotr 2.8.1.1
+
+* `set_external_menu()` documentation added
+
 # roboplotr 2.8.1
 
 * `set_external_menu()` formalized to be used in `roboplot(externalmenu)` with validation, allowing for an external menu to be used for controlling the visibility of elements in any `roboplot(). See the documentation.
