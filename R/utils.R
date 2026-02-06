@@ -721,11 +721,17 @@ set_locale <- function(locale = "fi-FI") {
                            TRUE ~ list(left = "Vasen Y-akseli", right = "Oikea Y-akseli")
                            )
 
-  modebar_dl_label <-
-    case_when(loc %in% c("en","en-US") ~ list(data = "Download data", plot = "Download graph"),
-              loc == "sv" ~ list(data = "Ladda ner data", plot = "Ladda ner grafen"),
-              TRUE ~ list(data = "Lataa tiedot", plot = "Lataa kuvio")
+  modebar_label <-
+    case_when(loc %in% c("en","en-US") ~ list(data = "Download data", plot = "Download graph", filter = "Filter"),
+              loc == "sv" ~ list(data = "Ladda ner data", plot = "Ladda ner grafen", filter = "Filter"),
+              TRUE ~ list(data = "Lataa tiedot", plot = "Lataa kuvio", filter = "Suodata")
     )
+  
+  externalmenu_labels <- case_when(
+    loc %in% c("en","en-US") ~ list(select = "Select all", deselect = "Deselect all"),
+    loc == "sv" ~ list(select = "V\uE4lj alla", deselect = "Avmarkera alla"),
+    TRUE ~ list(select = "Valitse kaikki", deselect = "Poista valinnat")
+  )
 
   robotable_labels <- case_when(
     loc %in% c("en","en-US") ~list(
@@ -753,7 +759,7 @@ set_locale <- function(locale = "fi-FI") {
       last = "Viimeinen"
     )
   )
-  .res <- list(locale = loc, separators = sep, date = dat, ylegendlabs = ylegendlabs, robotable_labels = robotable_labels, modebar_dl_label = modebar_dl_label)
+  .res <- list(locale = loc, separators = sep, date = dat, ylegendlabs = ylegendlabs, robotable_labels = robotable_labels, modebar_label = modebar_label)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_locale", class(.res)))
 

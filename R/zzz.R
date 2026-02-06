@@ -35,7 +35,7 @@
         first = "Ensimm\u00e4inen",
         last = "Viimeinen"
       ),
-      modebar_dl_label = list(data = "Lataa tiedot", plot = "Lataa kuvio")
+      modebar_label = list(data = "Lataa tiedot", plot = "Lataa kuvio", filter = "Suodata")
     ),
     roboplot.logo = system.file("images", "robonomist_wide.png", package = "roboplotr"),
     roboplot.markers = list(symbol = "circle", size = 8),

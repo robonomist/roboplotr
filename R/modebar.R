@@ -6,7 +6,7 @@
 #' @importFrom purrr pmap
 #' @importFrom stringr str_c str_extract_all str_replace_all str_squish str_wrap
 #' @importFrom tidyr drop_na
-roboplotr_modebar <- function(p, title, subtitle, caption, height, width, info_text = NULL, modebar, legend, data,color, pattern, ticktypes, confidence_interval) {
+roboplotr_modebar <- function(p, title, subtitle, caption, height, width, info_text = NULL, modebar, legend, data,color, pattern, ticktypes, confidence_interval, externalmenu) {
 
   if(is.null(modebar)) {
     modebar <- getOption("roboplot.modebar")
@@ -56,11 +56,6 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, info_t
    ',.open = "<{")
   }
 
-  dl_icon <- function(fa_icon, scale = 0.032, translate = c(0,0)) {
-    transform_string <- str_c("translate(",translate[1],",",translate[2],") scale(",scale,")")
-    list(path = fa(name = fa_icon) |> as.character() |> str_extract("(?<=d\\=\")[^\"]{1,}") |> str_replace_all(" ",","),
-         transform = transform_string)
-  }
 
   dl_string <- function() {
     d <- roboplotr_transform_data_for_download(data, color, pattern, ticktypes, confidence_interval)
@@ -99,20 +94,20 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, info_t
     "compare" = "hoverCompareCartesian",
     "img_w" = list(
       name = getOption("roboplot.imgdl.wide")$button_label,
-      icon = dl_icon("image"),
+      icon = roboplotr_modebar_dl_icon("image"),
       click = JS(js_string(getOption("roboplot.imgdl.wide")))
     ),
     "img_n" = list(
       name = getOption("roboplot.imgdl.narrow")$button_label,
-      icon = dl_icon("file-image", 0.025, c(2.7,2)),
+      icon = roboplotr_modebar_dl_icon("file-image", 0.025, c(2.7,2)),
       click = JS(js_string(getOption("roboplot.imgdl.narrow")))),
     "img_s" = list(
       name = getOption("roboplot.imgdl.small")$button_label,
-      icon = dl_icon("image", 0.025, c(3,3)),
+      icon = roboplotr_modebar_dl_icon("image", 0.025, c(3,3)),
       click = JS(js_string(getOption("roboplot.imgdl.small")))),
     "data_dl" = list(
-      name = getOption("roboplot.locale")$modebar_dl_label$data,
-      icon = dl_icon("file-csv"),
+      name = getOption("roboplot.locale")$modebar_label$data,
+      icon = roboplotr_modebar_dl_icon("file-csv"),
       click = JS(str_c("
           function(gd) {
             let text = '",dl_string(),"';
@@ -139,8 +134,35 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, info_t
 
   modebar_env <- environment()
   btn_list <- btn_list[modebar$buttons] |> map(eval, envir = modebar_env)
+  
+  btn_list <- roboplotr_modebar_info_button(btn_list, info_text, title, subtitle, caption)
+  btn_list <- roboplotr_modebar_externalmenu_button(btn_list, externalmenu)
 
-  if(!is.null(info_text)) {
+  p <- p |> config(
+    displaylogo = FALSE,
+    modeBarButtons = list(unname(btn_list))
+  )
+
+  if(modebar$display == "constant") {
+    p <- config(p, displayModeBar = T)
+  }
+
+  p
+}
+
+roboplotr_modebar_dl_icon <- function(fa_icon,
+                                      scale = 0.032,
+                                      translate = c(0, 0)) {
+  transform_string <- str_glue("translate({translate[1]},{translate[2]}) scale({scale})")
+  list(
+    path = fa(name = fa_icon) |> as.character() |> str_extract("(?<=d\\=\")[^\"]{1,}") |> str_replace_all(" ", ","),
+    transform = transform_string
+  )
+}
+
+roboplotr_modebar_info_button <- function(btn_list, info_text, title, subtitle, caption) {
+  if(is.null(info_text)) {return(btn_list)}
+
     modal_id <- str_c("roboplot-info-", str_remove(runif(1), "\\."))
     main_font <- getOption("roboplot.font.main")
     title_font <- getOption("roboplot.font.title")
@@ -182,15 +204,15 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, info_t
           ),
           tags$p(HTML(as.character(info_text))),
           tags$p(HTML(caption$text))
-
+          
         )
       )
     )
-
-
+    
+    
     info_btn <- list("info" = list(
       name = "Info",
-      icon = dl_icon("circle-info"),
+      icon = roboplotr_modebar_dl_icon("circle-info"),
       click = JS(str_glue("
       function(gd) {
       var existingModal = document.getElementById('{<modal_id}_infomodal_container');
@@ -209,22 +231,11 @@ roboplotr_modebar <- function(p, title, subtitle, caption, height, width, info_t
 }", .open = "{<")
       )
     ))
-
+    
     append_location <- ifelse("robonomist" %in% names(btn_list), length(btn_list)-1, length(btn_list))
     btn_list <- append(btn_list,info_btn,after = append_location)
-
-  }
-
-  p <- p |> config(
-    displaylogo = FALSE,
-    modeBarButtons = list(unname(btn_list))
-  )
-
-  if(modebar$display == "constant") {
-    p <- config(p, displayModeBar = T)
-  }
-
-  p
+    btn_list
+  
 }
 
 #' @importFrom DT JS
@@ -377,7 +388,7 @@ set_imgdl_layout <- function(
     captionfont = getOption("roboplot.font.caption")$size,
     suffix = "",
     format = "png",
-    button_label = getOption("roboplot.locale")$modebar_dl_label$plot
+    button_label = getOption("roboplot.locale")$modebar_label$plot
     ) {
   roboplotr_typecheck(width, "numeric", allow_null = F)
   roboplotr_typecheck(height, "numeric", allow_null = F)

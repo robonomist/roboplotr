@@ -543,6 +543,14 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
 #'   dplyr::filter(Suunta == "Tuonti") |>
 #'   roboplot(Suunta, legend = set_legend(title = "Example", position = "bottom"))
 #'
+#' # You can preset the initial items visible on the plot by using 
+#' # `set_legend(visible)` with items from the data passed to `roboplot(color)`.
+#'  energiantuonti |>
+#'   filter(Suunta == "Vienti") |>
+#'   roboplot(Alue,
+#'            legend = set_legend(visible = c("Venäjä","Ruotsi"))
+#'   )
+#' 
 #' # Legend title is distinct from axis-specific legend titles which are controlled
 #' # by `set_axes()` parameters `ylegend` and `y2legend`, when `y2` is used to move
 #' # items from `color` to a secondary y-axis.
@@ -630,14 +638,18 @@ set_legend <- function(...) {
 #' the [roboplot][roboplot()] to be the legend title. Character if you want to provide
 #' your own legend title.
 #' @param tidy Logical. Controls whether the [roboplot][roboplot()] legend items
-#' will have matching widths
-#' across columns. Default is FALSE.
+#' will have matching widths across columns. Default is FALSE.
+#' @param visible Character. A character vector of legend items initially selected
+#' to be visible in the legend, matching the arg `color` of [roboplot][roboplot()]. 
+#' If NULL, all items are shown. Default is NULL. Items remains selectable to be 
+#' visible in the legend regardless of this parameter.
 #' @param orientation Character. Currently unused.
 #' @rdname set_legend
 set_plot_legend <- function(position = NULL,
                             orientation = NULL,
                             maxwidth = NULL,
                             title = FALSE,
+                            visible = NULL,
                             reverse = getOption("roboplot.legend")$reverse,
                             tidy = getOption("roboplot.legend")$tidy,
                             xref = getOption("roboplot.legend")$xref,
@@ -661,10 +673,11 @@ set_plot_legend <- function(position = NULL,
   roboplotr_typecheck(maxwidth, "numeric")
   roboplotr_typecheck(title, c("logical","character"), allow_null = F)
   roboplotr_typecheck(tidy, "logical", allow_null = F)
+  roboplotr_typecheck(visible, "character",size = NULL)
   roboplotr_valid_strings(xref, c("container","plot", "paper"), any, "set_legend() param 'xref'")
   xref <- str_replace(xref, "plot","paper")
 
-  .res <- list(position = position, orientation = orientation, maxwidth = maxwidth, title = title, tidy = tidy, xref = xref, reverse = reverse)
+  .res <- list(position = position, orientation = orientation, maxwidth = maxwidth, title = title, tidy = tidy, xref = xref, reverse = reverse, visible = visible)
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_legend", class(.res)))
 

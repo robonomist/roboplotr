@@ -19,7 +19,7 @@ roboplotr_config <- function(p,
                              info_text,
                              modebar,
                              zoom,
-                             data, color, pattern, confidence_interval
+                             data, color, pattern, confidence_interval, externalmenu
                              ) {
   if (!is.list(margin)) {
     if (is.na(margin)) {
@@ -43,7 +43,8 @@ roboplotr_config <- function(p,
                       modebar,
                       legend,
                       data,
-                      color, pattern, ticktypes, confidence_interval
+                      color, pattern, ticktypes, confidence_interval,
+                      externalmenu
                       ) |>
     roboplotr_set_ticks(ticktypes, data) |>
     roboplotr_set_margin(margin, zoom) |>
@@ -467,7 +468,19 @@ roboplotr_dependencies <- function(p,
 #'       x = "value"
 #'     )
 #'   )
-#'
+#' 
+#' # You might want to make items selectable outside of the legend selection. Use
+#' # the parameter `externalmenu` with `set_externalmenu()` to provide the column 
+#' # that controls visiblity of items in the plot available from the `roboplot` 
+#' # modebar. See more examples in the `set_externalmenu()` documentation.
+#' 
+#' energiantuonti |>
+#'   dplyr::filter(time == max(time)) |>
+#'   roboplot(Suunta, plot_type = "bar", plot_mode = "horizontal",
+#'            plot_axes = set_axes(x = "value", y = "Alue"),
+#'            externalmenu = set_externalmenu(Alue)
+#'   )
+#' 
 #' # You can use `secondary_yaxis` to define which observations from 'color' use
 #' # go to a secondary yaxis on the right.
 #' d2 |>
@@ -637,6 +650,7 @@ roboplot <- function(d = NULL,
                      roboplot_options = NULL,
                      legend_position = deprecated(),
                      legend_maxwidth = deprecated(),
+                     externalmenu = set_externalmenu(),
                      ...) {
 
   .reset_options <- list(roboplot_options = NULL, reset = F)
@@ -1077,7 +1091,8 @@ roboplot <- function(d = NULL,
       updatemenu,
       zoom,
       labels,
-      hole = hole
+      hole = hole,
+      externalmenu = externalmenu
     )
   # }
 
@@ -1182,7 +1197,8 @@ roboplot <- function(d = NULL,
       zoom = zoom,
       data = d,
       # fix dis, hotfix for modebar data handling
-      color = color, pattern = pattern, confidence_interval = confidence_interval
+      color = color, pattern = pattern, confidence_interval = confidence_interval,
+      externalmenu = externalmenu
     )
 
   if (getOption("roboplot.shinyapp") == F) {
@@ -1197,6 +1213,8 @@ roboplot <- function(d = NULL,
     p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.35.2.min.js"
   }
 
+  p <- roboplotr_set_external_menu(p, externalmenu, names(d))
+  
   p <- structure(p, class = c(class(p), "roboplotr","roboplotr.roboplot"))
 
   roboplotr_typecheck(artefacts, c("logical","set_artefacts"), allow_null = F)
@@ -1263,7 +1281,8 @@ roboplotr_get_plot <-
            updatemenu,
            zoom,
            labels,
-           hole
+           hole,
+           externalmenu
            ) {
 
 
@@ -1390,11 +1409,11 @@ roboplotr_get_plot <-
       trace_labels <- roboplotr_trace_labels(tracetype, labels, names(d))
       hoverlab <- case_when(
         tracetype == "pie" ~ "label",
-        any(
-          c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.type
-        ) &
-          is.null(pattern) & quo_name(color) != ticktypes$y ~ "text",
-        TRUE ~ "customdata"
+        # any(
+        #   c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.type
+        # ) &
+        #   is.null(pattern) & quo_name(color) != ticktypes$y ~ "text",
+        TRUE ~ "text"
       )
       hovertemplate <-
         roboplotr_hovertemplate(hovertext, lab = hoverlab, ticktypes)
@@ -1483,10 +1502,15 @@ roboplotr_get_plot <-
         }
       }
 
+      item_visible <- 
+        unlist(case_when(is.null(legend$visible) ~ list(T),
+                  !all(as.character(unique(g[[as_label(color)]])) %in% legend$visible) ~ list("legendonly"),
+                  TRUE ~ list(T)
+                  ))
       if(is.null(updatemenu)) {
-        trace_visible <- T
+        trace_visible <- item_visible
       } else {
-        trace_visible <- unique(g$roboplot.update.menu) == updatemenu$selected
+        trace_visible <- ifelse(unique(g$roboplot.update.menu) == updatemenu$selected, TRUE, item_visible)
       }
 
       roboplotr_typecheck(hole, "numeric", allow_null = TRUE)
@@ -1496,19 +1520,22 @@ roboplotr_get_plot <-
       plotting_params <- list(
         color = color,
         constraintext = ifelse(!is.null(trace_labels$size), "none","both"),
-        #!pie
-        customdata =
-          if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
-            ~ roboplot.confidence.label
-          } else if (!quo_is_null(hovertext$col)) {
-          as.formula(str_c("~", as_label(hovertext$col)))
-          } else if (any(
-          c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode
-        )) {
-          ~ roboplot.horizontal.label
-        } else {
-          ~ roboplot.plot.text
+        customdata = if(!is.null(externalmenu)) {
+          as.formula(paste0("~", as_label(externalmenu$col)))
         },
+        #!pie
+        # customdata =
+        #   if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
+        #     ~ roboplot.confidence.label
+        #   } else if (!quo_is_null(hovertext$col)) {
+        #   as.formula(str_c("~", as_label(hovertext$col)))
+        #   } else if (any(
+        #   c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode
+        # )) {
+        #   ~ roboplot.horizontal.label
+        # } else {
+        #   ~ roboplot.plot.text
+        # },
         data = g,
         direction = "clockwise",
         error_x = error_x,
@@ -1615,11 +1642,17 @@ roboplotr_get_plot <-
         sort = F,
         #pie
         text =
-         if(any(c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode)) {
-          ~ roboplot.horizontal.label
-        } else {
-          ~ roboplot.plot.text
-        },
+          if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
+            ~ roboplot.confidence.label
+          } else if (!quo_is_null(hovertext$col)) {
+            as.formula(str_c("~", as_label(hovertext$col)))
+          } else if (any(
+            c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode
+          )) {
+            ~ roboplot.horizontal.label
+          } else {
+            ~ roboplot.plot.text
+          },
         textfont = list(color = ~ trace_labels$color %||% roboplot.trace.color, size = ~ trace_labels$size %||% getOption("roboplot.font.main")$size),
         textinfo = "percent",
         #pie
@@ -1707,7 +1740,7 @@ roboplotr_get_plot <-
       )
       shared_params <-
         c(
-          "customdata",
+          # "customdata",
           "data",
           "error_x",
           "error_y",
@@ -1723,6 +1756,10 @@ roboplotr_get_plot <-
           "type",
           "visible"
         )
+      
+      if(!is.null(externalmenu)) {
+        shared_params <- c(shared_params, "customdata")
+      }
 
       if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
         shared_params <- c(shared_params, "fill","fillcolor","opacity","hoveron")

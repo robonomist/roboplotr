@@ -40,6 +40,7 @@ roboplot(
   roboplot_options = NULL,
   legend_position = deprecated(),
   legend_maxwidth = deprecated(),
+  externalmenu = set_externalmenu(),
   ...
 )
 }

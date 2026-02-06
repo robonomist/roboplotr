@@ -1,3 +1,8 @@
+# roboplotr 2.8.1
+
+* `set_external_menu()` formalized to be used in `roboplot(externalmenu)` with validation, allowing for an external menu to be used for controlling the visibility of elements in any `roboplot(). See the documentation.
+* Adds param `visible` to `set_legend()` to control the initially visible legend items of `roboplot()`s.
+
 # roboplotr 2.8.0
 
 * Adds experimental `set_external_menu()` to supplement `set_updatemenu()`. Currently only usable on horizontal bar plots, and will be eventually integrated into `roboplot()`, or removed completely.
@@ -21,7 +26,7 @@
 
 # roboplotr 2.7.8
 
-* Adds param `robomap(viscosity)` that allows to let robomaps snap back to initial view, or prevent dragging altogether.
+* Adds param `robomap(viscosity)` that allows to let `robomap`s snap back to initial view, or prevent dragging altogether.
 * Expands param `robomap(zoom)` for finer control of leaflet zoom methods.
 
 # roboplotr 2.7.7
