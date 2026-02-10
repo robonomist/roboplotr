@@ -1,16 +1,112 @@
-function setExternalMenu(a,b){function c(a){return null==a?[]:Array.isArray(a)?a.filter(a=>null!=a).map(a=>""+a):[""+a]}function d(a){z.textContent=a,z.style.display="block",clearTimeout(d._t),d._t=setTimeout(()=>{z.style.display="none"},1600)}function e(){q&&1!==q&&(y.textContent=`${n.selected_label||"Valittu"}: ${u.size} / ${q}`)}function f(){const a=m.querySelector(".modebar"),b=a?a.getBoundingClientRect().height:0;D.style.top=b+8+"px"}function g(){if(u.size===t.length)return null;const a=Array.from(u);if(1===q)return`${n.col}: ${a[0]??""}`.trim();const b=a.slice(0,3),c=a.length-b.length;return`${n.col}: ${b.join(", ")}${0<c?` (+${c})`:""}`}function h(a=!1){const b=g(),c=Array.from(u).sort().join("\\u0001"),d=c!==G;return G=c,d&&(C=!1),b&&(!C||a)?void(E.textContent=b,D.style.display="flex",f()):void(D.style.display="none")}function i(){return A?q?void(0===u.size?A.textContent=n.select||`Valitse (${Math.min(q,t.length)})`:A.textContent=n.deselect||"Poista valinnat"):void(A.textContent=u.size===t.length?n.deselect||"Poista valinnat":n.select||"Valitse kaikki"):void 0}function j(){const a=(m.data||[]).find(a=>"bar"===a.type);return a?"h"===a.orientation?"yaxis":"xaxis":null}function k(){const a=m.data.map((a,b)=>b),b={x:[],y:[]},c=s.some(a=>a.text),d=s.some(a=>a.hovertext);c&&(b.text=[]),d&&(b.hovertext=[]);for(let a=0;a<s.length;a++){const e=s[a],f=[];for(let a=0;a<e.filterMulti.length;a++){const b=e.filterMulti[a];b.some(a=>u.has(a))&&f.push(a)}b.x.push(f.map(a=>e.x[a])),b.y.push(f.map(a=>e.y[a])),c&&b.text.push(e.text?f.map(a=>e.text[a]):null),d&&b.hovertext.push(e.hovertext?f.map(a=>e.hovertext[a]):null)}const f=j();if(f){const a=new Set;for(let c=0;c<b.x.length;c++){const d=m.data[c]||{};if("bar"!==d.type)continue;const e="h"===d.orientation?b.y[c]:b.x[c];(e||[]).forEach(b=>a.add(b))}const c=Array.from(a).sort((c,a)=>(""+c).localeCompare(""+a)),d={};d[f+".categoryorder"]="array",d[f+".categoryarray"]=c,Plotly.relayout(m,d)}Plotly.restyle(m,b,a),Plotly.relayout(m,{autosize:!0}),e(),i(),h()}function l(){if(B.innerHTML="",t.forEach(a=>{const b=document.createElement("label");b.style.cssText=`
-        display:flex;
-        align-items:center;
-        gap:6px;
-        cursor:pointer;
-        width:clamp(120px, 22vw, 240px);
-      `;const c=document.createElement("input");c.type="checkbox",c.checked=u.has(a),c.style.accentColor=n.checkmark?.color||"#666",c.style.transform="scale("+(n.checkmark?.size||1)+")",c.addEventListener("change",()=>{if(1===q)return c.checked?(u.clear(),u.add(a)):u.delete(a),l(),void k();if(c.checked){if(q&&u.size>=q)return c.checked=!1,void d(n.limit_reached||`Enintään ${q} valintaa`);u.add(a)}else u.delete(a);k()});const e=document.createElement("span");e.textContent=a,b.appendChild(c),b.appendChild(e),B.appendChild(b)}),!0===n.title){const a=document.createElement("div");a.textContent=n.col,a.style.cssText=`
-        width:100%;
-        text-align:left;
-        font-weight:bold;
-        margin-bottom:${n.btn?.font.size?Math.round(n.btn.font.size/2)+"px":"5px"};
-        font-size:${n.btn?.font.size?n.btn.font.size+2+"px":"inherit"};
-      `,B.prepend(a)}e(),i()}const m=a,n=b.roboplot_externalmenu;if(!n||!n.col)return;const o=a=>Array.from(new Set(a)),p=a=>Array.isArray(a)?a:null==a?[]:[a],q=n["max-items"]??null,r=(m.data||[]).map(a=>{const b=a&&a.meta&&a.meta.extmenu_full?a.meta.extmenu_full:a,d=p(b.x??[]),e=p(b.y??[]),f=Math.max(d.length,e.length),g=p(b.customdata??[]),h=[];for(let b=0;b<f;b++)h.push(c(g[b]));const i=p(b.text??null),j=p(b.hovertext??null);return{x:d.slice(),y:e.slice(),filterMulti:h,text:i.length===f?i.slice():null,hovertext:j.length===f?j.slice():null}});m._extmenu_original=r;for(let c=0;c<(m.data||[]).length;c++){const a=m.data[c];a&&a.meta&&a.meta.extmenu_full&&(delete a.meta.extmenu_full,0===Object.keys(a.meta).length&&delete a.meta)}const s=m._extmenu_original||r,t=o(s.flatMap(a=>a.filterMulti.flatMap(a=>a))).sort((c,a)=>c.localeCompare(a)),u=new Set(function(){if(!q)return t.slice();if(null!=n.selected){const a=p(n.selected).filter(a=>null!=a).map(a=>""+a),b=[],c=new Set;for(const d of a)if(!c.has(d)&&t.includes(d)&&(b.push(d),c.add(d),b.length>=q))break;return b}const a=[],b=new Set;for(let c=0;c<s.length&&a.length<q;c++){const d=o(s[c].filterMulti.flat());for(const c of d)if(!b.has(c)&&(a.push(c),b.add(c),a.length>=q))break}return 0===a.length?t.slice(0,Math.min(q,t.length)):a}());m.style.position=m.style.position||"relative";const v=document.createElement("div");v.id=n.id,v.style.cssText=`
+function setExternalMenu(el, x) {
+  const gd = el;
+  const cfg = x.roboplot_externalmenu;
+  if (!cfg || !cfg.col) return;
+
+  const uniq = arr => Array.from(new Set(arr));
+  const asArr = v => Array.isArray(v) ? v : (v == null ? [] : [v]);
+
+  const maxItems = cfg["max-items"] ?? null; // validated in R
+
+  // ---- Normalize a single per-point filter value to scalar OR multiple scalars ----
+  function normVal(v) {
+    if (v == null) return [];
+    if (Array.isArray(v)) return v.filter(x => x != null).map(x => '' + x);
+    return ['' + v];
+  }
+
+  // ---- Capture original per-trace arrays ----
+  // redo here
+  const original = (gd.data || []).map(tr => {
+  const full = (tr && tr.meta && tr.meta.extmenu_full) ? tr.meta.extmenu_full : tr;
+
+  const xvals = asArr(full.x ?? []);
+  const yvals = asArr(full.y ?? []);
+  const n = Math.max(xvals.length, yvals.length);
+
+  // customdata should be per-point; but we accept nested arrays too
+  const cd = asArr(full.customdata ?? []);
+  // filterMulti[j] = array of filter values for that point (usually length 1)
+  const filterMulti = [];
+  for (let j = 0; j < n; j++) filterMulti.push(normVal(cd[j]));
+
+  const text = asArr(full.text ?? null);
+  const hovertext = asArr(full.hovertext ?? null);
+
+  return {
+    x: xvals.slice(),
+    y: yvals.slice(),
+    filterMulti,
+    text: (text.length === n) ? text.slice() : null,
+    hovertext: (hovertext.length === n) ? hovertext.slice() : null
+  };
+});
+
+// Persist the full original so later code never depends on filtered gd.data
+gd._extmenu_original = original;
+
+// Free memory: remove the full-data payload from trace meta after capture
+for (let i = 0; i < (gd.data || []).length; i++) {
+  const tr = gd.data[i];
+  if (tr && tr.meta && tr.meta.extmenu_full) {
+    delete tr.meta.extmenu_full;
+    if (Object.keys(tr.meta).length === 0) delete tr.meta;
+  }
+}
+const ORIG = gd._extmenu_original || original;
+
+  // ---- Unique filter values across all points (flattened) ----
+  const allF = uniq(
+    ORIG.flatMap(o => o.filterMulti.flatMap(vs => vs))
+  ).sort((a,b)=>a.localeCompare(b));
+
+  // ---- Initial selected logic (per your rules) ----
+  function initSelected() {
+    // no cap -> select all
+    if (!maxItems) return allF.slice();
+
+    // cap given + cfg.selected not null -> use cfg.selected (trim to cap)
+    if (cfg.selected != null) {
+      const want = asArr(cfg.selected).filter(v => v != null).map(v => '' + v);
+      // keep only values that exist in allF, preserve order, unique, cap
+      const out = [];
+      const seen = new Set();
+      for (const v of want) {
+        if (seen.has(v)) continue;
+        if (!allF.includes(v)) continue;
+        out.push(v);
+        seen.add(v);
+        if (out.length >= maxItems) break;
+      }
+      return out;
+    }
+
+    // cap given + cfg.selected is null -> first [max-items] traces (trace order)
+    const out = [];
+    const seen = new Set();
+    for (let ti = 0; ti < ORIG.length && out.length < maxItems; ti++) {
+      const valsThisTrace = uniq(ORIG[ti].filterMulti.flat());
+      for (const v of valsThisTrace) {
+        if (seen.has(v)) continue;
+        out.push(v);
+        seen.add(v);
+        if (out.length >= maxItems) break;
+      }
+    }
+
+    // fallback (e.g. no values found somehow)
+    if (out.length === 0) return allF.slice(0, Math.min(maxItems, allF.length));
+    return out;
+  }
+
+  const selected = new Set(initSelected());
+
+  // ---- Popup overlay ----
+  gd.style.position = gd.style.position || 'relative';
+
+  const wrap = document.createElement('div');
+  wrap.id = cfg.id;
+  wrap.style.cssText = `
     position:absolute;
     top:6%;
     left:6%;
@@ -19,19 +115,75 @@ function setExternalMenu(a,b){function c(a){return null==a?[]:Array.isArray(a)?a
     overflow:auto;
     z-index:9999;
     display:none;
-    background:${n.box?.background||"#fff"};
-    border:${n.box?.border?`${n.box.border_width}px solid ${n.box.border}`:"none"};
-    box-shadow:0 4px 8px ${n.box?.background||"#000"};
-    font-family:${n.box?.font.family||"inherit"};
+    background:${cfg.box?.background || '#fff'};
+    border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
+    box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
+    font-family:${cfg.box?.font.family || 'inherit'};
     padding:10px;
     border-radius:8px;
-  `,m.appendChild(v),function(a,b){a.style.cursor="default";const c=document.createElement("div");c.className="drag-bar",c.style.cssText=`
+  `;
+  gd.appendChild(wrap);
+
+  (function makeDraggable(box, container) {
+    box.style.cursor = 'default';
+
+    const dragBar = document.createElement('div');
+    dragBar.className = 'drag-bar';
+    dragBar.style.cssText = `
       width:100%;
       cursor:move;
       user-select:none;
       margin-bottom:6px;
       font-weight:bold;
-    `,c.innerHTML=n.grip||c.textContent,a.prepend(c);let d,f,g,h,i=!1;c.addEventListener("mousedown",c=>{i=!0,d=c.clientX,f=c.clientY;const e=a.getBoundingClientRect(),j=b.getBoundingClientRect();g=e.left-j.left,h=e.top-j.top,document.body.style.userSelect="none"}),document.addEventListener("mousemove",c=>{if(!i)return;const e=c.clientX-d,j=c.clientY-f,k=b.getBoundingClientRect();let l=g+e,m=h+j;l=Math.max(0,Math.min(l,k.width-a.offsetWidth)),m=Math.max(0,Math.min(m,k.height-a.offsetHeight)),a.style.left=l+"px",a.style.top=m+"px"}),document.addEventListener("mouseup",()=>{i=!1,document.body.style.userSelect=""})}(v,m);const w=document.createElement("span");w.innerHTML=n.close||"&times;",w.style.cssText=`
+    `;
+    dragBar.innerHTML = cfg.grip || dragBar.textContent;
+    box.prepend(dragBar);
+
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+
+    dragBar.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      const rect = box.getBoundingClientRect();
+      const parentRect = container.getBoundingClientRect();
+
+      startLeft = rect.left - parentRect.left;
+      startTop  = rect.top  - parentRect.top;
+
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      const parentRect = container.getBoundingClientRect();
+
+      let newLeft = startLeft + dx;
+      let newTop  = startTop  + dy;
+
+      newLeft = Math.max(0, Math.min(newLeft, parentRect.width  - box.offsetWidth));
+      newTop  = Math.max(0, Math.min(newTop,  parentRect.height - box.offsetHeight));
+
+      box.style.left = newLeft + 'px';
+      box.style.top  = newTop  + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      document.body.style.userSelect = '';
+    });
+  })(wrap, gd);
+
+  // Close button
+  const closeBtn = document.createElement('span');
+  closeBtn.innerHTML = cfg.close || '&times;';
+  closeBtn.style.cssText = `
     position:sticky;
     top:0;
     float:right;
@@ -40,19 +192,71 @@ function setExternalMenu(a,b){function c(a){return null==a?[]:Array.isArray(a)?a
     line-height:1;
     margin-left:10px;
     border-radius:50%;
-  `,n.btn?.background&&(w.style.background=n.btn.background),n.btn?.font.size&&(w.style.fontSize=n.btn.font.size+"px"),n.box?.font.color&&(w.style.color=n.btn.font.color),n.box?.font.family&&(w.style.fontFamily=n.btn.font.family),w.addEventListener("click",()=>{v.style.display="none"}),v.querySelector(".drag-bar")?.appendChild(w);const x=document.createElement("div");x.style.cssText=`
+  `;
+  if (cfg.btn?.background) closeBtn.style.background = cfg.btn.background;
+  if (cfg.btn?.font.size) closeBtn.style.fontSize = cfg.btn.font.size + 'px';
+  if (cfg.box?.font.color) closeBtn.style.color = cfg.btn.font.color;
+  if (cfg.box?.font.family) closeBtn.style.fontFamily = cfg.btn.font.family;
+  closeBtn.addEventListener('click', () => { wrap.style.display = 'none'; });
+  wrap.querySelector('.drag-bar')?.appendChild(closeBtn);
+
+  // ---- Limit indicator / warning (shown only when max-items exists and != 1) ----
+  const limitBox = document.createElement('div');
+  limitBox.style.cssText = `
     width:100%;
     margin: 4px 0 10px 0;
     font-size: 0.95em;
     opacity: 0.9;
-  `;const y=document.createElement("div"),z=document.createElement("div");z.style.cssText=`margin-top:4px; display:none;`,x.appendChild(y),x.appendChild(z),q&&1!==q&&v.appendChild(x);let A=null;1===q||(A=document.createElement("button"),A.style.cssText=`
+  `;
+  const limitText = document.createElement('div');
+  const limitWarn = document.createElement('div');
+  limitWarn.style.cssText = `margin-top:4px; display:none;`;
+  limitBox.appendChild(limitText);
+  limitBox.appendChild(limitWarn);
+  if (maxItems && maxItems !== 1) wrap.appendChild(limitBox);
+
+  function showLimitWarn(msg) {
+    limitWarn.textContent = msg;
+    limitWarn.style.display = 'block';
+    clearTimeout(showLimitWarn._t);
+    showLimitWarn._t = setTimeout(() => { limitWarn.style.display = 'none'; }, 1600);
+  }
+
+  function updateLimitUI() {
+    if (!(maxItems && maxItems !== 1)) return;
+    limitText.textContent = `${cfg.selected_label || 'Valittu'}: ${selected.size} / ${maxItems}`;
+  }
+
+  // ---- Toggle all/none button (hidden when max-items === 1) ----
+  let toggleBtn = null;
+  if (!(maxItems === 1)) {
+    toggleBtn = document.createElement('button');
+    toggleBtn.style.cssText = `
       width:100%;
       padding:8px 10px;
       margin-bottom:10px;
       cursor:pointer;
       border-radius:6px;
-      border:${n.btn?.border?`${n.btn.border_width}px solid ${n.btn.border}`:"none"};
-    `,n.btn?.background&&(A.style.background=n.btn.background),n.btn?.font.size&&(A.style.fontSize=n.btn.font.size+"px"),n.btn?.font.color&&(A.style.color=n.btn.font.color),n.btn?.font.family&&(A.style.fontFamily=n.btn.font.family),v.appendChild(A));const B=document.createElement("div");B.style.cssText="display:flex; flex-wrap:wrap; gap:8px 16px; width:100%; align-items:flex-start;",v.appendChild(B);let C=!1;const D=document.createElement("div");D.id=n.id?n.id+"-chip":"roboplot-chip",D.style.cssText=`
+      border:${cfg.btn?.border ? `${cfg.btn.border_width}px solid ${cfg.btn.border}` : 'none'};
+    `;
+    if (cfg.btn?.background) toggleBtn.style.background = cfg.btn.background;
+    if (cfg.btn?.font.size) toggleBtn.style.fontSize = cfg.btn.font.size + 'px';
+    if (cfg.btn?.font.color) toggleBtn.style.color = cfg.btn.font.color;
+    if (cfg.btn?.font.family) toggleBtn.style.fontFamily = cfg.btn.font.family;
+    wrap.appendChild(toggleBtn);
+  }
+
+  // ---- Checkbox grid ----
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px 16px; width:100%; align-items:flex-start;';
+  wrap.appendChild(grid);
+  
+  // ---- Selection chip under modebar (dismissable) ----
+let chipDismissed = false;
+
+const chip = document.createElement('div');
+chip.id = (cfg.id ? cfg.id + '-chip' : 'roboplot-chip');
+chip.style.cssText = `
   position:absolute;
   right:8px;
   z-index:9998;
@@ -63,23 +267,889 @@ function setExternalMenu(a,b){function c(a){return null==a?[]:Array.isArray(a)?a
   padding:6px 10px;
   border-radius: 8px;
   opacity: 0.7;
-  background:${n.box?.background||"#fff"};
-  border:${n.box?.border?`${n.box.border_width}px solid ${n.box.border}`:"none"};
-  box-shadow:0 4px 8px ${n.box?.background||"#000"};
-  font-family: ${n.box?.font.family||"inherit"};
-  font-size: ${n.box?.font.size||12}px;
+  background:${cfg.box?.background || '#fff'};
+  border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
+  box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
+  font-family: ${cfg.box?.font.family || 'inherit'};
+  font-size: ${cfg.box?.font.size || 12}px;
   line-height:1.2;
   user-select:none;
   white-space:nowrap;
   overflow:hidden;
-`,m.appendChild(D);const E=document.createElement("span");E.style.cssText=`
+`;
+gd.appendChild(chip);
+
+const chipTextEl = document.createElement('span');
+chipTextEl.style.cssText = `
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-`,D.appendChild(E);const F=document.createElement("span");F.innerHTML=n.close||"&times;",F.style.cssText=`
+`;
+chip.appendChild(chipTextEl);
+
+// Close (dismiss) button on chip
+const chipClose = document.createElement('span');
+chipClose.innerHTML = cfg.close || '&times;';
+chipClose.style.cssText = `
   cursor:pointer;
   line-height:1;
   margin-left:2px;
   border-radius:50%;
   flex:0 0 auto;
-`,n.btn?.background&&(F.style.background=n.btn.background),n.btn?.font?.size&&(F.style.fontSize=n.btn.font.size+"px"),n.btn?.font?.color&&(F.style.color=n.btn.font.color),n.btn?.font?.family&&(F.style.fontFamily=n.btn.font.family),D.appendChild(F),E.style.cursor="pointer",E.addEventListener("click",()=>{v.style.display="block"}),F.addEventListener("click",a=>{a.stopPropagation(),C=!0,D.style.display="none"}),m.on("plotly_relayout",f),window.addEventListener("resize",f);let G=null;A&&A.addEventListener("click",()=>{if(!q)u.size===t.length?u.clear():t.forEach(a=>u.add(a));else if(0<u.size)u.clear();else{const a=[],b=new Set;for(let c=0;c<s.length&&a.length<q;c++){const d=o(s[c].filterMulti.flat());for(const c of d)if(!b.has(c)&&(a.push(c),b.add(c),a.length>=q))break}0===a.length?t.slice(0,Math.min(q,t.length)).forEach(a=>u.add(a)):a.forEach(a=>u.add(a))}l(),k()}),l(),k()}function rangeSliderShowHide(a,b=!0){"rangeslider"in a.layout.xaxis?a.layout.xaxis.rangeslider.visible==b?Plotly.relayout(a,{showlegend:b}):Plotly.relayout(a,{showlegend:b,"xaxis.rangeslider.visible":b}):Plotly.relayout(a,{showlegend:b})}function rangeSliderHeight(a){let b=0;if("rangeslider"in a.layout.xaxis&&!0==a.layout.xaxis.rangeslider.visible){elslider_container=$(a).find(".rangeslider-bg")[0].getBBox().height,b=elslider_container+.1*a.layout.margin.t+.1*a.layout.margin.b;let c=$(a).find("g.xaxislayer-above");0<c.length&&(c=$(a).find("g.xaxislayer-above")[0].getBBox().height,b+=c/10)}return b}function findModeBarHeight(a){let b=5,c=$(a).find("div.modebar");return 0<c.length&&"none"!=c.css("display")&&(b=c[0].clientHeight),b}function getVerticalLayout(a,b,c=!1,d,e,f=void 0,g=!1,h="auto"){const i=a=>/<br>/.test(a)?11:16;adjustLegendItems(a,g);let j={height:$(a).find("svg.main-svg")[0].height.animVal.value,width:$(a).find("svg.main-svg")[0].width.animVal.value},k=$(a).find("g.g-gtitle")[0].getBBox(),l=!!(0<$(a).find("g.xy2").length),m=!!(0<$(a).find("g.g-y2title").length),n=rangeSliderHeight(a),o=e?5:0,p=$(a).find("g.xaxislayer-above");p=0<p.length?p[0].getBBox().height:o;let q=findModeBarHeight(a),r=5;if(l){let b=$(a).find("g.overaxes-above > g.xy2-y")[0].getBBox(),c=m?$(a).find("g.g-y2title")[0].getBBox().width:0;r=b.width+5+c}let s=k.height+q+i(a.layout.title.text),t=$(a).find("g.annotation")[0].getBBox().height+5,u=$(a).find("g.g-xtitle");u=0<u.length?1.3*u[0].getBBox().height:0;let v={width:0,height:0};if($(a).find("g.legend")[0]!=null){let b=$(a).find("g.legend")[0].getBBox();v.height=b.height,v.width=b.width}let w=e?$(a).find(".pielayer"):$(a).find(".nsewdrag");0<w.length&&(w=w[0].getBBox());"auto"==h&&("right"==a.layout.legend.position?h=.67>w.width/j.width||.75>w.width/v.width?"bottom":"right":h=.75<w.width/j.width||1.2<w.width/v.width?"right":"bottom");let x="bottom"==h?"h":"v";if($(a).find("g.legend")[0]!=null){let b=$(a).find("g.legend")[0].getBBox();v.height="right"==h?0:Math.ceil(b.height),v.width=b.width}a.layout.legend.position=h;let y="bottom"==h?0:1.02,z=v.height+15+(t+p+u);e&&(w.height=j.height-z-s),0==w.height&&(w.height=1);let A=$(a).find("g.layer-above > g.imagelayer > image")[0].getBBox(),B=logoSpace(f,A,z,u,p,v,x,w.height);z+=B;let C=2*b.legend/w.height;a.layout.images[0].sizey=C;let D="right"==h?1:-((p+10+n+u)/w.height);if(-2>D||w.height<j.height/4){rangeSliderShowHide(a,!1),n=0,p=$(a).find("g.xaxislayer-above"),p=0<p.length?p[0].getBBox().height:o;z=15+t+p+u;let c=e?$(a).find(".pielayer"):$(a).find(".nsewdrag");0<c.length&&(c=c[0].getBBox());e&&(c.height=j.height-z-s),0==c.height&&(c.height=1),C=2*b.legend/c.height,a.layout.images[0].sizey=C,D="right"==h?1:-((p+10+n+u)/c.height)}else if(w.height>j.height/1.5&!1==a.layout.showlegend){rangeSliderShowHide(a,!0),n=rangeSliderHeight(a);let c=$(a).find("g.xaxislayer-above");c=0<c.length?c[0].getBBox().height:o;let d=findModeBarHeight(a),f=k.height+d+i(a.layout.title.text),g=$(a).find("g.annotation")[0].getBBox().height+5,l=$(a).find("g.g-xtitle");l=0<l.length?1.3*l[0].getBBox().height:0,v={width:0,height:0},$(a).find("g.legend")[0]!=null&&(v.height="bottom"==h?Math.ceil($(a).find("g.legend")[0].getBBox().height):0,v.width=$(a).find("g.legend")[0].getBBox().width);z=v.height+15+(g+c+l),w=e?$(a).find(".pielayer"):$(a).find(".nsewdrag"),0<w.length&&(w=w[0].getBBox());e&&(w.height=j.height-z-f),0==w.height&&(w.height=1),A=$(a).find("g.layer-above > g.imagelayer > image")[0].getBBox(),C=2*b.legend/w.height,a.layout.images[0].sizey=C,D=-((c+10+n+l)/w.height)}w=e?$(a).find(".pielayer"):$(a).find(".nsewdrag"),0<w.length&&(w=w[0].getBBox());e&&(w.height=j.height-z-s),0==w.height&&(w.height=1);let E=v.height>w.height/2?b.legend-2:b.legend;E=v.width>$(a).find("svg.main-svg")[0].width.animVal.value?E-2:E;let F=b.y,G=$(a).find("g.yaxislayer-above");if(0<G.length){let c=$(a).find("g.ytick"),d=[...c].reduce((c,a)=>c+a.getBBox().height,0);F=w.height<=d?Math.floor(.8*a.layout.yaxis.tickfont.size):Math.min(Math.floor(1.5*a.layout.yaxis.tickfont.size),b.y);let e=G[0].getBBox().width;"container"==a.layout.annotations[0].xmod&&(a.layout.annotations[0].xshift=-e),"container"==a.layout.legend.xmod&&"bottom"==h&&(y=-(e/w.width))}let H={"legend.orientation":x,"legend.x":y,"legend.y":D,"images[0].sizey":C,"margin.t":s,"margin.b":z,"margin.r":r,"legend.font.size":E,"yaxis.tickfont.size":F,"yaxis2.tickfont.size":F},I=d.reduce(function(a,b){return b in H&&(a[b]=H[b]),a},{});return I}function calculateDisplayedImageSize(a,b){let c,d,e=b.width/b.height;e>a?(d=b.height,c=d*a):(c=b.width,d=c/a);let f={width:Math.round(c),height:Math.round(d)};return f}function logoSpace(a,b,c,d,e,f,g,h){let i=calculateDisplayedImageSize(a,b),j=[],k="bottom"==g?f.width:0;return j.horizontal=b.width-f.width-i.width,j.vertical=c-(d+e+f.height)-i.height,Object.values(j).every(a=>0>a)?-j.vertical>h/3?0:-j.vertical:0}function adjustLegendItems(a,b=!0){let c=$(a).find(".legend .legendtext");if(b){let b=a.data.reduce((a,b)=>{let d=c.filter(function(){return $(this).text()===b.name});if(0<d.length){let b=d[0].getBBox().width;return Math.max(a,b)}return a},0);b=Math.round(1.02*b),a.layout.legend.entrywidth=b}else{let b=$(a).find(".legend .legendtext");a.data.forEach(a=>{let c=b.filter(function(){return $(this).text()===a.name});if(0<c.length){let b=c[0].getBBox().width;a.legendwidth=Math.round(1.1*b)}})}}function setVerticalLayout(a,b,c,d,e,f=void 0,g=!1,h="auto"){if("width"in a|"autosize"in a){"rangeslider"in b.layout.xaxis&&!1==b.layout.xaxis.rangeslider.visible&&(b.layout.xaxis.rangeslider.visible=!0);let a="<span>"+(d[2]?"<b>":"")+d[0]+(d[2]?"</b>":"")+(0==d[0].length?"":"<br>")+"<span style='font-size: 75%'>"+d[1]+"</span></span>",i=b.layout.annotations[0].text.replace(/<br class = 'roboplotr-breaker'>/g," ");Plotly.relayout(b,{"title.text":a,"annotations[0].text":i});let j=$(b).find("g.g-gtitle")[0].getBBox().width,k=e?$(b).find("g.layer-above"):$(b).find(".nsewdrag");0<k.length&&(k=k[0].getBBox().width);let l=getVerticalLayout(b,c,!1,keys=["legend.font.size","margin.t","margin.b","legend.orientation","legend.x","legend.y","yaxis.tickfont.size","yaxis2.tickfont.size"],e=e,f=f,g=g,h=h);k<=j&&(a="<span>"+(d[2]?"<b>":"")+stringDivider(d[0],Math.floor(k/(b.layout.title.font.size-8)),"<br class = 'roboplotr-breaker'>")+(d[2]?"</b>":"")+"<br><span style='font-size: 75%'>"+d[1]+"</span></span>",l["title.text"]=a),rangeSliderShowHide(b,!0),Plotly.relayout(b,l);calculateDisplayedImageSize(f,$(b).find("g.layer-above > g.imagelayer > image")[0].getBBox()).width;l=getVerticalLayout(b,c,!1,keys=["legend.font.size","legend.orientation","legend.x","legend.y","margin.t","margin.b","margin.r","yaxis.tickfont.size","yaxis2.tickfont.size","images[0].sizey"],e=e,f=f,g=g,h=h),l=findCaptionSpace(b,f,e,l,k),Plotly.relayout(b,l),l=getVerticalLayout(b,c,!1,keys=["legend.font.size","legend.orientation","legend.x","legend.y","margin.t","margin.b","margin.r","yaxis.tickfont.size","yaxis2.tickfont.size","images[0].sizey"],e=e,f=f,g=g,h=h),l=findCaptionSpace(b,f,e,l,k),Plotly.relayout(b,l),l=getVerticalLayout(b,c,!1,keys=["legend.font.size","margin.t","margin.b","legend.orientation","legend.x","legend.y","images[0].sizey","yaxis.tickfont.size","yaxis2.tickfont.size"],e=e,f=f,g=g,h=h),l=findCaptionSpace(b,f,e,l,k),Plotly.relayout(b,l),l=getVerticalLayout(b,c,!1,keys=["legend.font.size","margin.t","margin.b","legend.orientation","legend.x","legend.y","images[0].sizey","yaxis.tickfont.size","yaxis2.tickfont.size"],e=e,f=f,g=g,h=h),Plotly.relayout(b,l),setUpdatemenuPosition(b)}}function setUpdatemenuPosition(a){if(0<$(a).find("g.updatemenu-container").length){let b=$(a).find(".nsewdrag")[0].getBBox(),c=$(a).find("g.updatemenu-container")[0].getBBox(),d="top"==a.layout.updatemenus[0].yanchor?.98:.02,e="left"==a.layout.updatemenus[0].xanchor?.02:.98;Plotly.relayout(a,{"updatemenus[0].y":d,"updatemenus[0].x":e})}}function setYPositions(a,b,c=!1){if("width"in a|"autosize"in a){let a=$(b).find("svg.main-svg")[0].height.animVal.value,d=findModeBarHeight(b),e=c?$(b).find(".pielayer"):$(b).find(".nsewdrag");0<e.length&&(e=e[0].getBBox());let f=b.layout.margin.b,g=b.layout.margin.t;c&&(e.height=a-f-g);let h=a-e.height-b.layout.margin.t,i=Math.round(a-g-f);if(!0===c){let c=$(b).find("svg.main-svg")[0].width.animVal.value;i>Math.round(e.height)&&a>2*c&&(h-=i-e.height,e.height+=i-e.height)}let j=-(h/e.height);Plotly.relayout(b,{"images[0].y":j,"annotations[0].y":j,"title.y":(a-(21+d))/a})}}function findCaptionSpace(a,b,c,d,e){let f,g=$(a).find("g.annotation")[0].getBBox().width,h=a.layout.annotations[0].text.replace(/<br class = 'roboplotr-breaker'>/g," ");if(c)f=e;else{let c=$(a).find(".nsewdrag")[0].getBBox().width,d=calculateDisplayedImageSize(b,$(a).find("g.layer-above > g.imagelayer > image")[0].getBBox()).width;f=Math.max(c-d,Math.round(d/2))}return d["annotations[0].text"]=stringDivider(h,Math.floor(f/(a.layout.annotations[0].font.size/2)),"<br class = 'roboplotr-breaker'>"),d}function findAnnotationById(a,b){let c=a.layout.annotations||[];for(let d=0;d<c.length;d++)if(c[d].annotationId===b)return d;return null}function findShapeById(a,b){let c=a.layout.shapes||[];for(let d=0;d<c.length;d++)if(c[d].shapeId===b)return d;return null}function editShapes(a,b){let c=findShapeById(a,"shadearea");null!==c&&(a.layout.shapes[c].y0=a.layout.yaxis.range[0],a.layout.shapes[c].y1=a.layout.yaxis.range[1],!0==a.layout.shapes[c].xnull&&(a.layout.shapes[c].x1=a.layout.xaxis.range[1]));let e=findShapeById(a,"zeroline");null!==e&&(a.layout.shapes[e].x0=a.layout.xaxis.range[0],a.layout.shapes[e].x1=a.layout.xaxis.range[1]),null!==e|null!==c&&Plotly.redraw(a),null!==e&&a.on("plotly_afterplot",function(){let c=$(a).find("g.ytick text"),d=$(a).find("path.zl");if(0==b)0<d.length&&(d[0].style.stroke=a.layout.shapes[e].line.color);else{let f;0<d.length&&(d[0].style.stroke=a.layout.yaxis.gridcolor);c.filter(function(c,d){if(this.textContent.trim().replace(",",".").replace("\u2212","-").replace(" ","")==b){f=d.getAttribute("transform");let b=$(a).find("path.ygrid");b.filter(function(b,c){c.getAttribute("transform")==f&&(c.style.stroke=a.layout.shapes[e].line.color)})}})}})}function stringDivider(a,b,c){const d=a.split("<br>"),e=a=>{if(a.length>b){let d=b;for(;0<d&&" "!==a[d];)d--;if(0<d){const b=a.substring(0,d),f=a.substring(d+1);return b+c+e(f)}else{return a.replace(/( ){1,}/ig,c)}}return a},f=d.map(e);return f.join("<br>")}function yrangeRelayout(a,b,c,d){if("[object Array]"===Object.prototype.toString.call(a["xaxis.range"])|"xaxis.range[0]"in a|"xaxis.autorange"in a){var e=b.layout.xaxis.range,f=b.layout.yaxis.range,g=[];let f=[];var h=[],i=b.data.filter(a=>!0===a.visible||!a.hasOwnProperty("visible"));if(i.forEach(a=>{var c=a.y.length;h.push(a.type);for(var d=0;d<c;d++){var j=a.x[d],k=a.y[d];if((j>=e[0]&&j<=e[1]||"category"==b.layout.xaxis.type)&&(g.push(k),"bar"==a.type)){f.push({date:j,val:k})}}}),!0==d){var j={};f.forEach(function(a){j.hasOwnProperty(a.date)&&0<a.val?j[a.date]=j[a.date]+a.val:0<a.val&&(j[a.date]=a.val)});var k={};for(var l in f.forEach(function(a){k.hasOwnProperty(a.date)&&0>=a.val?k[a.date]=k[a.date]+a.val:0>=a.val&&(k[a.date]=a.val)}),f=[{val:0}],k)f.push({date:l,val:k[l]});for(var l in j)f.push({date:l,val:j[l]});g=g.concat(f.map(a=>a.val))}let n,o;if("xaxis.autorange"in a)n=b._init_yrange.x1,o=b._init_yrange.x0;else{n=Math.max(...g),o=Math.min(...g);let a=.04*Math.abs(n-o);n+=a;let b=h.includes("bar")&&g.every(a=>0<=a);!0!=d&&!1==b&&(o-=a)}let p=findShapeById(b,"zeroline"),q=findShapeById(b,"shadearea");var m={"yaxis.range":[o,n]};null!=p&&("xaxis.autorange"in a?(m["shapes["+p+"].x0"]=b._init_xrange.x0,m["shapes["+p+"].x1"]=b._init_xrange.x1):(m["shapes["+p+"].x0"]=e[0],m["shapes["+p+"].x1"]=e[1])),null!=q&&(!0==b.layout.shapes[q].xnull&&("xaxis.autorange"in a?m["shapes["+q+"].x1"]=b._init_xrange.x1:m["shapes["+q+"].x1"]=e[1]),m["shapes["+q+"].y0"]=o,m["shapes["+q+"].y1"]=n),Plotly.relayout(b,m),0<=c&&window.clearTimeout(c),c=window.setTimeout(function(){c=-1},800)}}function plotlyRelayoutEventFunction(a,b,c,d,e,f,g,h,i){timerId=0,setVerticalLayout(a,b,c,d,f,g,h,i),setYPositions(a,b,f),yrangeRelayout(a,b,timerId,e)}
+`;
+if (cfg.btn?.background) chipClose.style.background = cfg.btn.background;
+if (cfg.btn?.font?.size) chipClose.style.fontSize = cfg.btn.font.size + 'px';
+if (cfg.btn?.font?.color) chipClose.style.color = cfg.btn.font.color;
+if (cfg.btn?.font?.family) chipClose.style.fontFamily = cfg.btn.font.family;
+chip.appendChild(chipClose);
+
+// Clicking the chip text opens the popup (optional)
+chipTextEl.style.cursor = 'pointer';
+chipTextEl.addEventListener('click', () => { wrap.style.display = 'block'; });
+
+// Clicking X dismisses chip until the next selection change
+chipClose.addEventListener('click', (e) => {
+  e.stopPropagation();
+  chipDismissed = true;
+  chip.style.display = 'none';
+});
+
+// Position chip just below modebar
+function positionChip() {
+  const mb = gd.querySelector('.modebar');
+  const mbH = mb ? mb.getBoundingClientRect().height : 0;
+  chip.style.top = (mbH + 8) + 'px';
+}
+gd.on('plotly_relayout', positionChip);
+window.addEventListener('resize', positionChip);
+
+// Format selection summary for chip
+function chipSummary() {
+  if (selected.size === allF.length) return null; // hide when 'all'
+
+  const vals = Array.from(selected);
+
+  if (maxItems === 1) {
+    return `${cfg.col}: ${vals[0] ?? ''}`.trim();
+  }
+
+  const shown = vals.slice(0, 3);
+  const more = vals.length - shown.length;
+  return `${cfg.col}: ${shown.join(', ')}${more > 0 ? ` (+${more})` : ''}`;
+}
+
+// Update chip: called from applyFilter()
+// - If selection changed, chip returns (chipDismissed reset)
+// - If chipDismissed and no change, keep hidden
+let _lastChipKey = null;
+function updateChip(forceShow = false) {
+  const txt = chipSummary();
+
+  // create a stable key representing current selection
+  const key = Array.from(selected).sort().join('\\u0001');
+
+  // detect a selection change
+  const changed = (key !== _lastChipKey);
+  _lastChipKey = key;
+
+  // If selection changed, chip should come back
+  if (changed) chipDismissed = false;
+
+  if (!txt || (chipDismissed && !forceShow)) {
+    chip.style.display = 'none';
+    return;
+  }
+
+  chipTextEl.textContent = txt;
+  chip.style.display = 'flex';
+  positionChip();
+}
+
+
+  function updateToggleLabel() {
+    if (!toggleBtn) return;
+
+    if (!maxItems) {
+      toggleBtn.textContent =
+        (selected.size === allF.length) ? (cfg.deselect || 'Poista valinnat') : (cfg.select || 'Valitse kaikki');
+      return;
+    }
+
+    if (selected.size === 0) {
+      toggleBtn.textContent = cfg.select || `Valitse (${Math.min(maxItems, allF.length)})`;
+    } else {
+      toggleBtn.textContent = cfg.deselect || 'Poista valinnat';
+    }
+  }
+
+  function inferCategoryAxis() {
+    const bar = (gd.data || []).find(tr => tr.type === 'bar');
+    if (!bar) return null;
+    return (bar.orientation === 'h') ? 'yaxis' : 'xaxis';
+  }
+
+  function applyFilter() {
+    const idxs = gd.data.map((_, i) => i);
+    const update = { x: [], y: [] };
+
+    const hasText = ORIG.some(o => o.text);
+    const hasHover = ORIG.some(o => o.hovertext);
+    if (hasText) update.text = [];
+    if (hasHover) update.hovertext = [];
+
+    for (let ti = 0; ti < ORIG.length; ti++) {
+      const o = ORIG[ti];
+      const keepIdx = [];
+
+      for (let j = 0; j < o.filterMulti.length; j++) {
+        const vs = o.filterMulti[j];
+        if (vs.some(v => selected.has(v))) keepIdx.push(j);
+      }
+
+      update.x.push(keepIdx.map(j => o.x[j]));
+      update.y.push(keepIdx.map(j => o.y[j]));
+      if (hasText) update.text.push(o.text ? keepIdx.map(j => o.text[j]) : null);
+      if (hasHover) update.hovertext.push(o.hovertext ? keepIdx.map(j => o.hovertext[j]) : null);
+    }
+
+    const ax = inferCategoryAxis();
+    if (ax) {
+      const cats = new Set();
+      for (let i=0; i<update.x.length; i++) {
+        const tr = gd.data[i] || {};
+        if (tr.type !== 'bar') continue;
+        const axisCats = (tr.orientation === 'h') ? update.y[i] : update.x[i];
+        (axisCats || []).forEach(v => cats.add(v));
+      }
+      const visibleCats = Array.from(cats).sort((a,b)=>(''+a).localeCompare(''+b));
+      const rel = {};
+      rel[ax + '.categoryorder'] = 'array';
+      rel[ax + '.categoryarray'] = visibleCats;
+      Plotly.relayout(gd, rel);
+    }
+
+    Plotly.restyle(gd, update, idxs);
+    Plotly.relayout(gd, {'autosize': true});
+    updateLimitUI();
+    updateToggleLabel();
+    updateChip();
+  }
+
+  function renderGrid() {
+    grid.innerHTML = '';
+
+    allF.forEach(v => {
+      const label = document.createElement('label');
+      label.style.cssText = `
+        display:flex;
+        align-items:center;
+        gap:6px;
+        cursor:pointer;
+        width:clamp(120px, 22vw, 240px);
+      `;
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = selected.has(v);
+      cb.style.accentColor = cfg.checkmark?.color || '#666';
+      cb.style.transform = 'scale(' + (cfg.checkmark?.size || 1) + ')';
+
+      cb.addEventListener('change', () => {
+        // max-items === 1: radio-like
+        if (maxItems === 1) {
+          if (cb.checked) {
+            selected.clear();
+            selected.add(v);
+          } else {
+            selected.delete(v);
+          }
+          renderGrid();
+          applyFilter();
+          return;
+        }
+
+        // max-items > 1: enforce cap
+        if (cb.checked) {
+          if (maxItems && selected.size >= maxItems) {
+            cb.checked = false; // revert
+            showLimitWarn(cfg.limit_reached || `Enintään ${maxItems} valintaa`);
+            return;
+          }
+          selected.add(v);
+        } else {
+          selected.delete(v);
+        }
+
+        applyFilter();
+      });
+
+      const span = document.createElement('span');
+      span.textContent = v;
+
+      label.appendChild(cb);
+      label.appendChild(span);
+      grid.appendChild(label);
+    });
+
+    if (cfg.title === true) {
+      const titleEl = document.createElement('div');
+      titleEl.textContent = cfg.col;
+      titleEl.style.cssText = `
+        width:100%;
+        text-align:left;
+        font-weight:bold;
+        margin-bottom:${cfg.btn?.font.size ? Math.round(cfg.btn.font.size/2) + 'px' : '5px'};
+        font-size:${cfg.btn?.font.size ? (cfg.btn.font.size + 2) + 'px' : 'inherit'};
+      `;
+      grid.prepend(titleEl);
+    }
+
+    updateLimitUI();
+    updateToggleLabel();
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      if (!maxItems) {
+        if (selected.size === allF.length) selected.clear();
+        else allF.forEach(v => selected.add(v));
+      } else {
+        // with a cap: button becomes \"clear / select first N\"
+        if (selected.size > 0) {
+          selected.clear();
+        } else {
+          // \"first N traces\" logic (same as initSelected when cfg.selected is null)
+          const out = [];
+          const seen = new Set();
+          for (let ti = 0; ti < ORIG.length && out.length < maxItems; ti++) {
+            const valsThisTrace = uniq(ORIG[ti].filterMulti.flat());
+            for (const v of valsThisTrace) {
+              if (seen.has(v)) continue;
+              out.push(v);
+              seen.add(v);
+              if (out.length >= maxItems) break;
+            }
+          }
+          if (out.length === 0) {
+            allF.slice(0, Math.min(maxItems, allF.length)).forEach(v => selected.add(v));
+          } else {
+            out.forEach(v => selected.add(v));
+          }
+        }
+      }
+      renderGrid();
+      applyFilter();
+    });
+  }
+
+  renderGrid();
+  applyFilter();
+}
+
+
+function rangeSliderShowHide(el, show = true) {
+  if ('rangeslider' in el.layout.xaxis) {
+    if(el.layout.xaxis.rangeslider.visible != show) {
+      Plotly.relayout(el, {"showlegend" : show, "xaxis.rangeslider.visible": show});
+    } else {
+      Plotly.relayout(el, {"showlegend" : show});
+    }
+  } else {
+    Plotly.relayout(el, {"showlegend" : show});
+  }
+
+}
+
+function rangeSliderHeight(el) {
+  let elslider = 0;
+  if ('rangeslider' in el.layout.xaxis) {
+    if(el.layout.xaxis.rangeslider.visible == true) {
+      elslider_container = $(el).find('.rangeslider-bg')[0].getBBox().height
+      elslider = elslider_container+(el.layout.margin.t*0.1)+(el.layout.margin.b*0.1)
+      let xticks = $(el).find('g.xaxislayer-above')
+      if(xticks.length > 0) {
+        xticks = $(el).find('g.xaxislayer-above')[0].getBBox().height
+        elslider = elslider + (xticks / 10)
+
+      }
+    }
+  }
+
+  return (elslider)
+}
+
+function findModeBarHeight(el) {
+  let modebar_ht = 5;
+  let elmodebar = $(el).find('div.modebar');
+  if(elmodebar.length > 0) {
+    if(elmodebar.css("display") != "none") {
+      modebar_ht = elmodebar[0].clientHeight;
+    }
+  }
+  return modebar_ht
+}
+
+function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart, logo = undefined, tidy_legend = false, legend_position = "auto") {
+  //  console.log("NEW RELAYOUT")
+  //  console.log("margin b init: " + el.layout.margin.b)
+  const checkForBR = (string) => (/<br>/.test(string)) ? 11 : 16;
+  adjustLegendItems(el, tidy_legend);
+  let elcontainer = {height: $(el).find("svg.main-svg")[0].height.animVal.value, width: $(el).find("svg.main-svg")[0].width.animVal.value};
+  let eltitle = $(el).find('g.g-gtitle')[0].getBBox();
+  let is_yaxis2 = $(el).find('g.xy2').length > 0 ? true: false
+  let is_yaxistitle2 = $(el).find('g.g-y2title').length > 0 ? true: false
+  let elslider = rangeSliderHeight(el)
+  let elxticks_default = pie_chart ? 5 : 0
+  let elxticks = $(el).find('g.xaxislayer-above')
+  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  elxticks_default };
+  //console.log("xticks: "+ elxticks)
+  let modebar_ht = findModeBarHeight(el)
+  let margin_right = 5
+  if(is_yaxis2) {
+    let yaxis2 = $(el).find('g.overaxes-above > g.xy2-y')[0].getBBox();
+    let yaxiswidth = is_yaxistitle2 ? $(el).find('g.g-y2title')[0].getBBox().width : 0
+    margin_right = yaxis2.width+5+yaxiswidth
+  }
+  let margin_top = eltitle.height + modebar_ht + checkForBR(el.layout.title.text);
+  let elcaption = $(el).find('g.annotation')[0].getBBox().height + 5;
+  let elxtitle = $(el).find('g.g-xtitle')
+  if(elxtitle.length > 0) {
+    elxtitle = elxtitle[0].getBBox().height * 1.3;
+  } else {
+    elxtitle = 0
+  }
+  let ellegend = {width: 0, height: 0}
+  if ($(el).find('g.legend')[0] != undefined) {
+    let legendbox = $(el).find('g.legend')[0].getBBox()
+    ellegend.height = legendbox.height//legend_position == "right" ? 0 : Math.ceil(legendbox.height)
+    ellegend.width =  legendbox.width
+  };
+  let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
+  if (elplot.length > 0) {elplot = elplot[0].getBBox()};
+  // console.log("margin b: " + margin_bottom)
+  if(legend_position == "auto") {
+    if(el.layout.legend.position == "right") {
+      legend_position = elplot.width / elcontainer.width < 0.67 || elplot.width / ellegend.width < 0.75 ? "bottom" : "right"
+    } else {
+      legend_position = elplot.width / elcontainer.width > 0.75 || elplot.width / ellegend.width > 1.2 ? "right" : "bottom"
+    }
+  }
+  let legend_orientation = legend_position == "bottom" ? "h" : "v"
+  if ($(el).find('g.legend')[0] != undefined) {
+    let legendbox = $(el).find('g.legend')[0].getBBox()
+    ellegend.height = legend_position == "right" ? 0 : Math.ceil(legendbox.height)
+    ellegend.width =  legendbox.width
+  };
+  el.layout.legend.position = legend_position;
+  let legend_x = legend_position == "bottom" ? 0 : 1.02
+  let margin_bottom = ellegend.height + 15 + (elcaption + elxticks + elxtitle);
+  if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
+  if (elplot.height == 0) { elplot.height = 1}
+  let elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
+  let logospace = logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend, legend_orientation, elplot.height);
+  margin_bottom = margin_bottom + logospace;
+//  console.log((legend_fontsize.legend * 2) / elplot.height)
+//  let images_sizey = (elcontainer.height * 0.05) / elplot.height;
+  let images_sizey = ((legend_fontsize.legend * 2) / elplot.height)
+  el.layout.images[0].sizey = images_sizey
+  let legend_y = legend_position == "right" ? 1 : -((elxticks + 10 + (elslider) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
+  if (legend_y < -2 || (elplot.height < (elcontainer.height / 4))) {
+    rangeSliderShowHide(el, false)
+    elslider = 0;
+    elxticks = $(el).find('g.xaxislayer-above')
+    if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = elxticks_default };
+    margin_bottom = 15 + elcaption + elxticks + elxtitle;
+    let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
+    if (elplot.length > 0) {
+      elplot = elplot[0].getBBox()
+
+    };
+    if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
+    if (elplot.height == 0) { elplot.height = 1}
+    //images_sizey = (elcontainer.height * 0.05) / elplot.height;
+    images_sizey = ((legend_fontsize.legend * 2) / elplot.height)
+    el.layout.images[0].sizey = images_sizey
+    legend_y = legend_position == "right" ? 1 : -((elxticks + 10 + (elslider) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
+
+  }  else if ((elplot.height > (elcontainer.height / 1.5)) & el.layout.showlegend == false) {
+    //    console.log("NUFF SPACE")
+    rangeSliderShowHide(el, true)
+    elslider = rangeSliderHeight(el)
+    let elxticks = $(el).find('g.xaxislayer-above')
+    if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  elxticks_default };
+    let modebar_ht = findModeBarHeight(el)
+    let margin_top = eltitle.height + modebar_ht + checkForBR(el.layout.title.text);
+    let elcaption = $(el).find('g.annotation')[0].getBBox().height + 5;
+    let elxtitle = $(el).find('g.g-xtitle')
+    if(elxtitle.length > 0) {
+      elxtitle = elxtitle[0].getBBox().height * 1.3;
+    } else {
+      elxtitle = 0
+    }
+    ellegend = {width: 0, height: 0}
+    if ($(el).find('g.legend')[0] != undefined) {
+      ellegend.height = legend_position == "bottom" ? Math.ceil($(el).find('g.legend')[0].getBBox().height) : 0
+      ellegend.width =  $(el).find('g.legend')[0].getBBox().width
+    };
+    margin_bottom = ellegend.height + 15 + (elcaption + elxticks + elxtitle);
+    //  margin_bottom = margin_bottom + logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend);
+    //console.log("margin b loosen: " + el.layout.margin.b)
+    elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
+    if (elplot.length > 0) {elplot = elplot[0].getBBox()};
+    if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
+    if (elplot.height == 0) { elplot.height = 1}
+    elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
+    //images_sizey = (elcontainer.height * 0.05) / elplot.height;
+    images_sizey = ((legend_fontsize.legend * 2) / elplot.height)
+    el.layout.images[0].sizey = images_sizey
+    legend_y = -((elxticks + 10 + (elslider) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
+  }
+  elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
+  if (elplot.length > 0) { elplot = elplot[0].getBBox() };
+  if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
+  if (elplot.height == 0) { elplot.height = 1}
+  let legend_font_size = (ellegend.height > (elplot.height / 2)) ? legend_fontsize.legend - 2 : legend_fontsize.legend;
+  legend_font_size = (ellegend.width > $(el).find("svg.main-svg")[0].width.animVal.value) ? legend_font_size - 2 : legend_font_size;
+  let yaxis_font_size = legend_fontsize.y;
+
+  let yaxis_layer = $(el).find('g.yaxislayer-above')
+
+  if(yaxis_layer.length > 0) {
+    let yticks = $(el).find('g.ytick');
+    let yvertical = [...yticks].reduce((a,b) => a + b.getBBox().height, 0)
+    if( elplot.height <= yvertical) {
+      yaxis_font_size = Math.floor(el.layout.yaxis.tickfont.size * 0.8)
+    } else {
+      yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size*1.5), legend_fontsize.y)
+    }
+
+    let yaxis_width = yaxis_layer[0].getBBox().width;
+
+    if(el.layout.annotations[0].xmod == "container") {
+      el.layout.annotations[0].xshift = -yaxis_width;
+    }
+
+    if(el.layout.legend.xmod == "container" && legend_position == "bottom") {
+      legend_x = -(yaxis_width / elplot.width)
+    }
+
+  }
+
+  let thearray = {
+    'legend.orientation': legend_orientation,
+    'legend.x': legend_x,
+    'legend.y': legend_y,
+    'images[0].sizey': images_sizey,
+    'margin.t': margin_top,
+    'margin.b': margin_bottom,
+    'margin.r': margin_right,
+    'legend.font.size': legend_font_size,
+    'yaxis.tickfont.size': yaxis_font_size,
+    'yaxis2.tickfont.size': yaxis_font_size
+  };
+
+  let rearray = keys.reduce(function (obj2, key) {
+    if (key in thearray) // line can be removed to make it inclusive
+    obj2[key] = thearray[key];
+    return obj2;
+
+  }, {});
+
+  return rearray;
+
+}
+
+function calculateDisplayedImageSize(imageAspectRatio, container) {
+  let containerAspectRatio = container.width / container.height;
+  let displayedWidth, displayedHeight;
+  if (containerAspectRatio > imageAspectRatio) {
+
+    displayedHeight = container.height;
+    displayedWidth = displayedHeight * imageAspectRatio;
+  } else {
+
+    displayedWidth = container.width;
+    displayedHeight = displayedWidth / imageAspectRatio;
+  }
+
+  let result = { width: Math.round(displayedWidth), height: Math.round(displayedHeight) }
+
+  return result;
+}
+
+function logoSpace(ratio, image, margin_b, title_h, xtick_h, legend, legend_orientation, limit) {
+  let logo_actual = calculateDisplayedImageSize(ratio, image)
+  let logo_space = [];
+  let lwidth = legend_orientation == "bottom" ? legend.width : 0
+  logo_space.horizontal = (image.width - legend.width) - logo_actual.width;
+  logo_space.vertical = margin_b - (title_h + xtick_h + legend.height) - logo_actual.height
+  if (Object.values(logo_space).every(x => x < 0)) {
+    if(-logo_space.vertical > (limit/3)) {
+      return 0
+    } else {
+      return -logo_space.vertical
+    }
+  } else {
+    return 0
+  }
+}
+
+function adjustLegendItems(gd, tidy = true) {
+
+  let legendItemTexts = $(gd).find('.legend .legendtext')
+
+  if(tidy) {
+    let maxWidth = gd.data.reduce((max, trace) => {
+      let thisLegendItem = legendItemTexts.filter(function() {
+        return $(this).text() === trace.name;
+      });
+      if (thisLegendItem.length > 0) {
+        let thisLegendWidth = thisLegendItem[0].getBBox().width;
+        return Math.max(max, thisLegendWidth);
+      }
+      return max;
+    }, 0);
+
+    maxWidth = Math.round(maxWidth * 1.02)
+    gd.layout.legend.entrywidth = maxWidth;
+  } else {
+    let legendItemTexts = $(gd).find('.legend .legendtext')
+
+    gd.data.forEach(trace => {
+      let thisLegendItem = legendItemTexts.filter(function() {
+        return $(this).text() === trace.name;
+      });
+      if(thisLegendItem.length > 0) {
+        let thisLegendWidth = thisLegendItem[0].getBBox().width
+        trace.legendwidth = Math.round(thisLegendWidth*1.1)
+      }
+    })
+  }
+
+
+}
+
+
+
+function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart, logo = undefined, tidy_legend = false, legend_position = "auto") {
+  if ('width' in eventdata | 'autosize' in eventdata) {
+    if ('rangeslider' in gd.layout.xaxis) {
+      if (gd.layout.xaxis.rangeslider.visible == false) {
+        gd.layout.xaxis.rangeslider.visible = true;
+      }}
+    let title_text = "<span>" +
+      (plot_title[2] ? "<b>" : "" ) +
+      plot_title[0] +
+      (plot_title[2] ? "</b>" : "" ) +
+      (plot_title[0].length == 0 ? "" : "<br>") +
+      "<span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
+    let caption_text = gd.layout.annotations[0].text.replace(new RegExp("<br class = 'roboplotr-breaker'>", 'g'), " ")
+    Plotly.relayout(gd, {'title.text': title_text, 'annotations[0].text': caption_text})
+    let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox().width;
+    let titlespace = pie_chart ? $(gd).find('g.layer-above') : $(gd).find('.nsewdrag');
+    if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
+    let relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','legend.orientation', 'legend.x','legend.y','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
+    if(titlespace <= gdtitle) {
+      title_text = "<span>" +
+        (plot_title[2] ? "<b>" : "" ) +
+        stringDivider(plot_title[0], Math.floor(titlespace/(gd.layout.title.font.size-8)), "<br class = 'roboplotr-breaker'>") +
+        (plot_title[2] ? "</b>" : "" ) +
+        "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
+      relayout_array["title.text"] = title_text;
+    }
+    rangeSliderShowHide(gd, true);
+    Plotly.relayout(gd, relayout_array);
+    let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
+    relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
+    Plotly.relayout(gd, relayout_array);
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
+    relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
+    Plotly.relayout(gd, relayout_array);
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
+    relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
+    Plotly.relayout(gd, relayout_array);
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
+    Plotly.relayout(gd, relayout_array);
+    setUpdatemenuPosition(gd);
+
+  }
+}
+
+function setUpdatemenuPosition(gd) {
+    if($(gd).find("g.updatemenu-container").length > 0) {
+      let plot = $(gd).find('.nsewdrag')[0].getBBox();
+      let updatemenu = $(gd).find("g.updatemenu-container")[0].getBBox();
+      let updatemenu_y = gd.layout.updatemenus[0].yanchor == "top" ? 0.98 : 0.02;
+//      console.log(gd.layout.updatemenus[0].xanchor)
+//      console.log(plot.width)
+      let updatemenu_x = gd.layout.updatemenus[0].xanchor == "left" ? 0.02 : 0.98;
+//      let updatemenu_x = 0.9
+      Plotly.relayout(gd, {
+        "updatemenus[0].y": updatemenu_y,
+        "updatemenus[0].x": updatemenu_x
+      });
+    }
+}
+
+function setYPositions(eventdata, gd, pie_chart = false) {
+
+  if ('width' in eventdata | 'autosize' in eventdata) {
+
+    let container = $(gd).find("svg.main-svg")[0].height.animVal.value;
+    let modebar_ht = findModeBarHeight(gd)
+    let title_y = (container - (21+modebar_ht)) / container
+    let plot = pie_chart ? $(gd).find('.pielayer') : $(gd).find('.nsewdrag');
+    if (plot.length > 0) {plot = plot[0].getBBox()};
+    // console.log("margin b: " + margin_bottom)
+    let margin_bottom = gd.layout.margin.b
+    let margin_top = gd.layout.margin.t
+     if (pie_chart) { plot.height = container-margin_bottom-margin_top }
+    let mb = container-plot.height-gd.layout.margin.t
+    let ph = Math.round(container-margin_top-margin_bottom)
+    if(pie_chart === true) {
+      let container_width = $(gd).find("svg.main-svg")[0].width.animVal.value;
+      if(ph > Math.round(plot.height) && container > container_width*2) {
+        mb = mb - (ph-plot.height)
+        plot.height = plot.height + (ph-plot.height)
+      }
+    }
+
+    let low_bound = -(mb / plot.height)
+    let annotations_y = low_bound
+    let images_y = low_bound
+
+    //  console.log("low bound: " + low_bound)
+    Plotly.relayout(gd, {"images[0].y": low_bound, "annotations[0].y": low_bound, "title.y": title_y})
+
+  }
+
+}
+
+function findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace) {
+  let captionspace
+  let gdcaption = $(gd).find('g.annotation')[0].getBBox().width;
+  let caption_text = gd.layout.annotations[0].text.replace(new RegExp("<br class = 'roboplotr-breaker'>", 'g'), " ")
+  if(pie_chart) {
+    captionspace = titlespace
+  } else {
+    let plot_width = $(gd).find('.nsewdrag')[0].getBBox().width
+    let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
+    captionspace = Math.max(plot_width - logo_width, Math.round(logo_width / 2))
+  }
+  relayout_array['annotations[0].text'] = stringDivider(caption_text, Math.floor(captionspace/(gd.layout.annotations[0].font.size/2)), "<br class = 'roboplotr-breaker'>")
+
+  return relayout_array
+}
+
+function findAnnotationById(plotDiv, customId) {
+  let annotations = plotDiv.layout.annotations || [];
+  for (let i = 0; i < annotations.length; i++) {
+    if (annotations[i].annotationId === customId) {
+      return i;
+    }
+  }
+  return null; // If no shape is found with the given identifier
+}
+
+
+function findShapeById(plotDiv, customId) {
+  let shapes = plotDiv.layout.shapes || [];
+  for (let i = 0; i < shapes.length; i++) {
+    if (shapes[i].shapeId === customId) {
+      return i;
+    }
+  }
+  return null; // If no shape is found with the given identifier
+}
+
+function editShapes(gd, line_label) {
+  let sareashape = findShapeById(gd, "shadearea")
+  if(sareashape !== null) {
+    gd.layout.shapes[sareashape].y0 = gd.layout.yaxis.range[0]
+    gd.layout.shapes[sareashape].y1 = gd.layout.yaxis.range[1]
+    if(gd.layout.shapes[sareashape].xnull == true) {
+      gd.layout.shapes[sareashape].x1 = gd.layout.xaxis.range[1]
+    }
+  }
+  let zlineshape = findShapeById(gd, 'zeroline');
+  if (zlineshape !== null) {
+    gd.layout.shapes[zlineshape].x0 = gd.layout.xaxis.range[0]
+    gd.layout.shapes[zlineshape].x1 = gd.layout.xaxis.range[1]
+  }
+  if(zlineshape !== null | sareashape !== null) {
+    Plotly.redraw(gd)
+  }
+  if(zlineshape !== null) {
+    gd.on('plotly_afterplot', function() {
+      let yticks = $(gd).find('g.ytick text')
+      let zeroline = $(gd).find('path.zl')
+      if(line_label == 0) {
+        if (zeroline.length > 0) {
+          zeroline[0].style['stroke'] = gd.layout.shapes[zlineshape].line.color
+        }
+      } else {
+        let label_translate
+        if (zeroline.length > 0) { zeroline[0].style['stroke'] = gd.layout.yaxis.gridcolor };
+        yticks.filter(function(d, i) {
+          if(this.textContent.trim().replace(',','.').replace('\u2212','-').replace(' ','') == line_label) {
+            label_translate = i.getAttribute('transform')
+            let lines = $(gd).find('path.ygrid')
+            lines.filter(function(d, i) {
+              if(i.getAttribute('transform') == label_translate) {
+                i.style['stroke'] = gd.layout.shapes[zlineshape].line.color
+              }
+            })
+          }
+        })
+      }
+    })
+  }
+}
+
+function stringDivider(str, width, spaceReplacer) {
+  const lines = str.split('<br>');
+
+  const divideLine = (line) => {
+    if (line.length > width) {
+      let p = width;
+      while (p > 0 && line[p] !== ' ') {
+        p--;
+      }
+      if (p > 0) {
+        const left = line.substring(0, p);
+        const right = line.substring(p + 1);
+        return left + spaceReplacer + divideLine(right);
+      } else {
+        const sp = /( ){1,}/ig;
+        return line.replace(sp, spaceReplacer);
+      }
+    }
+    return line;
+  };
+
+  const dividedLines = lines.map(divideLine);
+  return dividedLines.join('<br>');
+}
+
+
+function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
+
+  if (Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]' | 'xaxis.range[0]' in eventdata | "xaxis.autorange" in eventdata) {
+    var xRange = gd.layout.xaxis.range;
+    var yRange = gd.layout.yaxis.range;
+    var yInside = [];
+    let yStackInside = [];
+    var traceTypes = [];
+    //		var xInside = [];
+    var visdata = gd.data.filter(trace => trace.visible === true || !(trace.hasOwnProperty('visible')));
+    visdata.forEach(trace => {
+      var len = trace.y.length;//Math.min(trace.x.length, trace.y.length);
+      traceTypes.push(trace.type);
+      //			console.log(trace.type)
+      for (var i = 0; i < len; i++) {
+        var x = trace.x[i];
+        var y = trace.y[i];
+        if ((x >= xRange[0] && x <= xRange[1]) || gd.layout.xaxis.type == "category") {
+          //					xInside.push(x);
+          yInside.push(y);
+          if(trace.type == "bar") {
+            let obj = {date: x, val: y}
+            yStackInside.push(obj)
+          }
+        }
+      }
+    });
+
+    if(trace_sums == true) {
+      var holdermax = {};
+      yStackInside.forEach(function(d) {
+        if (holdermax.hasOwnProperty(d.date) && d.val > 0) {
+          holdermax[d.date] = holdermax[d.date] + d.val;
+        } else if (d.val > 0) {
+          holdermax[d.date] = d.val;
+        }
+      });
+
+      var holdermin = {};
+      yStackInside.forEach(function(d) {
+        if (holdermin.hasOwnProperty(d.date) && d.val <= 0) {
+          holdermin[d.date] = holdermin[d.date] + d.val;
+        }  else if (d.val <= 0) {
+          holdermin[d.date] = d.val;
+        }
+      });
+
+      yStackInside = [{val: 0}];
+      for (var prop in holdermin) {
+        yStackInside.push({ date: prop, val: holdermin[prop] });
+      }
+      for (var prop in holdermax) {
+        yStackInside.push({ date: prop, val: holdermax[prop] });
+      }
+
+      yInside = yInside.concat(yStackInside.map(o => o.val));
+    }
+    let yMax
+    let yMin
+    if("xaxis.autorange" in eventdata) {
+      yMax = gd._init_yrange.x1;
+      yMin = gd._init_yrange.x0;
+    } else {
+    yMax = Math.max(...yInside);
+    yMin = Math.min(...yInside);
+    let yMod = Math.abs(yMax-yMin)*0.04
+    yMax = yMax + yMod;
+    let barpos = traceTypes.includes("bar") && yInside.every(y => y >= 0)
+    if(trace_sums != true && barpos == false) {
+         yMin = yMin - yMod;
+    }
+    }
+    let zline = findShapeById(gd, "zeroline")
+    let sarea = findShapeById(gd, "shadearea")
+    var update = {'yaxis.range': [yMin,yMax]}
+    if(zline != null) {
+      if("xaxis.autorange" in eventdata) {
+          update['shapes['+zline+'].x0'] = gd._init_xrange.x0
+          update['shapes['+zline+'].x1'] = gd._init_xrange.x1
+        } else {
+          update['shapes['+zline+'].x0'] = xRange[0]
+          update['shapes['+zline+'].x1'] = xRange[1]
+        }
+    }
+
+    if(sarea != null) {
+      if(gd.layout.shapes[sarea].xnull == true) {
+        if("xaxis.autorange" in eventdata) {
+          update['shapes['+sarea+'].x1'] = gd._init_xrange.x1
+        } else {
+          update['shapes['+sarea+'].x1'] = xRange[1]
+        }
+      }
+
+      update['shapes['+sarea+'].y0'] = yMin
+      update['shapes['+sarea+'].y1'] = yMax
+    }
+    Plotly.relayout(gd, update);
+    if (timerId >= 0) {
+      //timer is running: stop it
+      window.clearTimeout(timerId);
+    }
+    timerId = window.setTimeout(function() {
+      //fire end event
+      //console.log('rangeslider event ENDS');
+      //reset timer to undefined
+      timerId = -1;
+    }, 800);
+  }
+}
+
+function plotlyRelayoutEventFunction(eventdata, gd, legend_fontsize, plot_title, rangeslider_sums, pie_chart, logo, tidy_legend, legend_position) {
+  timerId = 0;
+  //  gd.layout.margin.b = 0
+  //  Plotly.redraw(gd)
+  setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart, logo, tidy_legend, legend_position);
+  setYPositions(eventdata, gd, pie_chart);
+  yrangeRelayout(eventdata, gd, timerId, rangeslider_sums);
+  //	console.log("margin b: " + gd.layout.margin.b, "; margin t: " + gd.layout.margin.t)
+};

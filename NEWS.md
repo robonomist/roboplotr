@@ -1,3 +1,7 @@
+# roboplotr 2.8.2.2
+
+* Switches roboplotr relayouting scripts to un-minified version until minifying issues are resolved. This should not cause any issues, but might make the package slightly larger.
+
 # roboplotr 2.8.2.1
 
 * Fixes a `robolot(externalmenu)` preselection issue, and prevents the concurrent usage of `robolot(externalmenu, updatemenu)`.
