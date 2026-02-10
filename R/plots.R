@@ -1068,7 +1068,7 @@ roboplot <- function(d = NULL,
       legend$title <- str_c("<b>", as_name(color), "</b>")
     }
 
-  updatemenu <- roboplotr_get_updatemenu(enquo(updatemenu), d_names)
+  updatemenu <- roboplotr_get_updatemenu(enquo(updatemenu), d_names, externalmenu)
 
   p <-
     roboplotr_get_plot(

@@ -107,7 +107,17 @@ roboplotr_set_updatemenu <- function(d, split_d, updatemenu) {
 }
 
 
-roboplotr_get_updatemenu <- function(updatemenu, d_names) {
+#' @importFrom rlang as_quosure
+roboplotr_get_updatemenu <- function(updatemenu, d_names, externalmenu) {
+  
+  if(!is.null(externalmenu) & !quo_is_null(updatemenu)) {
+    roboplotr_message("Using `roboplot(externalmenu)` overrides any `updatemenu` specifications.")
+    return(list(buttons = as_quosure(NULL),
+         selected = NULL,
+         position = "topleft",
+         opacity = 0.9
+    ))
+  }
   
   # updatemenu <- enquo(updatemenu)
   if (quo_is_call(updatemenu)) {

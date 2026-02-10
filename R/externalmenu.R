@@ -231,7 +231,7 @@ roboplotr_prefilter_externalmenu <- function(pb, externalmenu) {
   
   if(is.null(externalmenu)) { return (pb) }
   
-  if(is.null(externalmenu$selected)) { return(pg) }
+  if(is.null(externalmenu$selected)) { return(pb) }
 
   sel <- as.character(externalmenu$selected)
   

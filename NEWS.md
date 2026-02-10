@@ -1,3 +1,7 @@
+# roboplotr 2.8.2.1
+
+* Fixes a `robolot(externalmenu)` preselection issue, and prevents the concurrent usage of `robolot(externalmenu, updatemenu)`.
+
 # roboplotr 2.8.2
 
 * Added params `set_external_menu(selected, max_length)` to control the initial selection and maximum length of items shown in the external menu created with `set_external_menu()`.
