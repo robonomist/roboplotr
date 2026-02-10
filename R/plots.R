@@ -1213,7 +1213,7 @@ roboplot <- function(d = NULL,
     p$dependencies[[roboplotly_dep]]$script <- "plotly-basic-2.35.2.min.js"
   }
 
-  p <- roboplotr_set_external_menu(p, externalmenu, names(d))
+  p <- roboplotr_set_external_menu(p, externalmenu, d)
   
   p <- structure(p, class = c(class(p), "roboplotr","roboplotr.roboplot"))
 
@@ -1507,10 +1507,10 @@ roboplotr_get_plot <-
                   !all(as.character(unique(g[[as_label(color)]])) %in% legend$visible) ~ list("legendonly"),
                   TRUE ~ list(T)
                   ))
-      if(is.null(updatemenu)) {
+      if(all(is.null(updatemenu),is.null(externalmenu))) {
         trace_visible <- item_visible
       } else {
-        trace_visible <- ifelse(unique(g$roboplot.update.menu) == updatemenu$selected, TRUE, item_visible)
+        trace_visible <- ifelse(unique(g$roboplot.update.menu) != updatemenu$selected, FALSE, item_visible)
       }
 
       roboplotr_typecheck(hole, "numeric", allow_null = TRUE)
@@ -1653,6 +1653,7 @@ roboplotr_get_plot <-
           } else {
             ~ roboplot.plot.text
           },
+        textangle = if(any(c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode)) { "0" } else { NULL },
         textfont = list(color = ~ trace_labels$color %||% roboplot.trace.color, size = ~ trace_labels$size %||% getOption("roboplot.font.main")$size),
         textinfo = "percent",
         #pie
@@ -1695,16 +1696,16 @@ roboplotr_get_plot <-
         } else if (tracetype == "pie") {
           NULL
         } else if (any(c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode)) {
-          "%{x:,.1f}"
+          str_glue("%{x:,.<{trace_labels$rounding}f}", .open = "<{")
         } else if(tracetype == "scatter" & trace_labels$style == "auto") {
-          .y <- round(g[[ticktypes$y]], max(hovertext$rounding-2, 0))
+          .y <- round(g[[ticktypes$y]], trace_labels$rounding)
           .p <- fill(
             tibble(value = c(ifelse(.y[1] >= .y[2],1,-1), sign(diff(.y))) |> na_if(0)),
             .data$value)$value
           .y <- tibble(check = c(ifelse(sign(.y[2] - .y[1]) < 0, -1, 1), sign(diff(.y))) |> na_if(0))  |> fill(.data$check) |>
             mutate(check = slider::slide_dbl(.data$check, ~ .x[[1]] != .x[[2]], .after = 1, .complete = T)) |> pull(.data$check)
           .y[c(1, length(.y))] <- 1
-          .y <- ifelse(.y, g[[ticktypes$y]], NA) |> roboplotr_format_robotable_numeric(rounding = max(hovertext$rounding-1, 0), na_value = "")
+          .y <- ifelse(.y, g[[ticktypes$y]], NA) |> roboplotr_format_robotable_numeric(rounding = trace_labels$rounding, na_value = "")
           # map_chr(.y, ~ tags$tspan(as.character(.x)) |> as.character())
           ifelse(.p > 0, str_c(.y,"\n"), str_c("\n",.y))
         } else if (trace_labels$style == "last") {
@@ -1712,7 +1713,7 @@ roboplotr_get_plot <-
           .y[-length(.y)] <- ""
           .y
         }  else {
-          "%{y:,.1f}"
+          str_glue("%{y:,.<{trace_labels$rounding}f}", .open = "<{")
         },
         type = ~ tracetype,
         values = as.formula(str_c("~", ticktypes$y)),
@@ -1751,6 +1752,7 @@ roboplotr_get_plot <-
           "legendrank",
           "showlegend",
           "text",
+          "textangle",
           "textposition",
           "texttemplate",
           "type",
@@ -1847,6 +1849,7 @@ roboplotr_get_plot <-
 
     p |>
       layout(updatemenus = updatemenu$menu) |>
+      roboplotr_prefilter_externalmenu(externalmenu) |>
       config(responsive = ifelse(isRunning(), F, T), scrollZoom = ifelse(zoom == "scroll", T, F))
 
   }

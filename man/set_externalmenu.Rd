@@ -9,7 +9,9 @@ set_externalmenu(
   col = NULL,
   title = TRUE,
   box = set_infobox(background = getOption("roboplot.colors.background")),
-  btn = set_infobox()
+  btn = set_infobox(),
+  max_items = NULL,
+  selected = NULL
 )
 }
 \arguments{
@@ -20,6 +22,10 @@ set_externalmenu(
 \item{box}{A list of styling options for the menu box. Use \code{set_infobox()} to create this list.}
 
 \item{btn}{A list of styling options for the box selector. Use \code{ set_infobox()} to create this list.}
+
+\item{max_items}{Numeric. Maximum number of items that can be selected at once. If NULL (default), there is no limit.}
+
+\item{selected}{Character vector. Initial selection of items in the menu. If NULL (default), all items are selected initially. If \code{max_items} is set, the initial selection will be trimmed to the first \code{max_items} values found in the data.}
 }
 \description{
 Set up an external menu for filtering plot data based on a categorical variable.

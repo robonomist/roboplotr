@@ -2,6 +2,8 @@
 #' This function creates a configuration for an external menu that can be used to filter plot data based on a categorical variable. The menu will be rendered as a draggable overlay on the plot, with checkboxes for each unique value of the specified variable. The menu can be toggled from the modebar.
 #' @param col Symbol or character. Column from `d` of `roboplot()` that contains the categorical variable for filtering. This column will be used to create the checkboxes in the menu.
 #' @param title Logical. Whether to include a title in the menu. Default is TRUE.
+#' @param selected Character vector. Initial selection of items in the menu. If NULL (default), all items are selected initially. If `max_items` is set, the initial selection will be trimmed to the first `max_items` values found in the data.
+#' @param max_items Numeric. Maximum number of items that can be selected at once. If NULL (default), there is no limit.
 #' @param box A list of styling options for the menu box. Use `set_infobox()` to create this list.
 #' @param btn A list of styling options for the box selector. Use ` set_infobox()` to create this list.
 #' @examples
@@ -123,10 +125,14 @@ set_externalmenu <- function(
     col = NULL,
     title = TRUE,
     box = set_infobox(background = getOption("roboplot.colors.background")),
-    btn = set_infobox()
+    btn = set_infobox(),
+    max_items = NULL,
+    selected = NULL
 ) {
   
   roboplotr_typecheck(title, "logical", allow_null = F)
+  roboplotr_typecheck(max_items, "numeric", allow_null = T)
+  roboplotr_typecheck(selected, size = NULL, "character", allow_null = T)
   col <- enquo(col)
   if (quo_is_null(col)) return(NULL)
   
@@ -135,9 +141,7 @@ set_externalmenu <- function(
   
   box$font <- item_font
   btn$font <- btn_font
-  
-  title_select <- getOption("roboplot.locale")$externalmenu_labels$select
-  title_deselect <- getOption("roboplot.locale")$externalmenu_labels$select
+
   checkmark_size = 1
   checkmark_color = getOption("roboplot.colors.traces")[1]
   
@@ -145,10 +149,10 @@ set_externalmenu <- function(
     id = paste0("roboplot-externalmenu-", gsub("\\.", "", as.character(runif(1)))),
     col = col,
     title = title,
-    select = title_select,
-    deselect = title_deselect,
     box = box,
     btn = btn,
+    selected = selected,
+    `max-items`= max_items,
     checkmark = list(size = checkmark_size, color = checkmark_color)
   )
   
@@ -158,15 +162,23 @@ set_externalmenu <- function(
   
 }
 
-roboplotr_set_external_menu <- function(p, externalmenu, d_names) {
+roboplotr_set_external_menu <- function(p, externalmenu, d) {
   
   if (is.null(externalmenu)) return(p)
 
   roboplotr_typecheck(externalmenu, "set_externalmenu")
   col <- externalmenu$col
-  roboplotr_check_valid_var(col, d_names, where = "`set_externalmenu()`")
+  roboplotr_check_valid_var(col, names(d), where = "`set_externalmenu()`")
+
   
   externalmenu$col <- as_label(externalmenu$col)
+  
+  
+  roboplotr_valid_strings(externalmenu$selected, unique(d[[externalmenu$col]]), .fun = any, msg = "`set_externalmenu(selected)`")
+  externalmenu$`max-items` <- round(min(c(length(unique(d[[externalmenu$col]])),externalmenu$`max-items`)))
+  if(externalmenu$`max-items` == 0) {
+    externalmenu$`max-items` <- NULL
+  }
   
   externalmenu$close <- fa(
     "times-circle",
@@ -178,303 +190,20 @@ roboplotr_set_external_menu <- function(p, externalmenu, d_names) {
     fill = externalmenu$box$font$color,
     height = str_c(round(externalmenu$btn$font$size*1.5),"px")
   )
+  
+  externalmenu$title_select <- getOption("roboplot.locale")$externalmenu$select
+  externalmenu$title_deselect <- getOption("roboplot.locale")$externalmenu$deselect
+  externalmenu$limit_reached <- getOption("roboplot.locale")$externalmenu$limit_reached
+  externalmenu$selected_label <- getOption("roboplot.locale")$externalmenu$selected
+  
+  
   p$x$roboplot_externalmenu <- externalmenu
   
   p |> onRender(
-    "function(el, x) {
-  const gd = el;
-  const cfg = x.roboplot_externalmenu;
-  if (!cfg || !cfg.col) return;
-
-  const uniq = arr => Array.from(new Set(arr));
-  const asArr = v => Array.isArray(v) ? v : (v == null ? [] : [v]);
-
-  // ---- Normalize a single per-point filter value to scalar OR multiple scalars ----
-  // If customdata[j] is an array, we treat it as multiple categories for that point
-  // (flatten for unique list), but during filtering we’ll check membership.
-  function normVal(v) {
-    if (v == null) return [];
-    if (Array.isArray(v)) return v.filter(x => x != null).map(x => '' + x);
-    return ['' + v];
-  }
-
-  // ---- Capture original per-trace arrays ----
-  const original = (gd.data || []).map(tr => {
-    const xvals = asArr(tr.x ?? []);
-    const yvals = asArr(tr.y ?? []);
-    const n = Math.max(xvals.length, yvals.length);
-
-    // customdata should be per-point; but we accept nested arrays too
-    const cd = asArr(tr.customdata ?? []);
-    // filterMulti[j] = array of filter values for that point (usually length 1)
-    const filterMulti = [];
-    for (let j = 0; j < n; j++) {
-      filterMulti.push(normVal(cd[j]));
-    }
-
-    // keep parallel arrays
-    const text = asArr(tr.text ?? null);
-    const hovertext = asArr(tr.hovertext ?? null);
-
-    return {
-      x: xvals.slice(),
-      y: yvals.slice(),
-      filterMulti,
-      text: (text.length === n) ? text.slice() : null,
-      hovertext: (hovertext.length === n) ? hovertext.slice() : null
-    };
-  });
-  
-
-  // ---- Unique filter values across all points (flattened) ----
-  const allF = uniq(
-    original.flatMap(o => o.filterMulti.flatMap(vs => vs))
-  ).sort((a,b)=>a.localeCompare(b));
-
-  const selected = new Set(allF);
-
-  // ---- Popup overlay (like your infobox modal) ----
-  // Ensure gd is a positioning context
-  gd.style.position = gd.style.position || 'relative';
-
-  const wrap = document.createElement('div');
-  wrap.id = cfg.id;
-  wrap.style.cssText = `
-    position:absolute;
-    top:6%;
-    left:6%;
-    width:50%;
-    max-height:80%;
-    overflow:auto;
-    z-index:9999;
-    display:none;
-    background:${cfg.box?.background || '#fff'};
-    border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
-    box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
-    font-family:${cfg.box?.font.family || 'inherit'};
-    padding:10px;
-    border-radius:8px;
-  `;
-  gd.appendChild(wrap);
-  
-  (function makeDraggable(box, container) {
-  box.style.cursor = 'default';
-
-  // create a header bar for dragging
-  const dragBar = document.createElement('div');
-  dragBar.className = 'drag-bar';
-  dragBar.style.cssText = `
-    width:100%;
-    cursor:move;
-    user-select:none;
-    margin-bottom:6px;
-    font-weight:bold;
-  `;
-  //dragBar.textContent = '☰'; // or empty if you don’t want text
-  dragBar.innerHTML = cfg.grip || dragBar.textContent;
-  box.prepend(dragBar);
-
-  let isDragging = false;
-  let startX, startY, startLeft, startTop;
-
-  dragBar.addEventListener('mousedown', (e) => {
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-
-    const rect = box.getBoundingClientRect();
-    const parentRect = container.getBoundingClientRect();
-
-    startLeft = rect.left - parentRect.left;
-    startTop  = rect.top  - parentRect.top;
-
-    document.body.style.userSelect = 'none';
-  });
-
-  document.addEventListener('mousemove', (e) => {
-    if (!isDragging) return;
-
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-
-    const parentRect = container.getBoundingClientRect();
-
-    let newLeft = startLeft + dx;
-    let newTop  = startTop  + dy;
-
-    // Constrain inside parent
-    newLeft = Math.max(0, Math.min(newLeft, parentRect.width  - box.offsetWidth));
-    newTop  = Math.max(0, Math.min(newTop,  parentRect.height - box.offsetHeight));
-
-    box.style.left = newLeft + 'px';
-    box.style.top  = newTop  + 'px';
-  });
-
-  document.addEventListener('mouseup', () => {
-    isDragging = false;
-    document.body.style.userSelect = '';
-  });
-})(wrap, gd);
-
-  // Close button
-  const closeBtn = document.createElement('span');
-  closeBtn.innerHTML = cfg.close || '&times;';
-  closeBtn.style.cssText = `
-    position:sticky;
-    top:0;
-    float:right;
-    cursor:pointer;
-    margin-bottom: 5px;
-    line-height:1;
-    margin-left:10px;
-    border-radius:50%;
-  `;
-  if (cfg.btn?.background) closeBtn.style.background = cfg.btn.background;
-  if (cfg.btn?.font.size) closeBtn.style.fontSize = cfg.btn.font.size + 'px';
-  if (cfg.box?.font.color) closeBtn.style.color = cfg.btn.font.color;
-  if (cfg.box?.font.family) closeBtn.style.fontFamily = cfg.btn.font.family;
-  closeBtn.addEventListener('click', () => { wrap.style.display = 'none'; });
-  wrap.querySelector('.drag-bar')?.appendChild(closeBtn);
-
-  // ---- Toggle all/none button ----
-  const toggleBtn = document.createElement('button');
-  toggleBtn.style.cssText = `
-    width:100%;
-    padding:8px 10px;
-    margin-bottom:10px;
-    cursor:pointer;
-    border-radius:6px;
-    border:${cfg.btn?.border ? `${cfg.btn.border_width}px solid ${cfg.btn.border}` : 'none'};
-  `;
-  if (cfg.btn?.background) toggleBtn.style.background = cfg.btn.background;
-  if (cfg.btn?.font.size) toggleBtn.style.fontSize = cfg.btn.font.size + 'px';
-  if (cfg.btn?.font.color) toggleBtn.style.color = cfg.btn.font.color;
-  if (cfg.btn?.font.family) toggleBtn.style.fontFamily = cfg.btn.font.family;
-  wrap.appendChild(toggleBtn);
-
-  // ---- Checkbox grid ----
-  const grid = document.createElement('div');
-  grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px 16px; width:100%; align-items:flex-start;';
-  wrap.appendChild(grid);
-
-  function updateToggleLabel() {
-    toggleBtn.textContent =
-      (selected.size === allF.length) ? (cfg.deselect || 'Poista valinnat') : (cfg.select || 'Valitse kaikki');
-  }
-
-  function inferCategoryAxis() {
-    const bar = (gd.data || []).find(tr => tr.type === 'bar');
-    if (!bar) return null;
-    return (bar.orientation === 'h') ? 'yaxis' : 'xaxis';
-  }
-
-  function applyFilter() {
-    const idxs = gd.data.map((_, i) => i);
-    const update = { x: [], y: [] };
-
-    const hasText = original.some(o => o.text);
-    const hasHover = original.some(o => o.hovertext);
-    if (hasText) update.text = [];
-    if (hasHover) update.hovertext = [];
-
-    for (let ti = 0; ti < original.length; ti++) {
-      const o = original[ti];
-      const keepIdx = [];
-
-      for (let j = 0; j < o.filterMulti.length; j++) {
-        // keep if ANY of the point's filter values is selected
-        const vs = o.filterMulti[j];
-        if (vs.some(v => selected.has(v))) keepIdx.push(j);
-      }
-
-      update.x.push(keepIdx.map(j => o.x[j]));
-      update.y.push(keepIdx.map(j => o.y[j]));
-      if (hasText) update.text.push(o.text ? keepIdx.map(j => o.text[j]) : null);
-      if (hasHover) update.hovertext.push(o.hovertext ? keepIdx.map(j => o.hovertext[j]) : null);
-    }
-
-    // tighten category axis for bars
-    const ax = inferCategoryAxis();
-    if (ax) {
-      const cats = new Set();
-      for (let i=0; i<update.x.length; i++) {
-        const tr = gd.data[i] || {};
-        if (tr.type !== 'bar') continue;
-        const axisCats = (tr.orientation === 'h') ? update.y[i] : update.x[i];
-        (axisCats || []).forEach(v => cats.add(v));
-      }
-      const visibleCats = Array.from(cats).sort((a,b)=>(''+a).localeCompare(''+b));
-      const rel = {};
-      rel[ax + '.categoryorder'] = 'array';
-      rel[ax + '.categoryarray'] = visibleCats;
-      Plotly.relayout(gd, rel);
-    }
-
-    Plotly.restyle(gd, update, idxs);
-    Plotly.relayout(gd, {'autosize': true});
-    updateToggleLabel();
-  }
-
-  function renderGrid() {
-    grid.innerHTML = '';
-
-    allF.forEach(v => {
-      const label = document.createElement('label');
-      label.style.cssText = `
-        display:flex;
-        align-items:center;
-        gap:6px;
-        cursor:pointer;
-        width:clamp(120px, 22vw, 240px);
-      `;
-
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = selected.has(v);
-      cb.style.accentColor = cfg.checkmark?.color || '#666';
-      cb.style.transform = 'scale(' + (cfg.checkmark?.size || 1) + ')';
-      cb.addEventListener('change', () => {
-        if (cb.checked) selected.add(v);
-        else selected.delete(v);
-        applyFilter();
-      });
-
-      const span = document.createElement('span');
-      span.textContent = v;
-
-      label.appendChild(cb);
-      label.appendChild(span);
-      grid.appendChild(label);
-    });
-    
-    if(cfg.title === true) {
-    const titleEl = document.createElement('div');
-    titleEl.textContent = cfg.col
-    titleEl.style.cssText = `
-      width:100%;
-      text-align:left;
-      font-weight:bold;
-      margin-bottom:${cfg.btn?.font.size ? Math.round(cfg.btn.font.size/2) + 'px' : '5px'};
-      font-size:${cfg.btn?.font.size ? (cfg.btn.font.size + 2) + 'px' : 'inherit'};
-    `;
-    grid.prepend(titleEl);
-    }
-
-    updateToggleLabel();
-  }
-
-  toggleBtn.addEventListener('click', () => {
-    if (selected.size === allF.length) selected.clear();
-    else allF.forEach(v => selected.add(v));
-    renderGrid();
-    applyFilter();
-  });
-
-  renderGrid();
-  applyFilter();
-}
-"
+    "function(el, x) {setExternalMenu(el, x)}"
   )
+  
+  
 }
 
 
@@ -495,4 +224,60 @@ roboplotr_modebar_externalmenu_button <- function(btn_list, externalmenu) {
   
   append_location <- ifelse("robonomist" %in% names(btn_list), length(btn_list) - 1, length(btn_list))
   append(btn_list, btn, after = append_location)
+}
+
+
+roboplotr_prefilter_externalmenu <- function(pb, externalmenu) {
+  
+  if(is.null(externalmenu)) { return (pb) }
+  
+  if(is.null(externalmenu$selected)) { return(pg) }
+
+  sel <- as.character(externalmenu$selected)
+  
+  for (i in seq_along(pb$x$data)) {
+    tr <- pb$x$data[[i]]
+    
+    # must have per-point customdata for your filter; skip traces without it
+    cd <- tr$customdata
+    if (is.null(cd)) next
+    
+    # --- stash full arrays so JS can restore later ---
+    tr$meta <- tr$meta %||% list()
+    tr$meta$extmenu_full <- list(
+      x = tr$x,
+      y = tr$y,
+      text = tr$text,
+      hovertext = tr$hovertext,
+      customdata = tr$customdata
+    )
+    
+    # --- compute keep index (supports scalar customdata or list-of-vectors) ---
+    keep <- vapply(cd, function(v) {
+      if (is.null(v)) return(FALSE)
+      if (is.list(v) || length(v) > 1 && !is.character(v) && !is.numeric(v)) {
+        # rare; ignore
+        return(FALSE)
+      }
+      # handle list element being a vector (multi-category point)
+      vv <- as.character(unlist(v))
+      any(vv %in% sel)
+    }, logical(1))
+    
+    # if cd is not a list (e.g. atomic vector), vapply above won't work; handle:
+    if (!is.list(cd)) {
+      keep <- as.character(cd) %in% sel
+    }
+    
+    # --- subset arrays (only if lengths match / exist) ---
+    if (!is.null(tr$x)) tr$x <- tr$x[keep]
+    if (!is.null(tr$y)) tr$y <- tr$y[keep]
+    if (!is.null(tr$text) && length(tr$text) == length(keep)) tr$text <- tr$text[keep]
+    if (!is.null(tr$hovertext) && length(tr$hovertext) == length(keep)) tr$hovertext <- tr$hovertext[keep]
+    tr$customdata <- if (is.list(cd)) cd[keep] else cd[keep]
+    
+    pb$x$data[[i]] <- tr
+  }
+  
+  pb
 }

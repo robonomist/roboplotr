@@ -27,6 +27,10 @@
       separators = ", ",
       date = "%-d.%-m.%Y",
       ylegendlabs = list(left = "Vasen Y-akseli", right = "Oikea Y-akseli"),
+      externalmenu = list(select = "Valitse kaikki",
+                          deselect = "Poista valinnat",
+                          selected = "Valittu",
+                          limit_reached = "Valintaraja saavutettu"),
       robotable_labels = list(
         search = "Etsi:",
         info = "N\u00e4ytet\u00e4\u00e4n rivit _START_-_END_ / _TOTAL_",

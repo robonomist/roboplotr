@@ -728,9 +728,9 @@ set_locale <- function(locale = "fi-FI") {
     )
   
   externalmenu_labels <- case_when(
-    loc %in% c("en","en-US") ~ list(select = "Select all", deselect = "Deselect all"),
-    loc == "sv" ~ list(select = "V\uE4lj alla", deselect = "Avmarkera alla"),
-    TRUE ~ list(select = "Valitse kaikki", deselect = "Poista valinnat")
+    loc %in% c("en","en-US") ~ list(select = "Select all", deselect = "Deselect all", selected = "Selected", limit_reaced = "Selection limit reached"),
+    loc == "sv" ~ list(select = "V\uE4lj alla", deselect = "Avmarkera alla", selected = "Vald", limit_reached = "Urvalet gr\uE5nsen n\uE5dd"),
+    TRUE ~ list(select = "Valitse kaikki", deselect = "Poista valinnat", selected = "Valittu", limit_reached = "Valintaraja saavutettu")
   )
 
   robotable_labels <- case_when(
@@ -759,7 +759,15 @@ set_locale <- function(locale = "fi-FI") {
       last = "Viimeinen"
     )
   )
-  .res <- list(locale = loc, separators = sep, date = dat, ylegendlabs = ylegendlabs, robotable_labels = robotable_labels, modebar_label = modebar_label)
+  .res <- list(
+    locale = loc,
+    separators = sep,
+    date = dat,
+    ylegendlabs = ylegendlabs,
+    robotable_labels = robotable_labels,
+    modebar_label = modebar_label,
+    externalmenu = externalmenu_labels
+  )
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_locale", class(.res)))
 

@@ -293,6 +293,12 @@ set_axes <-
            xstep = NULL
            ) {
 
+    x <- first(as.character(substitute(x)))
+    y <- first(as.character(substitute(y)))
+    
+    if(is.na(x)) {x <- NULL}
+    if(is.na(y)) {y <- NULL}
+    
     if (is.null(y)) {
       y <- "value"
     } else if (y != "value" & is.null(x)) {

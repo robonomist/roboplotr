@@ -1,3 +1,552 @@
+function setExternalMenu(el, x) {
+  const gd = el;
+  const cfg = x.roboplot_externalmenu;
+  if (!cfg || !cfg.col) return;
+
+  const uniq = arr => Array.from(new Set(arr));
+  const asArr = v => Array.isArray(v) ? v : (v == null ? [] : [v]);
+
+  const maxItems = cfg["max-items"] ?? null; // validated in R
+
+  // ---- Normalize a single per-point filter value to scalar OR multiple scalars ----
+  function normVal(v) {
+    if (v == null) return [];
+    if (Array.isArray(v)) return v.filter(x => x != null).map(x => '' + x);
+    return ['' + v];
+  }
+
+  // ---- Capture original per-trace arrays ----
+  // redo here
+  const original = (gd.data || []).map(tr => {
+  const full = (tr && tr.meta && tr.meta.extmenu_full) ? tr.meta.extmenu_full : tr;
+
+  const xvals = asArr(full.x ?? []);
+  const yvals = asArr(full.y ?? []);
+  const n = Math.max(xvals.length, yvals.length);
+
+  // customdata should be per-point; but we accept nested arrays too
+  const cd = asArr(full.customdata ?? []);
+  // filterMulti[j] = array of filter values for that point (usually length 1)
+  const filterMulti = [];
+  for (let j = 0; j < n; j++) filterMulti.push(normVal(cd[j]));
+
+  const text = asArr(full.text ?? null);
+  const hovertext = asArr(full.hovertext ?? null);
+
+  return {
+    x: xvals.slice(),
+    y: yvals.slice(),
+    filterMulti,
+    text: (text.length === n) ? text.slice() : null,
+    hovertext: (hovertext.length === n) ? hovertext.slice() : null
+  };
+});
+
+// Persist the full original so later code never depends on filtered gd.data
+gd._extmenu_original = original;
+
+// Free memory: remove the full-data payload from trace meta after capture
+for (let i = 0; i < (gd.data || []).length; i++) {
+  const tr = gd.data[i];
+  if (tr && tr.meta && tr.meta.extmenu_full) {
+    delete tr.meta.extmenu_full;
+    if (Object.keys(tr.meta).length === 0) delete tr.meta;
+  }
+}
+const ORIG = gd._extmenu_original || original;
+
+  // ---- Unique filter values across all points (flattened) ----
+  const allF = uniq(
+    ORIG.flatMap(o => o.filterMulti.flatMap(vs => vs))
+  ).sort((a,b)=>a.localeCompare(b));
+
+  // ---- Initial selected logic (per your rules) ----
+  function initSelected() {
+    // no cap -> select all
+    if (!maxItems) return allF.slice();
+
+    // cap given + cfg.selected not null -> use cfg.selected (trim to cap)
+    if (cfg.selected != null) {
+      const want = asArr(cfg.selected).filter(v => v != null).map(v => '' + v);
+      // keep only values that exist in allF, preserve order, unique, cap
+      const out = [];
+      const seen = new Set();
+      for (const v of want) {
+        if (seen.has(v)) continue;
+        if (!allF.includes(v)) continue;
+        out.push(v);
+        seen.add(v);
+        if (out.length >= maxItems) break;
+      }
+      return out;
+    }
+
+    // cap given + cfg.selected is null -> first [max-items] traces (trace order)
+    const out = [];
+    const seen = new Set();
+    for (let ti = 0; ti < ORIG.length && out.length < maxItems; ti++) {
+      const valsThisTrace = uniq(ORIG[ti].filterMulti.flat());
+      for (const v of valsThisTrace) {
+        if (seen.has(v)) continue;
+        out.push(v);
+        seen.add(v);
+        if (out.length >= maxItems) break;
+      }
+    }
+
+    // fallback (e.g. no values found somehow)
+    if (out.length === 0) return allF.slice(0, Math.min(maxItems, allF.length));
+    return out;
+  }
+
+  const selected = new Set(initSelected());
+
+  // ---- Popup overlay ----
+  gd.style.position = gd.style.position || 'relative';
+
+  const wrap = document.createElement('div');
+  wrap.id = cfg.id;
+  wrap.style.cssText = `
+    position:absolute;
+    top:6%;
+    left:6%;
+    width:50%;
+    max-height:80%;
+    overflow:auto;
+    z-index:9999;
+    display:none;
+    background:${cfg.box?.background || '#fff'};
+    border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
+    box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
+    font-family:${cfg.box?.font.family || 'inherit'};
+    padding:10px;
+    border-radius:8px;
+  `;
+  gd.appendChild(wrap);
+
+  (function makeDraggable(box, container) {
+    box.style.cursor = 'default';
+
+    const dragBar = document.createElement('div');
+    dragBar.className = 'drag-bar';
+    dragBar.style.cssText = `
+      width:100%;
+      cursor:move;
+      user-select:none;
+      margin-bottom:6px;
+      font-weight:bold;
+    `;
+    dragBar.innerHTML = cfg.grip || dragBar.textContent;
+    box.prepend(dragBar);
+
+    let isDragging = false;
+    let startX, startY, startLeft, startTop;
+
+    dragBar.addEventListener('mousedown', (e) => {
+      isDragging = true;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      const rect = box.getBoundingClientRect();
+      const parentRect = container.getBoundingClientRect();
+
+      startLeft = rect.left - parentRect.left;
+      startTop  = rect.top  - parentRect.top;
+
+      document.body.style.userSelect = 'none';
+    });
+
+    document.addEventListener('mousemove', (e) => {
+      if (!isDragging) return;
+
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+
+      const parentRect = container.getBoundingClientRect();
+
+      let newLeft = startLeft + dx;
+      let newTop  = startTop  + dy;
+
+      newLeft = Math.max(0, Math.min(newLeft, parentRect.width  - box.offsetWidth));
+      newTop  = Math.max(0, Math.min(newTop,  parentRect.height - box.offsetHeight));
+
+      box.style.left = newLeft + 'px';
+      box.style.top  = newTop  + 'px';
+    });
+
+    document.addEventListener('mouseup', () => {
+      isDragging = false;
+      document.body.style.userSelect = '';
+    });
+  })(wrap, gd);
+
+  // Close button
+  const closeBtn = document.createElement('span');
+  closeBtn.innerHTML = cfg.close || '&times;';
+  closeBtn.style.cssText = `
+    position:sticky;
+    top:0;
+    float:right;
+    cursor:pointer;
+    margin-bottom: 5px;
+    line-height:1;
+    margin-left:10px;
+    border-radius:50%;
+  `;
+  if (cfg.btn?.background) closeBtn.style.background = cfg.btn.background;
+  if (cfg.btn?.font.size) closeBtn.style.fontSize = cfg.btn.font.size + 'px';
+  if (cfg.box?.font.color) closeBtn.style.color = cfg.btn.font.color;
+  if (cfg.box?.font.family) closeBtn.style.fontFamily = cfg.btn.font.family;
+  closeBtn.addEventListener('click', () => { wrap.style.display = 'none'; });
+  wrap.querySelector('.drag-bar')?.appendChild(closeBtn);
+
+  // ---- Limit indicator / warning (shown only when max-items exists and != 1) ----
+  const limitBox = document.createElement('div');
+  limitBox.style.cssText = `
+    width:100%;
+    margin: 4px 0 10px 0;
+    font-size: 0.95em;
+    opacity: 0.9;
+  `;
+  const limitText = document.createElement('div');
+  const limitWarn = document.createElement('div');
+  limitWarn.style.cssText = `margin-top:4px; display:none;`;
+  limitBox.appendChild(limitText);
+  limitBox.appendChild(limitWarn);
+  if (maxItems && maxItems !== 1) wrap.appendChild(limitBox);
+
+  function showLimitWarn(msg) {
+    limitWarn.textContent = msg;
+    limitWarn.style.display = 'block';
+    clearTimeout(showLimitWarn._t);
+    showLimitWarn._t = setTimeout(() => { limitWarn.style.display = 'none'; }, 1600);
+  }
+
+  function updateLimitUI() {
+    if (!(maxItems && maxItems !== 1)) return;
+    limitText.textContent = `${cfg.selected_label || 'Valittu'}: ${selected.size} / ${maxItems}`;
+  }
+
+  // ---- Toggle all/none button (hidden when max-items === 1) ----
+  let toggleBtn = null;
+  if (!(maxItems === 1)) {
+    toggleBtn = document.createElement('button');
+    toggleBtn.style.cssText = `
+      width:100%;
+      padding:8px 10px;
+      margin-bottom:10px;
+      cursor:pointer;
+      border-radius:6px;
+      border:${cfg.btn?.border ? `${cfg.btn.border_width}px solid ${cfg.btn.border}` : 'none'};
+    `;
+    if (cfg.btn?.background) toggleBtn.style.background = cfg.btn.background;
+    if (cfg.btn?.font.size) toggleBtn.style.fontSize = cfg.btn.font.size + 'px';
+    if (cfg.btn?.font.color) toggleBtn.style.color = cfg.btn.font.color;
+    if (cfg.btn?.font.family) toggleBtn.style.fontFamily = cfg.btn.font.family;
+    wrap.appendChild(toggleBtn);
+  }
+
+  // ---- Checkbox grid ----
+  const grid = document.createElement('div');
+  grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px 16px; width:100%; align-items:flex-start;';
+  wrap.appendChild(grid);
+  
+  // ---- Selection chip under modebar (dismissable) ----
+let chipDismissed = false;
+
+const chip = document.createElement('div');
+chip.id = (cfg.id ? cfg.id + '-chip' : 'roboplot-chip');
+chip.style.cssText = `
+  position:absolute;
+  right:8px;
+  z-index:9998;
+  max-width:60%;
+  display:none;
+  align-items:center;
+  gap:8px;
+  padding:6px 10px;
+  border-radius: 8px;
+  opacity: 0.7;
+  background:${cfg.box?.background || '#fff'};
+  border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
+  box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
+  font-family: ${cfg.box?.font.family || 'inherit'};
+  font-size: ${cfg.box?.font.size || 12}px;
+  line-height:1.2;
+  user-select:none;
+  white-space:nowrap;
+  overflow:hidden;
+`;
+gd.appendChild(chip);
+
+const chipTextEl = document.createElement('span');
+chipTextEl.style.cssText = `
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+`;
+chip.appendChild(chipTextEl);
+
+// Close (dismiss) button on chip
+const chipClose = document.createElement('span');
+chipClose.innerHTML = cfg.close || '&times;';
+chipClose.style.cssText = `
+  cursor:pointer;
+  line-height:1;
+  margin-left:2px;
+  border-radius:50%;
+  flex:0 0 auto;
+`;
+if (cfg.btn?.background) chipClose.style.background = cfg.btn.background;
+if (cfg.btn?.font?.size) chipClose.style.fontSize = cfg.btn.font.size + 'px';
+if (cfg.btn?.font?.color) chipClose.style.color = cfg.btn.font.color;
+if (cfg.btn?.font?.family) chipClose.style.fontFamily = cfg.btn.font.family;
+chip.appendChild(chipClose);
+
+// Clicking the chip text opens the popup (optional)
+chipTextEl.style.cursor = 'pointer';
+chipTextEl.addEventListener('click', () => { wrap.style.display = 'block'; });
+
+// Clicking X dismisses chip until the next selection change
+chipClose.addEventListener('click', (e) => {
+  e.stopPropagation();
+  chipDismissed = true;
+  chip.style.display = 'none';
+});
+
+// Position chip just below modebar
+function positionChip() {
+  const mb = gd.querySelector('.modebar');
+  const mbH = mb ? mb.getBoundingClientRect().height : 0;
+  chip.style.top = (mbH + 8) + 'px';
+}
+gd.on('plotly_relayout', positionChip);
+window.addEventListener('resize', positionChip);
+
+// Format selection summary for chip
+function chipSummary() {
+  if (selected.size === allF.length) return null; // hide when 'all'
+
+  const vals = Array.from(selected);
+
+  if (maxItems === 1) {
+    return `${cfg.col}: ${vals[0] ?? ''}`.trim();
+  }
+
+  const shown = vals.slice(0, 3);
+  const more = vals.length - shown.length;
+  return `${cfg.col}: ${shown.join(', ')}${more > 0 ? ` (+${more})` : ''}`;
+}
+
+// Update chip: called from applyFilter()
+// - If selection changed, chip returns (chipDismissed reset)
+// - If chipDismissed and no change, keep hidden
+let _lastChipKey = null;
+function updateChip(forceShow = false) {
+  const txt = chipSummary();
+
+  // create a stable key representing current selection
+  const key = Array.from(selected).sort().join('\\u0001');
+
+  // detect a selection change
+  const changed = (key !== _lastChipKey);
+  _lastChipKey = key;
+
+  // If selection changed, chip should come back
+  if (changed) chipDismissed = false;
+
+  if (!txt || (chipDismissed && !forceShow)) {
+    chip.style.display = 'none';
+    return;
+  }
+
+  chipTextEl.textContent = txt;
+  chip.style.display = 'flex';
+  positionChip();
+}
+
+
+  function updateToggleLabel() {
+    if (!toggleBtn) return;
+
+    if (!maxItems) {
+      toggleBtn.textContent =
+        (selected.size === allF.length) ? (cfg.deselect || 'Poista valinnat') : (cfg.select || 'Valitse kaikki');
+      return;
+    }
+
+    if (selected.size === 0) {
+      toggleBtn.textContent = cfg.select || `Valitse (${Math.min(maxItems, allF.length)})`;
+    } else {
+      toggleBtn.textContent = cfg.deselect || 'Poista valinnat';
+    }
+  }
+
+  function inferCategoryAxis() {
+    const bar = (gd.data || []).find(tr => tr.type === 'bar');
+    if (!bar) return null;
+    return (bar.orientation === 'h') ? 'yaxis' : 'xaxis';
+  }
+
+  function applyFilter() {
+    const idxs = gd.data.map((_, i) => i);
+    const update = { x: [], y: [] };
+
+    const hasText = ORIG.some(o => o.text);
+    const hasHover = ORIG.some(o => o.hovertext);
+    if (hasText) update.text = [];
+    if (hasHover) update.hovertext = [];
+
+    for (let ti = 0; ti < ORIG.length; ti++) {
+      const o = ORIG[ti];
+      const keepIdx = [];
+
+      for (let j = 0; j < o.filterMulti.length; j++) {
+        const vs = o.filterMulti[j];
+        if (vs.some(v => selected.has(v))) keepIdx.push(j);
+      }
+
+      update.x.push(keepIdx.map(j => o.x[j]));
+      update.y.push(keepIdx.map(j => o.y[j]));
+      if (hasText) update.text.push(o.text ? keepIdx.map(j => o.text[j]) : null);
+      if (hasHover) update.hovertext.push(o.hovertext ? keepIdx.map(j => o.hovertext[j]) : null);
+    }
+
+    const ax = inferCategoryAxis();
+    if (ax) {
+      const cats = new Set();
+      for (let i=0; i<update.x.length; i++) {
+        const tr = gd.data[i] || {};
+        if (tr.type !== 'bar') continue;
+        const axisCats = (tr.orientation === 'h') ? update.y[i] : update.x[i];
+        (axisCats || []).forEach(v => cats.add(v));
+      }
+      const visibleCats = Array.from(cats).sort((a,b)=>(''+a).localeCompare(''+b));
+      const rel = {};
+      rel[ax + '.categoryorder'] = 'array';
+      rel[ax + '.categoryarray'] = visibleCats;
+      Plotly.relayout(gd, rel);
+    }
+
+    Plotly.restyle(gd, update, idxs);
+    Plotly.relayout(gd, {'autosize': true});
+    updateLimitUI();
+    updateToggleLabel();
+    updateChip();
+  }
+
+  function renderGrid() {
+    grid.innerHTML = '';
+
+    allF.forEach(v => {
+      const label = document.createElement('label');
+      label.style.cssText = `
+        display:flex;
+        align-items:center;
+        gap:6px;
+        cursor:pointer;
+        width:clamp(120px, 22vw, 240px);
+      `;
+
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = selected.has(v);
+      cb.style.accentColor = cfg.checkmark?.color || '#666';
+      cb.style.transform = 'scale(' + (cfg.checkmark?.size || 1) + ')';
+
+      cb.addEventListener('change', () => {
+        // max-items === 1: radio-like
+        if (maxItems === 1) {
+          if (cb.checked) {
+            selected.clear();
+            selected.add(v);
+          } else {
+            selected.delete(v);
+          }
+          renderGrid();
+          applyFilter();
+          return;
+        }
+
+        // max-items > 1: enforce cap
+        if (cb.checked) {
+          if (maxItems && selected.size >= maxItems) {
+            cb.checked = false; // revert
+            showLimitWarn(cfg.limit_reached || `Enintään ${maxItems} valintaa`);
+            return;
+          }
+          selected.add(v);
+        } else {
+          selected.delete(v);
+        }
+
+        applyFilter();
+      });
+
+      const span = document.createElement('span');
+      span.textContent = v;
+
+      label.appendChild(cb);
+      label.appendChild(span);
+      grid.appendChild(label);
+    });
+
+    if (cfg.title === true) {
+      const titleEl = document.createElement('div');
+      titleEl.textContent = cfg.col;
+      titleEl.style.cssText = `
+        width:100%;
+        text-align:left;
+        font-weight:bold;
+        margin-bottom:${cfg.btn?.font.size ? Math.round(cfg.btn.font.size/2) + 'px' : '5px'};
+        font-size:${cfg.btn?.font.size ? (cfg.btn.font.size + 2) + 'px' : 'inherit'};
+      `;
+      grid.prepend(titleEl);
+    }
+
+    updateLimitUI();
+    updateToggleLabel();
+  }
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      if (!maxItems) {
+        if (selected.size === allF.length) selected.clear();
+        else allF.forEach(v => selected.add(v));
+      } else {
+        // with a cap: button becomes \"clear / select first N\"
+        if (selected.size > 0) {
+          selected.clear();
+        } else {
+          // \"first N traces\" logic (same as initSelected when cfg.selected is null)
+          const out = [];
+          const seen = new Set();
+          for (let ti = 0; ti < ORIG.length && out.length < maxItems; ti++) {
+            const valsThisTrace = uniq(ORIG[ti].filterMulti.flat());
+            for (const v of valsThisTrace) {
+              if (seen.has(v)) continue;
+              out.push(v);
+              seen.add(v);
+              if (out.length >= maxItems) break;
+            }
+          }
+          if (out.length === 0) {
+            allF.slice(0, Math.min(maxItems, allF.length)).forEach(v => selected.add(v));
+          } else {
+            out.forEach(v => selected.add(v));
+          }
+        }
+      }
+      renderGrid();
+      applyFilter();
+    });
+  }
+
+  renderGrid();
+  applyFilter();
+}
+
+
 function rangeSliderShowHide(el, show = true) {
   if ('rangeslider' in el.layout.xaxis) {
     if(el.layout.xaxis.rangeslider.visible != show) {

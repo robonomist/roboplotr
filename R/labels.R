@@ -550,6 +550,16 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
 #'   roboplot(Alue,
 #'            legend = set_legend(visible = c("Venäjä","Ruotsi"))
 #'   )
+#'   
+#' # You can reverse the legend items with `set_legend(reverse = T)` for whatever 
+#' # purpose you might have. The reverting is in relation to factor levels of the 
+#' # column.
+#' energiantuonti |>
+#'   filter(Suunta == "Vienti") |>
+#'   dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Venäjä") |> fct_rev()) |>
+#'   roboplot(Alue, 
+#'            plot_type = c("Venäjä" = "scatter", .other = "bar"),
+#'            legend = set_legend(reverse = T))
 #' 
 #' # Legend title is distinct from axis-specific legend titles which are controlled
 #' # by `set_axes()` parameters `ylegend` and `y2legend`, when `y2` is used to move
@@ -906,19 +916,18 @@ set_labels <- function(style = "none",
     }
   }
 
-  roboplotr_typecheck(style, c("character"),allow_null = F, extra = "set_labels()")
+  roboplotr_typecheck(style, c("character"),allow_null = F, extra = "set_labels(style)")
   styles <- c("auto", "last", "outside", "mini", "none", "percent", "inside")
   roboplotr_valid_strings(style, styles, any, "set_labels(style)")
-  roboplotr_typecheck(color, c("character"), extra = "set_labels()")
+  roboplotr_typecheck(color, c("character"), extra = "set_labels(color)")
   if(!is.null(color)) { roboplotr_valid_colors(color) }
-  roboplotr_typecheck(size, "integer", allow_null = T, extra = "set_labels()")
+  roboplotr_typecheck(size, "integer", allow_null = T, extra = "set_labels(size)")
   if(!is.null(size)) {size <- as.integer(size)}
+  roboplotr_typecheck(args[["rounding"]], "integer", allow_null = T, extra = "set_labels(rounding)")
 
   text_col <- enquo(text_col)
 
-  .res <- list(style = style, color = color, text_col = text_col, size = size)
-
-  args <- list(...)
+  .res <- list(style = style, color = color, text_col = text_col, size = size, rounding = args[["rounding"]] %||% getOption("roboplot.rounding"))
 
   .res <- structure(.res, class = c("roboplotr","roboplotr.set_labels", class(.res)))
 
