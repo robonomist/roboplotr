@@ -137,7 +137,7 @@ set_externalmenu <- function(
   if (quo_is_null(col)) return(NULL)
   
   item_font <- set_font(color = box$font)
-  btn_font <- set_font(font = getOption("roboplot.font.title")$.font, color = box$font)
+  btn_font <- set_font(font = getOption("roboplot.font.title")$.font, color = btn$font)
   
   box$font <- item_font
   btn$font <- btn_font

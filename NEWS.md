@@ -1,3 +1,11 @@
+# roboplotr 2.8.2.4
+
+* Various validation improvements.
+
+# roboplotr 2.8.2.3
+
+* Extends needed pattern types beyond the plotly defaults ("solid", "dash", "dot" etc.) when the number of category items is large.
+
 # roboplotr 2.8.2.2
 
 * Switches roboplotr relayouting scripts to un-minified version until minifying issues are resolved. This should not cause any issues, but might make the package slightly larger.

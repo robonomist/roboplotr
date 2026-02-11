@@ -942,26 +942,14 @@ roboplot <- function(d = NULL,
 
   }
 
-  if (!all(plot_type %in% c("scatter", "bar", "pie"))) {
-    stop(
-      "Plot type must be \"scatter\", \"bar\", or \"pie\", or a named character vector!",
-      call. = F
-    )
-  } else if ("pie" %in% plot_type & length(unique(plot_type)) > 1) {
+  roboplotr_valid_strings(plot_type, c("scatter", "bar", "pie"), .fun = any, msg = "`roboplot(plot_type)`")
+  roboplotr_valid_strings(names(plot_type), unique_groups, .fun = all, msg = "`roboplot(plot_type)` names", placeholder = ".other")
+
+  if ("pie" %in% plot_type & length(unique(plot_type)) > 1) {
     stop("Roboplotr is unable to combine the plot_type \"pie\" with other plot types!",
          call. = F)
   } else if (length(plot_type) == 1 & is.null(names(plot_type))) {
     d <- d |> mutate(roboplot.plot.type = plot_type)
-  } else if (!all(unique_groups %in% names(plot_type)) &
-             !(".other" %in% names(plot_type))) {
-    stop(
-      str_c(
-        "All variables in column \"",
-        as_name(color),
-        "\" must have a corresponding 'plot_type', or key \".other\" must be included!"
-      ),
-      call. = F
-    )
   } else {
     missing_groups <-
       unique_groups |> subset(!unique_groups %in% names(plot_type))
@@ -980,9 +968,9 @@ roboplot <- function(d = NULL,
 
   d <- roboplotr_set_plot_mode(d, color, plot_mode)
 
-  if (!all(typeof(line_width) == "double")) {
-    stop("Line width must be a double, or a named double vector!", call. = F)
-  } else if (length(line_width) == 1 & is.null(names(line_width))) {
+  roboplotr_typecheck(line_width, "numeric", size = NULL, extra = "in `roboplot()`")
+  
+  if (length(line_width) == 1 & is.null(names(line_width))) {
     d <- d |> mutate(roboplot.linewidth = line_width)
   } else {
     if (!all(unique_groups %in% names(line_width))) {
@@ -1366,18 +1354,25 @@ roboplotr_get_plot <-
           .data$arranger
         ))
 
-      if (!quo_is_null(updatemenu$buttons)) {
+      if(is.null(updatemenu)) {
+        split_d <- split_d |> mutate(roboplot.update.menu = NA)
+      } else if (!quo_is_null(updatemenu$buttons)) {
         split_d <- split_d |> mutate(roboplot.update.menu = !!updatemenu$buttons)
       } else {
         split_d <- split_d |> mutate(roboplot.update.menu = NA)
       }
 
       split_d <- split_d |>
-        group_split(.data$arranger,
-                    .data$roboplot.plot.type,
-                    .data$roboplot.dash,
-                    .data$roboplot.update.menu
-                    )
+        arrange(.data$arranger, .data$roboplot.dash, .data$roboplot.pattern) |>
+        group_by(
+          .data$arranger,
+          .data$roboplot.plot.type,
+          .data$roboplot.dash,
+          .data$roboplot.pattern,
+          .data$roboplot.update.menu
+        ) |>
+        group_split()
+      
 
       split_d <- rev(split_d)
 
@@ -1398,7 +1393,7 @@ roboplotr_get_plot <-
       if ((length(split_d) > height / 50 & !is.na(legend$position)) & is.null(updatemenu)) {
         roboplotr_alert(
           str_glue(
-            "You have many legend items, you might want to use 'height' of {length(split_d) * 50}, or use param `updatemenu`."
+            "You have many legend items, you might want to use 'height' of {length(split_d) * 50}, or use param `updatemenu` or `externalmenu`."
           )
         )
       }
@@ -1427,7 +1422,9 @@ roboplotr_get_plot <-
         mutate(
           g,
           roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color, "dark"),
-          roboplot.tx.color = roboplotr_text_color_picker(.data$roboplot.bg.color, .fontsize)
+          roboplot.tx.color = roboplotr_text_color_picker(.data$roboplot.bg.color, .fontsize),
+          roboplot.dash = str_remove(roboplot.dash, "\\..*$"),
+          roboplot.pattern = str_remove(roboplot.pattern, "\\..*$")
         )
       text_inside <- any(tracetype == "pie" & trace_labels$style != "none", tracetype == "bar" & trace_labels$style %in% c("mini","auto","inside"))
       if (text_inside) {
@@ -1461,7 +1458,7 @@ roboplotr_get_plot <-
         }
       } else {
         if (is.null(highlight)) {
-          if (!is.null(pattern_showlegend) & trace_showlegend) {
+          if (!is.null(pattern_showlegend)) {
             show.legend <- pattern_showlegend[unique(g[[as_name(pattern)]]) |> as.character()]
 
           } else {
@@ -1471,7 +1468,6 @@ roboplotr_get_plot <-
           show.legend <- roboplotr_highlight_legend(highlight, g)
         }
       }
-
 
       .legendgrouptitle <- NULL
       if ("pie" %in% plot_type) {
@@ -1507,7 +1503,7 @@ roboplotr_get_plot <-
                   !all(as.character(unique(g[[as_label(color)]])) %in% legend$visible) ~ list("legendonly"),
                   TRUE ~ list(T)
                   ))
-      if(all(is.null(updatemenu),is.null(externalmenu))) {
+      if(all(is.null(updatemenu))) {
         trace_visible <- item_visible
       } else {
         trace_visible <- ifelse(unique(g$roboplot.update.menu) != updatemenu$selected, FALSE, item_visible)
@@ -1739,6 +1735,8 @@ roboplotr_get_plot <-
           )
         )) #!pie
       )
+      
+      
       shared_params <-
         c(
           # "customdata",
@@ -1806,9 +1804,10 @@ roboplotr_get_plot <-
           plotting_params$yaxis <- "y2"
         }
       }
-
+# browser()
       plotting_params
     })
+    
 
     add_trace_params <- function(p = p, trace_params = trace_params) {
       for (par in trace_params) {
@@ -1846,7 +1845,7 @@ roboplotr_get_plot <-
       p <- p |> layout(yaxis2 = y2)
 
     }
-
+    # vapply(p$x$data, function(x) {browser()}, "what") 
     p |>
       layout(updatemenus = updatemenu$menu) |>
       roboplotr_prefilter_externalmenu(externalmenu) |>

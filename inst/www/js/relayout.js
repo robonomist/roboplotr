@@ -119,6 +119,7 @@ const ORIG = gd._extmenu_original || original;
     border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
     box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
     font-family:${cfg.box?.font.family || 'inherit'};
+    color:${cfg.box?.font.color || 'inherit'};
     padding:10px;
     border-radius:8px;
   `;
@@ -271,6 +272,7 @@ chip.style.cssText = `
   border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
   box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
   font-family: ${cfg.box?.font.family || 'inherit'};
+  color: ${cfg.box?.font.color || 'inherit'};
   font-size: ${cfg.box?.font.size || 12}px;
   line-height:1.2;
   user-select:none;

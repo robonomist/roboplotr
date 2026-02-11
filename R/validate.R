@@ -117,14 +117,20 @@ roboplotr_typecheck <- function(var, types, size = 1, allow_null = TRUE, allow_n
 
 
 #' @importFrom stringr str_glue
-roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = all, msg = NULL) {
+roboplotr_valid_strings <- function(strings_to_validate, valid_values, .fun = all, msg = NULL, placeholder = NULL) {
   if(!is.null(strings_to_validate)) {
+    if(!is.null(placeholder)) {
+      if(any(placeholder %in% strings_to_validate)) return()
+    }
     if(!.fun(valid_values %in% strings_to_validate)) {
       if(is.null(msg)) {
-        msg <- str_glue("'{deparse(substitute(strings_to_validate))}'")
+        msg <- str_glue("\"{deparse(substitute(strings_to_validate))}\"")
       }
-      .valids <- roboplotr_combine_words(str_replace_all(str_c("'",valid_values,"'"),'\\\\', '\\\\\\\\'))
-      stop (str_glue("{msg} must be among {.valids}!"), call. = F)
+      .valids <- roboplotr_combine_words(str_replace_all(str_c("\"",valid_values,"\""),'\\\\', '\\\\\\\\'))
+
+      .placeholder <- if (!is.null(placeholder)) str_glue(" Alternatively, \"{roboplotr_combine_words(placeholder, and = ' or ')}\" must be included") else { "" }
+      # print(.placeholder)
+      stop (str_glue("{msg} must be {deparse(substitute(.fun))} of {.valids}!{.placeholder}!"), call. = F)
     }
   }
 }
@@ -141,10 +147,10 @@ roboplotr_valid_colors <- function(colors_to_validate, message = NULL) {
   }
 }
 
-roboplotr_is_between <- function(check, where, lims = c(0,1)) {
-  what <- as_name(substitute(check))
+roboplotr_is_between <- function(check, where, lims = c(0,1), what = NULL) {
   if(!between(check, min(lims), max(lims))) {
-    stop(str_glue("{where} param '{what}' must be between {min(lims)} and {max(lims)}!"), call. = F)
+    what <- what %||% str_glue("param `{as_name(substitute(check))}`")
+    stop(str_glue("{where} {what} must be between {min(lims)} and {max(lims)}!"), call. = F)
   }
 }
 
