@@ -1,3 +1,7 @@
+# roboplotr 2.8.2.5
+
+* Critical pattern validation bug fix.
+
 # roboplotr 2.8.2.4
 
 * Various validation improvements.

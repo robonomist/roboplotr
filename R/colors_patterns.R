@@ -354,7 +354,8 @@ roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
   dashtypes <- getOption("roboplot.dashtypes")
   patterntypes <- getOption("roboplot.patterntypes")
   if (!is.null(pattern)) {
-    if (any((d |> distinct(!!pattern, roboplot.plot.type, roboplot.plot.mode) |> count(Alue) |> pull(n)) > 1)) {
+
+    if (any((d |> distinct(!!pattern, roboplot.plot.type, roboplot.plot.mode) |> count(!!pattern) |> pull(n)) > 1)) {
       stop(str_glue("Too many combinations of `roboplot(plot_type, pattern)`."), call. = F)
     }
     if (!is.factor(d[[as_name(pattern)]])) {
