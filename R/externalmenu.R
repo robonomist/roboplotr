@@ -162,17 +162,37 @@ set_externalmenu <- function(
   
 }
 
+#' @importFrom rlang quo_get_expr
+roboplotr_validate_externalmenu <- function(externalmenu, d_names) {
+
+  if(quo_is_null(externalmenu)) return(NULL)
+  
+  if (!quo_is_symbolic(externalmenu)) {
+    externalmenu <- sym(rlang::quo_get_expr(externalmenu))
+  }
+  if(as_label(externalmenu) %in% d_names) {
+    externalmenu <- set_externalmenu(!!externalmenu)
+  } else {
+    tryCatch({
+      externalmenu <- eval_tidy(externalmenu)
+    }, error = function(e) {
+      stop("The `externalmenu` argument must be a column name from the data or a call to `roboplot::set_externalmenu()`.", call. = F)
+    })
+  }
+  roboplotr_typecheck(externalmenu, "set_externalmenu")
+  externalmenu
+  
+}
+
 roboplotr_set_external_menu <- function(p, externalmenu, d) {
   
   if (is.null(externalmenu)) return(p)
 
   roboplotr_typecheck(externalmenu, "set_externalmenu")
   col <- externalmenu$col
-  roboplotr_check_valid_var(col, names(d), where = "`set_externalmenu()`")
+  roboplotr_check_valid_var(col, names(d), where = "set_externalmenu")
 
-  
   externalmenu$col <- as_label(externalmenu$col)
-  
   
   roboplotr_valid_strings(externalmenu$selected, unique(d[[externalmenu$col]]), .fun = any, msg = "`set_externalmenu(selected)`")
   externalmenu$`max-items` <- round(min(c(length(unique(d[[externalmenu$col]])),externalmenu$`max-items`)))
@@ -195,6 +215,7 @@ roboplotr_set_external_menu <- function(p, externalmenu, d) {
   externalmenu$title_deselect <- getOption("roboplot.locale")$externalmenu$deselect
   externalmenu$limit_reached <- getOption("roboplot.locale")$externalmenu$limit_reached
   externalmenu$selected_label <- getOption("roboplot.locale")$externalmenu$selected
+  externalmenu$categoryorder <- (function() {if (is.factor(d[[externalmenu$col]])) levels(d[[externalmenu$col]]) else NULL})()
   
   
   p$x$roboplot_externalmenu <- externalmenu

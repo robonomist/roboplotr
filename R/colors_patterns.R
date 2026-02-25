@@ -350,6 +350,7 @@ set_pattern <- function(pattern = NULL,
 #' @importFrom forcats fct_inorder fct_relevel fct_rev
 #' @importFrom purrr map2_chr
 #' @importFrom rlang as_name
+#' @importFrom dplyr count
 roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
   dashtypes <- getOption("roboplot.dashtypes")
   patterntypes <- getOption("roboplot.patterntypes")

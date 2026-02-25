@@ -24,7 +24,7 @@ print.roboplotr <- function(x, ...) {
 #' @importFrom stringr str_glue
 roboplotr_check_valid_var <- function(var,names,where = NULL) {
   this_var <- as_name(substitute(var))
-  wrn <- "The variable '{this_var}'{where}must be a length 1 string or symbol found among the names of argument `d` of `roboplot()`."
+  wrn <- "The variable '{this_var}'{where}must be a length 1 string or symbol found among the names of `roboplot(d)` or `robotable(d)`."
   if(quo_is_null(var) == T) {
     return(NULL)
   }

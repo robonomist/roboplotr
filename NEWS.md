@@ -1,3 +1,10 @@
+# roboplotr 2.8.2.6
+
+* `roboplot(externalmenu)` now accepts a column name for the externalmenu. Use `set_externalmenu()` when more control is needed.
+* Fix for axis ordering when using `roboplot(plot_mode = "horizontal", externalmenu = set_externalmenu(param))`.
+* Fix for `roboplot(plot_mode = "horizontal")` automatic hoverlabel labeling fix.
+* Added missing `dplyr::count` dependency.
+
 # roboplotr 2.8.2.5
 
 * Critical pattern validation bug fix.

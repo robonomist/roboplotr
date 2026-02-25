@@ -344,6 +344,35 @@ function chipSummary() {
 // - If selection changed, chip returns (chipDismissed reset)
 // - If chipDismissed and no change, keep hidden
 let _lastChipKey = null;
+
+function getCategoryOrderFromCfgOrOrig(axName) {
+  // 1) Explicit order from cfg (e.g. factor levels from R)
+  if (cfg.categoryorder && Array.isArray(cfg.categoryorder) && cfg.categoryorder.length) {
+    return cfg.categoryorder.map(v => '' + v);
+  }
+
+  // 2) Fallback: derive from original data order (preserves whatever Plotly got from R)
+  const seen = new Set();
+  const out = [];
+
+  for (let ti = 0; ti < ORIG.length; ti++) {
+    const o = ORIG[ti];
+    const tr = gd.data[ti] || {};
+    if (tr.type !== 'bar') continue;
+
+    const axisCats = (tr.orientation === 'h') ? o.y : o.x;
+    (axisCats || []).forEach(v => {
+      const s = '' + v;
+      if (!seen.has(s)) {
+        seen.add(s);
+        out.push(s);
+      }
+    });
+  }
+
+  return out;
+}
+
 function updateChip(forceShow = false) {
   const txt = chipSummary();
 
@@ -423,7 +452,8 @@ function updateChip(forceShow = false) {
         const axisCats = (tr.orientation === 'h') ? update.y[i] : update.x[i];
         (axisCats || []).forEach(v => cats.add(v));
       }
-      const visibleCats = Array.from(cats).sort((a,b)=>(''+a).localeCompare(''+b));
+      const catsOrder = getCategoryOrderFromCfgOrOrig(ax);
+      const visibleCats = catsOrder.filter(v => cats.has(v));
       const rel = {};
       rel[ax + '.categoryorder'] = 'array';
       rel[ax + '.categoryarray'] = visibleCats;
@@ -437,7 +467,7 @@ function updateChip(forceShow = false) {
     updateChip();
   }
 
-  function renderGrid() {
+  function renderGrid(grid) {
     grid.innerHTML = '';
 
     allF.forEach(v => {
@@ -465,7 +495,7 @@ function updateChip(forceShow = false) {
           } else {
             selected.delete(v);
           }
-          renderGrid();
+          renderGrid(grid);
           applyFilter();
           return;
         }
@@ -539,12 +569,11 @@ function updateChip(forceShow = false) {
           }
         }
       }
-      renderGrid();
+      renderGrid(grid);
       applyFilter();
     });
   }
-
-  renderGrid();
+  renderGrid(grid);
   applyFilter();
 }
 

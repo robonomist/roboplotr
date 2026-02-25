@@ -15,6 +15,7 @@ robotable(
   flag = "",
   unit = "",
   dateformat = NULL,
+  na_date = " ",
   pagelength = 10,
   info_text = NULL,
   heatmap = NULL,
@@ -47,7 +48,9 @@ column for positive values. Unit is prepended to values in a numeric column.
 Name the units with column names from \code{d} if you want to target specific columns.}
 
 \item{dateformat}{Character. Controls how to format dates displayed on the table.
-\code{robotable()} attempts to determine the proper format if left NULL.}
+\code{robotable()} attempts to determine the proper format if left NULL. For complex
+formatting of dates, it is best to pre-format the date columns in \code{d} and
+display it as a preordered factor.}
 
 \item{pagelength}{Numeric. Controls how many rows are displayed on the table.
 If \code{d} contains more rows than this, \code{\link[=robotable]{robotable()}} adds navigation elements.}
@@ -57,7 +60,7 @@ with a popup when the info button in the table modebar is clicked.}
 
 \item{heatmap}{Function. Use \code{\link[=set_heatmap]{set_heatmap()}}. Color-codes numeric columns.}
 
-\item{na_value}{Character. How NA values are displayed.}
+\item{na_value, na_date}{Character. How NA numerics or dates are displayed.}
 
 \item{class}{Character vector. Controls the basic datatable appearance. You may
 combine any of "cell-border", "compact","hover","nowrap","row-border" and / or

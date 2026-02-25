@@ -675,6 +675,8 @@ roboplot <- function(d = NULL,
   roboplotr_typecheck(plot_axes, "set_axes", allow_null = F)
 
   roboplotr_typecheck(zeroline, c("numeric","logical","set_zeroline"), allow_null = F)
+  
+  externalmenu <- roboplotr_validate_externalmenu(enquo(externalmenu), names(d))
 
   if(!"roboplotr.set_zeroline" %in% class(zeroline)) {
     zeroline <- set_zeroline(zeroline)
@@ -1326,7 +1328,7 @@ roboplotr_get_plot <-
       d <-  d |> arrange(desc(!!sym(ticktypes$y)))
       if (length(unique(d$roboplot.plot.text)) > 1) {
         d <-
-          mutate(d, roboplot.horizontal.label = str_c(as.character(.data$roboplot.plot.text)))
+          mutate(d, roboplot.horizontal.label = str_c(as.character(!!sym(ticktypes$y)),"<br>",as.character(.data$roboplot.plot.text)))
       } else {
         d <-
           mutate(d, roboplot.horizontal.label = as.character(!!sym(ticktypes$y)))
@@ -1390,7 +1392,7 @@ roboplotr_get_plot <-
     }
 
     if (!is.null(height) & !is.null(legend$position)) {
-      if ((length(split_d) > height / 50 & !is.na(legend$position)) & is.null(updatemenu)) {
+      if ((length(split_d) > height / 50 & !is.na(legend$position)) & (all(is.null(updatemenu), is.null(externalmenu)))) {
         roboplotr_alert(
           str_glue(
             "You have many legend items, you might want to use 'height' of {length(split_d) * 50}, or use param `updatemenu` or `externalmenu`."

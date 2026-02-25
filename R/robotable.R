@@ -48,7 +48,7 @@ set_robotable_labels <-
 
 #' @importFrom lubridate quarter year
 #' @importFrom stringr str_glue
-roboplotr_format_robotable_date <- function(date_col, dateformat) {
+roboplotr_format_robotable_date <- function(date_col, dateformat, na_value = " ") {
 
   dateformat <- str_replace_all(dateformat, "%-","%")
 
@@ -61,7 +61,7 @@ roboplotr_format_robotable_date <- function(date_col, dateformat) {
     res <- format(date_col, dateformat)
   }
 
-  res |> replace_na(" ")
+  res |> replace_na(na_value)
 }
 
 #' @importFrom dplyr if_else
@@ -81,7 +81,7 @@ roboplotr_format_robotable_numeric <-
 
 #' @importFrom dplyr across bind_cols bind_rows cur_column mutate rename_with where
 roboplotr_robotable_cellformat <-
-  function(d, rounding, flag, unit, na_value, dateformat) {
+  function(d, rounding, flag, unit, na_value, dateformat, na_date) {
 
     # Check if the rounding, flag, and unit parameters are valid
     if (!is.null(names(unit))) {
@@ -152,7 +152,7 @@ roboplotr_robotable_cellformat <-
             roboplotr_format_robotable_numeric(., rounding[[.cur]], flag[[.cur]], unit[[.cur]], na_value)
           }
         ),
-        across(where(is.Date),~ roboplotr_format_robotable_date(., dateformat))
+        across(where(is.Date),~ roboplotr_format_robotable_date(., dateformat, na_date))
         ) |>
         bind_cols(order_cols)
     } else {
@@ -398,8 +398,10 @@ roboplotr_set_robotable_fonts <-
 #' @param rounding Double, named if vector. Controls the rounding of numeric columns.
 #' Give a named vector for specific columns. Default is set with [set_roboplot_options()]
 #' @param dateformat Character. Controls how to format dates displayed on the table.
-#' `robotable()` attempts to determine the proper format if left NULL.
-#' @param na_value Character. How NA values are displayed.
+#' `robotable()` attempts to determine the proper format if left NULL. For complex 
+#' formatting of dates, it is best to pre-format the date columns in `d` and 
+#' display it as a preordered factor.
+#' @param na_value,na_date Character. How NA numerics or dates are displayed.
 #' @param pagelength Numeric. Controls how many rows are displayed on the table.
 #' If `d` contains more rows than this, [robotable()] adds navigation elements.
 #' @param info_text Character. Optional. If included, this text will be displayed
@@ -490,6 +492,7 @@ robotable <-
            flag = "",
            unit = "",
            dateformat = NULL,
+           na_date = " ",
            pagelength = 10,
            info_text = NULL,
            heatmap = NULL,
@@ -514,6 +517,8 @@ robotable <-
     roboplotr_typecheck(searchable, "logical",allow_null = F)
     roboplotr_typecheck(sortable, "logical",allow_null = F)
     roboplotr_typecheck(col_widths, "numeric", NULL)
+    roboplotr_typecheck(na_value, "character", allow_null = F, allow_na = F)
+    roboplotr_typecheck(na_date, "character", allow_null = F, allow_na = F)
     if(!is.null(col_widths)) {
       if (all(!names(col_widths) %in% names(d))) {
         stop("The param 'col_widths' must be a numeric vector with names matching the names from param 'd' or robotable()!", call. = F)
@@ -536,7 +541,7 @@ robotable <-
     roboplotr_typecheck(heatmap, "set_heatmap")
     roboplotr_typecheck(labels, "set_robotable_labels")
 
-    d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value, dateformat)
+    d <- d |> roboplotr_robotable_cellformat(rounding, flag, unit, na_value, dateformat, na_date)
 
     responsive_defs <- NULL
 
