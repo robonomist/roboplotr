@@ -241,7 +241,7 @@ roboplotr_modebar_info_button <- function(btn_list, info_text, title, subtitle, 
 #' @importFrom DT JS
 #' @importFrom fontawesome fa
 #' @importFrom stringr str_detect str_glue
-roboplotr_robotable_modebar <- function(d, id, title, info_text) {
+roboplotr_robotable_modebar <- function(d, id, title, subtitle, caption, info_text) {
 
   # xportoptionsiin pitää vielä lisätä otsikoinnit, optional infotekstit jne
 
@@ -253,6 +253,17 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
   })()
 
   modebar_buttons <- list(
+    "excel" = list(
+      filename = roboplotr_string2filename(title$title),
+      extend = 'excel',
+      text = fa("file-excel", height = "12pt"),
+      exportOptions = xportoptions,
+      header = FALSE,
+      title = "",
+      messageTop = str_c(c(title$title, subtitle), collapse = ", "),
+      messageBottom = caption
+      
+    ),
     "csv" = list(
       filename = roboplotr_string2filename(title$title),
       extend = 'csv',
@@ -274,6 +285,7 @@ roboplotr_robotable_modebar <- function(d, id, title, info_text) {
 
   modebar_buttons[c(
     "csv",
+    "excel",
     ifelse(!is.null(info_text),"info",""),
     ifelse(str_detect(getOption("roboplot.logo"),"robonomist"),"","robonomist"))] |>
     roboplotr_compact() |>

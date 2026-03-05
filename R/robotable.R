@@ -671,6 +671,9 @@ robotable <-
       modal_html <- NULL
     }
 
+    robotable_buttons <-
+      roboplotr_robotable_modebar(d, robotable_id, title, subtitle, caption, info_text)
+    
     if (str_length(subtitle) > 0) {
       subtitle <-
         tagList(tags$br(),
@@ -716,8 +719,6 @@ robotable <-
         )
       ))
 
-    robotable_buttons <-
-      roboplotr_robotable_modebar(d, robotable_id, title, info_text)
 
     getMagnitudes <- function(value) {
       # Initialize an empty vector to store magnitudes

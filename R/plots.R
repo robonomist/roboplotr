@@ -1340,7 +1340,7 @@ roboplotr_get_plot <-
           )), legend$maxwidth) |> fct_inorder())
       }
     }
-
+    
     if ("pie" %in% plot_type) {
       split_d <-
         d |> arrange(!!color) |> group_split(.data$roboplot.plot.type, .data$roboplot.dash)
@@ -1400,6 +1400,8 @@ roboplotr_get_plot <-
         )
       }
     }
+    
+    # d <- d |> mutate(across(any_of(c("roboplot.plot.text", "roboplot.horizontal.label",eval_tidy(hovertext$col))), ~ as.character(.x)))
 
     trace_params <- map(split_d, function(g) {
       tracetype <- unique(g$roboplot.plot.type)
@@ -1641,15 +1643,15 @@ roboplotr_get_plot <-
         #pie
         text =
           if(!is.null(attributes(g)$`roboplot.confidence.area`)) {
-            ~ roboplot.confidence.label
+            ~ I(roboplot.confidence.label)
           } else if (!quo_is_null(hovertext$col)) {
-            as.formula(str_c("~", as_label(hovertext$col)))
+            as.formula(str_c("~I(as.character(", as_label(hovertext$col),"))"))
           } else if (any(
             c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode
           )) {
-            ~ roboplot.horizontal.label
+            ~ I(as.character(roboplot.horizontal.label))
           } else {
-            ~ roboplot.plot.text
+            ~ I(as.character(roboplot.plot.text))
           },
         textangle = if(any(c("horizontal", "horizontalfill", "horizontalstack") %in% g$roboplot.plot.mode)) { "0" } else { NULL },
         textfont = list(color = ~ trace_labels$color %||% roboplot.trace.color, size = ~ trace_labels$size %||% getOption("roboplot.font.main")$size),

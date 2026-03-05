@@ -1,3 +1,8 @@
+# roboplotr 2.8.2.7
+
+* Adds excel button to `robotable()` modebar.
+* Fixes data with a single observation failing to show hovertext correctly in `roboplot()`.
+
 # roboplotr 2.8.2.6
 
 * `roboplot(externalmenu)` now accepts a column name for the externalmenu. Use `set_externalmenu()` when more control is needed.
