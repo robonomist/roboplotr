@@ -1,3 +1,7 @@
+# roboplotr 2.8.2.8
+
+* Fixes legend showing when using `roboplot(legend = set_legend("none"), pattern = set_patter(pattern = some_variable))`.
+
 # roboplotr 2.8.2.7
 
 * Adds excel button to `robotable()` modebar.

@@ -829,7 +829,7 @@ roboplotr_get_pattern_showlegend <- function(d,
                                              pattern,
                                              pattern_showlegend,
                                              legend_position) {
-  if (is.null(pattern_showlegend)) {
+  if (is.null(pattern_showlegend) | is.na(legend_position)) {
     return(NULL)
   }
 
