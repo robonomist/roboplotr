@@ -1,3 +1,10 @@
+# roboplotr 2.8.2.9
+
+* Adds `quiet`to `set_artefacts()`. Quiet artefacts are controlled separately from other verbosity set with `set_roboplot_options(verbose)`.
+* Fixes `roboplot(externalmenu)` not respecting some visual settings, and improves its error messaging.
+* `set_roboplot_options(tidy_legend)` now completely removed in favor of `set_roboplot_options(legend = set_legend(tidy_legend))`.
+* Documentation fixes.
+
 # roboplotr 2.8.2.8
 
 * Fixes legend showing when using `roboplot(legend = set_legend("none"), pattern = set_patter(pattern = some_variable))`.

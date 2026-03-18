@@ -196,8 +196,8 @@ const ORIG = gd._extmenu_original || original;
   `;
   if (cfg.btn?.background) closeBtn.style.background = cfg.btn.background;
   if (cfg.btn?.font.size) closeBtn.style.fontSize = cfg.btn.font.size + 'px';
-  if (cfg.box?.font.color) closeBtn.style.color = cfg.btn.font.color;
-  if (cfg.box?.font.family) closeBtn.style.fontFamily = cfg.btn.font.family;
+  if (cfg.btn?.font.color) closeBtn.style.color = cfg.btn.font.color;
+  if (cfg.btn?.font.family) closeBtn.style.fontFamily = cfg.btn.font.family;
   closeBtn.addEventListener('click', () => { wrap.style.display = 'none'; });
   wrap.querySelector('.drag-bar')?.appendChild(closeBtn);
 
@@ -251,7 +251,7 @@ const ORIG = gd._extmenu_original || original;
   const grid = document.createElement('div');
   grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px 16px; width:100%; align-items:flex-start;';
   wrap.appendChild(grid);
-  
+
   // ---- Selection chip under modebar (dismissable) ----
 let chipDismissed = false;
 
@@ -268,12 +268,12 @@ chip.style.cssText = `
   padding:6px 10px;
   border-radius: 8px;
   opacity: 0.7;
-  background:${cfg.box?.background || '#fff'};
-  border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
-  box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
-  font-family: ${cfg.box?.font.family || 'inherit'};
-  color: ${cfg.box?.font.color || 'inherit'};
-  font-size: ${cfg.box?.font.size || 12}px;
+  background:${cfg.btn?.background || '#fff'};
+  border:${cfg.btn?.border ? `${cfg.btn.border_width}px solid ${cfg.btn.border}` : 'none'};
+  btn-shadow:0 4px 8px ${cfg.btn?.background || '#000'};
+  font-family: ${cfg.btn?.font.family || 'inherit'};
+  color: ${cfg.btn?.font.color || 'inherit'};
+  font-size: ${cfg.btn?.font.size || 12}px;
   line-height:1.2;
   user-select:none;
   white-space:nowrap;

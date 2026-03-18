@@ -19,7 +19,7 @@ has the parameter \code{text}).}
 \item{...}{Other parameters to be passed to template.}
 
 \item{template}{Character. Template for \code{\link[stringr:str_glue]{stringr::str_glue()}} used to parse
-the caption with the given parameters. Must contain the parameter {text}.}
+the caption with the given parameters. Must contain the parameter `text.}
 
 \item{xref}{Character. Either "container" or "plot". Determines if the caption
 is anchored to the plot or the container edge. Ignored for \code{robotable()} and

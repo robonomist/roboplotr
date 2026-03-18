@@ -34,8 +34,8 @@ This function creates a configuration for an external menu that can be used to f
 \examples{
 
 # You might want to make items selectable outside of the legend selection. Use
-# the parameter `externalmenu` with `set_externalmenu()` to provide the column 
-# that controls visiblity of items in the plot available from the `roboplot` 
+# the parameter `externalmenu` with `set_externalmenu()` to provide the column
+# that controls visiblity of items in the plot available from the `roboplot`
 # modebar. See more examples in the `set_externalmenu()` documentation.
 
 energiantuonti |>
@@ -47,10 +47,10 @@ energiantuonti |>
 
 
 # You might want to make items selectable outside of the legend selection. Use
-# the parameter `externalmenu` with `set_externalmenu()` to provide the column 
-# that controls visiblity of items in the plot. This way you can construct, 
+# the parameter `externalmenu` with `set_externalmenu()` to provide the column
+# that controls visiblity of items in the plot. This way you can construct,
 # for example, a horizontal bar plot where you have the legend controlling
-# the color variable, but still filter the items in the y-axis through the 
+# the color variable, but still filter the items in the y-axis through the
 # external menu, available from the `roboplot` modebar.
 
 energiantuonti |>
@@ -60,7 +60,7 @@ energiantuonti |>
            externalmenu = set_externalmenu(Alue)
            )
 
-# You can combine external menu with pattern to have the pattern variable 
+# You can combine external menu with pattern to have the pattern variable
 # controlled by the external menu.
 
 energiantuonti |>
@@ -69,13 +69,13 @@ energiantuonti |>
            externalmenu = set_externalmenu(Suunta)
   )
 
-# You could also use the external menu to control the visibility of items in the 
-# legend to save space on the plot itself. This is not as obvious to user and 
-# the external menu won't have the legend colors available, but can be useful 
+# You could also use the external menu to control the visibility of items in the
+# legend to save space on the plot itself. This is not as obvious to user and
+# the external menu won't have the legend colors available, but can be useful
 # in some situations.
 energiantuonti |>
   dplyr::filter(Suunta == "Tuonti") |>
-  roboplot(Alue, 
+  roboplot(Alue,
            legend = set_legend(position = "none"),
            externalmenu = set_externalmenu(Alue)
   )
@@ -89,9 +89,9 @@ energiantuonti |>
            externalmenu = set_externalmenu(menu)
   )
 
-# You can even filter for the dates, but remember that the external menu is 
-# not meant for filtering the data, but rather for controlling the visibility 
-# of items in the plot. If you want to filter the data, it's better to do it 
+# You can even filter for the dates, but remember that the external menu is
+# not meant for filtering the data, but rather for controlling the visibility
+# of items in the plot. If you want to filter the data, it's better to do it
 # before plotting, or use something more appropriate like a rangeslider.
 energiantuonti |>
   dplyr::filter(Suunta == "Vienti") |>
@@ -113,11 +113,11 @@ energiantuonti |>
 energiantuonti |>
   dplyr::filter(Suunta == "Vienti") |>
   dplyr::mutate(Suunta = ifelse(Alue \%in\% c("Venäjä","Viro","Latvia"), "Itä", "Länsi")) |>
-  roboplot(Alue, 
+  roboplot(Alue,
            externalmenu = set_externalmenu(Suunta))
 
-# You can control the appearance of the externalmenu somewhat by using 
-# `set_infobox()` with set_externalmenu(box, btn), or omit the title with 
+# You can control the appearance of the externalmenu somewhat by using
+# `set_infobox()` with set_externalmenu(box, btn), or omit the title with
 # `set_externalmenu(title = FALSE)`.
 energiantuonti |>
   dplyr::filter(Suunta == "Tuonti") |>
@@ -136,7 +136,7 @@ energiantuonti |>
     )
   )
 
-# Technically, nothing prevents you from using the external menu along with 
+# Technically, nothing prevents you from using the external menu along with
 # legend, but it might be quite confusing for the user.
 
 energiantuonti |>

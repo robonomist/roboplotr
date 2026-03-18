@@ -356,7 +356,7 @@ roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
   patterntypes <- getOption("roboplot.patterntypes")
   if (!is.null(pattern)) {
 
-    if (any((d |> distinct(!!pattern, roboplot.plot.type, roboplot.plot.mode) |> count(!!pattern) |> pull(n)) > 1)) {
+    if (any((d |> distinct(!!pattern, .data$roboplot.plot.type, .data$roboplot.plot.mode) |> count(!!pattern) |> pull(.data$n)) > 1)) {
       stop(str_glue("Too many combinations of `roboplot(plot_type, pattern)`."), call. = F)
     }
     if (!is.factor(d[[as_name(pattern)]])) {
@@ -371,7 +371,7 @@ roboplotr_get_pattern <- function(d, pattern, pattern_type = NULL) {
     } else {
       .default <- c("dash" = dashtypes[1], "bar" = patterntypes[1])
     }
-    
+
     defined_patterns <- roboplotr_set_pattern(d, pattern, pattern_type)
 
     if (!is.null(defined_patterns)) {
@@ -760,10 +760,10 @@ set_heatmap <-
 #' @noRd
 roboplotr_set_pattern <- function(d, pattern, pattern_type) {
   if (!is.null(pattern_type)) {
-    
+
     roboplotr_typecheck(pattern_type, "character", NULL, allow_null = F)
 
-    roboplotr_valid_strings(c(names(pattern_type)), unique(d[[as_label(pattern)]]), all, "Names in `set_pattern(pattern_type)`", placeholder = c(".bar",".scatter")) 
+    roboplotr_valid_strings(c(names(pattern_type)), unique(d[[as_label(pattern)]]), all, "Names in `set_pattern(pattern_type)`", placeholder = c(".bar",".scatter"))
 
     dashtypes <- getOption("roboplot.dashtypes")
     patterntypes <- getOption("roboplot.patterntypes")
@@ -853,7 +853,7 @@ roboplotr_get_pattern_showlegend <- function(d,
   } else {
     pattern_showlegend <- NULL
   }
-  
+
   pattern_showlegend
 }
 
@@ -946,16 +946,17 @@ roboplotr_continuous_pattern <- function(d, along, pattern, group) {
     arrange({{along}})
 }
 
+#' @importFrom stats sd
 roboplotr_dashtypes <- function(n,
                                 px_on  = c(2,3,4,6,7,8,10,12,14),
                                 px_off = c(1,2,3,4,6,7,9,11),
                                 allow_lengths = c(4, 6),
                                 similarity_threshold = 0.22,
                                 seed = 1) {
-  
+
   stopifnot(n >= 1)
   set.seed(seed)
-  
+
   # Plotly default-ish dasharrays (common mapping)
   # (We treat these as "banned" and also ban anything too close.)
   defaults <- list(
@@ -966,39 +967,39 @@ roboplotr_dashtypes <- function(n,
     longdashdot = c(10,5,1,5)
     # solid is "no dasharray" => handled by ensuring we always return a pattern
   )
-  
+
   # Normalize a pattern so scaling doesn't fool similarity checks
   norm_pat <- function(x) {
     x <- as.numeric(x)
     x / sum(x)
   }
-  
+
   # Compare patterns with different lengths by repeating the shorter to match LCM length
   expand_to <- function(x, L) rep(x, length.out = L)
-  
+
   pat_dist <- function(a, b) {
     a <- norm_pat(a); b <- norm_pat(b)
     L <- (length(a) * length(b)) / gcd(length(a), length(b))
     aa <- expand_to(a, L); bb <- expand_to(b, L)
     sqrt(mean((aa - bb)^2))
   }
-  
+
   gcd <- function(a,b) if (b == 0) a else Recall(b, a %% b)
-  
+
   too_close_to_defaults <- function(p) {
     # also reject very "regular" patterns that visually resemble simple dash/dot
     # (e.g., on==off repeating)
     if (length(p) %in% c(2,4,6)) {
       if (sd(p) < 0.6) return(TRUE)  # too uniform
     }
-    
+
     # reject closeness to known defaults
     for (d in defaults) {
       if (pat_dist(p, d) < similarity_threshold) return(TRUE)
     }
     FALSE
   }
-  
+
   # Build candidate patterns (4 or 6 segments: on,off,on,off,...)
   make_candidates <- function(L) {
     # L is number of segments; half "on", half "off"
@@ -1007,41 +1008,41 @@ roboplotr_dashtypes <- function(n,
     offs <- replicate(half, sample(px_off, 1))
     as.vector(rbind(ons, offs))
   }
-  
+
   candidates <- character(0)
   seen <- new.env(parent = emptyenv())
-  
+
   # Generate until we have enough (cap attempts to avoid infinite loops)
   attempts <- 0
   max_attempts <- 50000
-  
+
   while (length(candidates) < n && attempts < max_attempts) {
     attempts <- attempts + 1
     L <- sample(allow_lengths, 1)
     p <- make_candidates(L)
-    
+
     # Avoid patterns that are basically "solid": very long on, tiny off everywhere
     if (sum(p[seq(2, length(p), by = 2)]) <= 2) next
-    
+
     if (too_close_to_defaults(p)) next
-    
+
     key <- paste(p, collapse = ",")
     if (exists(key, envir = seen, inherits = FALSE)) next
     assign(key, TRUE, envir = seen)
-    
+
     candidates <- c(candidates, paste0(p, "px", collapse = ","))
   }
-  
+
   if (length(candidates) < n) {
     warning("Could not generate enough distinct dash patterns under current constraints; returning what I found.")
   }
-  
+
   candidates[seq_len(min(n, length(candidates)))]
 }
 
 
 roboplotr_generate_dashtypes <- function(n, dashtypes) {
   if(n <= length(dashtypes)) return(dashtypes)
-  
+
   c(dashtypes, roboplotr_dashtypes(n-length(dashtypes)))
 }

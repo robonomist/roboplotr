@@ -35,7 +35,6 @@ set_roboplot_options(
   patterns = NULL,
   rounding = NULL,
   table_options = NULL,
-  tidy_legend,
   title = NULL,
   trace_border = NULL,
   trace_colors = NULL,

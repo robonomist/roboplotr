@@ -271,7 +271,6 @@ set_roboplot_options <- function(
     patterns = NULL,
     rounding = NULL,
     table_options = NULL,
-    tidy_legend,
     title = NULL,
     trace_border = NULL,
     trace_colors = NULL,
@@ -421,21 +420,8 @@ set_roboplot_options <- function(
 
     }
 
-    if(is_present(tidy_legend)) {
-      deprecate_warn("2.7.1", "roboplotr::set_roboplot_options(tidy_legend)", "roboplotr::set_roboplot_options(legend = 'is set with set_legend(tidy)')")
-      roboplotr_typecheck(tidy_legend, "logical")
-      if(is.null(legend)) {
-        legend <- set_legend(tidy = tidy_legend)
-      }
-    } else {
-      tidy_legend <- NULL
-    }
-
     if(!is.null(legend)) {
       roboplotr_typecheck(legend, "set_legend")
-      if(!is.null(tidy_legend)) {
-        legend$tidy <- tidy_legend
-      }
       legend <- legend[c("tidy","xref")]
     }
 
@@ -726,7 +712,7 @@ set_locale <- function(locale = "fi-FI") {
               loc == "sv" ~ list(data = "Ladda ner data", plot = "Ladda ner grafen", filter = "Filter"),
               TRUE ~ list(data = "Lataa tiedot", plot = "Lataa kuvio", filter = "Suodata")
     )
-  
+
   externalmenu_labels <- case_when(
     loc %in% c("en","en-US") ~ list(select = "Select all", deselect = "Deselect all", selected = "Selected", limit_reaced = "Selection limit reached"),
     loc == "sv" ~ list(select = "V\uE4lj alla", deselect = "Avmarkera alla", selected = "Vald", limit_reached = "Urvalet gr\uE5nsen n\uE5dd"),
@@ -1100,7 +1086,8 @@ roboplotr_reset_temp_options <- function(.reset) {
 #'
 #' # Your plot might result in a plot without data.
 #'
-#' energiantuonti |> dplyr::filter(Alue == "Samoa") |> roboplot(title = "Samoan energiantuonti", caption = "Tilastokeskus")
+#' energiantuonti |> dplyr::filter(Alue == "Samoa") |>
+#' roboplot(title = "Samoan energiantuonti", caption = "Tilastokeskus")
 #'
 #' # Control your empty plot globally with `set_roboplot_options()`. Message is
 #' # the message you wish to present, and control the visibility of title, caption
@@ -1166,18 +1153,18 @@ roboplotr_empty_roboplot <- function(title, caption, info_text) {
     .info_text <- NULL
   }
 
-  data.frame(Alue = "",
-             time = "",
-             value = "") |>
-    roboplot(
-      Alue,
-      title = .title,
-      caption = .caption,
-      modebar = .modebar,
-      info_text = .info_text,
-      height = getOption("roboplot.height")
+  roboplot(
+    tibble("var" = "",
+           "time" = "",
+           "value" = ""),
+    "var",
+    title = .title,
+    caption = .caption,
+    modebar = .modebar,
+    info_text = .info_text,
+    height = getOption("roboplot.height")
 
-    ) |>
+  ) |>
     add_annotations(
       .msg,
       font = getOption("roboplot.font.main"),

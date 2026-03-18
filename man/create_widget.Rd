@@ -15,6 +15,7 @@ create_widget(
   width = getOption("roboplot.artefacts")$width,
   height = getOption("roboplot.artefacts")$height,
   delay = getOption("roboplot.artefacts")$delay,
+  quiet = getOption("roboplot.artefacts")$quiet,
   ...
 )
 }
@@ -46,6 +47,8 @@ dimensions, if any, for that plot.}
 
 \item{delay}{Numeric. Delay in seconds before taking a screenshot. Used with
 static file creation. Default 0.2.}
+
+\item{quiet}{Logical. Controls whether artefact creation messages are printed. Default FALSE.}
 
 \item{...}{Additional parameters in future use.}
 }

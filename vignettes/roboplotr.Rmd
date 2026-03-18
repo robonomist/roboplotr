@@ -314,14 +314,15 @@ dimensions that we decided the narrow png images will have, so the output
 and png files match.
 
 As you can see from the next few examples, all of this makes the workflow for
-createing dynamic plots very short and simple.
+creating dynamic plots very short and simple.
 
 ```{r fao}
-data_get("tidy/fao_food_price_index") |>
-  filter(Type == "Nominal",Variable == "Food Price Index") |>
+data_get("fao/CP", tidy_time = T) |>
+  filter(str_detect(Area, "economies"), Item == "Consumer Prices, Food Indices (2015 = 100), weighted average") |>
+  arrange(time) |>
   roboplot(
-    Variable,"FAO Monthly Real Food Price Index","Index, 2014–2016=100","FAO"
-    )
+    Area,"FAO Food indices","Index, 2015=100, weighted average","FAO"
+  )
 
 ```
 

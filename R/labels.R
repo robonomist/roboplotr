@@ -223,7 +223,7 @@ roboplotr_title <- function(p, title, subtitle) {
 #' has the parameter `text`).
 #' @param ... Other parameters to be passed to template.
 #' @param template Character. Template for [stringr::str_glue()] used to parse
-#' the caption with the given parameters. Must contain the parameter {text}.
+#' the caption with the given parameters. Must contain the parameter `text.
 #' @param xref Character. Either "container" or "plot". Determines if the caption
 #' is anchored to the plot or the container edge. Ignored for `robotable()` and
 #' `robomap()`.
@@ -304,7 +304,7 @@ set_caption <- function(text = NA, ...,
   xref <- str_replace(xref, "plot","paper")
 
   if(!str_detect(template, "\\{text\\}")) {
-    roboplotr_alert("The caption template does not contain the parameter {text}. Is this intentional?")
+    roboplotr_alert("The caption template does not contain the parameter `text`. Is this intentional?")
   }
 
   font <- substitute(font)
@@ -543,24 +543,24 @@ set_font <- function(font = "Arial", fallback = NULL, size = NULL, color = NULL,
 #'   dplyr::filter(Suunta == "Tuonti") |>
 #'   roboplot(Suunta, legend = set_legend(title = "Example", position = "bottom"))
 #'
-#' # You can preset the initial items visible on the plot by using 
+#' # You can preset the initial items visible on the plot by using
 #' # `set_legend(visible)` with items from the data passed to `roboplot(color)`.
 #'  energiantuonti |>
 #'   filter(Suunta == "Vienti") |>
 #'   roboplot(Alue,
 #'            legend = set_legend(visible = c("Venäjä","Ruotsi"))
 #'   )
-#'   
-#' # You can reverse the legend items with `set_legend(reverse = T)` for whatever 
-#' # purpose you might have. The reverting is in relation to factor levels of the 
+#'
+#' # You can reverse the legend items with `set_legend(reverse = T)` for whatever
+#' # purpose you might have. The reverting is in relation to factor levels of the
 #' # column.
 #' energiantuonti |>
 #'   filter(Suunta == "Vienti") |>
 #'   dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Venäjä") |> fct_rev()) |>
-#'   roboplot(Alue, 
+#'   roboplot(Alue,
 #'            plot_type = c("Venäjä" = "scatter", .other = "bar"),
 #'            legend = set_legend(reverse = T))
-#' 
+#'
 #' # Legend title is distinct from axis-specific legend titles which are controlled
 #' # by `set_axes()` parameters `ylegend` and `y2legend`, when `y2` is used to move
 #' # items from `color` to a secondary y-axis.
@@ -650,9 +650,11 @@ set_legend <- function(...) {
 #' @param tidy Logical. Controls whether the [roboplot][roboplot()] legend items
 #' will have matching widths across columns. Default is FALSE.
 #' @param visible Character. A character vector of legend items initially selected
-#' to be visible in the legend, matching the arg `color` of [roboplot][roboplot()]. 
-#' If NULL, all items are shown. Default is NULL. Items remains selectable to be 
+#' to be visible in the legend, matching the arg `color` of [roboplot][roboplot()].
+#' If NULL, all items are shown. Default is NULL. Items remains selectable to be
 #' visible in the legend regardless of this parameter.
+#' @param xref Character. Either "container" or "plot". Determines if the legend
+#' is positioned in relation to the plot or the container. Ignored for `robomap()`.
 #' @param orientation Character. Currently unused.
 #' @rdname set_legend
 set_plot_legend <- function(position = NULL,

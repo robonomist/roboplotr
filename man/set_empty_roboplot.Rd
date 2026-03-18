@@ -33,7 +33,8 @@ how \link[=roboplot]{roboplots} are displayed when no data is available.
 
 # Your plot might result in a plot without data.
 
-energiantuonti |> dplyr::filter(Alue == "Samoa") |> roboplot(title = "Samoan energiantuonti", caption = "Tilastokeskus")
+energiantuonti |> dplyr::filter(Alue == "Samoa") |>
+roboplot(title = "Samoan energiantuonti", caption = "Tilastokeskus")
 
 # Control your empty plot globally with `set_roboplot_options()`. Message is
 # the message you wish to present, and control the visibility of title, caption

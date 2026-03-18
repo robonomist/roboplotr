@@ -132,7 +132,7 @@ TRUE for automated artefact creation based on \code{\link[=set_roboplot_options]
 
 \item{info_text}{Character. Adds an info button to the modebar with this text, along with plot title and caption.}
 
-\item{updatemenu}{Function. Use \code{\link[=set_updatemenu]{set_updatemenu()}} for detailed control.}
+\item{updatemenu}{Function. Adds a single-select dropdown menu over the plot to filter displayed data. Use \code{\link[=set_updatemenu]{set_updatemenu()}} for detailed control.}
 
 \item{hole}{Numeric. Hole size for pie charts. Between 0 and 0.9, default is 0.}
 
@@ -144,6 +144,8 @@ See documentation of \code{\link[=set_roboplot_options]{set_roboplot_options()}}
 \item{legend_position}{Deprecated. Character. Use \code{legend} instead.}
 
 \item{legend_maxwidth}{Deprecated. Numeric. Use \code{legend} instead.}
+
+\item{externalmenu}{Function. Adds a modebar button for filtering selections of displayed data.  Use \code{\link[=set_externalmenu]{set_externalmenu()}} for detailed control.}
 
 \item{...}{Placeholder for other parameters.}
 }
@@ -349,8 +351,8 @@ d3 |>
   )
 
 # You might want to make items selectable outside of the legend selection. Use
-# the parameter `externalmenu` with `set_externalmenu()` to provide the column 
-# that controls visiblity of items in the plot available from the `roboplot` 
+# the parameter `externalmenu` with `set_externalmenu()` to provide the column
+# that controls visiblity of items in the plot available from the `roboplot`
 # modebar. See more examples in the `set_externalmenu()` documentation.
 
 energiantuonti |>

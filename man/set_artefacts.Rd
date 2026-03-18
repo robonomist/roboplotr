@@ -14,7 +14,8 @@ set_artefacts(
   auto = getOption("roboplot.artefacts")$auto,
   width = getOption("roboplot.artefacts")$width,
   height = getOption("roboplot.artefacts")$height,
-  delay = getOption("roboplot.artefacts")$delay
+  delay = getOption("roboplot.artefacts")$delay,
+  quiet = getOption("roboplot.artefacts")$quiet
 )
 }
 \arguments{
@@ -45,6 +46,8 @@ artefacts created with \code{\link[=roboplot]{roboplot()}}'s \code{artefacts} pa
 dimensions, if any, for that plot.}
 
 \item{delay}{Numeric. Delay in milliseconds before taking a screenshot. Used with static file creation. Default 0.2}
+
+\item{quiet}{Logical. Controls whether artefact creation messages are printed. Default FALSE.}
 }
 \value{
 A list of class roboplot.set_artefacts.

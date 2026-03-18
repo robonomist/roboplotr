@@ -269,7 +269,8 @@ roboplotr_dependencies <- function(p,
 #' params `title`, `plot_axes`, `caption` etc. to control other labels.
 #' @param modebar Function. Use [set_modebar()].
 #' @param info_text Character. Adds an info button to the modebar with this text, along with plot title and caption.
-#' @param updatemenu Function. Use [set_updatemenu()] for detailed control.
+#' @param updatemenu Function. Adds a single-select dropdown menu over the plot to filter displayed data. Use [set_updatemenu()] for detailed control.
+#' @param externalmenu Function. Adds a modebar button for filtering selections of displayed data.  Use [set_externalmenu()] for detailed control.
 #' @param hole Numeric. Hole size for pie charts. Between 0 and 0.9, default is 0.
 #' @param zoom Character of function. Use [set_zoom()], or give "none", "scroll", or "drag".
 #' @param roboplot_options Character. A name of roboplot options set with [set_roboplot_options()] param `name`.
@@ -468,19 +469,19 @@ roboplotr_dependencies <- function(p,
 #'       x = "value"
 #'     )
 #'   )
-#' 
+#'
 #' # You might want to make items selectable outside of the legend selection. Use
-#' # the parameter `externalmenu` with `set_externalmenu()` to provide the column 
-#' # that controls visiblity of items in the plot available from the `roboplot` 
+#' # the parameter `externalmenu` with `set_externalmenu()` to provide the column
+#' # that controls visiblity of items in the plot available from the `roboplot`
 #' # modebar. See more examples in the `set_externalmenu()` documentation.
-#' 
+#'
 #' energiantuonti |>
 #'   dplyr::filter(time == max(time)) |>
 #'   roboplot(Suunta, plot_type = "bar", plot_mode = "horizontal",
 #'            plot_axes = set_axes(x = "value", y = "Alue"),
 #'            externalmenu = set_externalmenu(Alue)
 #'   )
-#' 
+#'
 #' # You can use `secondary_yaxis` to define which observations from 'color' use
 #' # go to a secondary yaxis on the right.
 #' d2 |>
@@ -675,7 +676,7 @@ roboplot <- function(d = NULL,
   roboplotr_typecheck(plot_axes, "set_axes", allow_null = F)
 
   roboplotr_typecheck(zeroline, c("numeric","logical","set_zeroline"), allow_null = F)
-  
+
   externalmenu <- roboplotr_validate_externalmenu(enquo(externalmenu), names(d))
 
   if(!"roboplotr.set_zeroline" %in% class(zeroline)) {
@@ -971,7 +972,7 @@ roboplot <- function(d = NULL,
   d <- roboplotr_set_plot_mode(d, color, plot_mode)
 
   roboplotr_typecheck(line_width, "numeric", size = NULL, extra = "in `roboplot()`")
-  
+
   if (length(line_width) == 1 & is.null(names(line_width))) {
     d <- d |> mutate(roboplot.linewidth = line_width)
   } else {
@@ -1204,7 +1205,7 @@ roboplot <- function(d = NULL,
   }
 
   p <- roboplotr_set_external_menu(p, externalmenu, d)
-  
+
   p <- structure(p, class = c(class(p), "roboplotr","roboplotr.roboplot"))
 
   roboplotr_typecheck(artefacts, c("logical","set_artefacts"), allow_null = F)
@@ -1222,7 +1223,8 @@ roboplot <- function(d = NULL,
         artefacts = params$artefacts,
         height = params$height,
         width = params$width,
-        delay = params$delay
+        delay = params$delay,
+        quiet = params$quiet
       )
     } else {
       p
@@ -1238,7 +1240,8 @@ roboplot <- function(d = NULL,
       artefacts = artefacts$artefacts,
       height = artefacts$height,
       width = artefacts$width,
-      delay = artefacts$delay
+      delay = artefacts$delay,
+      quiet = artefacts$quiet
     )
   }
 
@@ -1340,7 +1343,7 @@ roboplotr_get_plot <-
           )), legend$maxwidth) |> fct_inorder())
       }
     }
-    
+
     if ("pie" %in% plot_type) {
       split_d <-
         d |> arrange(!!color) |> group_split(.data$roboplot.plot.type, .data$roboplot.dash)
@@ -1374,7 +1377,7 @@ roboplotr_get_plot <-
           .data$roboplot.update.menu
         ) |>
         group_split()
-      
+
 
       split_d <- rev(split_d)
 
@@ -1400,7 +1403,7 @@ roboplotr_get_plot <-
         )
       }
     }
-    
+
     # d <- d |> mutate(across(any_of(c("roboplot.plot.text", "roboplot.horizontal.label",eval_tidy(hovertext$col))), ~ as.character(.x)))
 
     trace_params <- map(split_d, function(g) {
@@ -1427,8 +1430,8 @@ roboplotr_get_plot <-
           g,
           roboplot.bg.color = roboplotr_alter_color(.data$roboplot.trace.color, "dark"),
           roboplot.tx.color = roboplotr_text_color_picker(.data$roboplot.bg.color, .fontsize),
-          roboplot.dash = str_remove(roboplot.dash, "\\..*$"),
-          roboplot.pattern = str_remove(roboplot.pattern, "\\..*$")
+          roboplot.dash = str_remove(.data$roboplot.dash, "\\..*$"),
+          roboplot.pattern = str_remove(.data$roboplot.pattern, "\\..*$")
         )
       text_inside <- any(tracetype == "pie" & trace_labels$style != "none", tracetype == "bar" & trace_labels$style %in% c("mini","auto","inside"))
       if (text_inside) {
@@ -1502,7 +1505,7 @@ roboplotr_get_plot <-
         }
       }
 
-      item_visible <- 
+      item_visible <-
         unlist(case_when(is.null(legend$visible) ~ list(T),
                   !all(as.character(unique(g[[as_label(color)]])) %in% legend$visible) ~ list("legendonly"),
                   TRUE ~ list(T)
@@ -1739,8 +1742,8 @@ roboplotr_get_plot <-
           )
         )) #!pie
       )
-      
-      
+
+
       shared_params <-
         c(
           # "customdata",
@@ -1760,7 +1763,7 @@ roboplotr_get_plot <-
           "type",
           "visible"
         )
-      
+
       if(!is.null(externalmenu)) {
         shared_params <- c(shared_params, "customdata")
       }
@@ -1811,7 +1814,7 @@ roboplotr_get_plot <-
 # browser()
       plotting_params
     })
-    
+
 
     add_trace_params <- function(p = p, trace_params = trace_params) {
       for (par in trace_params) {
@@ -1849,7 +1852,7 @@ roboplotr_get_plot <-
       p <- p |> layout(yaxis2 = y2)
 
     }
-    # vapply(p$x$data, function(x) {browser()}, "what") 
+    # vapply(p$x$data, function(x) {browser()}, "what")
     p |>
       layout(updatemenus = updatemenu$menu) |>
       roboplotr_prefilter_externalmenu(externalmenu) |>

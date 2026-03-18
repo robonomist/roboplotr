@@ -198,7 +198,7 @@ roboplotr_set_robotable_css <-
 
     .stripe_color <- list(color = decode_colour(getOption("roboplot.table_options")$stripecolor), opacity = getOption("roboplot.table_options")$stripeopacity)
     .stripeashex <- encode_colour(.stripe_color$color, alpha = .stripe_color$opacity) |> hex8_to_opaque_hex()
-    .stripe_font <- roboplotr:::roboplotr_text_color_picker(.stripeashex)
+    .stripe_font <- roboplotr_text_color_picker(.stripeashex)
     .stripe_color <- str_c(c(as.character(.stripe_color$color),.stripe_color$opacity), collapse = ',')
 
     res <- str_c(
@@ -398,8 +398,8 @@ roboplotr_set_robotable_fonts <-
 #' @param rounding Double, named if vector. Controls the rounding of numeric columns.
 #' Give a named vector for specific columns. Default is set with [set_roboplot_options()]
 #' @param dateformat Character. Controls how to format dates displayed on the table.
-#' `robotable()` attempts to determine the proper format if left NULL. For complex 
-#' formatting of dates, it is best to pre-format the date columns in `d` and 
+#' `robotable()` attempts to determine the proper format if left NULL. For complex
+#' formatting of dates, it is best to pre-format the date columns in `d` and
 #' display it as a preordered factor.
 #' @param na_value,na_date Character. How NA numerics or dates are displayed.
 #' @param pagelength Numeric. Controls how many rows are displayed on the table.
@@ -673,7 +673,7 @@ robotable <-
 
     robotable_buttons <-
       roboplotr_robotable_modebar(d, robotable_id, title, subtitle, caption, info_text)
-    
+
     if (str_length(subtitle) > 0) {
       subtitle <-
         tagList(tags$br(),
@@ -792,7 +792,7 @@ function preInitFunction(settings, json) {
     is_responsive <- function(responsive) {
       if(is.null(responsive)) {NULL} else { "Responsive" }
     }
-    
+
     dt <- d |>
       # filter(row_number() <= 100) |>
       datatable(
@@ -820,7 +820,7 @@ function preInitFunction(settings, json) {
           )
       ) |>
       roboplotr_set_robotable_fonts(seq(ncol(d)))
-    
+
     dt
 
     dt <- roboplotr_tbl_heatmap(d, dt, heatmap)

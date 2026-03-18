@@ -232,11 +232,10 @@ roboplotr_round_magnitude <- function(vals, rounding, .fun = ceiling) {
 
 }
 
-#' Internal setter for robomap zoom options
 roboplotr_set_zoom <- function(zoom, where = "in `robomap(zoom)`") {
-  
+
   roboplotr_typecheck(zoom, c("logical","character"), allow_null = F, size = NULL, extra = where)
-  
+
   if(!is.logical(zoom)) {
     roboplotr_valid_strings(zoom, c("scrollwheel", "doubleclick", "touch", "box", "buttons"), any, "`robomap(zoom)`")
     zooms <- c(scrollWheelZoom = "scrollwheel", doubleClickZoom = "doubleclick", touchZoom = "touch", boxZoom = "box", buttons = "buttons")
@@ -244,7 +243,7 @@ roboplotr_set_zoom <- function(zoom, where = "in `robomap(zoom)`") {
   } else {
     rep(zoom, 5) |> setNames(c("scrollWheelZoom", "doubleClickZoom","touchZoom","boxZoom","buttons"))
   }
-  
+
 }
 
 #' Comprehensive leaflet wrapper function
@@ -464,7 +463,7 @@ robomap <-
 
     roboplotr_typecheck(viscosity, "numeric", allow_null = F)
     roboplotr_is_between(viscosity, "robomap")
-    
+
     roboplotr_typecheck(legend,
                         c("numeric", "set_legend"),
                         allow_null = F,
@@ -614,9 +613,9 @@ robomap <-
     robomap_id <- str_c("robomap-", str_remove(runif(1), "\\."))
 
     map_pal <- robomap_palette(d$robomap.value)
-    
+
     leafletargs <- zoom[names(zoom) != "buttons"] |> append(list(zoomControl = F, preferCanvas = F))
-    
+
     this_map <- leaflet::leaflet(
       d,
       height = height,
@@ -691,7 +690,7 @@ robomap <-
     viscosity <- ifelse(viscosity > 0, str_glue("var initBounds = map.getBounds();
       map.setMaxBounds(initBounds);
       map.options.maxBoundsViscosity = {viscosity};"),"")
-    
+
     this_map <- this_map |>
       onRender(
         str_glue(

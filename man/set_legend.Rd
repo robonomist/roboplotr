@@ -63,6 +63,9 @@ visible in the legend regardless of this parameter.}
 \item{tidy}{Logical. Controls whether the \link[=roboplot]{roboplot} legend items
 will have matching widths across columns. Default is FALSE.}
 
+\item{xref}{Character. Either "container" or "plot". Determines if the legend
+is positioned in relation to the plot or the container. Ignored for \code{robomap()}.}
+
 \item{breaks}{Numeric vector. A length 1 vector attempts to make that many
 \link[=robomap]{robomap} legend entries. Length 2+ vector should be the breaks in
 values of param \code{d} of \link[=robomap]{robomap} where the legend should be split.}
@@ -101,21 +104,21 @@ d |>
   dplyr::filter(Suunta == "Tuonti") |>
   roboplot(Suunta, legend = set_legend(title = "Example", position = "bottom"))
 
-# You can preset the initial items visible on the plot by using 
+# You can preset the initial items visible on the plot by using
 # `set_legend(visible)` with items from the data passed to `roboplot(color)`.
  energiantuonti |>
   filter(Suunta == "Vienti") |>
   roboplot(Alue,
            legend = set_legend(visible = c("Venäjä","Ruotsi"))
   )
-  
-# You can reverse the legend items with `set_legend(reverse = T)` for whatever 
-# purpose you might have. The reverting is in relation to factor levels of the 
+
+# You can reverse the legend items with `set_legend(reverse = T)` for whatever
+# purpose you might have. The reverting is in relation to factor levels of the
 # column.
 energiantuonti |>
   filter(Suunta == "Vienti") |>
   dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Venäjä") |> fct_rev()) |>
-  roboplot(Alue, 
+  roboplot(Alue,
            plot_type = c("Venäjä" = "scatter", .other = "bar"),
            legend = set_legend(reverse = T))
 
