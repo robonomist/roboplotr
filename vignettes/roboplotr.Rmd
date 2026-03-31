@@ -43,15 +43,22 @@ different device widths, in which case you would not give set widths to the
 plots.
 
 Every function parameter we use here (and the ones we don't) have an example of
-use in the function documentation.
+use in the function documentation. Datasets used are mostly internal to `roboplotr`
+created for these examples, but they are all created with `robonomistClient` and 
+the `tidyverse` family of packages, and the code for creating them is in the package 
+vignettes.R file under data_raw, so you can easily create them yourself if you want 
+to follow along.
 
 ## Setting the global options
 
 First off, we use `set_roboplot_options()` to set some global options to define 
 some visual and other specifications. We create the directory "plots" in tempdir()
-to store any files created in.
+to store any files created in. We also load the vignette data here. 
 
 ```{r roboplot_options}
+
+library(tidyverse)
+library(lubridate)
 
 dir.create(file.path(tempdir(), "plots"))
 
@@ -61,18 +68,16 @@ set_roboplot_options(
     auto = T,
     artefacts = "png"
     ),
-  caption_template = "Source: {text}.",
+  caption = set_caption(template = "Source: {text}."),
   height = 400,
   imgdl_wide = set_imgdl_layout(
     width = 650,
     height = 400,
-    suffix = "",
     format = "png"
   ),
   imgdl_narrow = set_imgdl_layout(
     width = 550,
     height = 440,
-    suffix = "",
     format = "png"
   ),
   modebar = c(
@@ -90,6 +95,13 @@ set_roboplot_options(
   xaxis_ceiling = "guess",
   verbose = "Warning"
 )
+
+
+for(.data in list.files(system.file("extdata", package = "roboplotr"))) {
+   load(system.file("extdata", .data, package = "roboplotr"))
+}
+
+
 ```
 
 Above we defined the logo used in the plots, defined how captions are 
@@ -134,28 +146,9 @@ create our first plot.
 ## Basic use
 
 ```{r gdp}
-library(tidyverse)
-library(robonomistClient)
-library(lubridate)
 
-d <-  data_get("oecd/DSD_EO@DF_EO") |>
-  filter(
-    REF_AREA %in% c("Finland", "Euro area (17 countries)", "United States", 
-                   "United Kingdom", "Japan"),
-    FREQ == "Quarterly",
-    MEASURE == "Gross domestic product, volume, market prices",
-    time >= "2017-01-01"
-  ) |>
-  collect() |>
-  with_groups(
-    REF_AREA, mutate,
-    value = 100 * value / mean(value[year(time) == 2019])
-  ) |>
-  mutate(Country = recode(REF_AREA, "Euro area (17 countries)" = "Euro area"))
-
-attr(d, "frequency") <- "Quarterly"
-
-roboplot(d,
+vignette_data_oecd_gdp |>
+  roboplot(
     Country,
     title = "Real GDP forecasts",
     subtitle = "Index, 2019=100",
@@ -181,32 +174,9 @@ Next we will create another plot, with a caption that does not respect the
 globally set format.
 
 ```{r inflation}
-inflation_eu <-
-  data_get("eurostat/prc_hicp_manr") |>
-  filter(
-    unit == "Annual rate of change",
-    coicop == "All-items HICP",
-    geo %in% c("Germany (until 1990 former territory of the FRG)",
-      "Euro area - 19 countries  (from 2015)","Finland","Sweden"),
-    time >= "2015-01-01"
-  ) |>
-  mutate(
-    geo = recode(geo,
-      "Euro area - 19 countries  (from 2015)" = "Euro area",
-      "Germany (until 1990 former territory of the FRG)" = "Germany"
-    )
-  ) |>
-  select(geo, time, value)
 
-inflation_us <-
-  data_get("fred/CPIAUCSL", units = "pc1") |>
-  drop_na() |>
-  filter(time >= "2015-01-01") |>
-  transmute(geo = "USA", time, value)
-
-d <- bind_rows(inflation_us, inflation_eu)
-
-d |> roboplot(geo, "Consumer price inflation","Annual change of HICP, %",
+vignette_data_es_fred_inflation |> 
+  roboplot(Country, "Consumer price inflation","Annual change of HICP, %",
                   caption = set_caption(template = "Sources: Eurostat & US BLS."))
 ```
 
@@ -221,19 +191,8 @@ Next we make a horizontal plot on producer prices, where we need to be be a bit
 more verbose with plot axes.
 
 ```{r producer_prices}
-d <-
-  data_get(
-    "StatFin/thi/statfin_thi_pxt_118g.px", lang = "en", tidy_time = TRUE) |>
-  filter(str_detect(
-    `Products by activity (CPA 2015, MIG)`,
-    "^(01|02|03|07|08|10|16|17|19|20|21|22|23|24|25|26|27|28|29|30|35|36|42) "),
-    `Index series` %in% c("Producer price index for manufactured products"),
-    Information %in% c("Annual change, %")
-  ) |>
-  filter(time == max(time)) |>
-  rename(CPA = `Products by activity (CPA 2015, MIG)`) |>
-  drop_na(value) |>
-  mutate(CPA = fct_reorder(str_replace(CPA, "[0-9]{2} ", ""), value))
+
+d <- vignette_data_statfin_producer_prices
 
 d_title <- str_c("Producer prices in Finland ",format(unique(d$time), "%m/%Y"))
 
@@ -281,16 +240,8 @@ Next we will create another plot with only a single observation and different
 dimensions, this time a line plot.
 
 ```{r producer price index}
-data_get("tidy/thi") |>
-  filter(
-    Indeksisarja == "Teollisuuden tuottajahintaindeksi",
-    Tiedot == "Pisteluku (2015=100)",
-    Toimiala == "Yhteensä"
-  ) |>
-  mutate(value = 100 * (value / lag(value, 12) - 1),
-         Indeksisarja = "Producer Price Index for Manufactured Products") |>
-  drop_na() |>
-  roboplot(Indeksisarja,
+vignette_data_statfin_producer_price_manufacture |>
+  roboplot(Series,
     "Producer Price Index for Manufactured Products",
     "Annual change, %",
     "Statistics Finland",
@@ -317,9 +268,7 @@ As you can see from the next few examples, all of this makes the workflow for
 creating dynamic plots very short and simple.
 
 ```{r fao}
-data_get("fao/CP", tidy_time = T) |>
-  filter(str_detect(Area, "economies"), Item == "Consumer Prices, Food Indices (2015 = 100), weighted average") |>
-  arrange(time) |>
+vignette_data_fao_food_price_index |>
   roboplot(
     Area,"FAO Food indices","Index, 2015=100, weighted average","FAO"
   )
@@ -333,15 +282,7 @@ the correct date format from data frequency and zoom level. Sometimes you have
 a specific format in mind, and we'll cover these next.
 
 ```{r petrol}
-data_get("tidy/ec_oil_bulletin") |>
-  filter(
-    Country %in% c("Finland","Sweden", "Denmark"), 
-    Variable == "Euro-super 95", 
-    Taxes == T, 
-    time >= "2018-01-01") |>
-  mutate(
-    value = value / 1000,
-    Country = recode(Country, FI = "Finland", DE = "Germany", SE = "Sweden")) |>
+vignette_data_ec_petrol_price |>
   roboplot(
     Country,
     "Petrol price, 95E10",
@@ -356,21 +297,11 @@ data_get("tidy/ec_oil_bulletin") |>
 
 
 ```{r electricity}
-d <-
-  str_c("entsoe/dap_", c("FI","DE_LU","SE3","FR")) |>
-  map(data_get, start_time = "2020-01-01") |>
-  bind_rows() |>
-  arrange(time) |>
-  group_by(Area) |>
-  mutate(
-    ma28 = slider::slide_index_dbl(value, time, mean, .before = days(28))
-  ) |>
-  group_by(Area, time = floor_date(time, "days") |> as_date()) |>
-  summarise(value = mean(ma28), .groups = "drop") |>
-  arrange(Area, time)
-
-d |>
-  roboplot(Area,"Electricity prices, 28-day moving average","€/MWh","Entso-E")
+vignette_data_entsoe_electricity_price |>
+  roboplot(Area,
+           "Electricity prices, 28-day moving average",
+           "€/MWh",
+           "Entso-E")
 ```
 
 We wanted to to ensure these x-axes are always displayed in years for the first
@@ -387,25 +318,11 @@ option.
 `roboplot()` uses the mean of column `value` if it exists to factorize the column
 used for `color` if it's not factorized beforehand, and displays the trace and
 legend in that order. If you want to specify another order you have to transform
-the data itself as in the examples that follow.
+the data itself as has been done in the examples that follow.
 
 ```{r sentiment_average}
-d <- data_get("ec/esi_nace2") |>
-  filter(
-    Country %in% 
-      c("European Union (current composition)", "Finland", "Germany", "Sweden"),
-    Indicator == 
-      "The Economic sentiment indicator is a composite measure (average = 100)",
-    time >= "2017-01-01"
-  ) |>
-  mutate(
-    Country = 
-      recode(Country, "European Union (current composition)" = "EU") |>
-      fct_relevel("EU","Finland"),
-    Indicator = "Economic sentiment indicator"
-    )
-
-d |> roboplot(
+vignette_data_ec_ecomomic_sentiment |> 
+  roboplot(
     Country,
     "Economic sentiment indicator",
     "Score, 100 = long-run average",
@@ -415,45 +332,9 @@ d |> roboplot(
 
 
 ```{r consumer_confidence_eu}
-data_get("ec/esi_nace2") |> 
-  filter(Country %in% c("European Union (current composition)", "Finland"),
-         Indicator == "Consumer confidence indicator (20%)",
-         time >= "1996-01-01"
-         ) |> 
-  mutate(
-    Country = recode(Country, "European Union (current composition)" = "EU") |>
-      fct_relevel("EU","Finland")
-    ) |>
+vignette_data_ec_consumer_confidence |>
   roboplot(
     Country, "Consumer confidence indicator","Score","European Commission"
-    )
-```
-
-Note that `forcats::fct_relevel2()` from forcats behaves differently than `forcats::fct_relevel()`.
-
-```{r consumer_confidence}
-d <-
-  data_get("oecd/DSD_KEI@DF_KEI",
-         dl_filter = "FIN+CHN+USA+EA19+JPN.M.CCICP....") |>
-  filter(FREQ == "Monthly")
-attr(d, "frequency") <- "Monthly"
-
-d |>
-  select(REF_AREA, time, value) |>
-  filter(time >= "2000-01-01") |>
-  mutate(REF_AREA = recode(REF_AREA,
-    "United States" = "USA",
-    "China (People's Republic of)" = "China",
-    "Euro area (19 countries)" = "Euro area"
-  )) |>
-  with_groups(REF_AREA, mutate,
-    value = 10 * scale(value)[, 1] + 100,
-    value = 100 * value / mean(value[year(time) == 2019])
-  ) |>
-  filter(time >= "2018-01-01") |>
-  mutate(REF_AREA = fct_reorder2(REF_AREA, value, time,.desc = F)) |> 
-  roboplot(
-    REF_AREA,"Consumer Confidence Indicator","Index, 2019 = 100","OECD"
     )
 ```
 
@@ -464,21 +345,16 @@ plotly plots have, so we will use the `zeroline` parameter. Zeroline can also
 take a numeric value which locates the zeroline at the given y-axis location.
 
 ```{r, short_term_interest}
-data_get("tidy/euribor") |>
-  filter(str_detect(Korko, "(1|6|12) kk.*360")) |> 
-  mutate(Korko = str_remove(Korko,"\\(.*") |> fct_inorder()) |>
-  filter(time >= "2014-01-01") |>
-  roboplot(Korko,"Short-term interest rates, Euribor","%","Bank of Finland",
-    zeroline = TRUE
-  )
+vignette_data_bof_euribor |>
+  roboplot(Interest,
+           "Short-term interest rates, Euribor",
+           "%",
+           "Bank of Finland",
+           zeroline = TRUE)
 ```
 
 ```{r bond_rates}
-data_get("tidy/10yield") |>
-  drop_na() |>
-  filter(time >= "2012-01-01") |>
-  select(Maa, time, value) |>
-  mutate(Maa = recode(Maa, "Suomi" = "Finland", "Saksa" = "Germany")) |>
+vignette_data_bof_db_fed_yields |>
   roboplot(
     Maa,
     "Long-term government bond rates",
@@ -492,25 +368,7 @@ data_get("tidy/10yield") |>
 For the next plot we need to plot data other than dates as x-axis values.
 
 ```{r yield_curves}
-data_get("ecb/YC",
-     dl_filter = "B.U2.EUR.4F.G_N_A.SV_C_YM.",
-     query_args = list(startPeriod = "2022-01-01"),
-     labels = FALSE
-     ) |>
-  filter(`Financial market data type` |> str_starts("SR_")) |>
-  filter(
-    time %in% c(max(time), min(time), as.Date(c("2022-02-28","2022-06-01")))
-  ) |>
-  mutate(
-    Year = str_match(`Financial market data type`, "([[:digit:]]*)Y")[,2],
-    Month = str_match(`Financial market data type`, "([[:digit:]]*)M")[, 2]
-  ) |>
-  mutate(across(c(Year, Month), as.integer)) |>
-  replace_na(list(Year = 0, Month = 0)) |>
-  mutate(Maturity = Year + Month / 12) |>
-  select(Maturity, time, value) |>
-  mutate(Time = as.character(time)) |>
-  arrange(Maturity, value) |>
+vignette_data_ecb_yield_curves|>
   roboplot(
     Time,
     "Yield curves for AAA euro area government bonds",
@@ -531,17 +389,10 @@ traces are drawn correctly, you have to order the data yourself before using it
 it in `roboplot()`.
 
 ```{r unemployment, eval = F, include = F}
-data_get("eurostat/une_rt_m") |>
-  filter(s_adj == "Seasonally adjusted data, not calendar adjusted data",
-         age == "Total", 
-         unit == "Percentage of population in the labour force",
-         sex == "Total",
-         str_detect(geo, "Fin|Europ|United S|Jap|Swe"),
-         time >= "2019-01-01") |>
-  mutate(
-    geo = recode(geo, "European Union - 27 countries (from 2020)" = "EU")) |>
+vignette_data_es_unemployment |>
   roboplot(
-    geo,"Unemployment rate","%, seasonally adjusted","Eurostat",
+    Area,
+    "Unemployment rate","%, seasonally adjusted","Eurostat",
     height = 440,
     width = 550
     )

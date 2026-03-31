@@ -1096,9 +1096,9 @@ roboplotr_reset_temp_options <- function(.reset) {
 #' set_roboplot_options(
 #'   empty_roboplot = set_empty_roboplot(
 #'     message = "Valituilla asetuksilla ei löytynyt dataa.\nKokeile muuttaa asetuksia.",
-#'     title = F,
-#'     caption = T,
-#'     modebar = T
+#'     title = FALSE,
+#'     caption = TRUE,
+#'     modebar = TRUE
 #'     )
 #' )
 #'

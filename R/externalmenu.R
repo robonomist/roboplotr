@@ -72,7 +72,7 @@
 #'   dplyr::filter(Suunta == "Vienti") |>
 #'   roboplot(Alue,
 #'            externalmenu = set_externalmenu(time),
-#'            rangeslider = T
+#'            rangeslider = TRUE
 #'   )
 #'
 #' # Or at least construct a reasonable filter for an appropriate plot.
@@ -101,7 +101,7 @@
 #'     legend = set_legend(position = "none"),
 #'     externalmenu = set_externalmenu(
 #'       Alue,
-#'       title = F,
+#'       title = FALSE,
 #'       box = set_infobox(background = "orange"),
 #'       btn = set_infobox(
 #'         border = "brown",
@@ -130,9 +130,9 @@ set_externalmenu <- function(
     selected = NULL
 ) {
 
-  roboplotr_typecheck(title, "logical", allow_null = F)
-  roboplotr_typecheck(max_items, "numeric", allow_null = T)
-  roboplotr_typecheck(selected, size = NULL, "character", allow_null = T)
+  roboplotr_typecheck(title, "logical", allow_null = FALSE)
+  roboplotr_typecheck(max_items, "numeric", allow_null = TRUE)
+  roboplotr_typecheck(selected, size = NULL, "character", allow_null = TRUE)
   col <- enquo(col)
   if (quo_is_null(col)) return(NULL)
 

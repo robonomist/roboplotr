@@ -43,9 +43,9 @@ roboplot(title = "Samoan energiantuonti", caption = "Tilastokeskus")
 set_roboplot_options(
   empty_roboplot = set_empty_roboplot(
     message = "Valituilla asetuksilla ei löytynyt dataa.\nKokeile muuttaa asetuksia.",
-    title = F,
-    caption = T,
-    modebar = T
+    title = FALSE,
+    caption = TRUE,
+    modebar = TRUE
     )
 )
 

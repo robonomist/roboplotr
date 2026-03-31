@@ -293,11 +293,11 @@ set_axes <-
            xstep = NULL
            ) {
 
-    x <- first(as.character(substitute(x)))
-    y <- first(as.character(substitute(y)))
+    x <- eval_tidy(x)
+    y <- eval_tidy(y)
     
-    if(is.na(x)) {x <- NULL}
-    if(is.na(y)) {y <- NULL}
+    if(is.na(x %||% NA)) {x <- NULL}
+    if(is.na(y %||% NA)) {y <- NULL}
     
     if (is.null(y)) {
       y <- "value"
@@ -410,6 +410,7 @@ set_axes <-
 
     .res
   }
+
 
 roboplotr_set_ticktypes <- function(d, axis_specs) {
 

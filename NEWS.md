@@ -1,3 +1,8 @@
+# roboplotr 2.8.2.10
+
+* Fixes a `set_axes()` bug that did not evaluate axes correctly when passed as symbolics.
+* Rewrites vignettes to use internal data.
+
 # roboplotr 2.8.2.9
 
 * Adds `quiet`to `set_artefacts()`. Quiet artefacts are controlled separately from other verbosity set with `set_roboplot_options(verbose)`.
