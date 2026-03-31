@@ -1,0 +1,136 @@
+# Font configuration for modebar exports.
+
+Parameters to customize plot layout when exported from modebar.
+
+## Usage
+
+``` r
+set_imgdl_layout(
+  width = 1280,
+  height = 720,
+  mainfont = getOption("roboplot.font.main")$size,
+  titlefont = getOption("roboplot.font.title")$size,
+  captionfont = getOption("roboplot.font.caption")$size,
+  suffix = "",
+  format = "png",
+  button_label = getOption("roboplot.locale")$modebar_label$plot
+)
+```
+
+## Arguments
+
+- height, width:
+
+  Numeric. The dimensions for the export file in pixels.
+
+- mainfont, titlefont, captionfont:
+
+  Numeric. The font sizes used in the export the modebar button will
+  produce.
+
+- suffix:
+
+  Character. Suffix attached after the name of the export.
+
+- format:
+
+  Character. One of "png", "svg", "jpg", or "webp". Defines the file
+  format of the export.
+
+- button_label:
+
+  Character. The label for the modebar button.
+
+## Value
+
+A list of class of roboplotr.set_imgdl_layout
+
+## Examples
+
+``` r
+# Used inside `set_roboplot_options()` to control modebar export specifications
+# globally. Parameters `x` and `y` control the dimensions. Override plot font
+# sizes with `mainfont`, `titlefont`, and `captionfont`. You can give a suffix
+# for export filenames (the filename is derived from title), and provide any
+# one of "png","svg","jpeg", or "webp" the for `format`.
+
+if (FALSE) { # \dontrun{
+set_roboplot_options(
+  imgdl_wide =
+    set_imgdl_layout(
+      width = 1400,
+      height = 350,
+      mainfont = 16,
+      titlefont = 24,
+      captionfont = 14,
+      suffix = "",
+      format = "svg")
+)
+
+# Create a `roboplot()` and navigate to it, and download your static
+# image by clicking the appropriate button in the modebar.
+energiantuonti |>
+  dplyr::filter(Suunta == "Tuonti") |>
+  roboplot(
+    color = Alue,
+    title = "Energian tuonti",
+    subtitle = "Milj. €",
+    caption = "Tilastokeskus",
+    artefacts = set_artefacts("html", filepath = tempdir())
+  )
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
+
+# Static image downloads are controlled through the modebar, so if you use
+# other than "img_wide" you need to use `set_roboplot_options()` to
+# control the modebar accordingly in addition to giving the downloaded image
+# specifications (`roboplot()` does have some defaults in place
+# for every size, so you can skip image specifications even if you do add
+# use other image download buttons in the modebar). With multiple image
+# download buttons the `suffix` parameter is especially handy.
+
+set_roboplot_options(
+  imgdl_wide =
+    set_imgdl_layout(
+      width = 1400,
+      height = 350,
+      mainfont = 16,
+      titlefont = 24,
+      captionfont = 14,
+      suffix = "_wide"),
+  imgdl_narrow =
+    set_imgdl_layout(
+      width = 400,
+      height = 600,
+      mainfont = 16,
+      titlefont = 24,
+      captionfont = 14,
+      suffix = "_narrow"),
+  modebar = c("img_w","img_n","img_s")
+)
+
+ # Create a `roboplot()` and navigate to it, and download any of the
+ # static images through the modebar.
+  energiantuonti |>
+    dplyr::filter(Suunta == "Tuonti") |>
+    roboplot(
+      color = Alue,
+      title = "Energian tuonti",
+      subtitle = "Milj. €",
+      caption = "Tilastokeskus",
+      artefacts = set_artefacts("html", filepath = tempdir())
+    )
+  utils::browseURL(paste0(tempdir(),"/energian_tuonti.html"))
+
+# Do note that plotly cannot handle multiple modebar buttons with the same name.
+# If you want to use multiple image download buttons, you need to give them unique
+# names, but you can circumvent this by using some unicode invisible characters.
+
+set_roboplot_options(
+  imgdl_narrow = set_imgdl_layout(button_label = "Lataa kuva"),
+  imgdl_wide = set_imgdl_layout(button_label = "Lataa kuva\U2060")
+)
+
+# Revert to defaults:
+set_roboplot_options(reset = "roboplotr")
+} # }
+```

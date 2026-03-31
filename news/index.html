@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">roboplotr</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.7.6</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">2.8.2.10</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -33,6 +33,103 @@
       <small>Source: <a href="https://github.com/robonomist/roboplotr/blob/main/NEWS.md" class="external-link"><code>NEWS.md</code></a></small>
     </div>
 
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.10" id="roboplotr-28210">roboplotr 2.8.2.10<a class="anchor" aria-label="anchor" href="#roboplotr-28210"></a></h2>
+<ul><li>Fixes a <code><a href="../reference/set_axes.html">set_axes()</a></code> bug that did not evaluate axes correctly when passed as symbolics.</li>
+<li>Rewrites vignettes to use internal data.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.9" id="roboplotr-2829">roboplotr 2.8.2.9<a class="anchor" aria-label="anchor" href="#roboplotr-2829"></a></h2>
+<ul><li>Adds <code>quiet</code>to <code><a href="../reference/set_artefacts.html">set_artefacts()</a></code>. Quiet artefacts are controlled separately from other verbosity set with <code>set_roboplot_options(verbose)</code>.</li>
+<li>Fixes <code>roboplot(externalmenu)</code> not respecting some visual settings, and improves its error messaging.</li>
+<li>
+<code>set_roboplot_options(tidy_legend)</code> now completely removed in favor of <code>set_roboplot_options(legend = set_legend(tidy_legend))</code>.</li>
+<li>Documentation fixes.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.8" id="roboplotr-2828">roboplotr 2.8.2.8<a class="anchor" aria-label="anchor" href="#roboplotr-2828"></a></h2>
+<ul><li>Fixes legend showing when using <code>roboplot(legend = set_legend("none"), pattern = set_patter(pattern = some_variable))</code>.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.7" id="roboplotr-2827">roboplotr 2.8.2.7<a class="anchor" aria-label="anchor" href="#roboplotr-2827"></a></h2>
+<ul><li>Adds excel button to <code><a href="../reference/robotable.html">robotable()</a></code> modebar.</li>
+<li>Fixes data with a single observation failing to show hovertext correctly in <code><a href="../reference/roboplot.html">roboplot()</a></code>.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.6" id="roboplotr-2826">roboplotr 2.8.2.6<a class="anchor" aria-label="anchor" href="#roboplotr-2826"></a></h2>
+<ul><li>
+<code>roboplot(externalmenu)</code> now accepts a column name for the externalmenu. Use <code><a href="../reference/set_externalmenu.html">set_externalmenu()</a></code> when more control is needed.</li>
+<li>Fix for axis ordering when using <code>roboplot(plot_mode = "horizontal", externalmenu = set_externalmenu(param))</code>.</li>
+<li>Fix for <code>roboplot(plot_mode = "horizontal")</code> automatic hoverlabel labeling fix.</li>
+<li>Added missing <code><a href="https://dplyr.tidyverse.org/reference/count.html" class="external-link">dplyr::count</a></code> dependency.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.5" id="roboplotr-2825">roboplotr 2.8.2.5<a class="anchor" aria-label="anchor" href="#roboplotr-2825"></a></h2>
+<ul><li>Critical pattern validation bug fix.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.4" id="roboplotr-2824">roboplotr 2.8.2.4<a class="anchor" aria-label="anchor" href="#roboplotr-2824"></a></h2>
+<ul><li>Various validation improvements.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.3" id="roboplotr-2823">roboplotr 2.8.2.3<a class="anchor" aria-label="anchor" href="#roboplotr-2823"></a></h2>
+<ul><li>Extends needed pattern types beyond the plotly defaults (“solid”, “dash”, “dot” etc.) when the number of category items is large.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.2" id="roboplotr-2822">roboplotr 2.8.2.2<a class="anchor" aria-label="anchor" href="#roboplotr-2822"></a></h2>
+<ul><li>Switches roboplotr relayouting scripts to un-minified version until minifying issues are resolved. This should not cause any issues, but might make the package slightly larger.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2.1" id="roboplotr-2821">roboplotr 2.8.2.1<a class="anchor" aria-label="anchor" href="#roboplotr-2821"></a></h2>
+<ul><li>Fixes a <code>robolot(externalmenu)</code> preselection issue, and prevents the concurrent usage of <code>robolot(externalmenu, updatemenu)</code>.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.2" id="roboplotr-282">roboplotr 2.8.2<a class="anchor" aria-label="anchor" href="#roboplotr-282"></a></h2>
+<ul><li>Added params <code>set_external_menu(selected, max_length)</code> to control the initial selection and maximum length of items shown in the external menu created with <code>set_external_menu()</code>.</li>
+<li>Fixes a <code>robolot(updatemenu)</code> issue on render.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.1.1" id="roboplotr-2811">roboplotr 2.8.1.1<a class="anchor" aria-label="anchor" href="#roboplotr-2811"></a></h2>
+<ul><li>
+<code>set_external_menu()</code> documentation added</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.1" id="roboplotr-281">roboplotr 2.8.1<a class="anchor" aria-label="anchor" href="#roboplotr-281"></a></h2>
+<ul><li>
+<code>set_external_menu()</code> formalized to be used in <code>roboplot(externalmenu)</code> with validation, allowing for an external menu to be used for controlling the visibility of elements in any `roboplot(). See the documentation.</li>
+<li>Adds param <code>visible</code> to <code><a href="../reference/set_legend.html">set_legend()</a></code> to control the initially visible legend items of <code><a href="../reference/roboplot.html">roboplot()</a></code>s.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.8.0" id="roboplotr-280">roboplotr 2.8.0<a class="anchor" aria-label="anchor" href="#roboplotr-280"></a></h2>
+<ul><li>Adds experimental <code>set_external_menu()</code> to supplement <code><a href="../reference/set_updatemenu.html">set_updatemenu()</a></code>. Currently only usable on horizontal bar plots, and will be eventually integrated into <code><a href="../reference/roboplot.html">roboplot()</a></code>, or removed completely.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.7.12" id="roboplotr-2712">roboplotr 2.7.12<a class="anchor" aria-label="anchor" href="#roboplotr-2712"></a></h2>
+<ul><li>Fixes <code><a href="../reference/robotable.html">robotable()</a></code> column sorting issue.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.7.11" id="roboplotr-2711">roboplotr 2.7.11<a class="anchor" aria-label="anchor" href="#roboplotr-2711"></a></h2>
+<ul><li>Adds <code>reverse</code> param to <code><a href="../reference/set_legend.html">set_legend()</a></code> with <code><a href="../reference/roboplot.html">roboplot()</a></code> to allow for reversing the order of legend items. Does not currently work with <code><a href="../reference/robomap.html">robomap()</a></code>.</li>
+<li>Fixes <code><a href="../reference/roboplot.html">roboplot()</a></code> x-axis not respecting the factor level ordering.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.7.10" id="roboplotr-2710">roboplotr 2.7.10<a class="anchor" aria-label="anchor" href="#roboplotr-2710"></a></h2>
+<ul><li>Fixes a string transformation bug for roboplot data download modebar button.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.7.9" id="roboplotr-279">roboplotr 2.7.9<a class="anchor" aria-label="anchor" href="#roboplotr-279"></a></h2>
+<ul><li>Fixes a leaflet dependency issue and minor documentation issue.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.7.8" id="roboplotr-278">roboplotr 2.7.8<a class="anchor" aria-label="anchor" href="#roboplotr-278"></a></h2>
+<ul><li>Adds param <code>robomap(viscosity)</code> that allows to let <code>robomap</code>s snap back to initial view, or prevent dragging altogether.</li>
+<li>Expands param <code>robomap(zoom)</code> for finer control of leaflet zoom methods.</li>
+</ul></div>
+    <div class="section level2">
+<h2 class="pkg-version" data-toc-text="2.7.7" id="roboplotr-277">roboplotr 2.7.7<a class="anchor" aria-label="anchor" href="#roboplotr-277"></a></h2>
+<ul><li>Changes <code>set_confidence_interval(show_legend = TRUE)</code> to override <code>set_legend(position = "none")</code> with <code>position = "bottom"</code>.</li>
+<li>Rewrite of <code>roboplotr_transform_data_for_download()</code> and related internals for much faster handling of special characters in columns to be imported to modebar csv downloads.</li>
+</ul></div>
     <div class="section level2">
 <h2 class="pkg-version" data-toc-text="2.7.6" id="roboplotr-276">roboplotr 2.7.6<a class="anchor" aria-label="anchor" href="#roboplotr-276"></a></h2>
 <ul><li>Adds <code>set_roboplot_options(table_options)</code> and the corresponding <code><a href="../reference/set_table_options.html">set_table_options()</a></code> to control <code><a href="../reference/robotable.html">robotable()</a></code> appearance options globally. Currently only supports stripe color and opacity, but more will be added later.</li>
@@ -511,7 +608,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.1.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>
