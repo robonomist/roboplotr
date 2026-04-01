@@ -1,5 +1,11 @@
 # Changelog
 
+## roboplotr 2.8.2.11
+
+- Bug fix for previous
+  [`set_axes()`](https://robonomist.github.io/roboplotr/reference/set_axes.md)
+  bug fix.
+
 ## roboplotr 2.8.2.10
 
 - Fixes a
