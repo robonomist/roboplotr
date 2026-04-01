@@ -1,3 +1,7 @@
+# roboplotr 2.8.2.11
+
+* Bug fix for previous `set_axes()` bug fix.
+
 # roboplotr 2.8.2.10
 
 * Fixes a `set_axes()` bug that did not evaluate axes correctly when passed as symbolics.

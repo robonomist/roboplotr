@@ -293,8 +293,24 @@ set_axes <-
            xstep = NULL
            ) {
 
-    x <- eval_tidy(x)
-    y <- eval_tidy(y)
+    x <- enquo(x)
+    y <- enquo(y)
+
+    if(quo_is_null(x)) {
+      x <- NULL
+    } else if (quo_is_symbolic(x)) {
+      x <- as_label(x)
+    }else {
+      x <- eval_tidy(x)
+    }
+    
+    if(quo_is_null(y)) {
+      y <- NULL
+    } else if (quo_is_symbolic(y)) {
+      y <- as_label(y)
+    } else {
+      y <- eval_tidy(y)
+    }
     
     if(is.na(x %||% NA)) {x <- NULL}
     if(is.na(y %||% NA)) {y <- NULL}
