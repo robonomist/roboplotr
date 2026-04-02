@@ -766,6 +766,41 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 
   }
 
+
+  findXaxisRangeY = function(el, elplot, pie) {
+    
+    if(pie === true) {
+      return (undefined)
+    }
+  
+    let is_numeric = el.data[0].x.every(v => typeof v === "number");
+    
+    if(!is_numeric) {
+      return(undefined)
+    }
+  
+    let pts = $(el).find('.point')
+    pts = Array.from(pts)
+    if(pts.length == 0) {
+      return(el._init_xrange.x1)
+    }
+    lts = [];
+    pts = pts.forEach(pt => {lts.push(pt.getBBox().width)})
+    if(lts.length > 0) {
+      lts = Math.max(...lts)
+      let multiplier
+    if(lts > elplot.width) {
+         multiplier = 1+Math.abs((elplot.width - lts) / elplot.width) 
+         return(el.layout.xaxis.range[1] * multiplier)
+    } else {
+      multiplier = Math.abs(Math.abs((elplot.width - lts) / elplot.width)-1 )
+      return(Math.min(el.layout.xaxis.range[1] / multiplier, el._init_xrange.x1))
+  }
+  } 
+  }
+  
+  let xaxis_range = findXaxisRangeY(el, elplot, pie_chart);
+  
   let thearray = {
     'legend.orientation': legend_orientation,
     'legend.x': legend_x,
@@ -776,15 +811,24 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     'margin.r': margin_right,
     'legend.font.size': legend_font_size,
     'yaxis.tickfont.size': yaxis_font_size,
-    'yaxis2.tickfont.size': yaxis_font_size
+    'yaxis2.tickfont.size': yaxis_font_size,
+    'xaxis.range[1]' : xaxis_range
   };
 
   let rearray = keys.reduce(function (obj2, key) {
     if (key in thearray) // line can be removed to make it inclusive
     obj2[key] = thearray[key];
-    return obj2;
+    return obj2; 
 
   }, {});
+  
+/*  if(pie_chart) {
+    const keyToRemove = 'b';
+    const filtered = Object.fromEntries(
+  Object.entries(rearray).filter(([key]) => key !== keyToRemove)
+);
+    rearray = filtered
+  }*/
 
   return rearray;
 
@@ -891,16 +935,16 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
     rangeSliderShowHide(gd, true);
     Plotly.relayout(gd, relayout_array);
     let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
     Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey','xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
     Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
     Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
     Plotly.relayout(gd, relayout_array);
     setUpdatemenuPosition(gd);
 
@@ -1064,8 +1108,13 @@ function stringDivider(str, width, spaceReplacer) {
 }
 
 
-function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
+function estimateLeftMargin(labels, fontSize = 12) {
+  const longest = Math.max(...labels.map(s => String(s ?? '').length));
+  return Math.ceil(40 + longest * fontSize * 0.6);
+}
 
+function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
+  
   if (Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]' | 'xaxis.range[0]' in eventdata | "xaxis.autorange" in eventdata) {
     var xRange = gd.layout.xaxis.range;
     var yRange = gd.layout.yaxis.range;
@@ -1182,5 +1231,6 @@ function plotlyRelayoutEventFunction(eventdata, gd, legend_fontsize, plot_title,
   setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart, logo, tidy_legend, legend_position);
   setYPositions(eventdata, gd, pie_chart);
   yrangeRelayout(eventdata, gd, timerId, rangeslider_sums);
+
   //	console.log("margin b: " + gd.layout.margin.b, "; margin t: " + gd.layout.margin.t)
 };

@@ -776,7 +776,7 @@ roboplotr_expand_axis_limits <- function(plot_axes, d, zeroline) {
     xMax <- replace_na(plot_axes$xlim[2], max(.xrange))
     xMin <- replace_na(plot_axes$xlim[1], min(.xrange))
     xrangeMod <- abs(diff(abs(c(xMin, xMax)))) * 0.05
-    plot_axes$xlim[1] <- xMin - xrangeMod
+    plot_axes$xlim[1] <- ifelse(replace_na(plot_axes$xlim[1],1) == 0, 0, xMin - xrangeMod)
     plot_axes$xlim[2] <- xMax + xrangeMod
   }
 

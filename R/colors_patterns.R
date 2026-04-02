@@ -304,11 +304,11 @@ roboplotr_grey_shades <- function() {
 #'
 #' # Finally, control the patterns for linetypes and bars with the parameter
 #' # `pattern_types`, with a named vector containing either all the observations
-#' # in the column `pattern`, or ".other" as a catch-all category.
+#' # in the column `pattern`, or ".scatter" or ".bar" as a catch-all category.
 #' energiantuonti |>
 #'   dplyr::filter(Alue %in% c("USA", "Belgia", "Ruotsi"), Suunta == "Tuonti") |>
 #'   roboplot(Alue, pattern = set_pattern(Alue, pattern_types = c(
-#'     "USA" = "dash", ".other" = "dot"
+#'     "USA" = "dash", ".scatter" = "dot"
 #'   )))
 #' # Bar plots use the pattern_types too, but they are different from the ones
 #' # used by line plots. If you get them wrong, `roboplot()` informs you which you
@@ -318,7 +318,7 @@ roboplotr_grey_shades <- function() {
 #'   roboplot(Alue,
 #'            plot_type = "bar",
 #'            pattern = set_pattern(Alue, pattern_types = c(
-#'              "Ruotsi" = "", ".other" = "x"
+#'              "Ruotsi" = "", ".bar" = "x"
 #'            )))
 #' @export
 #' @returns A list of class roboplotr.set_pattern

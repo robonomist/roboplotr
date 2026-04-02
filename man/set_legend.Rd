@@ -107,20 +107,20 @@ d |>
 # You can preset the initial items visible on the plot by using
 # `set_legend(visible)` with items from the data passed to `roboplot(color)`.
  energiantuonti |>
-  filter(Suunta == "Vienti") |>
+  dplyr::filter(Suunta == "Vienti") |>
   roboplot(Alue,
            legend = set_legend(visible = c("Venäjä","Ruotsi"))
   )
 
-# You can reverse the legend items with `set_legend(reverse = T)` for whatever
+# You can reverse the legend items with `set_legend(reverse = TRUE)` for whatever
 # purpose you might have. The reverting is in relation to factor levels of the
 # column.
 energiantuonti |>
-  filter(Suunta == "Vienti") |>
-  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Venäjä") |> fct_rev()) |>
+  dplyr::filter(Suunta == "Vienti") |>
+  dplyr::mutate(Alue = forcats::fct_relevel(Alue, "Venäjä") |> forcats::fct_rev()) |>
   roboplot(Alue,
            plot_type = c("Venäjä" = "scatter", .other = "bar"),
-           legend = set_legend(reverse = T))
+           legend = set_legend(reverse = TRUE))
 
 # Legend title is distinct from axis-specific legend titles which are controlled
 # by `set_axes()` parameters `ylegend` and `y2legend`, when `y2` is used to move
