@@ -1,5 +1,11 @@
 # Changelog
 
+## roboplotr 2.8.2.12
+
+- Adds scripts to fit long labels outside horizontal bars better into
+  the plotting area without user intervention, and horizontal bar plots
+  now respect a zero-starting bars with `set_axes(xrange = (0,NA))`.
+
 ## roboplotr 2.8.2.11
 
 - Bug fix for previous
