@@ -1,4 +1,8 @@
-# roboplotr 2.8.2.13
+# roboplotr 2.8.2.14
+
+* Fixes a `set_externamenu(position)` axis ranging bug.
+
+# roboplotr 2.8.2.14
 
 * Adds the argument `set_externamenu(position)` for always-on externalmenus (using "below" or "side").
 * Improves bar length detection with horizontal bar plots.

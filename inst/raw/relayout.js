@@ -772,10 +772,16 @@ function setExternalMenu(el, x) {
     }
 
     Plotly.restyle(gd, update, idxs);
-    Plotly.relayout(gd, {
-      'xaxis.autorange': true,
-      'yaxis.autorange': true
-    });
+
+    const hasHorizontalBar = (gd.data || []).some(
+      tr => tr && tr.type === 'bar' && tr.orientation === 'h'
+    );
+    if (hasHorizontalBar) {
+      Plotly.relayout(gd, {
+        'xaxis.autorange': true,
+        'yaxis.autorange': true
+      });
+    }
 
     updateLimitUI();
     updateToggleLabel();
@@ -1539,6 +1545,7 @@ function estimateLeftMargin(labels, fontSize = 12) {
 function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
   
   if (gd.data[0].x.every(v => typeof v !== "number") && Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]' | 'xaxis.range[0]' in eventdata | "xaxis.autorange" in eventdata) {
+
     var xRange = gd.layout.xaxis.range;
     var yRange = gd.layout.yaxis.range;
     var yInside = [];
