@@ -10,12 +10,12 @@ Source:
 [`DESCRIPTION`](https://github.com/robonomist/roboplotr/blob/main/DESCRIPTION)
 
 Jäppinen A (2026). *roboplotr: Robonomist Automated Visualization Tool*.
-R package version 2.8.2.13, <https://robonomist.github.io/roboplotr/>.
+R package version 2.8.2.14, <https://robonomist.github.io/roboplotr/>.
 
     @Manual{,
       title = {roboplotr: Robonomist Automated Visualization Tool},
       author = {Antti Jäppinen},
       year = {2026},
-      note = {R package version 2.8.2.13},
+      note = {R package version 2.8.2.14},
       url = {https://robonomist.github.io/roboplotr/},
     }
