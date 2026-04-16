@@ -1,5 +1,11 @@
 # Changelog
 
+## roboplotr 2.8.2.13
+
+- Adds the argument `set_externamenu(position)` for always-on
+  externalmenus (using “below” or “side”).
+- Improves bar length detection with horizontal bar plots.
+
 ## roboplotr 2.8.2.12
 
 - Adds scripts to fit long labels outside horizontal bars better into
