@@ -6,71 +6,129 @@ function setExternalMenu(el, x) {
   const uniq = arr => Array.from(new Set(arr));
   const asArr = v => Array.isArray(v) ? v : (v == null ? [] : [v]);
 
-  const maxItems = cfg["max-items"] ?? null; // validated in R
+  const maxItems = cfg["max-items"] ?? null;
+  const layoutMode = cfg.layout || cfg.position || 'popup'; // 'popup' | 'side' | 'below'
+  const noCheckmarks = (cfg.checkmark?.size === 0);
 
-  // ---- Normalize a single per-point filter value to scalar OR multiple scalars ----
   function normVal(v) {
     if (v == null) return [];
     if (Array.isArray(v)) return v.filter(x => x != null).map(x => '' + x);
     return ['' + v];
   }
 
-  // ---- Capture original per-trace arrays ----
-  // redo here
-  const original = (gd.data || []).map(tr => {
-  const full = (tr && tr.meta && tr.meta.extmenu_full) ? tr.meta.extmenu_full : tr;
-
-  const xvals = asArr(full.x ?? []);
-  const yvals = asArr(full.y ?? []);
-  const n = Math.max(xvals.length, yvals.length);
-
-  // customdata should be per-point; but we accept nested arrays too
-  const cd = asArr(full.customdata ?? []);
-  // filterMulti[j] = array of filter values for that point (usually length 1)
-  const filterMulti = [];
-  for (let j = 0; j < n; j++) filterMulti.push(normVal(cd[j]));
-
-  const text = asArr(full.text ?? null);
-  const hovertext = asArr(full.hovertext ?? null);
-
-  return {
-    x: xvals.slice(),
-    y: yvals.slice(),
-    filterMulti,
-    text: (text.length === n) ? text.slice() : null,
-    hovertext: (hovertext.length === n) ? hovertext.slice() : null
-  };
-});
-
-// Persist the full original so later code never depends on filtered gd.data
-gd._extmenu_original = original;
-
-// Free memory: remove the full-data payload from trace meta after capture
-for (let i = 0; i < (gd.data || []).length; i++) {
-  const tr = gd.data[i];
-  if (tr && tr.meta && tr.meta.extmenu_full) {
-    delete tr.meta.extmenu_full;
-    if (Object.keys(tr.meta).length === 0) delete tr.meta;
+  // ---- Cleanup previous menu/layout if rerendered ----
+  const prevOuterLayout = gd.closest?.('.roboplot-externalmenu-layout');
+  if (prevOuterLayout) {
+    const prevSlot = prevOuterLayout.querySelector(':scope > .roboplot-externalmenu-plot');
+    const prevRoot = prevSlot?.firstElementChild || gd;
+    prevOuterLayout.parentNode.insertBefore(prevRoot, prevOuterLayout);
+    prevOuterLayout.remove();
   }
-}
-const ORIG = gd._extmenu_original || original;
 
-  // ---- Unique filter values across all points (flattened) ----
+  if (gd._extmenu_originalRootStyle?.el) {
+    const root = gd._extmenu_originalRootStyle.el;
+    root.style.flex = gd._extmenu_originalRootStyle.flex;
+    root.style.minWidth = gd._extmenu_originalRootStyle.minWidth;
+    root.style.width = gd._extmenu_originalRootStyle.width;
+    root.style.maxWidth = gd._extmenu_originalRootStyle.maxWidth;
+    delete gd._extmenu_originalRootStyle;
+  }
+
+  if (gd._extmenu_originalStyle) {
+    gd.style.flex = gd._extmenu_originalStyle.flex;
+    gd.style.minWidth = gd._extmenu_originalStyle.minWidth;
+    gd.style.width = gd._extmenu_originalStyle.width;
+    gd.style.maxWidth = gd._extmenu_originalStyle.maxWidth;
+    delete gd._extmenu_originalStyle;
+  }
+
+  if (cfg.id) {
+    const prev = gd.querySelector(`#${CSS.escape(cfg.id)}`);
+    if (prev) prev.remove();
+  }
+
+  const prevChip = gd.querySelector(
+    `#${CSS.escape(cfg.id ? cfg.id + '-chip' : 'roboplot-chip')}`
+  );
+  if (prevChip) prevChip.remove();
+
+  const prevLayout = gd.querySelector(':scope > .roboplot-externalmenu-layout');
+  if (prevLayout) {
+    const prevPlot = prevLayout.querySelector('.plot-container.plotly, .plot-container');
+    if (prevPlot) gd.insertBefore(prevPlot, prevLayout);
+    prevLayout.remove();
+  }
+
+  if (gd._extmenu_resizeObserver) {
+    gd._extmenu_resizeObserver.disconnect();
+    delete gd._extmenu_resizeObserver;
+  }
+
+  if (gd._extmenu_resizeRaf) {
+    cancelAnimationFrame(gd._extmenu_resizeRaf);
+    delete gd._extmenu_resizeRaf;
+  }
+
+  if (gd._extmenu_plotlyRelayoutHandler) {
+    gd.removeListener?.('plotly_relayout', gd._extmenu_plotlyRelayoutHandler);
+    delete gd._extmenu_plotlyRelayoutHandler;
+  }
+
+  if (gd._extmenu_windowResizeHandler) {
+    window.removeEventListener('resize', gd._extmenu_windowResizeHandler);
+    delete gd._extmenu_windowResizeHandler;
+  }
+
+  // ---- Capture original per-trace arrays ----
+  const original = (gd.data || []).map(tr => {
+    const full = (tr && tr.meta && tr.meta.extmenu_full) ? tr.meta.extmenu_full : tr;
+
+    const xvals = asArr(full.x ?? []);
+    const yvals = asArr(full.y ?? []);
+    const n = Math.max(xvals.length, yvals.length);
+
+    const cd = asArr(full.customdata ?? []);
+    const filterMulti = [];
+    for (let j = 0; j < n; j++) filterMulti.push(normVal(cd[j]));
+
+    const text = asArr(full.text ?? null);
+    const hovertext = asArr(full.hovertext ?? null);
+
+    return {
+      x: xvals.slice(),
+      y: yvals.slice(),
+      filterMulti,
+      text: (text.length === n) ? text.slice() : null,
+      hovertext: (hovertext.length === n) ? hovertext.slice() : null
+    };
+  });
+
+  gd._extmenu_original = original;
+
+  for (let i = 0; i < (gd.data || []).length; i++) {
+    const tr = gd.data[i];
+    if (tr && tr.meta && tr.meta.extmenu_full) {
+      delete tr.meta.extmenu_full;
+      if (Object.keys(tr.meta).length === 0) delete tr.meta;
+    }
+  }
+
+  const ORIG = gd._extmenu_original || original;
+
+  // ---- Unique filter values across all points ----
   const allF = uniq(
     ORIG.flatMap(o => o.filterMulti.flatMap(vs => vs))
-  ).sort((a,b)=>a.localeCompare(b));
+  ).sort((a, b) => a.localeCompare(b));
 
-  // ---- Initial selected logic (per your rules) ----
+  // ---- Initial selected logic ----
   function initSelected() {
-    // no cap -> select all
     if (!maxItems) return allF.slice();
 
-    // cap given + cfg.selected not null -> use cfg.selected (trim to cap)
     if (cfg.selected != null) {
       const want = asArr(cfg.selected).filter(v => v != null).map(v => '' + v);
-      // keep only values that exist in allF, preserve order, unique, cap
       const out = [];
       const seen = new Set();
+
       for (const v of want) {
         if (seen.has(v)) continue;
         if (!allF.includes(v)) continue;
@@ -81,7 +139,6 @@ const ORIG = gd._extmenu_original || original;
       return out;
     }
 
-    // cap given + cfg.selected is null -> first [max-items] traces (trace order)
     const out = [];
     const seen = new Set();
     for (let ti = 0; ti < ORIG.length && out.length < maxItems; ti++) {
@@ -94,133 +151,383 @@ const ORIG = gd._extmenu_original || original;
       }
     }
 
-    // fallback (e.g. no values found somehow)
     if (out.length === 0) return allF.slice(0, Math.min(maxItems, allF.length));
     return out;
   }
 
   const selected = new Set(initSelected());
 
-  // ---- Popup overlay ----
+  // ---- Root / container references ----
   gd.style.position = gd.style.position || 'relative';
+  gd.style.boxSizing = 'border-box';
 
+  const plotContainer =
+    gd.querySelector('.plot-container.plotly') ||
+    gd.querySelector('.plot-container');
+
+  if (!plotContainer) return;
+
+  // ---- Layout host ----
+  // Popup mode can live inside the graph div because it overlays the plot.
+  // Side/below modes wrap the htmlwidget sizing container when it exists. That
+  // keeps the menu outside the box htmlwidgets/Plotly measure during resize.
+  let layoutHost = null;
+  let plotLayoutEl = null;
+  let plotSlot = null;
+  const htmlwidgetContainer = document.getElementById('htmlwidget_container');
+  const plotRoot = (htmlwidgetContainer && htmlwidgetContainer.contains(gd))
+    ? htmlwidgetContainer
+    : gd;
+
+  if (layoutMode === 'popup') {
+    layoutHost = document.createElement('div');
+    layoutHost.className = 'roboplot-externalmenu-layout';
+    layoutHost.style.boxSizing = 'border-box';
+    layoutHost.style.width = '100%';
+
+    plotContainer.parentNode.insertBefore(layoutHost, plotContainer);
+    layoutHost.appendChild(plotContainer);
+    plotLayoutEl = plotContainer;
+  } else {
+    gd._extmenu_originalRootStyle = {
+      el: plotRoot,
+      flex: plotRoot.style.flex,
+      minWidth: plotRoot.style.minWidth,
+      width: plotRoot.style.width,
+      maxWidth: plotRoot.style.maxWidth
+    };
+
+    gd._extmenu_originalStyle = {
+      flex: gd.style.flex,
+      minWidth: gd.style.minWidth,
+      width: gd.style.width,
+      maxWidth: gd.style.maxWidth
+    };
+
+    const parent = plotRoot.parentNode;
+    layoutHost = document.createElement('div');
+    layoutHost.className = 'roboplot-externalmenu-layout';
+    layoutHost.style.boxSizing = 'border-box';
+    layoutHost.style.width = '100%';
+
+    plotSlot = document.createElement('div');
+    plotSlot.className = 'roboplot-externalmenu-plot';
+    plotSlot.style.boxSizing = 'border-box';
+    plotSlot.style.minWidth = '0';
+
+    parent.insertBefore(layoutHost, plotRoot);
+    layoutHost.appendChild(plotSlot);
+    plotSlot.appendChild(plotRoot);
+    plotLayoutEl = plotSlot;
+
+    plotRoot.style.width = '100%';
+    plotRoot.style.maxWidth = '100%';
+    plotRoot.style.minWidth = '0';
+
+    gd.style.width = '100%';
+    gd.style.maxWidth = '100%';
+    gd.style.minWidth = '0';
+  }
+
+  // ---- Menu wrapper ----
   const wrap = document.createElement('div');
-  wrap.id = cfg.id;
-  wrap.style.cssText = `
-    position:absolute;
-    top:6%;
-    left:6%;
-    width:50%;
-    max-height:80%;
-    overflow:auto;
-    z-index:9999;
-    display:none;
-    background:${cfg.box?.background || '#fff'};
-    border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
-    box-shadow:0 4px 8px ${cfg.box?.background || '#000'};
-    font-family:${cfg.box?.font.family || 'inherit'};
-    color:${cfg.box?.font.color || 'inherit'};
-    padding:10px;
-    border-radius:8px;
-  `;
-  gd.appendChild(wrap);
+  wrap.id = cfg.id || 'roboplot-externalmenu';
+  layoutHost.appendChild(wrap);
 
-  (function makeDraggable(box, container) {
-    box.style.cursor = 'default';
+  // ---- Responsive layout helpers ----
+  const gapPx = cfg.layout_gap || 12;
+  const sideMenuWidth = cfg.menu_width || 140;
+  const responsiveSideToBelow = cfg.responsive_side_to_below !== false;
+  const plotMinWidth = cfg.plot_min_width || 360;
+  let currentLayoutMode = null;
+  let resizeRaf = null;
 
-    const dragBar = document.createElement('div');
-    dragBar.className = 'drag-bar';
-    dragBar.style.cssText = `
+  function effectiveLayoutMode() {
+    if (layoutMode !== 'side' || !responsiveSideToBelow) return layoutMode;
+
+    // Use the outer available width, not gd. In side mode gd is the shrunken
+    // plot flex item; in below mode gd is full-width. Reading gd here makes the
+    // breakpoint feed back into itself and can cause side/below flicker.
+    const hostParent = layoutHost.parentElement;
+    const w =
+      hostParent?.clientWidth ||
+      hostParent?.getBoundingClientRect().width ||
+      layoutHost.clientWidth ||
+      layoutHost.getBoundingClientRect().width ||
+      gd.clientWidth ||
+      gd.getBoundingClientRect().width ||
+      0;
+
+    return w < (sideMenuWidth + gapPx + plotMinWidth) ? 'below' : 'side';
+  }
+
+  function applyMenuLayout() {
+    const mode = effectiveLayoutMode();
+    const modeChanged = mode !== currentLayoutMode;
+    currentLayoutMode = mode;
+
+    // reset host
+    layoutHost.style.display = '';
+    layoutHost.style.flexDirection = '';
+    layoutHost.style.alignItems = '';
+    layoutHost.style.gap = '';
+    layoutHost.style.width = '100%';
+
+    // reset plot layout element
+    plotLayoutEl.style.gridColumn = '';
+    plotLayoutEl.style.gridRow = '';
+    plotLayoutEl.style.flex = '';
+    plotLayoutEl.style.minWidth = '';
+    plotLayoutEl.style.overflow = '';
+    if (plotLayoutEl !== gd) {
+      plotLayoutEl.style.width = '';
+      plotLayoutEl.style.maxWidth = '';
+    }
+    plotLayoutEl.style.boxSizing = 'border-box';
+
+    plotContainer.style.gridColumn = '';
+    plotContainer.style.gridRow = '';
+    plotContainer.style.flex = '';
+    plotContainer.style.minWidth = '';
+    plotContainer.style.boxSizing = 'border-box';
+
+    // reset menu
+    wrap.style.gridColumn = '';
+    wrap.style.gridRow = '';
+    wrap.style.flex = '';
+
+    if (mode === 'popup') {
+      layoutHost.style.display = 'block';
+
+      plotLayoutEl.style.width = '100%';
+      plotLayoutEl.style.maxWidth = '100%';
+
+      wrap.style.cssText = `
+        position:absolute;
+        top:6%;
+        left:6%;
+        width:${cfg.menu_width_pct || 50}%;
+        max-height:${cfg.menu_maxheight_pct || 80}%;
+        overflow:auto;
+        z-index:9999;
+        display:none;
+        background:${cfg.box?.background || '#fff'};
+        border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
+        box-shadow:0 4px 8px rgba(0,0,0,0.18);
+        font-family:${cfg.box?.font?.family || 'inherit'};
+        color:${cfg.box?.font?.color || 'inherit'};
+        font-size:${cfg.btn?.font?.size || 12}px;
+        padding:10px;
+        border-radius:8px;
+        box-sizing:border-box;
+      `;
+    } else if (mode === 'side') {
+      const sideMenuTopMargin = gd.layout?.margin?.t || 0;
+
+      layoutHost.style.display = 'flex';
+      layoutHost.style.flexDirection = 'row';
+      layoutHost.style.alignItems = 'flex-start';
+      layoutHost.style.gap = `${gapPx}px`;
+
+      plotLayoutEl.style.flex = '1 1 0';
+      plotLayoutEl.style.minWidth = '0';
+      plotLayoutEl.style.width = 'auto';
+      plotLayoutEl.style.maxWidth = 'none';
+      plotLayoutEl.style.overflow = 'hidden';
+
+      wrap.style.cssText = `
+        position:relative;
+        flex:0 0 ${sideMenuWidth}px;
+        width:${sideMenuWidth}px;
+        max-width:${sideMenuWidth}px;
+        margin-top:${sideMenuTopMargin}px;
+        max-height:${cfg.menu_maxheight || 500}px;
+        overflow:auto;
+        display:block;
+        background:${cfg.box?.background || '#fff'};
+        border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
+        box-shadow:0 4px 8px rgba(0,0,0,0.12);
+        font-family:${cfg.box?.font?.family || 'inherit'};
+        color:${cfg.box?.font?.color || 'inherit'};
+        font-size:${cfg.box?.font?.size || 12}px;
+        padding:10px;
+        border-radius:8px;
+        box-sizing:border-box;
+        align-self:flex-start;
+        z-index:1;
+      `;
+    } else {
+      layoutHost.style.display = 'flex';
+      layoutHost.style.flexDirection = 'column';
+      layoutHost.style.alignItems = 'stretch';
+      layoutHost.style.gap = `${gapPx}px`;
+
+      plotLayoutEl.style.flex = '0 0 auto';
+      plotLayoutEl.style.minWidth = '0';
+      plotLayoutEl.style.width = '100%';
+      plotLayoutEl.style.maxWidth = '100%';
+
+      wrap.style.cssText = `
+        position:relative;
+        width:100%;
+        max-height:${cfg.menu_maxheight || 320}px;
+        overflow:auto;
+        display:block;
+        background:${cfg.box?.background || '#fff'};
+        border:${cfg.box?.border ? `${cfg.box.border_width}px solid ${cfg.box.border}` : 'none'};
+        box-shadow:0 4px 8px rgba(0,0,0,0.12);
+        font-family:${cfg.box?.font?.family || 'inherit'};
+        color:${cfg.box?.font?.color || 'inherit'};
+        font-size:${cfg.box?.font?.size || 12}px;
+        padding:10px;
+        border-radius:8px;
+        box-sizing:border-box;
+      `;
+    }
+
+    requestAnimationFrame(() => {
+      try {
+        if (mode === 'side' && plotLayoutEl !== gd) {
+          const slotRect = plotLayoutEl.getBoundingClientRect();
+          const gdRect = gd.getBoundingClientRect();
+          if (slotRect.width > 0 && gdRect.height > 0) {
+            Plotly.relayout(gd, {width: slotRect.width, height: gdRect.height});
+          } else {
+            Plotly.Plots.resize(gd);
+          }
+        } else {
+          Plotly.Plots.resize(gd);
+        }
+      } catch (e) {}
+    });
+
+    return modeChanged;
+  }
+
+  applyMenuLayout();
+
+  // ---- Header / drag bar (popup only) ----
+  let header = null;
+
+  if (layoutMode === 'popup') {
+    header = document.createElement('div');
+    header.className = 'drag-bar';
+    header.style.cssText = `
       width:100%;
-      cursor:move;
       user-select:none;
       margin-bottom:6px;
       font-weight:bold;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      cursor:move;
     `;
-    dragBar.innerHTML = cfg.grip || dragBar.textContent;
-    box.prepend(dragBar);
+
+    const title = document.createElement('div');
+    title.innerHTML = cfg.grip || cfg.col || '';
+    title.style.minWidth = '0';
+    header.appendChild(title);
+
+    wrap.prepend(header);
 
     let isDragging = false;
     let startX, startY, startLeft, startTop;
 
-    dragBar.addEventListener('mousedown', (e) => {
+    header.addEventListener('mousedown', (e) => {
+      const isClose = e.target && (
+        e.target === header._closeBtn ||
+        (header._closeBtn && header._closeBtn.contains(e.target))
+      );
+      if (isClose) return;
+
       isDragging = true;
       startX = e.clientX;
       startY = e.clientY;
 
-      const rect = box.getBoundingClientRect();
-      const parentRect = container.getBoundingClientRect();
+      const rect = wrap.getBoundingClientRect();
+      const parentRect = gd.getBoundingClientRect();
 
       startLeft = rect.left - parentRect.left;
-      startTop  = rect.top  - parentRect.top;
+      startTop = rect.top - parentRect.top;
 
       document.body.style.userSelect = 'none';
     });
 
-    document.addEventListener('mousemove', (e) => {
+    const mouseMove = (e) => {
       if (!isDragging) return;
 
       const dx = e.clientX - startX;
       const dy = e.clientY - startY;
 
-      const parentRect = container.getBoundingClientRect();
+      const parentRect = gd.getBoundingClientRect();
 
       let newLeft = startLeft + dx;
-      let newTop  = startTop  + dy;
+      let newTop = startTop + dy;
 
-      newLeft = Math.max(0, Math.min(newLeft, parentRect.width  - box.offsetWidth));
-      newTop  = Math.max(0, Math.min(newTop,  parentRect.height - box.offsetHeight));
+      newLeft = Math.max(0, Math.min(newLeft, parentRect.width - wrap.offsetWidth));
+      newTop = Math.max(0, Math.min(newTop, parentRect.height - wrap.offsetHeight));
 
-      box.style.left = newLeft + 'px';
-      box.style.top  = newTop  + 'px';
-    });
+      wrap.style.left = newLeft + 'px';
+      wrap.style.top = newTop + 'px';
+    };
 
-    document.addEventListener('mouseup', () => {
+    const mouseUp = () => {
       isDragging = false;
       document.body.style.userSelect = '';
+    };
+
+    document.addEventListener('mousemove', mouseMove);
+    document.addEventListener('mouseup', mouseUp);
+
+    const closeBtn = document.createElement('span');
+    closeBtn.innerHTML = cfg.close || '&times;';
+    closeBtn.style.cssText = `
+      cursor:pointer;
+      line-height:1;
+      margin-left:10px;
+      border-radius:50%;
+      flex:0 0 auto;
+      position:sticky;
+      top:0;
+    `;
+    if (cfg.btn?.background) closeBtn.style.background = cfg.btn.background;
+    if (cfg.btn?.font?.size) closeBtn.style.fontSize = cfg.btn.font.size + 'px';
+    if (cfg.btn?.font?.color) closeBtn.style.color = cfg.btn.font.color;
+    if (cfg.btn?.font?.family) closeBtn.style.fontFamily = cfg.btn.font.family;
+
+    closeBtn.addEventListener('click', () => {
+      wrap.style.display = 'none';
     });
-  })(wrap, gd);
 
-  // Close button
-  const closeBtn = document.createElement('span');
-  closeBtn.innerHTML = cfg.close || '&times;';
-  closeBtn.style.cssText = `
-    position:sticky;
-    top:0;
-    float:right;
-    cursor:pointer;
-    margin-bottom: 5px;
-    line-height:1;
-    margin-left:10px;
-    border-radius:50%;
-  `;
-  if (cfg.btn?.background) closeBtn.style.background = cfg.btn.background;
-  if (cfg.btn?.font.size) closeBtn.style.fontSize = cfg.btn.font.size + 'px';
-  if (cfg.btn?.font.color) closeBtn.style.color = cfg.btn.font.color;
-  if (cfg.btn?.font.family) closeBtn.style.fontFamily = cfg.btn.font.family;
-  closeBtn.addEventListener('click', () => { wrap.style.display = 'none'; });
-  wrap.querySelector('.drag-bar')?.appendChild(closeBtn);
+    header.appendChild(closeBtn);
+    header._closeBtn = closeBtn;
+  }
 
-  // ---- Limit indicator / warning (shown only when max-items exists and != 1) ----
+  // ---- Limit indicator / warning ----
   const limitBox = document.createElement('div');
   limitBox.style.cssText = `
     width:100%;
-    margin: 4px 0 10px 0;
-    font-size: 0.95em;
-    opacity: 0.9;
+    margin:4px 0 10px 0;
+    font-size:0.95em;
+    opacity:0.9;
   `;
+
   const limitText = document.createElement('div');
   const limitWarn = document.createElement('div');
   limitWarn.style.cssText = `margin-top:4px; display:none;`;
+
   limitBox.appendChild(limitText);
   limitBox.appendChild(limitWarn);
-  if (maxItems && maxItems !== 1) wrap.appendChild(limitBox);
+  if (maxItems && maxItems !== 1 && layoutMode === "popup") wrap.appendChild(limitBox);
 
   function showLimitWarn(msg) {
     limitWarn.textContent = msg;
     limitWarn.style.display = 'block';
     clearTimeout(showLimitWarn._t);
-    showLimitWarn._t = setTimeout(() => { limitWarn.style.display = 'none'; }, 1600);
+    showLimitWarn._t = setTimeout(() => {
+      limitWarn.style.display = 'none';
+    }, 1600);
   }
 
   function updateLimitUI() {
@@ -228,9 +535,9 @@ const ORIG = gd._extmenu_original || original;
     limitText.textContent = `${cfg.selected_label || 'Valittu'}: ${selected.size} / ${maxItems}`;
   }
 
-  // ---- Toggle all/none button (hidden when max-items === 1) ----
+  // ---- Toggle all/none button ----
   let toggleBtn = null;
-  if (!(maxItems === 1)) {
+  if (!(maxItems === 1) && layoutMode === "popup") {
     toggleBtn = document.createElement('button');
     toggleBtn.style.cssText = `
       width:100%;
@@ -241,9 +548,10 @@ const ORIG = gd._extmenu_original || original;
       border:${cfg.btn?.border ? `${cfg.btn.border_width}px solid ${cfg.btn.border}` : 'none'};
     `;
     if (cfg.btn?.background) toggleBtn.style.background = cfg.btn.background;
-    if (cfg.btn?.font.size) toggleBtn.style.fontSize = cfg.btn.font.size + 'px';
-    if (cfg.btn?.font.color) toggleBtn.style.color = cfg.btn.font.color;
-    if (cfg.btn?.font.family) toggleBtn.style.fontFamily = cfg.btn.font.family;
+    if (cfg.btn?.font?.size) toggleBtn.style.fontSize = cfg.btn.font.size + 'px';
+    if (cfg.btn?.font?.color) toggleBtn.style.color = cfg.btn.font.color;
+    if (cfg.btn?.font?.family) toggleBtn.style.fontFamily = cfg.btn.font.family;
+
     wrap.appendChild(toggleBtn);
   }
 
@@ -252,157 +560,133 @@ const ORIG = gd._extmenu_original || original;
   grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px 16px; width:100%; align-items:flex-start;';
   wrap.appendChild(grid);
 
-  // ---- Selection chip under modebar (dismissable) ----
-let chipDismissed = false;
+  // ---- Selection chip under modebar (popup only) ----
+  let chip = null;
+  let chipTextEl = null;
+  let chipDismissed = false;
+  let _lastChipKey = null;
 
-const chip = document.createElement('div');
-chip.id = (cfg.id ? cfg.id + '-chip' : 'roboplot-chip');
-chip.style.cssText = `
-  position:absolute;
-  right:8px;
-  z-index:9998;
-  max-width:60%;
-  display:none;
-  align-items:center;
-  gap:8px;
-  padding:6px 10px;
-  border-radius: 8px;
-  opacity: 0.7;
-  background:${cfg.btn?.background || '#fff'};
-  border:${cfg.btn?.border ? `${cfg.btn.border_width}px solid ${cfg.btn.border}` : 'none'};
-  btn-shadow:0 4px 8px ${cfg.btn?.background || '#000'};
-  font-family: ${cfg.btn?.font.family || 'inherit'};
-  color: ${cfg.btn?.font.color || 'inherit'};
-  font-size: ${cfg.btn?.font.size || 12}px;
-  line-height:1.2;
-  user-select:none;
-  white-space:nowrap;
-  overflow:hidden;
-`;
-gd.appendChild(chip);
+  if (layoutMode === 'popup') {
+    chip = document.createElement('div');
+    chip.id = (cfg.id ? cfg.id + '-chip' : 'roboplot-chip');
+    chip.style.cssText = `
+      position:absolute;
+      right:8px;
+      z-index:9998;
+      max-width:60%;
+      display:none;
+      align-items:center;
+      gap:8px;
+      padding:6px 10px;
+      border-radius:8px;
+      opacity:0.7;
+      background:${cfg.btn?.background || '#fff'};
+      border:${cfg.btn?.border ? `${cfg.btn.border_width}px solid ${cfg.btn.border}` : 'none'};
+      box-shadow:0 4px 8px rgba(0,0,0,0.12);
+      font-family:${cfg.btn?.font?.family || 'inherit'};
+      color:${cfg.btn?.font?.color || 'inherit'};
+      font-size:${cfg.btn?.font?.size || 12}px;
+      line-height:1.2;
+      user-select:none;
+      white-space:nowrap;
+      overflow:hidden;
+      box-sizing:border-box;
+    `;
+    gd.appendChild(chip);
 
-const chipTextEl = document.createElement('span');
-chipTextEl.style.cssText = `
-  overflow:hidden;
-  text-overflow:ellipsis;
-  white-space:nowrap;
-`;
-chip.appendChild(chipTextEl);
+    chipTextEl = document.createElement('span');
+    chipTextEl.style.cssText = `
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      cursor:pointer;
+    `;
+    chip.appendChild(chipTextEl);
 
-// Close (dismiss) button on chip
-const chipClose = document.createElement('span');
-chipClose.innerHTML = cfg.close || '&times;';
-chipClose.style.cssText = `
-  cursor:pointer;
-  line-height:1;
-  margin-left:2px;
-  border-radius:50%;
-  flex:0 0 auto;
-`;
-if (cfg.btn?.background) chipClose.style.background = cfg.btn.background;
-if (cfg.btn?.font?.size) chipClose.style.fontSize = cfg.btn.font.size + 'px';
-if (cfg.btn?.font?.color) chipClose.style.color = cfg.btn.font.color;
-if (cfg.btn?.font?.family) chipClose.style.fontFamily = cfg.btn.font.family;
-chip.appendChild(chipClose);
+    const chipClose = document.createElement('span');
+    chipClose.innerHTML = cfg.close || '&times;';
+    chipClose.style.cssText = `
+      cursor:pointer;
+      line-height:1;
+      margin-left:2px;
+      border-radius:50%;
+      flex:0 0 auto;
+    `;
+    if (cfg.btn?.background) chipClose.style.background = cfg.btn.background;
+    if (cfg.btn?.font?.size) chipClose.style.fontSize = cfg.btn.font.size + 'px';
+    if (cfg.btn?.font?.color) chipClose.style.color = cfg.btn.font.color;
+    if (cfg.btn?.font?.family) chipClose.style.fontFamily = cfg.btn.font.family;
+    chip.appendChild(chipClose);
 
-// Clicking the chip text opens the popup (optional)
-chipTextEl.style.cursor = 'pointer';
-chipTextEl.addEventListener('click', () => { wrap.style.display = 'block'; });
-
-// Clicking X dismisses chip until the next selection change
-chipClose.addEventListener('click', (e) => {
-  e.stopPropagation();
-  chipDismissed = true;
-  chip.style.display = 'none';
-});
-
-// Position chip just below modebar
-function positionChip() {
-  const mb = gd.querySelector('.modebar');
-  const mbH = mb ? mb.getBoundingClientRect().height : 0;
-  chip.style.top = (mbH + 8) + 'px';
-}
-gd.on('plotly_relayout', positionChip);
-window.addEventListener('resize', positionChip);
-
-// Format selection summary for chip
-function chipSummary() {
-  if (selected.size === allF.length) return null; // hide when 'all'
-
-  const vals = Array.from(selected);
-
-  if (maxItems === 1) {
-    return `${cfg.col}: ${vals[0] ?? ''}`.trim();
-  }
-
-  const shown = vals.slice(0, 3);
-  const more = vals.length - shown.length;
-  return `${cfg.col}: ${shown.join(', ')}${more > 0 ? ` (+${more})` : ''}`;
-}
-
-// Update chip: called from applyFilter()
-// - If selection changed, chip returns (chipDismissed reset)
-// - If chipDismissed and no change, keep hidden
-let _lastChipKey = null;
-
-function getCategoryOrderFromCfgOrOrig(axName) {
-  // 1) Explicit order from cfg (e.g. factor levels from R)
-  if (cfg.categoryorder && Array.isArray(cfg.categoryorder) && cfg.categoryorder.length) {
-    return cfg.categoryorder.map(v => '' + v);
-  }
-
-  // 2) Fallback: derive from original data order (preserves whatever Plotly got from R)
-  const seen = new Set();
-  const out = [];
-
-  for (let ti = 0; ti < ORIG.length; ti++) {
-    const o = ORIG[ti];
-    const tr = gd.data[ti] || {};
-    if (tr.type !== 'bar') continue;
-
-    const axisCats = (tr.orientation === 'h') ? o.y : o.x;
-    (axisCats || []).forEach(v => {
-      const s = '' + v;
-      if (!seen.has(s)) {
-        seen.add(s);
-        out.push(s);
-      }
+    chipTextEl.addEventListener('click', () => {
+      wrap.style.display = 'block';
     });
+
+    chipClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      chipDismissed = true;
+      chip.style.display = 'none';
+    });
+
+    function positionChip() {
+      const mb = gd.querySelector('.modebar');
+      const mbH = mb ? mb.getBoundingClientRect().height : 0;
+      chip.style.top = (mbH + 8) + 'px';
+    }
+
+    const relayoutHandler = () => positionChip();
+    gd.on?.('plotly_relayout', relayoutHandler);
+    gd._extmenu_plotlyRelayoutHandler = relayoutHandler;
+
+    const windowResizeHandler = () => positionChip();
+    window.addEventListener('resize', windowResizeHandler);
+    gd._extmenu_windowResizeHandler = windowResizeHandler;
+
+    function chipSummary() {
+      if (selected.size === allF.length) return null;
+
+      const vals = Array.from(selected);
+
+      if (maxItems === 1) {
+        return `${cfg.col}: ${vals[0] ?? ''}`.trim();
+      }
+
+      const shown = vals.slice(0, 3);
+      const more = vals.length - shown.length;
+      return `${cfg.col}: ${shown.join(', ')}${more > 0 ? ` (+${more})` : ''}`;
+    }
+
+    function updateChip(forceShow = false) {
+      const txt = chipSummary();
+      const key = Array.from(selected).sort().join('\u0001');
+      const changed = (key !== _lastChipKey);
+      _lastChipKey = key;
+
+      if (changed) chipDismissed = false;
+
+      if (!txt || (chipDismissed && !forceShow)) {
+        chip.style.display = 'none';
+        return;
+      }
+
+      chipTextEl.textContent = txt;
+      chip.style.display = 'flex';
+      positionChip();
+    }
+
+    gd._extmenu_updateChip = updateChip;
+  } else {
+    gd._extmenu_updateChip = function () {};
   }
-
-  return out;
-}
-
-function updateChip(forceShow = false) {
-  const txt = chipSummary();
-
-  // create a stable key representing current selection
-  const key = Array.from(selected).sort().join('\\u0001');
-
-  // detect a selection change
-  const changed = (key !== _lastChipKey);
-  _lastChipKey = key;
-
-  // If selection changed, chip should come back
-  if (changed) chipDismissed = false;
-
-  if (!txt || (chipDismissed && !forceShow)) {
-    chip.style.display = 'none';
-    return;
-  }
-
-  chipTextEl.textContent = txt;
-  chip.style.display = 'flex';
-  positionChip();
-}
-
 
   function updateToggleLabel() {
     if (!toggleBtn) return;
 
     if (!maxItems) {
       toggleBtn.textContent =
-        (selected.size === allF.length) ? (cfg.deselect || 'Poista valinnat') : (cfg.select || 'Valitse kaikki');
+        (selected.size === allF.length)
+          ? (cfg.deselect || 'Poista valinnat')
+          : (cfg.select || 'Valitse kaikki');
       return;
     }
 
@@ -417,6 +701,32 @@ function updateChip(forceShow = false) {
     const bar = (gd.data || []).find(tr => tr.type === 'bar');
     if (!bar) return null;
     return (bar.orientation === 'h') ? 'yaxis' : 'xaxis';
+  }
+
+  function getCategoryOrderFromCfgOrOrig(axName) {
+    if (cfg.categoryorder && Array.isArray(cfg.categoryorder) && cfg.categoryorder.length) {
+      return cfg.categoryorder.map(v => '' + v);
+    }
+
+    const seen = new Set();
+    const out = [];
+
+    for (let ti = 0; ti < ORIG.length; ti++) {
+      const o = ORIG[ti];
+      const tr = gd.data[ti] || {};
+      if (tr.type !== 'bar') continue;
+
+      const axisCats = (tr.orientation === 'h') ? o.y : o.x;
+      (axisCats || []).forEach(v => {
+        const s = '' + v;
+        if (!seen.has(s)) {
+          seen.add(s);
+          out.push(s);
+        }
+      });
+    }
+
+    return out;
   }
 
   function applyFilter() {
@@ -446,12 +756,13 @@ function updateChip(forceShow = false) {
     const ax = inferCategoryAxis();
     if (ax) {
       const cats = new Set();
-      for (let i=0; i<update.x.length; i++) {
+      for (let i = 0; i < update.x.length; i++) {
         const tr = gd.data[i] || {};
         if (tr.type !== 'bar') continue;
         const axisCats = (tr.orientation === 'h') ? update.y[i] : update.x[i];
         (axisCats || []).forEach(v => cats.add(v));
       }
+
       const catsOrder = getCategoryOrderFromCfgOrOrig(ax);
       const visibleCats = catsOrder.filter(v => cats.has(v));
       const rel = {};
@@ -461,35 +772,41 @@ function updateChip(forceShow = false) {
     }
 
     Plotly.restyle(gd, update, idxs);
-    Plotly.relayout(gd, {'autosize': true});
+    Plotly.relayout(gd, {
+      'xaxis.autorange': true,
+      'yaxis.autorange': true
+    });
+
     updateLimitUI();
     updateToggleLabel();
-    updateChip();
+    gd._extmenu_updateChip();
   }
 
   function renderGrid(grid) {
     grid.innerHTML = '';
 
+    const modeNow = effectiveLayoutMode();
+
     allF.forEach(v => {
+      const isSelected = selected.has(v);
+
       const label = document.createElement('label');
       label.style.cssText = `
         display:flex;
         align-items:center;
-        gap:6px;
+        gap:${modeNow === "popup" ? 6 : 2}px;
         cursor:pointer;
-        width:clamp(120px, 22vw, 240px);
+        width:${modeNow === "side" ? '100%' : 'clamp(120px, 22vw, 240px)'};
+        border-radius:6px;
+        padding:${modeNow === "popup" ? 4 : 1}px ${modeNow === "popup" ? 6 : 2}px;
+        transition:opacity 0.15s ease, filter 0.15s ease, background 0.15s ease;
+        ${noCheckmarks && !isSelected ? 'opacity:0.45; filter:grayscale(1);' : 'opacity:1; filter:none;'}
+        box-sizing:border-box;
       `;
 
-      const cb = document.createElement('input');
-      cb.type = 'checkbox';
-      cb.checked = selected.has(v);
-      cb.style.accentColor = cfg.checkmark?.color || '#666';
-      cb.style.transform = 'scale(' + (cfg.checkmark?.size || 1) + ')';
-
-      cb.addEventListener('change', () => {
-        // max-items === 1: radio-like
+      function applySelectionChange(nextChecked) {
         if (maxItems === 1) {
-          if (cb.checked) {
+          if (nextChecked) {
             selected.clear();
             selected.add(v);
           } else {
@@ -500,10 +817,8 @@ function updateChip(forceShow = false) {
           return;
         }
 
-        // max-items > 1: enforce cap
-        if (cb.checked) {
+        if (nextChecked) {
           if (maxItems && selected.size >= maxItems) {
-            cb.checked = false; // revert
             showLimitWarn(cfg.limit_reached || `Enintään ${maxItems} valintaa`);
             return;
           }
@@ -512,13 +827,37 @@ function updateChip(forceShow = false) {
           selected.delete(v);
         }
 
+        if (noCheckmarks) renderGrid(grid);
         applyFilter();
-      });
+      }
+
+      if (!noCheckmarks) {
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = isSelected;
+        cb.style.accentColor = cfg.checkmark?.color || '#666';
+        cb.style.transform = 'scale(' + (cfg.checkmark?.size || 1) + ')';
+
+        cb.addEventListener('change', () => {
+          applySelectionChange(cb.checked);
+        });
+
+        label.appendChild(cb);
+      } else {
+        label.addEventListener('click', (e) => {
+          e.preventDefault();
+          applySelectionChange(!isSelected);
+        });
+      }
 
       const span = document.createElement('span');
       span.textContent = v;
+      span.style.cssText = `
+        ${noCheckmarks && !isSelected ? `color:${cfg.box?.font?.color || 'inherit'};` : ''}
+        overflow:hidden;
+        text-overflow:ellipsis;
+      `;
 
-      label.appendChild(cb);
       label.appendChild(span);
       grid.appendChild(label);
     });
@@ -530,8 +869,8 @@ function updateChip(forceShow = false) {
         width:100%;
         text-align:left;
         font-weight:bold;
-        margin-bottom:${cfg.btn?.font.size ? Math.round(cfg.btn.font.size/2) + 'px' : '5px'};
-        font-size:${cfg.btn?.font.size ? (cfg.btn.font.size + 2) + 'px' : 'inherit'};
+        margin-bottom:${cfg.btn?.font?.size ? Math.round(cfg.btn.font.size / 2) + 'px' : '5px'};
+        font-size:${cfg.btn?.font?.size ? (cfg.btn.font.size + 2) + 'px' : 'inherit'};
       `;
       grid.prepend(titleEl);
     }
@@ -546,11 +885,9 @@ function updateChip(forceShow = false) {
         if (selected.size === allF.length) selected.clear();
         else allF.forEach(v => selected.add(v));
       } else {
-        // with a cap: button becomes \"clear / select first N\"
         if (selected.size > 0) {
           selected.clear();
         } else {
-          // \"first N traces\" logic (same as initSelected when cfg.selected is null)
           const out = [];
           const seen = new Set();
           for (let ti = 0; ti < ORIG.length && out.length < maxItems; ti++) {
@@ -562,6 +899,7 @@ function updateChip(forceShow = false) {
               if (out.length >= maxItems) break;
             }
           }
+
           if (out.length === 0) {
             allF.slice(0, Math.min(maxItems, allF.length)).forEach(v => selected.add(v));
           } else {
@@ -569,14 +907,28 @@ function updateChip(forceShow = false) {
           }
         }
       }
+
       renderGrid(grid);
       applyFilter();
     });
   }
+
+  // ---- Observe size changes ----
+  gd._extmenu_resizeObserver = new ResizeObserver(() => {
+    if (resizeRaf) cancelAnimationFrame(resizeRaf);
+    resizeRaf = requestAnimationFrame(() => {
+      resizeRaf = null;
+      delete gd._extmenu_resizeRaf;
+      const modeChanged = applyMenuLayout();
+      if (modeChanged && effectiveLayoutMode() !== 'popup') renderGrid(grid);
+    });
+    gd._extmenu_resizeRaf = resizeRaf;
+  });
+  gd._extmenu_resizeObserver.observe(layoutHost.parentElement || layoutHost);
+
   renderGrid(grid);
   applyFilter();
 }
-
 
 function rangeSliderShowHide(el, show = true) {
   if ('rangeslider' in el.layout.xaxis) {
@@ -765,6 +1117,46 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     }
 
   }
+  
+  let xaxis_range = findXaxisRangeY(el, elplot, pie_chart);
+  
+  let thearray = {
+    'legend.orientation': legend_orientation,
+    'legend.x': legend_x,
+    'legend.y': legend_y,
+    'images[0].sizey': images_sizey,
+    'margin.t': margin_top,
+    'margin.b': margin_bottom,
+    'margin.r': margin_right,
+    'legend.font.size': legend_font_size,
+    'yaxis.tickfont.size': yaxis_font_size,
+    'yaxis2.tickfont.size': yaxis_font_size
+  };
+
+  if(xaxis_range !== undefined) {
+    thearray["xaxis.range[0]"] = xaxis_range[0];
+    thearray["xaxis.range[1]"] = xaxis_range[1];
+    
+  }
+  
+  let rearray = keys.reduce(function (obj2, key) {
+    if (key in thearray) // line can be removed to make it inclusive
+    obj2[key] = thearray[key];
+    return obj2; 
+
+  }, {});
+
+/*  if(pie_chart) {
+    const keyToRemove = 'b';
+    const filtered = Object.fromEntries(
+  Object.entries(rearray).filter(([key]) => key !== keyToRemove)
+);
+    rearray = filtered
+  }*/
+
+  return rearray;
+
+}
 
 
   findXaxisRangeY = function(el, elplot, pie) {
@@ -784,56 +1176,87 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     if(pts.length == 0) {
       return(el._init_xrange.x1)
     }
-    lts = [];
-    pts = pts.forEach(pt => {lts.push(pt.getBBox().width)})
-    if(lts.length > 0) {
-      lts = Math.max(...lts)
+    let highs = [];
+    let lows = [] 
+    pts = pts.forEach(pt => {
+      if(pt.__data__.x >= 0) {
+          highs.push(pt.getBBox().width) 
+      } else {
+        lows.push(pt.getBBox().width)
+      }
+    })
+    
+
+    if(lows.length > 0 && highs.length > 0) {
+
+      highs = Math.max(...highs)
+      lows = Math.max(...lows)
+      let lows_portion = lows / (lows+highs)
+      let highs_portion = highs / (lows+highs)
+/*
+      console.log("highs + lows " + (highs+lows))
+      console.log("diff: " + Math.abs(elplot.width - (highs+lows)))
+      console.log("total: " + elplot.width)
+*/
+      let multiplier = (Math.abs(((elplot.width*0.95) - (highs+lows)) / (elplot.width)*0.95))
+      if((highs + lows) > elplot.width * 0.95) {
+//        console.log("space needed, multiplier is " + multiplier)
+        let lobound = 1 + (lows_portion * multiplier)
+        let hibound = 1 + (highs_portion  * multiplier)
+//        console.log("lows portion is " + lows_portion + ", highs portion is " + highs_portion)
+        lobound = Math.abs(el.layout.xaxis.range[0]) * lobound
+        hibound = el.layout.xaxis.range[1] * hibound
+        let res = [-lobound-elplot.width*0.02, hibound]
+        return(res)
+        
+      } else if((highs + lows) < (elplot.width * 0.9)) {
+//        console.log("nuff space, multiplier is " + multiplier)
+        let lobound = 1+(lows_portion * multiplier)
+        let hibound = 1+(highs_portion * multiplier)
+        lobound = Math.abs(el.layout.xaxis.range[0]) * lobound
+        lobound = Math.min(lobound, Math.abs(el._init_xrange.x0))
+        hibound = el.layout.xaxis.range[1] * hibound
+        hibound = Math.min(hibound, el._init_xrange.x1)
+        res = [-lobound, hibound]
+        return(res)
+        
+      } else {
+//        console.log("naah")
+        return(undefined)
+      }
+      
+    }
+    
+    if(highs.length > 0) {
+      highs = Math.max(...highs)
       let multiplier
-    if(lts > elplot.width) {
-         multiplier = 1+Math.abs((elplot.width - lts) / elplot.width) 
-         return(el.layout.xaxis.range[1] * multiplier)
-    } else {
-      multiplier = Math.abs(Math.abs((elplot.width - lts) / elplot.width)-1 )
-      return(Math.min(el.layout.xaxis.range[1] / multiplier, el._init_xrange.x1))
+    if(highs > elplot.width) {
+         multiplier = 1+Math.abs((elplot.width - highs) / elplot.width) 
+         return([el._init_xrange.x0, el.layout.xaxis.range[1] * multiplier])
+    } else if (highs < elplot.width * 0.9) {
+      multiplier = Math.abs(Math.abs((elplot.width - highs) / elplot.width)-1 )
+      return([el._init_xrange.x0, Math.min(el.layout.xaxis.range[1] / multiplier, el._init_xrange.x1)])
   }
-  } 
+  }
+    
+    if(lows.length > 0) {
+      lows = Math.max(...lows)
+      let multiplier
+    if(lows > elplot.width) {
+         multiplier = 1+Math.abs((elplot.width - lows) / elplot.width) 
+         return([-(Math.abs(el.layout.xaxis.range[0]) * multiplier), el._init_xrange.x1])
+    } else if (lows < elplot.width * 0.9) {
+      console.log("nuff space")
+      multiplier = Math.abs(Math.abs((elplot.width - lows) / elplot.width)-1 )
+      console.log(multiplier)
+      return([-Math.min(Math.abs(el.layout.xaxis.range[0]) / multiplier, Math.abs(el._init_xrange.x0)), el._init_xrange.x1])
+  }
   }
   
-  let xaxis_range = findXaxisRangeY(el, elplot, pie_chart);
+  return(undefined)
   
-  let thearray = {
-    'legend.orientation': legend_orientation,
-    'legend.x': legend_x,
-    'legend.y': legend_y,
-    'images[0].sizey': images_sizey,
-    'margin.t': margin_top,
-    'margin.b': margin_bottom,
-    'margin.r': margin_right,
-    'legend.font.size': legend_font_size,
-    'yaxis.tickfont.size': yaxis_font_size,
-    'yaxis2.tickfont.size': yaxis_font_size,
-    'xaxis.range[1]' : xaxis_range
-  };
-
-  let rearray = keys.reduce(function (obj2, key) {
-    if (key in thearray) // line can be removed to make it inclusive
-    obj2[key] = thearray[key];
-    return obj2; 
-
-  }, {});
+  }
   
-/*  if(pie_chart) {
-    const keyToRemove = 'b';
-    const filtered = Object.fromEntries(
-  Object.entries(rearray).filter(([key]) => key !== keyToRemove)
-);
-    rearray = filtered
-  }*/
-
-  return rearray;
-
-}
-
 function calculateDisplayedImageSize(imageAspectRatio, container) {
   let containerAspectRatio = container.width / container.height;
   let displayedWidth, displayedHeight;
@@ -935,16 +1358,16 @@ function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart
     rangeSliderShowHide(gd, true);
     Plotly.relayout(gd, relayout_array);
     let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey', 'xaxis.range[0]', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
     Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey','xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey', 'xaxis.range[0]', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
     Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[0]', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
     relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
     Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
+    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[0]', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
     Plotly.relayout(gd, relayout_array);
     setUpdatemenuPosition(gd);
 
@@ -1115,7 +1538,7 @@ function estimateLeftMargin(labels, fontSize = 12) {
 
 function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
   
-  if (Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]' | 'xaxis.range[0]' in eventdata | "xaxis.autorange" in eventdata) {
+  if (gd.data[0].x.every(v => typeof v !== "number") && Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]' | 'xaxis.range[0]' in eventdata | "xaxis.autorange" in eventdata) {
     var xRange = gd.layout.xaxis.range;
     var yRange = gd.layout.yaxis.range;
     var yInside = [];

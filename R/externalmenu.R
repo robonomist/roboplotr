@@ -127,12 +127,15 @@ set_externalmenu <- function(
     box = set_infobox(background = getOption("roboplot.colors.background")),
     btn = set_infobox(),
     max_items = NULL,
-    selected = NULL
+    selected = NULL,
+    position = "popup"
 ) {
 
   roboplotr_typecheck(title, "logical", allow_null = FALSE)
   roboplotr_typecheck(max_items, "numeric", allow_null = TRUE)
   roboplotr_typecheck(selected, size = NULL, "character", allow_null = TRUE)
+  roboplotr_typecheck(position, size = 1, "character", allow_null = FALSE)
+  roboplotr_valid_strings(position, c("popup","side","below"), .fun = any, msg = "`set_externalmenu(position)`")
   col <- enquo(col)
   if (quo_is_null(col)) return(NULL)
 
@@ -141,8 +144,13 @@ set_externalmenu <- function(
 
   box$font <- item_font
   btn$font <- btn_font
+  
+  if(position != "popup") {
+    box$font$size <- box$font$size -2
+    btn$font$size <- btn$font$size -2
+  }
 
-  checkmark_size = 1
+  checkmark_size = ifelse(position == "popup", 1, 0)
   checkmark_color = getOption("roboplot.colors.traces")[1]
 
   .res <- list(
@@ -153,7 +161,8 @@ set_externalmenu <- function(
     btn = btn,
     selected = selected,
     `max-items`= max_items,
-    checkmark = list(size = checkmark_size, color = checkmark_color)
+    checkmark = list(size = checkmark_size, color = checkmark_color),
+    position = position
   )
 
   .res <- structure(.res, class = c("roboplotr", "roboplotr.set_externalmenu", class(.res)))
@@ -217,6 +226,7 @@ roboplotr_set_external_menu <- function(p, externalmenu, d) {
   externalmenu$limit_reached <- getOption("roboplot.locale")$externalmenu$limit_reached
   externalmenu$selected_label <- getOption("roboplot.locale")$externalmenu$selected
   externalmenu$categoryorder <- (function() {if (is.factor(d[[externalmenu$col]])) levels(d[[externalmenu$col]]) else NULL})()
+  externalmenu$layout <- externalmenu$position
 
 
   p$x$roboplot_externalmenu <- externalmenu
@@ -231,6 +241,8 @@ roboplotr_set_external_menu <- function(p, externalmenu, d) {
 
 roboplotr_modebar_externalmenu_button <- function(btn_list, externalmenu) {
   if (is.null(externalmenu) || is.null(externalmenu$id)) return(btn_list)
+  
+  if(externalmenu$position != "popup") return(btn_list)
 
   btn <- list("externalmenu" = list(
     name = getOption("roboplot.locale")$modebar_label$filter,
