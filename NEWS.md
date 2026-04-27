@@ -1,3 +1,7 @@
+# roboplotr 2.8.2.15
+
+* `roboplot(externalmenu)` layout improvements.
+
 # roboplotr 2.8.2.14
 
 * Fixes a `set_externamenu(position)` axis ranging bug.

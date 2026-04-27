@@ -557,7 +557,8 @@ function setExternalMenu(el, x) {
 
   // ---- Checkbox grid ----
   const grid = document.createElement('div');
-  grid.style.cssText = 'display:flex; flex-wrap:wrap; gap:8px 16px; width:100%; align-items:flex-start;';
+  const gridGap = Math.min(Math.max((gd.layout.height - (allF.length * (cfg.btn?.font?.size || 12)*1.8)) / allF.length, 0),8)
+  grid.style.cssText = `display:flex; flex-wrap:wrap; gap:${gridGap}px 16px; width:100%; align-items:flex-start;`;
   wrap.appendChild(grid);
 
   // ---- Selection chip under modebar (popup only) ----
