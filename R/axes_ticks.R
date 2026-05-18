@@ -303,7 +303,7 @@ set_axes <-
     }else {
       x <- eval_tidy(x)
     }
-    
+
     if(quo_is_null(y)) {
       y <- NULL
     } else if (quo_is_symbolic(y)) {
@@ -311,10 +311,10 @@ set_axes <-
     } else {
       y <- eval_tidy(y)
     }
-    
+
     if(is.na(x %||% NA)) {x <- NULL}
     if(is.na(y %||% NA)) {y <- NULL}
-    
+
     if (is.null(y)) {
       y <- "value"
     } else if (y != "value" & is.null(x)) {
@@ -761,6 +761,8 @@ roboplotr_guess_xaxis_ceiling <-
 
 #' @importFrom tidyr replace_na
 roboplotr_expand_axis_limits <- function(plot_axes, d, zeroline) {
+
+  # browser()
 
   if(any(!is.na(plot_axes$ylim)) & is.numeric(d[[plot_axes$y]])) {
     .yrange <- range(d[[plot_axes$y]], na.rm = T)

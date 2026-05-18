@@ -780,10 +780,10 @@ function reloadCSS(href, callback) {
 }
 
 function preInitFunction(settings, json) {
-  console.log('preInit function started');
+  //console.log('preInit function started');
 
   reloadCSS('tbl_dependencies/dt-core-1.13.6/css/jquery.dataTables.min.css', function() {
-    console.log('CSS reloaded, proceeding with DataTable initialization.');
+    //console.log('CSS reloaded, proceeding with DataTable initialization.');
     settings.oApi._fnInitComplete(settings);
   });
 }

@@ -790,7 +790,7 @@ roboplotr_set_title <- function(title, d, where) {
     if (!is.null(title$robonomist_title)) {
       roboplotr_message("Using the attribute \"robonomist_title\" for plot title.")
       title <- set_title(title$robonomist_title, .extra = where)
-    } else if (!is.null(title$title) & length(title$title != 1)) {
+    } else if (!is.null(title$title) && length(title$title) == 1) {
       roboplotr_message("Using the attribute \"title\" as plot title.")
       title <- set_title(title$title, .extra = where)
     } else {

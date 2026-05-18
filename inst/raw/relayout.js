@@ -950,15 +950,14 @@ function rangeSliderShowHide(el, show = true) {
 
 }
 
-function rangeSliderHeight(el) {
+function calculateRangeSliderHeight(el, rangeSliderBg, xAxisLayer) {
   let elslider = 0;
   if ('rangeslider' in el.layout.xaxis) {
     if(el.layout.xaxis.rangeslider.visible == true) {
-      elslider_container = $(el).find('.rangeslider-bg')[0].getBBox().height
+      let elslider_container = rangeSliderBg?.height ?? 0
       elslider = elslider_container+(el.layout.margin.t*0.1)+(el.layout.margin.b*0.1)
-      let xticks = $(el).find('g.xaxislayer-above')
-      if(xticks.length > 0) {
-        xticks = $(el).find('g.xaxislayer-above')[0].getBBox().height
+      let xticks = xAxisLayer?.height ?? null
+      if(xticks != null) {
         elslider = elslider + (xticks / 10)
 
       }
@@ -966,6 +965,14 @@ function rangeSliderHeight(el) {
   }
 
   return (elslider)
+}
+
+function rangeSliderHeight(el) {
+  return calculateRangeSliderHeight(
+    el,
+    getFirstBBox($(el).find('.rangeslider-bg')),
+    getFirstBBox($(el).find('g.xaxislayer-above'))
+  );
 }
 
 function findModeBarHeight(el) {
@@ -979,43 +986,37 @@ function findModeBarHeight(el) {
   return modebar_ht
 }
 
-function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart, logo = undefined, tidy_legend = false, legend_position = "auto") {
+function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart, logo = undefined, tidy_legend = false, legend_position = "auto", measured = null) {
   //  console.log("NEW RELAYOUT")
   //  console.log("margin b init: " + el.layout.margin.b)
   const checkForBR = (string) => (/<br>/.test(string)) ? 11 : 16;
   adjustLegendItems(el, tidy_legend);
-  let elcontainer = {height: $(el).find("svg.main-svg")[0].height.animVal.value, width: $(el).find("svg.main-svg")[0].width.animVal.value};
-  let eltitle = $(el).find('g.g-gtitle')[0].getBBox();
-  let is_yaxis2 = $(el).find('g.xy2').length > 0 ? true: false
-  let is_yaxistitle2 = $(el).find('g.g-y2title').length > 0 ? true: false
-  let elslider = rangeSliderHeight(el)
+  measured = measured ?? measureVerticalState(el, pie_chart, logo);
+  let elcontainer = measured?.container ?? {height: 0, width: 0};
+  let eltitle = measured?.title ?? {height: 0, width: 0};
+  let is_yaxis2 = measured?.y2Axis != null ? true: false
+  let is_yaxistitle2 = measured?.y2Title != null ? true: false
+  let elslider = measured?.rangeSliderHeight ?? rangeSliderHeight(el)
   let elxticks_default = pie_chart ? 5 : 0
-  let elxticks = $(el).find('g.xaxislayer-above')
-  if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  elxticks_default };
+  let elxticks = measured?.xAxisLayer?.height ?? elxticks_default;
   //console.log("xticks: "+ elxticks)
-  let modebar_ht = findModeBarHeight(el)
+  let modebar_ht = measured?.modebarHeight ?? findModeBarHeight(el)
   let margin_right = 5
   if(is_yaxis2) {
-    let yaxis2 = $(el).find('g.overaxes-above > g.xy2-y')[0].getBBox();
-    let yaxiswidth = is_yaxistitle2 ? $(el).find('g.g-y2title')[0].getBBox().width : 0
+    let yaxis2 = measured?.y2Axis ?? {width: 0};
+    let yaxiswidth = is_yaxistitle2 ? (measured?.y2Title?.width ?? 0) : 0
     margin_right = yaxis2.width+5+yaxiswidth
   }
   let margin_top = eltitle.height + modebar_ht + checkForBR(el.layout.title.text);
-  let elcaption = $(el).find('g.annotation')[0].getBBox().height + 5;
-  let elxtitle = $(el).find('g.g-xtitle')
-  if(elxtitle.length > 0) {
-    elxtitle = elxtitle[0].getBBox().height * 1.3;
-  } else {
-    elxtitle = 0
-  }
+  let elcaption = (measured?.annotation?.height ?? 0) + 5;
+  let elxtitle = measured?.xTitle ? measured.xTitle.height * 1.3 : 0
   let ellegend = {width: 0, height: 0}
-  if ($(el).find('g.legend')[0] != undefined) {
-    let legendbox = $(el).find('g.legend')[0].getBBox()
+  if (measured?.legend != null) {
+    let legendbox = measured.legend
     ellegend.height = legendbox.height//legend_position == "right" ? 0 : Math.ceil(legendbox.height)
     ellegend.width =  legendbox.width
   };
-  let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
-  if (elplot.length > 0) {elplot = elplot[0].getBBox()};
+  let elplot = toPlainBBox(measured?.plot, {x: 0, y: 0, width: 0, height: 1});
   // console.log("margin b: " + margin_bottom)
   if(legend_position == "auto") {
     if(el.layout.legend.position == "right") {
@@ -1025,8 +1026,10 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     }
   }
   let legend_orientation = legend_position == "bottom" ? "h" : "v"
-  if ($(el).find('g.legend')[0] != undefined) {
-    let legendbox = $(el).find('g.legend')[0].getBBox()
+  let target_showlegend = null;
+  let target_rangeslider = null;
+  if (measured?.legend != null) {
+    let legendbox = measured.legend
     ellegend.height = legend_position == "right" ? 0 : Math.ceil(legendbox.height)
     ellegend.width =  legendbox.width
   };
@@ -1035,7 +1038,7 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let margin_bottom = ellegend.height + 15 + (elcaption + elxticks + elxtitle);
   if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
   if (elplot.height == 0) { elplot.height = 1}
-  let elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
+  let elimages = measured?.image ?? {width: 0, height: 0, x: 0, y: 0};
   let logospace = logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend, legend_orientation, elplot.height);
   margin_bottom = margin_bottom + logospace;
 //  console.log((legend_fontsize.legend * 2) / elplot.height)
@@ -1043,17 +1046,48 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
   let images_sizey = ((legend_fontsize.legend * 2) / elplot.height)
   el.layout.images[0].sizey = images_sizey
   let legend_y = legend_position == "right" ? 1 : -((elxticks + 10 + (elslider) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
+  /*
+  console.log('roboplotr legend fit check', {
+    title: el.layout.title?.text,
+    legendPosition: legend_position,
+    legendOrientation: legend_orientation,
+    showlegendCurrent: el.layout.showlegend,
+    rangesliderCurrent: el.layout.xaxis?.rangeslider?.visible,
+    container: elcontainer,
+    plot: elplot,
+    legend: ellegend,
+    xticks: elxticks,
+    xtitle: elxtitle,
+    caption: elcaption,
+    modebar: modebar_ht,
+    rangesliderHeight: elslider,
+    marginTop: margin_top,
+    marginBottom: margin_bottom,
+    legendY: legend_y,
+    crampedByLegendY: legend_y < -2,
+    crampedByPlotRatio: elplot.height < (elcontainer.height / 4),
+    roomyByPlotRatio: elplot.height > (elcontainer.height / 1.5)
+  });
+  */
   if (legend_y < -2 || (elplot.height < (elcontainer.height / 4))) {
-    rangeSliderShowHide(el, false)
+    target_showlegend = false;
+    if ('rangeslider' in el.layout.xaxis) {
+      target_rangeslider = false;
+    }
+    /*
+    console.log('roboplotr legend decision', {
+      action: 'hide',
+      reason: {
+        crampedByLegendY: legend_y < -2,
+        crampedByPlotRatio: elplot.height < (elcontainer.height / 4)
+      }
+    });
+    */
     elslider = 0;
-    elxticks = $(el).find('g.xaxislayer-above')
-    if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks = elxticks_default };
+    measured = measureVerticalState(el, pie_chart, logo);
+    elxticks = measured?.xAxisLayer?.height ?? elxticks_default;
     margin_bottom = 15 + elcaption + elxticks + elxtitle;
-    let elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
-    if (elplot.length > 0) {
-      elplot = elplot[0].getBBox()
-
-    };
+    elplot = toPlainBBox(measured?.plot, {x: 0, y: 0, width: 0, height: 1});
     if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
     if (elplot.height == 0) { elplot.height = 1}
     //images_sizey = (elcontainer.height * 0.05) / elplot.height;
@@ -1063,57 +1097,62 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
 
   }  else if ((elplot.height > (elcontainer.height / 1.5)) & el.layout.showlegend == false) {
     //    console.log("NUFF SPACE")
-    rangeSliderShowHide(el, true)
-    elslider = rangeSliderHeight(el)
-    let elxticks = $(el).find('g.xaxislayer-above')
-    if(elxticks.length > 0) { elxticks = elxticks[0].getBBox().height } else { elxticks =  elxticks_default };
-    let modebar_ht = findModeBarHeight(el)
-    let margin_top = eltitle.height + modebar_ht + checkForBR(el.layout.title.text);
-    let elcaption = $(el).find('g.annotation')[0].getBBox().height + 5;
-    let elxtitle = $(el).find('g.g-xtitle')
-    if(elxtitle.length > 0) {
-      elxtitle = elxtitle[0].getBBox().height * 1.3;
-    } else {
-      elxtitle = 0
+    target_showlegend = true;
+    if ('rangeslider' in el.layout.xaxis) {
+      target_rangeslider = true;
     }
+    /*
+    console.log('roboplotr legend decision', {
+      action: 'show',
+      reason: {
+        roomyByPlotRatio: elplot.height > (elcontainer.height / 1.5),
+        showlegendCurrent: el.layout.showlegend
+      }
+    });
+    */
+    measured = measureVerticalState(el, pie_chart, logo);
+    elslider = measured?.rangeSliderHeight ?? rangeSliderHeight(el)
+    let elxticks = measured?.xAxisLayer?.height ?? elxticks_default;
+    let modebar_ht = measured?.modebarHeight ?? findModeBarHeight(el)
+    let margin_top = eltitle.height + modebar_ht + checkForBR(el.layout.title.text);
+    let elcaption = (measured?.annotation?.height ?? 0) + 5;
+    let elxtitle = measured?.xTitle ? measured.xTitle.height * 1.3 : 0
     ellegend = {width: 0, height: 0}
-    if ($(el).find('g.legend')[0] != undefined) {
-      ellegend.height = legend_position == "bottom" ? Math.ceil($(el).find('g.legend')[0].getBBox().height) : 0
-      ellegend.width =  $(el).find('g.legend')[0].getBBox().width
+    if (measured?.legend != null) {
+      ellegend.height = legend_position == "bottom" ? Math.ceil(measured.legend.height) : 0
+      ellegend.width =  measured.legend.width
     };
     margin_bottom = ellegend.height + 15 + (elcaption + elxticks + elxtitle);
     //  margin_bottom = margin_bottom + logoSpace(logo, elimages, margin_bottom, elxtitle, elxticks, ellegend);
     //console.log("margin b loosen: " + el.layout.margin.b)
-    elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
-    if (elplot.length > 0) {elplot = elplot[0].getBBox()};
+    elplot = toPlainBBox(measured?.plot, {x: 0, y: 0, width: 0, height: 1});
     if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
     if (elplot.height == 0) { elplot.height = 1}
-    elimages = $(el).find('g.layer-above > g.imagelayer > image')[0].getBBox();
+    elimages = measured?.image ?? {width: 0, height: 0, x: 0, y: 0};
     //images_sizey = (elcontainer.height * 0.05) / elplot.height;
     images_sizey = ((legend_fontsize.legend * 2) / elplot.height)
     el.layout.images[0].sizey = images_sizey
     legend_y = -((elxticks + 10 + (elslider) + elxtitle) / elplot.height)//((margin_bottom - elcaption + (elslider*2)) / elplot);
   }
-  elplot = pie_chart ? $(el).find('.pielayer') : $(el).find('.nsewdrag');
-  if (elplot.length > 0) { elplot = elplot[0].getBBox() };
+  measured = measureVerticalState(el, pie_chart, logo);
+  elplot = toPlainBBox(measured?.plot, {x: 0, y: 0, width: 0, height: 1});
   if (pie_chart) { elplot.height = elcontainer.height-margin_bottom-margin_top }
   if (elplot.height == 0) { elplot.height = 1}
   let legend_font_size = (ellegend.height > (elplot.height / 2)) ? legend_fontsize.legend - 2 : legend_fontsize.legend;
-  legend_font_size = (ellegend.width > $(el).find("svg.main-svg")[0].width.animVal.value) ? legend_font_size - 2 : legend_font_size;
+  legend_font_size = (ellegend.width > elcontainer.width) ? legend_font_size - 2 : legend_font_size;
   let yaxis_font_size = legend_fontsize.y;
 
-  let yaxis_layer = $(el).find('g.yaxislayer-above')
+  let yaxis_layer = measured?.yAxisLayer
 
-  if(yaxis_layer.length > 0) {
-    let yticks = $(el).find('g.ytick');
-    let yvertical = [...yticks].reduce((a,b) => a + b.getBBox().height, 0)
+  if(yaxis_layer != null) {
+    let yvertical = measured?.yTicksTotalHeight ?? 0
     if( elplot.height <= yvertical) {
       yaxis_font_size = Math.floor(el.layout.yaxis.tickfont.size * 0.8)
     } else {
       yaxis_font_size = Math.min(Math.floor(el.layout.yaxis.tickfont.size*1.5), legend_fontsize.y)
     }
 
-    let yaxis_width = yaxis_layer[0].getBBox().width;
+    let yaxis_width = yaxis_layer.width;
 
     if(el.layout.annotations[0].xmod == "container") {
       el.layout.annotations[0].xshift = -yaxis_width;
@@ -1152,6 +1191,20 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
     return obj2; 
 
   }, {});
+
+  if (target_showlegend !== null) {
+    rearray["showlegend"] = target_showlegend;
+  }
+  if (target_rangeslider !== null) {
+    rearray["xaxis.rangeslider.visible"] = target_rangeslider;
+  }
+  /*
+  console.log('roboplotr legend relayout payload', {
+    targetShowlegend: target_showlegend,
+    targetRangeslider: target_rangeslider,
+    relayout: rearray
+  });
+  */
 
 /*  if(pie_chart) {
     const keyToRemove = 'b';
@@ -1253,9 +1306,9 @@ function getVerticalLayout(el, legend_fontsize, height = false, keys, pie_chart,
          multiplier = 1+Math.abs((elplot.width - lows) / elplot.width) 
          return([-(Math.abs(el.layout.xaxis.range[0]) * multiplier), el._init_xrange.x1])
     } else if (lows < elplot.width * 0.9) {
-      console.log("nuff space")
+      //console.log("nuff space")
       multiplier = Math.abs(Math.abs((elplot.width - lows) / elplot.width)-1 )
-      console.log(multiplier)
+      //console.log(multiplier)
       return([-Math.min(Math.abs(el.layout.xaxis.range[0]) / multiplier, Math.abs(el._init_xrange.x0)), el._init_xrange.x1])
   }
   }
@@ -1336,46 +1389,285 @@ function adjustLegendItems(gd, tidy = true) {
 
 
 
-function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart, logo = undefined, tidy_legend = false, legend_position = "auto") {
-  if ('width' in eventdata | 'autosize' in eventdata) {
-    if ('rangeslider' in gd.layout.xaxis) {
-      if (gd.layout.xaxis.rangeslider.visible == false) {
-        gd.layout.xaxis.rangeslider.visible = true;
-      }}
-    let title_text = "<span>" +
-      (plot_title[2] ? "<b>" : "" ) +
-      plot_title[0] +
-      (plot_title[2] ? "</b>" : "" ) +
-      (plot_title[0].length == 0 ? "" : "<br>") +
-      "<span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
-    let caption_text = gd.layout.annotations[0].text.replace(new RegExp("<br class = 'roboplotr-breaker'>", 'g'), " ")
-    Plotly.relayout(gd, {'title.text': title_text, 'annotations[0].text': caption_text})
-    let gdtitle = $(gd).find('g.g-gtitle')[0].getBBox().width;
-    let titlespace = pie_chart ? $(gd).find('g.layer-above') : $(gd).find('.nsewdrag');
-    if (titlespace.length > 0) {titlespace = titlespace[0].getBBox().width};
-    let relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','margin.t','margin.b','legend.orientation', 'legend.x','legend.y','yaxis.tickfont.size','yaxis2.tickfont.size'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
-    if(titlespace <= gdtitle) {
-      title_text = "<span>" +
-        (plot_title[2] ? "<b>" : "" ) +
-        stringDivider(plot_title[0], Math.floor(titlespace/(gd.layout.title.font.size-8)), "<br class = 'roboplotr-breaker'>") +
-        (plot_title[2] ? "</b>" : "" ) +
-        "<br><span style='font-size: 75%'>" + plot_title[1] + "</span></span>"
-      relayout_array["title.text"] = title_text;
+function buildVerticalTitleText(plot_title, wrapped_title = null) {
+  const title_body = wrapped_title ?? plot_title[0];
+  const title_break = title_body.length == 0 ? "" : "<br>";
+  return "<span>" +
+    (plot_title[2] ? "<b>" : "" ) +
+    title_body +
+    (plot_title[2] ? "</b>" : "" ) +
+    title_break +
+    "<span style='font-size: 75%'>" + plot_title[1] + "</span></span>";
+}
+
+function normalizeVerticalCaptionText(gd) {
+  return gd.layout.annotations[0].text.replace(new RegExp("<br class = 'roboplotr-breaker'>", 'g'), " ");
+}
+
+function seedVerticalText(gd, plot_title) {
+  Plotly.relayout(gd, {
+    'title.text': buildVerticalTitleText(plot_title),
+    'annotations[0].text': normalizeVerticalCaptionText(gd)
+  });
+}
+
+function computeWrappedVerticalTitle(gd, plot_title, titlespace, title_width = 0) {
+  if (titlespace <= title_width) {
+    return buildVerticalTitleText(
+      plot_title,
+      stringDivider(
+        plot_title[0],
+        Math.floor(titlespace / (gd.layout.title.font.size - 8)),
+        "<br class = 'roboplotr-breaker'>"
+      )
+    );
+  }
+  return null;
+}
+
+function buildVerticalLayoutPass(gd, legend_fontsize, keys, pie_chart, logo, tidy_legend, legend_position, measured = null) {
+  return getVerticalLayout(
+    gd,
+    legend_fontsize,
+    false,
+    keys,
+    pie_chart,
+    logo,
+    tidy_legend,
+    legend_position,
+    measured
+  );
+}
+
+function buildVerticalCaptionPass(gd, legend_fontsize, keys, pie_chart, logo, tidy_legend, legend_position, titlespace, measured = null) {
+  measured = measured ?? measureVerticalState(gd, pie_chart, logo);
+  let relayout_array = buildVerticalLayoutPass(
+    gd,
+    legend_fontsize,
+    keys,
+    pie_chart,
+    logo,
+    tidy_legend,
+    legend_position,
+    measured
+  );
+  relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace, measured);
+  return relayout_array;
+}
+
+function getLayoutValue(layout, key) {
+  return key.split('.').reduce((obj, part) => {
+    if (obj == null) return undefined;
+    const match = part.match(/^(.+)\[(\d+)\]$/);
+    if (match) {
+      return obj[match[1]]?.[Number(match[2])];
     }
-    rangeSliderShowHide(gd, true);
-    Plotly.relayout(gd, relayout_array);
-    let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey', 'xaxis.range[0]', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
-    relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
-    Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey', 'xaxis.range[0]', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position)
-    relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
-    Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[0]', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
-    relayout_array = findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace);
-    Plotly.relayout(gd, relayout_array);
-    relayout_array = getVerticalLayout(gd, legend_fontsize, false, keys = ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[0]', 'xaxis.range[1]'], pie_chart = pie_chart, logo = logo, tidy_legend = tidy_legend, legend_position = legend_position);
-    Plotly.relayout(gd, relayout_array);
+    return obj[part];
+  }, layout);
+}
+
+function relayoutToleranceForKey(key) {
+  if (/^margin\./.test(key) || /tickfont\.size$/.test(key) || /font\.size$/.test(key)) {
+    return 0.5;
+  }
+  if (/range\[\d+\]$/.test(key) || /^legend\.[xy]$/.test(key) || /^images\[\d+\]\.size[xy]$/.test(key)) {
+    return 1e-9;
+  }
+  return 0;
+}
+
+function valuesClose(a, b, tolerance = 0) {
+  if (typeof a === 'number' && typeof b === 'number') {
+    return Math.abs(a - b) <= tolerance;
+  }
+  return a === b;
+}
+
+function filterRelayoutChanges(gd, payload) {
+  return Object.fromEntries(
+    Object.entries(payload).filter(([key, value]) => {
+      return !valuesClose(getLayoutValue(gd.layout, key), value, relayoutToleranceForKey(key));
+    })
+  );
+}
+
+function applyRelayoutIfChanged(gd, payload) {
+  const changed = filterRelayoutChanges(gd, payload);
+  if (Object.keys(changed).length == 0) {
+    return false;
+  }
+  Plotly.relayout(gd, changed);
+  return true;
+}
+
+function getFirstBBox(selection) {
+  if (!selection || selection.length == 0 || typeof selection[0].getBBox !== 'function') {
+    return null;
+  }
+  return selection[0].getBBox();
+}
+
+function toPlainBBox(bbox, fallback = {x: 0, y: 0, width: 0, height: 0}) {
+  if (bbox == null) return {...fallback};
+  return {
+    x: bbox.x ?? fallback.x,
+    y: bbox.y ?? fallback.y,
+    width: bbox.width ?? fallback.width,
+    height: bbox.height ?? fallback.height
+  };
+}
+
+function measureVerticalState(gd, pie_chart = false, logo = undefined) {
+  const mainSvg = $(gd).find("svg.main-svg")[0];
+  const plotSelection = pie_chart ? $(gd).find('.pielayer') : $(gd).find('.nsewdrag');
+  const plot = getFirstBBox(plotSelection);
+  if (plot == null) {
+    return null;
+  }
+
+  const annotationSelection = $(gd).find('g.annotation');
+  const imageSelection = $(gd).find('g.layer-above > g.imagelayer > image');
+  const xAxisSelection = $(gd).find('g.xaxislayer-above');
+  const xTitleSelection = $(gd).find('g.g-xtitle');
+  const legendSelection = $(gd).find('g.legend');
+  const rangeSliderBgSelection = $(gd).find('.rangeslider-bg');
+  const yAxisLayerSelection = $(gd).find('g.yaxislayer-above');
+  const yTickSelection = $(gd).find('g.ytick');
+  const y2AxisSelection = $(gd).find('g.overaxes-above > g.xy2-y');
+  const y2TitleSelection = $(gd).find('g.g-y2title');
+  const titleSelection = $(gd).find('g.g-gtitle');
+  const layerAboveSelection = $(gd).find('g.layer-above');
+
+  const image = getFirstBBox(imageSelection);
+  const xAxisLayer = getFirstBBox(xAxisSelection);
+  const rangeSliderBg = getFirstBBox(rangeSliderBgSelection);
+
+  return {
+    plot,
+    container: {
+      width: mainSvg?.width?.animVal?.value ?? 0,
+      height: mainSvg?.height?.animVal?.value ?? 0
+    },
+    title: getFirstBBox(titleSelection),
+    annotation: getFirstBBox(annotationSelection),
+    image,
+    legend: getFirstBBox(legendSelection),
+    xAxisLayer,
+    xTitle: getFirstBBox(xTitleSelection),
+    rangeSliderBg,
+    rangeSliderHeight: calculateRangeSliderHeight(gd, rangeSliderBg, xAxisLayer),
+    modebarHeight: findModeBarHeight(gd),
+    yAxisLayer: getFirstBBox(yAxisLayerSelection),
+    yTicksTotalHeight: [...yTickSelection].reduce((sum, tick) => sum + tick.getBBox().height, 0),
+    y2Axis: getFirstBBox(y2AxisSelection),
+    y2Title: getFirstBBox(y2TitleSelection),
+    titlespace: pie_chart ? (getFirstBBox(layerAboveSelection)?.width ?? 0) : plot.width,
+    imageDisplayedWidth: image ? calculateDisplayedImageSize(logo, image).width : 0
+  };
+}
+
+function runVerticalCaptionPasses(gd, legend_fontsize, pie_chart, logo, tidy_legend, legend_position, titlespace, max_passes = 4) {
+  let relayout_array = null;
+  let previous_signature = null;
+
+  for (let pass = 0; pass < max_passes; pass++) {
+    const keys = pass < max_passes - 1
+      ? ['legend.font.size','legend.orientation','legend.x','legend.y','margin.t','margin.b','margin.r','yaxis.tickfont.size','yaxis2.tickfont.size','images[0].sizey', 'xaxis.range[0]', 'xaxis.range[1]']
+      : ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[0]', 'xaxis.range[1]'];
+
+    const measured = measureVerticalState(gd, pie_chart, logo);
+    relayout_array = buildVerticalCaptionPass(
+      gd,
+      legend_fontsize,
+	      keys,
+      pie_chart,
+      logo,
+      tidy_legend,
+      legend_position,
+      measured?.titlespace ?? titlespace,
+      measured
+    );
+
+    const signature = JSON.stringify(relayout_array);
+    /*
+    console.log('roboplotr vertical caption pass', {
+      pass: pass + 1,
+      maxPasses: max_passes,
+      keys,
+      relayout: relayout_array
+    });
+    */
+    if (signature === previous_signature) {
+      /*
+      console.log('roboplotr vertical caption pass converged', {
+        pass: pass + 1
+      });
+      */
+      break;
+    }
+
+    const changed = applyRelayoutIfChanged(gd, relayout_array);
+    if (!changed) {
+      break;
+    }
+    previous_signature = signature;
+  }
+
+  return relayout_array;
+}
+
+function ensureVerticalRangesliderState(gd) {
+  if ('rangeslider' in gd.layout.xaxis) {
+    if (gd.layout.xaxis.rangeslider.visible == false) {
+      gd.layout.xaxis.rangeslider.visible = true;
+    }
+  }
+}
+
+function setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart, logo = undefined, tidy_legend = false, legend_position = "auto") {
+  if ('width' in eventdata || 'autosize' in eventdata) {
+    ensureVerticalRangesliderState(gd);
+    seedVerticalText(gd, plot_title);
+
+    const measured = measureVerticalState(gd, pie_chart, logo);
+    const gdtitle = measured?.title?.width ?? 0;
+    const titlespace = measured?.titlespace ?? 0;
+    let relayout_array = buildVerticalLayoutPass(
+      gd,
+      legend_fontsize,
+      ['legend.font.size','margin.t','margin.b','legend.orientation', 'legend.x','legend.y','yaxis.tickfont.size','yaxis2.tickfont.size'],
+      pie_chart,
+      logo,
+      tidy_legend,
+      legend_position,
+      measured
+    );
+    if (titlespace <= gdtitle) {
+      relayout_array["title.text"] = computeWrappedVerticalTitle(gd, plot_title, titlespace, gdtitle);
+    }
+    applyRelayoutIfChanged(gd, relayout_array);
+
+    runVerticalCaptionPasses(
+      gd,
+      legend_fontsize,
+      pie_chart,
+      logo,
+      tidy_legend,
+      legend_position,
+      titlespace
+    );
+
+    relayout_array = buildVerticalLayoutPass(
+      gd,
+      legend_fontsize,
+      ['legend.font.size', 'margin.t', 'margin.b','legend.orientation','legend.x','legend.y','images[0].sizey','yaxis.tickfont.size','yaxis2.tickfont.size','xaxis.range[0]', 'xaxis.range[1]'],
+      pie_chart,
+      logo,
+      tidy_legend,
+      legend_position,
+      measureVerticalState(gd, pie_chart, logo)
+    );
+    applyRelayoutIfChanged(gd, relayout_array);
     setUpdatemenuPosition(gd);
 
   }
@@ -1399,13 +1691,17 @@ function setUpdatemenuPosition(gd) {
 
 function setYPositions(eventdata, gd, pie_chart = false) {
 
-  if ('width' in eventdata | 'autosize' in eventdata) {
+  if ('width' in eventdata || 'autosize' in eventdata) {
 
-    let container = $(gd).find("svg.main-svg")[0].height.animVal.value;
-    let modebar_ht = findModeBarHeight(gd)
+    const measured = measureVerticalState(gd, pie_chart);
+    if (measured == null || measured.container.height == 0) {
+      return;
+    }
+    let container = measured?.container?.height ?? 0;
+    let container_width = measured?.container?.width ?? 0;
+    let modebar_ht = measured?.modebarHeight ?? findModeBarHeight(gd)
     let title_y = (container - (21+modebar_ht)) / container
-    let plot = pie_chart ? $(gd).find('.pielayer') : $(gd).find('.nsewdrag');
-    if (plot.length > 0) {plot = plot[0].getBBox()};
+    let plot = toPlainBBox(measured?.plot, {x: 0, y: 0, width: 0, height: 1});
     // console.log("margin b: " + margin_bottom)
     let margin_bottom = gd.layout.margin.b
     let margin_top = gd.layout.margin.t
@@ -1413,7 +1709,6 @@ function setYPositions(eventdata, gd, pie_chart = false) {
     let mb = container-plot.height-gd.layout.margin.t
     let ph = Math.round(container-margin_top-margin_bottom)
     if(pie_chart === true) {
-      let container_width = $(gd).find("svg.main-svg")[0].width.animVal.value;
       if(ph > Math.round(plot.height) && container > container_width*2) {
         mb = mb - (ph-plot.height)
         plot.height = plot.height + (ph-plot.height)
@@ -1431,15 +1726,15 @@ function setYPositions(eventdata, gd, pie_chart = false) {
 
 }
 
-function findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace) {
+function findCaptionSpace(gd, logo, pie_chart, relayout_array, titlespace, measured = null) {
+  measured = measured ?? measureVerticalState(gd, pie_chart, logo);
   let captionspace
-  let gdcaption = $(gd).find('g.annotation')[0].getBBox().width;
   let caption_text = gd.layout.annotations[0].text.replace(new RegExp("<br class = 'roboplotr-breaker'>", 'g'), " ")
   if(pie_chart) {
-    captionspace = titlespace
+    captionspace = measured?.titlespace ?? titlespace
   } else {
-    let plot_width = $(gd).find('.nsewdrag')[0].getBBox().width
-    let logo_width = calculateDisplayedImageSize(logo, $(gd).find('g.layer-above > g.imagelayer > image')[0].getBBox()).width
+    let plot_width = measured?.plot?.width ?? 0
+    let logo_width = measured?.imageDisplayedWidth ?? 0
     captionspace = Math.max(plot_width - logo_width, Math.round(logo_width / 2))
   }
   relayout_array['annotations[0].text'] = stringDivider(caption_text, Math.floor(captionspace/(gd.layout.annotations[0].font.size/2)), "<br class = 'roboplotr-breaker'>")
@@ -1482,7 +1777,7 @@ function editShapes(gd, line_label) {
     gd.layout.shapes[zlineshape].x0 = gd.layout.xaxis.range[0]
     gd.layout.shapes[zlineshape].x1 = gd.layout.xaxis.range[1]
   }
-  if(zlineshape !== null | sareashape !== null) {
+  if(zlineshape !== null || sareashape !== null) {
     Plotly.redraw(gd)
   }
   if(zlineshape !== null) {
@@ -1543,9 +1838,9 @@ function estimateLeftMargin(labels, fontSize = 12) {
   return Math.ceil(40 + longest * fontSize * 0.6);
 }
 
-function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
+function yrangeRelayout(eventdata, gd, trace_sums) {
   
-  if (gd.data[0].x.every(v => typeof v !== "number") && Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]' | 'xaxis.range[0]' in eventdata | "xaxis.autorange" in eventdata) {
+  if (gd.data[0].x.every(v => typeof v !== "number") && (Object.prototype.toString.call(eventdata['xaxis.range']) === '[object Array]' || 'xaxis.range[0]' in eventdata || "xaxis.autorange" in eventdata)) {
 
     var xRange = gd.layout.xaxis.range;
     var yRange = gd.layout.yaxis.range;
@@ -1642,26 +1937,28 @@ function yrangeRelayout(eventdata, gd, timerId, trace_sums) {
       update['shapes['+sarea+'].y1'] = yMax
     }
     Plotly.relayout(gd, update);
-    if (timerId >= 0) {
-      //timer is running: stop it
-      window.clearTimeout(timerId);
+    if (gd._yrangeRelayoutTimerId == null) {
+      gd._yrangeRelayoutTimerId = -1;
     }
-    timerId = window.setTimeout(function() {
+    if (gd._yrangeRelayoutTimerId >= 0) {
+      //timer is running: stop it
+      window.clearTimeout(gd._yrangeRelayoutTimerId);
+    }
+    gd._yrangeRelayoutTimerId = window.setTimeout(function() {
       //fire end event
       //console.log('rangeslider event ENDS');
       //reset timer to undefined
-      timerId = -1;
+      gd._yrangeRelayoutTimerId = -1;
     }, 800);
   }
 }
 
 function plotlyRelayoutEventFunction(eventdata, gd, legend_fontsize, plot_title, rangeslider_sums, pie_chart, logo, tidy_legend, legend_position) {
-  timerId = 0;
   //  gd.layout.margin.b = 0
   //  Plotly.redraw(gd)
   setVerticalLayout(eventdata, gd, legend_fontsize, plot_title, pie_chart, logo, tidy_legend, legend_position);
   setYPositions(eventdata, gd, pie_chart);
-  yrangeRelayout(eventdata, gd, timerId, rangeslider_sums);
+  yrangeRelayout(eventdata, gd, rangeslider_sums);
 
   //	console.log("margin b: " + gd.layout.margin.b, "; margin t: " + gd.layout.margin.t)
 };

@@ -57,16 +57,22 @@ roboplotr_check_valid_var <- function(var,names,where = NULL) {
 #' @importFrom stringr str_c str_glue str_remove
 roboplotr_typecheck <- function(var, types, size = 1, allow_null = TRUE, allow_na = FALSE, extra = NULL) {
 
+  length_valid <- function(x) {
+    is.null(size) || length(x) == size
+  }
+
+  na_valid <- function(x) {
+    allow_na || !any(is.na(x))
+  }
+
   get_type <- function(x, y) {
-    if(length(x) != size) return(F)
-    if (any(is.na(x))) return(ifelse(allow_na, T, F))
-    class(x) == y
+    length_valid(x) && na_valid(x) && any(class(x) == y)
   }
 
   if(is.null(extra)) {
     extra <- ""
   } else {
-    extra <- str_glue(" {extra}")
+    extra <- paste0(" ", extra)
   }
   .what <- first(as.character(substitute(var)))
 
@@ -74,24 +80,26 @@ roboplotr_typecheck <- function(var, types, size = 1, allow_null = TRUE, allow_n
     if (!allow_null) { stop(str_glue("{.what}{extra} cannot be NULL."), call. = F)
     } else {
         return()
-      }
+    }
   }
 
-  if (!is.list(var) & any(is.na(var))) {
+  if (!is.list(var) && !na_valid(var)) {
     if (!allow_na) {
       stop(str_glue("{.what}{extra} cannot be NA."), call. = F)
     }
   }
 
-  type_valid <- ifelse(is.null(types), TRUE, FALSE)
+  type_valid <- is.null(types)
 
   if(!is.null(types)) {
     types <- str_replace(types,"^(?=(set|create))","roboplotr.")
-    for (.type in types) {
-      if (!any(inherits(var, .type, which = T) == 0)) {
-        type_valid <- TRUE
-        break
-      } else {
+
+    direct_type_valid <- any(types %in% class(var)) || any(vapply(types, function(.type) inherits(var, .type), logical(1)))
+    direct_value_valid <- is.list(var) || (length_valid(var) && na_valid(var))
+    if (direct_value_valid && direct_type_valid) {
+      type_valid <- TRUE
+    } else {
+      for (.type in types) {
         try({
           .var <- suppressWarnings(as(var, .type))
           if (get_type(.var, .type)) {
@@ -105,11 +113,11 @@ roboplotr_typecheck <- function(var, types, size = 1, allow_null = TRUE, allow_n
 
   if (!type_valid) {
     .types <- str_replace(types, "roboplotr.","call of roboplotr::")
-    .many <- ifelse(length(.types) > 1, 'one of ','')
+    .many <- if (length(.types) > 1) 'one of ' else ''
     stop(str_glue("{.what}{extra} must be {.many}{roboplotr_combine_words(.types, and = ' or ')}!"), call. = F)
   }
 
-  if (!is.null(size) && length(var) != size && !is.list(var)) {
+  if (!length_valid(var) && !is.list(var)) {
     stop(str_glue("{.what}{extra} must have length of {size}!"), call. = F)
   }
 

@@ -1,3 +1,7 @@
+# roboplotr 2.8.2.16
+
+* Improves vertical `roboplot()` relayout stability for title wrapping, caption fitting, legend visibility, and rangeslider-aware y-axis resizing.
+
 # roboplotr 2.8.2.15
 
 * `roboplot(externalmenu)` layout improvements.
@@ -6,7 +10,7 @@
 
 * Fixes a `set_externamenu(position)` axis ranging bug.
 
-# roboplotr 2.8.2.14
+# roboplotr 2.8.2.13
 
 * Adds the argument `set_externamenu(position)` for always-on externalmenus (using "below" or "side").
 * Improves bar length detection with horizontal bar plots.

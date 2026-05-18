@@ -120,7 +120,7 @@ roboplotr_dependencies <- function(p,
                         gd.setAttribute('aria-label', data.alt);
                         if (!gd._init_xrange && data.piePlot == false) {gd._init_xrange = { x0: gd.layout.xaxis.range[0], x1: gd.layout.xaxis.range[1] };}
                         if (!gd._init_yrange && data.piePlot == false) {gd._init_yrange = { x0: gd.layout.yaxis.range[0], x1: gd.layout.yaxis.range[1] };}
-                        for (i = gd.layout.annotations.length - 1; i >= 0; i--) {
+                        for (let i = gd.layout.annotations.length - 1; i >= 0; i--) {
         if(gd.layout.annotations[i].text == gd.layout.annotations[0].text && i > 0 ) {
           Plotly.relayout(gd, 'annotations[' + i + ']', 'remove');
         }
@@ -144,7 +144,7 @@ roboplotr_dependencies <- function(p,
                         let observer = new IntersectionObserver(function(entries) {
                               // Check if the element is intersecting (visible)
                                                               isIntersecting = entries[0].isIntersecting;
-                              if(entries[0].isIntersecting & relayoutDone) {
+                              if(entries[0].isIntersecting && relayoutDone) {
                                 // Element is visible, handle the plot rendering or adjustment
 //                                console.log(`relayout fired!`);
                                 plotlyRelayoutEventFunction({width: true}, gd, data.fonts, plot_title, data.rangesliderSums, pie_plot = data.piePlot, logo = roboplot_logo, tidy_legend = data.tidyLegend, legend_position = data.legendPosition);
