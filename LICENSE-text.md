@@ -1,3 +1,4 @@
 # License
 
-    Copyright 2022 Robonomist. All rights reserved.
+    YEAR: 2026
+    COPYRIGHT HOLDER: Robonomist

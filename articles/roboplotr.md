@@ -1,6 +1,7 @@
 # Introduction to roboplotr
 
 ``` r
+
 library(roboplotr)
 knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 ```
@@ -43,6 +44,7 @@ specifications. We create the directory “plots” in tempdir() to store
 any files created in. We also load the vignette data here.
 
 ``` r
+
 
 library(tidyverse)
 library(lubridate)
@@ -139,6 +141,7 @@ and create our first plot.
 
 ``` r
 
+
 vignette_data_oecd_gdp |>
   roboplot(
     Country,
@@ -171,6 +174,7 @@ the globally set format.
 
 ``` r
 
+
 vignette_data_es_fred_inflation |> 
   roboplot(Country, "Consumer price inflation","Annual change of HICP, %",
                   caption = set_caption(template = "Sources: Eurostat & US BLS."))
@@ -190,6 +194,7 @@ Next we make a horizontal plot on producer prices, where we need to be
 be a bit more verbose with plot axes.
 
 ``` r
+
 
 d <- vignette_data_statfin_producer_prices
 
@@ -252,6 +257,7 @@ Next we will create another plot with only a single observation and
 different dimensions, this time a line plot.
 
 ``` r
+
 vignette_data_statfin_producer_price_manufacture |>
   roboplot(Series,
     "Producer Price Index for Manufactured Products",
@@ -282,6 +288,7 @@ As you can see from the next few examples, all of this makes the
 workflow for creating dynamic plots very short and simple.
 
 ``` r
+
 vignette_data_fao_food_price_index |>
   roboplot(
     Area,"FAO Food indices","Index, 2015=100, weighted average","FAO"
@@ -297,6 +304,7 @@ level. Sometimes you have a specific format in mind, and we’ll cover
 these next.
 
 ``` r
+
 vignette_data_ec_petrol_price |>
   roboplot(
     Country,
@@ -310,6 +318,7 @@ vignette_data_ec_petrol_price |>
 ```
 
 ``` r
+
 vignette_data_entsoe_electricity_price |>
   roboplot(Area,
            "Electricity prices, 28-day moving average",
@@ -338,6 +347,7 @@ have to transform the data itself as has been done in the examples that
 follow.
 
 ``` r
+
 vignette_data_ec_ecomomic_sentiment |> 
   roboplot(
     Country,
@@ -348,6 +358,7 @@ vignette_data_ec_ecomomic_sentiment |>
 ```
 
 ``` r
+
 vignette_data_ec_consumer_confidence |>
   roboplot(
     Country, "Consumer confidence indicator","Score","European Commission"
@@ -362,6 +373,7 @@ Zeroline can also take a numeric value which locates the zeroline at the
 given y-axis location.
 
 ``` r
+
 vignette_data_bof_euribor |>
   roboplot(Interest,
            "Short-term interest rates, Euribor",
@@ -371,6 +383,7 @@ vignette_data_bof_euribor |>
 ```
 
 ``` r
+
 vignette_data_bof_db_fed_yields |>
   roboplot(
     Maa,
@@ -386,6 +399,7 @@ For the next plot we need to plot data other than dates as x-axis
 values.
 
 ``` r
+
 vignette_data_ecb_yield_curves|>
   roboplot(
     Time,
@@ -412,6 +426,7 @@ For this plot we also wanted to show the numeric y-axis with logarithmic
 scale.
 
 ``` r
+
 # China housing investment, from National bureau of statistics of China
 # Total Value of Exports, Current Period(1,000 US dollars)
 # https://data.stats.gov.cn/english/easyquery.htm?cn=A01
@@ -451,6 +466,7 @@ Now we only have to check if the png files are in the directory we
 wanted them to be in.
 
 ``` r
+
 
 list.files(str_c(tempdir(),"/plots")) |> 
   str_subset("png$") |> 
