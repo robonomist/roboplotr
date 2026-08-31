@@ -5,7 +5,7 @@ Authors@R:
     person("Antti", "Jäppinen", , "antti@robonomist.com", role = c("aut", "cre"))
 Description: Comprehensive plotly, datatables and leaflet wrapper function
     simplifying the creation and customization of advanced visualizations.
-License: file LICENSE
+License: MIT + file LICENSE
 URL: https://robonomist.github.io/roboplotr/,
     https://github.com/robonomist/roboplotr
 Depends: 

@@ -10,3 +10,4 @@
 ^R/new_robomap\.R$
 ^vignettes/.*\.html$
 ^dev$
+^LICENSE\.md$
